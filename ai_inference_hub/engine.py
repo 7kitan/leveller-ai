@@ -18,7 +18,7 @@ async def run_chandra_on_image(image: Image.Image) -> str:
         image = image.convert("RGB")
         
     # Inference logic (Assuming Florence-2 style API for Chandra-1)
-    prompt = "<DETAILED_CAPTION>" # Example task - replace with actual Chandra prompt if known
+    prompt = "<OCR>" # Example task - replace with actual Chandra prompt if known
     inputs = hub.chandra_processor(text=prompt, images=image, return_tensors="pt").to("cpu")
     
     with torch.no_grad():
@@ -79,26 +79,47 @@ async def process_ocr_task(payload: dict):
         return {"error": str(e)}
 
 async def calculate_bertscore_task(payload: dict):
-    """Heavy task: BERTScore calculation."""
-    cv_skills = payload.get("cv_skills", [])
-    jd_skill = payload.get("jd_skill", "")
+    """Heavy task: BERTScore calculation. Supports single jd_skill or list of jd_skills."""
+    logger.info(f"DEBUG HUB: Received BERTScore Payload keys: {list(payload.keys())}")
     
-    if not cv_skills or not jd_skill:
-        return {"error": "Missing skills for comparison"}
+    cv_skills = payload.get("cv_skills") or payload.get("cv_text") or []
+    jd_skill = payload.get("jd_skill")
+    jd_skills = payload.get("jd_skills") or []
+    
+    # Force wrap single skill into list if plural is missing
+    if jd_skill and not jd_skills:
+        jd_skills = [jd_skill]
+        
+    logger.info(f"DEBUG HUB: CV Skills Count: {len(cv_skills)}, JD Skills Count: {len(jd_skills)}")
+    
+    if not cv_skills or not jd_skills:
+        logger.error(f"DEBUG HUB: Validation Failed. CV: {len(cv_skills)}, JD: {len(jd_skills)}")
+        return {"error": "Missing skills for comparison", "received_keys": list(payload.keys())}
+
+    # If single skill provided, wrap it in a list
+    if jd_skill and not jd_skills:
+        jd_skills = [jd_skill]
 
     try:
-        # BERTScore calculation
-        P, R, F1 = hub.bert_scorer.score(cv_skills, [jd_skill] * len(cv_skills))
+        results = {}
+        for skill in jd_skills:
+            # Parallelize over CV skills using BERTScore's vectorization
+            P, R, F1 = hub.bert_scorer.score(cv_skills, [skill] * len(cv_skills))
+            
+            # Find best match
+            best_idx = F1.argmax().item()
+            best_score = F1[best_idx].item()
+            
+            results[skill] = {
+                "best_match": cv_skills[best_idx],
+                "score": round(best_score, 4),
+                "status": "PASS" if best_score > 0.88 else "PARTIAL" if best_score > 0.70 else "MISSING"
+            }
         
-        # Find best match
-        best_idx = F1.argmax().item()
-        best_score = F1[best_idx].item()
-        
-        return {
-            "best_match": cv_skills[best_idx],
-            "score": round(best_score, 4),
-            "status": "PASS" if best_score > 0.88 else "PARTIAL" if best_score > 0.70 else "MISSING"
-        }
+        # Return object depends on input type
+        if jd_skill and len(jd_skills) == 1:
+            return results[jd_skill]
+        return results
     except Exception as e:
         logger.error(f"BERTScore Error: {e}")
         return {"error": str(e)}
