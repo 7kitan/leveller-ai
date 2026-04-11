@@ -13,8 +13,6 @@ logger = logging.getLogger("ai_engine")
 
 async def run_chandra_on_image(image: Image.Image) -> str:
     """Helper command to run VLM inference on a single PIL Image."""
-    hub.load_chandra()
-    
     # Ensure image is RGB
     if image.mode != "RGB":
         image = image.convert("RGB")
@@ -82,8 +80,6 @@ async def process_ocr_task(payload: dict):
 
 async def calculate_bertscore_task(payload: dict):
     """Heavy task: BERTScore calculation."""
-    hub.load_bertscore()
-    
     cv_skills = payload.get("cv_skills", [])
     jd_skill = payload.get("jd_skill", "")
     

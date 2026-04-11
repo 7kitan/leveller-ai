@@ -5,7 +5,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_KEY = os.getenv("AI_INFERENCE_API_KEY", "team078-secret-key")
+API_KEY = os.getenv("AI_INFERENCE_API_KEY")
+if not API_KEY:
+    raise ValueError("CRITICAL: AI_INFERENCE_API_KEY environment variable is not set!")
 API_KEY_NAME = "X-AI-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 

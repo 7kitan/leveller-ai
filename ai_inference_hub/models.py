@@ -55,5 +55,12 @@ class AIModelHub:
             torch.cuda.empty_cache()
         logger.info("Models unloaded and memory cleared.")
 
+    def load_all(self):
+        """Load all models at startup to avoid delay during requests."""
+        logger.info("Initializing all AI models...")
+        self.load_chandra()
+        self.load_bertscore()
+        logger.info("All AI models loaded successfully.")
+
 # Global instance
 hub = AIModelHub()

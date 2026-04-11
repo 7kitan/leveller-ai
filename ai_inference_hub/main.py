@@ -13,6 +13,9 @@ logger = logging.getLogger("ai_inference_api")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Pre-load all AI models once during startup
+    hub.load_all()
+    
     # Start the background worker
     processors = {
         "ocr": process_ocr_task,
