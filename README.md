@@ -18,12 +18,12 @@
 OPENAI_API_KEY=sk-proj...
 ```
 
-## 4. Khởi động hệ thống
+## 4. Setup Docker backend
 
 1. Mở phần mềm **Docker Desktop** đã cài ở Bước 1 lên và đợi nó khởi động xong.
 2. Mở thư mục dự án, nhấn chuột phải vào khoảng trống và chọn **Open in Terminal (hoặc Open PowerShell Here)**.
 3. Gõ lệnh sau và nhấn Enter:
-    ```bash
+    ```bashP
     cd backend
     docker-compose up -d --build
     ```
