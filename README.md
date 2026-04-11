@@ -1,21 +1,14 @@
-# 🚀 Hướng Dẫn Cài Đặt Dự Án Demo AI
+#  Hướng Dẫn
 
-Chào mừng bạn! Đây là hướng dẫn từng bước cực kỳ chi tiết để bạn có thể tự mình cài đặt và chạy hệ thống AI này, ngay cả khi bạn không phải là dân chuyên về công nghệ.
-
----
 
 ## 1. Chuẩn bị công cụ (Prerequisites)
 
 1.  **Docker Desktop** : [Tải tại đây](https://www.docker.com/products/docker-desktop/)
 2.  **Python** : [Tải tại đây](https://www.python.org/downloads/)
 
----
-
 ## 2. Tải mã nguồn dự án
 
 `git clone https://github.com/a20-ai-thuc-chien/A20-App-078.git`
-
----
 
 ## 3. Thiết lập API Key (OpenAI)
 
@@ -25,8 +18,6 @@ Chào mừng bạn! Đây là hướng dẫn từng bước cực kỳ chi tiế
 ```
 OPENAI_API_KEY=sk-proj...
 ```
-
----
 
 ## 4. Khởi động hệ thống
 
@@ -39,8 +30,6 @@ OPENAI_API_KEY=sk-proj...
     ```
 4. Đợi khoảng 3-5 phút để hệ thống tự động tải và cài đặt. Khi nào xong, bạn sẽ thấy các dòng chữ xanh báo "Started".
 5. Tiếp tục dùng terminal cho bước 5
-
----
 
 ## 5. Nạp dữ liệu vào hệ thống (Seeding)
 
@@ -55,8 +44,6 @@ Bước này giúp ứng dụng có sẵn dữ liệu về công việc và khó
     python scripts/seed_data.py
     ```
 
----
-
 ## 6.Tạo tài khoản Admin
 
 Để đăng nhập vào hệ thống, bạn cần tạo một tài khoản admin:
@@ -67,13 +54,9 @@ Bước này giúp ứng dụng có sẵn dữ liệu về công việc và khó
     ```
     *(Bạn có thể thay đổi email và mật khẩu theo ý muốn)*
 
----
-
 ## Launch
 Truy cập vào địa chỉ: [**http://localhost:3000**](http://localhost:3000)
 Đăng nhập bằng tài khoản bạn vừa tạo ở Bước 6 để bắt đầu sử dụng.
-
----
 
 ## ❓ Xử lý lỗi thường gặp (Troubleshooting)
 
