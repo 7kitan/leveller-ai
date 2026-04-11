@@ -418,7 +418,14 @@ class GapCalculator:
                     "is_mandatory": r_src.is_mandatory,
                     "min_years_exp": getattr(r_src, "min_years_exp", 0)
                 }
-            else: req = r_src
+            else: 
+                req = dict(r_src)
+                # Normalize AI output keys to match the expected format
+                if "skill_name" not in req: req["skill_name"] = req.get("skill", "Unknown Skill")
+                if "required_level" not in req: req["required_level"] = req.get("target_level", "intermediate")
+                if "min_years_exp" not in req: req["min_years_exp"] = req.get("years_required", 0)
+                if "is_mandatory" not in req: req["is_mandatory"] = req.get("is_primary", True)
+                if "importance_weight" not in req: req["importance_weight"] = 5
 
             if "is_primary" not in req: req["is_primary"] = neo4j_client.is_primary_tech(req.get("skill_name", ""))
             is_group = req.get("type") == "group" or "skills" in req
