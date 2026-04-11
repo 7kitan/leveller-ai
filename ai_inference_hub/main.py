@@ -2,10 +2,10 @@ from fastapi import FastAPI, Depends, BackgroundTasks, HTTPException
 from contextlib import asynccontextmanager
 import asyncio
 import logging
-from .auth import get_api_key
-from .worker import worker
-from .engine import process_ocr_task, calculate_bertscore_task
-from .models import hub
+from auth import get_api_key
+from worker import worker
+from engine import process_ocr_task, calculate_bertscore_task
+from models import hub
 
 # Logging Setup
 logging.basicConfig(level=logging.INFO)

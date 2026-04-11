@@ -46,10 +46,10 @@ PORT=8080
 ### 4. Running the Service
 ```bash
 # Local development
-uvicorn ai_inference_hub.main:app --host 0.0.0.0 --port 8080
+uvicorn main:app --host 0.0.0.0 --port 8080
 
 # Production (using PM2)
-pm2 start "uvicorn ai_inference_hub.main:app --host 0.0.0.0 --port 8080" --name ai-hub
+pm2 start "uvicorn main:app --host 0.0.0.0 --port 8080" --name ai-hub
 ```
 
 ## 🚥 API Reference

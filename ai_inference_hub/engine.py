@@ -1,5 +1,5 @@
 import torch
-from .models import hub
+from models import hub
 import logging
 from PIL import Image
 import io
