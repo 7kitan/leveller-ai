@@ -27,6 +27,7 @@ interface CVData {
   summary: string;
   experience_years_total: number;
   status: string;
+  error_message: string | null;
   skills: Skill[];
 }
 
@@ -34,6 +35,7 @@ interface CVListItem {
   id: string;
   full_name: string | null;
   status: string;
+  error_message: string | null;
   created_at: string;
 }
 
@@ -182,6 +184,11 @@ export default function UserCVPage() {
         setCvData(res.data);
         setStatus("completed");
         fetchCVList();
+      } else if (res.data.status === "failed") {
+        setCvData(res.data);
+        setStatus("idle");
+        setError(res.data.error_message || "Xử lý CV thất bại.");
+        fetchCVList();
       }
       return res.data;
     } catch (err) {
@@ -256,7 +263,7 @@ export default function UserCVPage() {
                   >
                     <input 
                       type="file" 
-                      accept=".pdf" 
+                      accept=".pdf,.png,.jpg,.jpeg,.webp,.bmp" 
                       className="absolute inset-0 cursor-pointer opacity-0"
                       onChange={handleFileChange}
                     />
@@ -266,7 +273,7 @@ export default function UserCVPage() {
                     <h3 className="text-xl font-bold text-white">
                       {file ? file.name : "Tải lên hồ sơ nghề nghiệp"}
                     </h3>
-                    <p className="text-sm text-white/30 font-medium mt-2">Định dạng PDF. Dung lượng tối đa 10MB.</p>
+                    <p className="text-sm text-white/30 font-medium mt-2">PDF hoặc Ảnh (PNG, JPG, ...). Tối đa 10MB.</p>
                   </div>
 
                   {error && (
@@ -346,6 +353,12 @@ export default function UserCVPage() {
                 Lumix AI đang chuẩn hóa hồ sơ của bạn vào Knowledge Graph để tìm ra các vị trí phù hợp nhất trên thị trường.
               </p>
             </div>
+            {cvData?.error_message && (
+              <div className="max-w-md mx-auto p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-sm font-bold">
+                <AlertCircle className="w-4 h-4 inline mr-2" />
+                Lỗi: {cvData.error_message}
+              </div>
+            )}
             <div className="flex justify-center space-x-3">
                {[0, 1, 2].map(i => (
                  <motion.div 

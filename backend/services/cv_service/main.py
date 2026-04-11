@@ -83,7 +83,7 @@ async def list_user_cvs(request: Request, db: Session = Depends(get_db)):
     
     user_id = uuid.UUID(user_id_str)
     cvs = db.query(UserCV).filter(UserCV.user_id == user_id).order_by(UserCV.created_at.desc()).all()
-    return [{"id": str(cv.id), "full_name": cv.full_name, "status": cv.status, "created_at": cv.created_at} for cv in cvs]
+    return [{"id": str(cv.id), "full_name": cv.full_name, "status": cv.status, "error_message": cv.error_message, "created_at": cv.created_at} for cv in cvs]
 
 @app.get("/cv/admin/all")
 async def admin_list_all_cvs(request: Request, db: Session = Depends(get_db)):
@@ -174,6 +174,7 @@ async def get_cv_detail(cv_id: str, db: Session = Depends(get_db)):
         "summary": cv.summary,
         "experience_years_total": cv.experience_years_total,
         "status": cv.status,
+        "error_message": cv.error_message,
         "skills": [
             {
                 "id": str(sp.id),

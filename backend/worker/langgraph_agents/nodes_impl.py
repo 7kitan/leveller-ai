@@ -7,6 +7,7 @@ import re
 from typing import Dict, Any
 from dotenv import load_dotenv
 from shared.taxonomy_service import taxonomy_service
+import httpx
 
 load_dotenv()
 
@@ -169,3 +170,32 @@ async def parse_with_llm(text: str) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"{LLM_PROVIDER.upper()} parsing error: {e}")
         return {}
+
+async def compute_bert_score(text1: str, text2: str) -> Dict[str, Any]:
+    """
+    Gọi BERTScore API để đánh giá mức độ tương đồng ngữ nghĩa giữa 2 văn bản.
+    Sử dụng BERTSCORE_API_URL và BERTSCORE_API_KEY từ .env.
+    """
+    api_url = os.getenv("BERTSCORE_API_URL")
+    api_key = os.getenv("BERTSCORE_API_KEY")
+
+    if not api_url:
+        logger.warning("BERTSCORE_API_URL not set. Skipping BERTScore calculation.")
+        return {"f1": 0, "precision": 0, "recall": 0, "error": "API URL not set"}
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            payload = {
+                "text1": text1,
+                "text2": text2
+            }
+            headers = {}
+            if api_key:
+                headers["X-Api-Key"] = api_key
+
+            response = await client.post(api_url, json=payload, headers=headers)
+            response.raise_for_status()
+            return response.json()
+    except Exception as e:
+        logger.error(f"Error calling BERTScore API: {e}")
+        return {"f1": 0, "error": str(e)}

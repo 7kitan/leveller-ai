@@ -1,0 +1,19 @@
+# AI Inference Dependencies
+# Optimized for 4 Core / 8GB RAM
+
+fastapi==0.110.0
+uvicorn==0.27.1
+python-dotenv==1.0.1
+pydantic==2.6.1
+python-multipart==0.0.9
+
+# ML Stack (CPU Optimized)
+torch==2.2.1 --index-url https://download.pytorch.org/whl/cpu
+transformers==4.38.1
+bert-score==0.3.13
+accelerate==0.27.2
+bitsandbytes==0.42.0
+peft==0.8.2
+Pillow==10.2.0
+numpy==1.26.4
+pdf2image==1.17.0

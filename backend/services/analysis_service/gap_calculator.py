@@ -15,6 +15,7 @@ import re
 import hashlib
 from datetime import datetime
 from typing import List, Dict, Any, Optional
+import httpx # Dùng cho BERTScore API call
 
 # Cấu hình logging
 logger = logging.getLogger("gap_calculator")
@@ -396,8 +397,31 @@ class GapCalculator:
         user_max_years = max([s["years"] for s in user_skill_map_name.values()] + [0])
         user_role = self._detect_user_role(cv_id)
 
+        # --- NEW: BERTScore Semantic Matching (API Call) ---
+        bert_score_result = {"f1": 0, "status": "skipped"}
+        cv_obj = self.db.query(UserCV).filter(UserCV.id == uuid.UUID(cv_id)).first()
+        
+        # Lấy JD text (giả định requirements_source được bóc tách từ 1 JD nào đó)
+        # Trong thực tế, JD text thường có sẵn trong requirements_source metadata hoặc truyền từ task
+        jd_text = None
+        # Thử tìm JD từ DB nếu có job_id liên quan (Sẽ truyền qua context ở level cao hơn nếu cần)
+        
+        # Nếu đã có cv_obj.raw_text và jd_text, chúng ta gọi BERTScore API
+        # Ở đây tôi sẽ implement helper gọi API trực tiếp để tránh circular import phức tạp
+        async def _call_bertscore(cv_text, jd_text):
+            api_url = os.getenv("BERTSCORE_API_URL")
+            api_key = os.getenv("BERTSCORE_API_KEY")
+            if not api_url or not cv_text or not jd_text: return None
+            try:
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    resp = await client.post(api_url, json={"text1": cv_text, "text2": jd_text}, 
+                                             headers={"X-Api-Key": api_key} if api_key else {})
+                    return resp.json()
+            except: return None
+            
         results = {
-            "overall_match_pct": 0, 
+            "overall_match_pct": 0,
+            "bert_semantic_score": 0, # Metric mới
             "breakdown": {"met": [], "gap": [], "partial": []}, 
             "recommendations": [], 
             "seniority_report": [],
@@ -543,6 +567,24 @@ class GapCalculator:
         
         results["overall_match_pct"] = final_match
         
+        # --- Final Update for BERTScore ---
+        # Logic: Nếu JD text được xác định (ví dụ từ job list đầu tiên)
+        # Chúng ta thử lấy JD text từ job liên quan
+        job_id_found = None
+        for r in requirements_source:
+             if isinstance(r, dict) and r.get("job_id"): 
+                 job_id_found = r.get("job_id")
+                 break
+        
+        if job_id_found:
+            job_obj = self.db.query(Job).filter(Job.id == uuid.UUID(str(job_id_found))).first()
+            if job_obj and job_obj.raw_text and cv_obj and cv_obj.raw_text:
+                logger.info(f"Triggering BERTScore API for JD context...")
+                b_res = await _call_bertscore(cv_obj.raw_text, job_obj.raw_text)
+                if b_res:
+                    results["bert_semantic_score"] = round(b_res.get("f1", 0) * 100, 1)
+                    results["notes"].append(f"Semantic Alignment (BERTScore): {results['bert_semantic_score']}%")
+
         # Sắp xếp và làm sạch recommendations
         seen_courses = set()
         clean_recs = []

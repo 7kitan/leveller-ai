@@ -52,7 +52,7 @@ const UserDashboard = () => {
                 </div>
                 <div className="text-center">
                     <h3 className="text-lg font-bold text-white mb-1">Cập nhật CV mới nhất</h3>
-                    <p className="text-xs text-white/30 font-medium">Kéo thả hoặc bấm để upload file (PDF, DOCX)</p>
+                    <p className="text-xs text-white/30 font-medium">Kéo thả hoặc bấm để upload file (PDF hoặc Ảnh)</p>
                 </div>
                 <Link 
                   href="/user/cv"

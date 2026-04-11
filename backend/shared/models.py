@@ -29,10 +29,12 @@ class UserCV(Base):
     
     full_name = Column(String(255))
     summary = Column(Text)
+    raw_text = Column(Text) # Lưu trữ văn bản thô sau khi OCR (Markdown/Text)
     experience_years_total = Column(Float, default=0)
     file_hash = Column(String(64), index=True) # SHA256 hash của file
     
     status = Column(String(20), default="processing") # processing, completed, failed
+    error_message = Column(Text) # Lưu trữ thông báo lỗi chi tiết để hiển thị cho người dùng
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

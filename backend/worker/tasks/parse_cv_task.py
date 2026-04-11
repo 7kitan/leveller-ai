@@ -45,6 +45,7 @@ def parse_cv(user_id: str, cv_id: str, file_path: str):
                 # Cập nhật thông tin bóc tách
                 cv_record.full_name = parsed_data.get("full_name")
                 cv_record.summary = parsed_data.get("summary")
+                cv_record.raw_text = result.get("raw_text") # Lưu bản thô
                 cv_record.experience_years_total = parsed_data.get("experience_years_total", 0)
                 cv_record.status = "completed"
 
@@ -117,11 +118,12 @@ def parse_cv(user_id: str, cv_id: str, file_path: str):
             error_msg = result.get("error", "Unknown error during parsing")
             logging.error(f"Pipeline failed: {error_msg}")
             
-            # Cập nhật trạng thái failed vào DB
+            # Cập nhật trạng thái failed vào DB kèm thông báo lỗi
             db = SessionLocal()
             cv_record = db.query(UserCV).filter(UserCV.id == uuid.UUID(cv_id)).first()
             if cv_record:
                 cv_record.status = "failed"
+                cv_record.error_message = error_msg
                 db.commit()
             db.close()
             
