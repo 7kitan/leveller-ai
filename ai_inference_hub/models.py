@@ -24,6 +24,22 @@ class AIModelHub:
         if self.chandra_model is None:
             logger.info(f"Loading Chandra from {self.chandra_path}...")
             # Using 4-bit quantization if possible, else low memory usage
+            # Monkeypatch dynamic_module_utils to bypass aggressive AST flash_attn check on CPU
+            from transformers.dynamic_module_utils import get_imports
+            import transformers.dynamic_module_utils
+            original_check = transformers.dynamic_module_utils.check_imports
+            
+            def check_imports_bypass(filename):
+                try:
+                    return original_check(filename)
+                except ImportError as e:
+                    if "flash_attn" in str(e):
+                        logger.warning("Bypassing flash_attn requirement check on CPU...")
+                        return []
+                    raise e
+                    
+            transformers.dynamic_module_utils.check_imports = check_imports_bypass
+            
             try:
                 self.chandra_model = AutoModelForCausalLM.from_pretrained(
                     self.chandra_path,
