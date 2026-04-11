@@ -60,6 +60,32 @@ const AdminCVPage = () => {
     fetchCVs();
   }, []);
 
+  const handleDeleteCV = async (cvId: string) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa hồ sơ này? Hành động này không thể hoàn tác.")) return;
+
+    try {
+      const res = await fetch(`/api/cv/${cvId}`, {
+        method: "DELETE",
+        headers: {
+          "X-Is-Admin": "true",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to delete CV");
+      }
+
+      toast.success("Đã xóa hồ sơ thành công");
+      // Cập nhật state local
+      setCvs(prev => prev.filter(cv => cv.id !== cvId));
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Lỗi khi xóa hồ sơ");
+    }
+  };
+
   const filteredCVs = cvs.filter(cv => {
     const matchesSearch = 
       cv.user_email.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -226,7 +252,11 @@ const AdminCVPage = () => {
                           >
                             <ExternalLink size={18} />
                           </Link>
-                          <button className="p-2 hover:bg-red-500/10 rounded-lg text-white/20 hover:text-red-400 transition-all">
+                          <button 
+                            onClick={() => handleDeleteCV(cv.id)}
+                            className="p-2 hover:bg-red-500/10 rounded-lg text-white/20 hover:text-red-400 transition-all"
+                            title="Delete CV"
+                          >
                              <Trash2 size={18} />
                           </button>
                        </div>
