@@ -6,15 +6,19 @@ import axios from "axios";
 import { 
   Upload, FileText, CheckCircle2, Loader2, AlertCircle, 
   User, Briefcase, Sparkles, ArrowRight, RefreshCcw,
-  Clock, History, Eye, Trash2, ShieldCheck, ChevronRight
+  Clock, History, Eye, Trash2, ShieldCheck, ChevronRight,
+  Edit2, Plus, Save, X, Trash
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 
 interface Skill {
+  id: string;
+  skill_id: string;
   name: string;
   category: string;
   years_exp: number;
+  level: string;
 }
 
 interface CVData {
@@ -42,6 +46,13 @@ export default function UserCVPage() {
   const [status, setStatus] = useState<"idle" | "uploading" | "processing" | "completed" | "error">("idle");
   const [error, setError] = useState("");
   
+  // Edit states
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTotalExp, setEditTotalExp] = useState<number>(0);
+  const [newSkill, setNewSkill] = useState({ name: "", years_exp: 0, level: "Mid-level" });
+  const [isAddingSkill, setIsAddingSkill] = useState(false);
+  const [saving, setSaving] = useState(false);
+  
   const { token } = useAuth();
   const API_BASE = "/api/cv";
 
@@ -59,6 +70,63 @@ export default function UserCVPage() {
       setCvList(res.data);
     } catch (err) {
       console.error("Lỗi lấy danh sách CV:", err);
+    }
+  };
+
+  const handleUpdateTotalExp = async () => {
+    if (!cvData) return;
+    setSaving(true);
+    try {
+      await axios.patch(`${API_BASE}/${cvData.id}`, {
+        experience_years_total: editTotalExp
+      }, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      await fetchCVDetail(cvData.id);
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Lỗi cập nhật kinh nghiệm:", err);
+      alert("Không thể cập nhật kinh nghiệm.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddSkill = async () => {
+    if (!cvData || !newSkill.name) return;
+    setSaving(true);
+    try {
+      await axios.post(`${API_BASE}/${cvData.id}/skills`, {
+        skill_name: newSkill.name,
+        years_exp: newSkill.years_exp,
+        level: newSkill.level
+      }, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      await fetchCVDetail(cvData.id);
+      setNewSkill({ name: "", years_exp: 0, level: "Mid-level" });
+      setIsAddingSkill(false);
+    } catch (err) {
+      console.error("Lỗi thêm kỹ năng:", err);
+      alert("Không thể thêm kỹ năng.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteSkill = async (profileId: string) => {
+    if (!cvData || !confirm("Bạn có chắc chắn muốn xóa kỹ năng này?")) return;
+    setSaving(true);
+    try {
+      await axios.delete(`${API_BASE}/${cvData.id}/skills/${profileId}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      await fetchCVDetail(cvData.id);
+    } catch (err) {
+      console.error("Lỗi xóa kỹ năng:", err);
+      alert("Không thể xóa kỹ năng.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -140,6 +208,7 @@ export default function UserCVPage() {
     setCvData(null);
     setStatus("idle");
     setError("");
+    setIsEditing(false);
   };
 
   const formatDate = (dateStr: string) => {
@@ -307,9 +376,44 @@ export default function UserCVPage() {
                     <div>
                         <h2 className="text-4xl font-black text-white tracking-tighter uppercase">{cvData?.full_name || "PROFILE MỚI"}</h2>
                         <div className="flex items-center mt-2 gap-4">
-                            <span className="flex items-center gap-2 text-emerald-400 text-xs font-black uppercase tracking-widest">
-                                <Briefcase className="w-4 h-4" /> {cvData?.experience_years_total.toFixed(1)} NĂM KINH NGHIỆM
-                            </span>
+                            {isEditing ? (
+                                <div className="flex items-center gap-2">
+                                    <input 
+                                        type="number" 
+                                        step="0.1"
+                                        value={editTotalExp}
+                                        onChange={(e) => setEditTotalExp(parseFloat(e.target.value))}
+                                        className="bg-white/5 border border-white/10 rounded-lg px-3 py-1 text-emerald-400 font-black w-20 outline-none focus:border-emerald-500/50"
+                                    />
+                                    <span className="text-emerald-400 text-xs font-black uppercase tracking-widest">NĂM KINH NGHIỆM</span>
+                                    <button 
+                                        onClick={handleUpdateTotalExp}
+                                        disabled={saving}
+                                        className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition-all"
+                                    >
+                                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                    </button>
+                                    <button 
+                                        onClick={() => setIsEditing(false)}
+                                        className="p-1.5 bg-white/5 text-white/40 rounded-lg hover:bg-white/10 transition-all"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <span className="flex items-center gap-2 text-emerald-400 text-xs font-black uppercase tracking-widest">
+                                    <Briefcase className="w-4 h-4" /> {cvData?.experience_years_total.toFixed(1)} NĂM KINH NGHIỆM
+                                    <button 
+                                        onClick={() => {
+                                            setEditTotalExp(cvData?.experience_years_total || 0);
+                                            setIsEditing(true);
+                                        }}
+                                        className="ml-2 p-1 hover:bg-white/5 rounded-md transition-all text-white/20 hover:text-white"
+                                    >
+                                        <Edit2 className="w-3 h-3" />
+                                    </button>
+                                </span>
+                            )}
                             <div className="w-1 h-1 rounded-full bg-white/20"></div>
                             <span className="text-white/40 text-xs font-bold uppercase tracking-widest">Đã chuẩn hóa qua Graph</span>
                         </div>
@@ -346,20 +450,62 @@ export default function UserCVPage() {
                     </h4>
                     <div className="flex flex-wrap gap-3">
                         {cvData?.skills.map((skill, idx) => (
-                            <motion.span 
+                            <motion.div 
                                 key={idx}
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: idx * 0.03 }}
-                                className={`px-5 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all hover:scale-105 cursor-default
+                                className={`group/skill relative px-5 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all hover:scale-105 cursor-default flex items-center gap-2
                                     ${skill.category === 'Backend' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 
                                     skill.category === 'Frontend' ? 'bg-pink-500/10 border-pink-500/20 text-pink-400' :
                                     skill.category === 'Cloud & DevOps' ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' :
                                     'bg-white/5 border-white/10 text-white/50'}`}
                             >
-                                {skill.name} <span className="ml-1 opacity-40 font-bold italic">({skill.years_exp}y)</span>
-                            </motion.span>
+                                {skill.name} <span className="opacity-40 font-bold italic">({skill.years_exp}y)</span>
+                                
+                                <button 
+                                    onClick={() => handleDeleteSkill(skill.id)}
+                                    className="opacity-0 group-hover/skill:opacity-100 ml-1 p-1 hover:bg-rose-500/20 text-rose-500 rounded transition-all"
+                                >
+                                    <Trash2 className="w-3 h-3" />
+                                </button>
+                            </motion.div>
                         ))}
+
+                        {isAddingSkill ? (
+                             <motion.div 
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2"
+                             >
+                                <input 
+                                    placeholder="Tên kỹ năng..." 
+                                    value={newSkill.name}
+                                    onChange={e => setNewSkill({...newSkill, name: e.target.value})}
+                                    className="bg-transparent border-none outline-none text-[11px] font-black uppercase w-28 text-white"
+                                />
+                                <input 
+                                    type="number" 
+                                    placeholder="Năm" 
+                                    value={newSkill.years_exp || ""}
+                                    onChange={e => setNewSkill({...newSkill, years_exp: parseFloat(e.target.value) || 0})}
+                                    className="bg-transparent border-none outline-none text-[11px] font-black w-10 text-cyan-400"
+                                />
+                                <button onClick={handleAddSkill} disabled={saving} className="text-emerald-400 hover:text-emerald-300">
+                                    {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                                </button>
+                                <button onClick={() => setIsAddingSkill(false)} className="text-white/40 hover:text-white">
+                                    <X className="w-4 h-4" />
+                                </button>
+                             </motion.div>
+                        ) : (
+                            <button 
+                                onClick={() => setIsAddingSkill(true)}
+                                className="px-5 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider border border-white/5 bg-white/3 text-white/40 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2"
+                            >
+                                <Plus className="w-3 h-3" /> Bổ sung kỹ năng
+                            </button>
+                        )}
                     </div>
                 </div>
                 

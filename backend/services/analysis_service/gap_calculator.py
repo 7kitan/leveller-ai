@@ -529,9 +529,13 @@ class GapCalculator:
             final_match = (m_pct * 0.8) + (o_pct * 0.2)
             # Penalty nếu thiếu Mandatory: Trừ tối đa 20% tổng điểm thay vì khóa cứng
             if any_mandatory_gap:
-                num_mandatory = len([r for r in requirements_source if r.get("is_mandatory", True)])
+                def is_m(r):
+                    if isinstance(r, dict): return r.get("is_mandatory") or r.get("is_primary") or False
+                    return getattr(r, "is_mandatory", False)
+                
+                num_mandatory = len([r for r in requirements_source if is_m(r)])
                 num_missing = len(results["breakdown"]["gap"])
-                penalty = (num_missing / num_mandatory) * 20
+                penalty = (num_missing / num_mandatory * 20) if num_mandatory > 0 else 0
                 final_match = max(final_match - penalty, 15.0) # Không bao giờ xuống dưới 15% nếu vẫn có kỹ năng khớp
             
             final_match = round(final_match, 1)

@@ -86,6 +86,7 @@ class Skill(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(200), unique=True, nullable=False)
+    category = Column(String(100))
     parent_skill_id = Column(UUID(as_uuid=True), ForeignKey("skills.id"))
     vector = Column(Vector(1536))
 

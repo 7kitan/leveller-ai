@@ -7,7 +7,23 @@ import uuid
 import os
 import hashlib
 import logging
-from typing import List
+from typing import List, Optional
+from pydantic import BaseModel
+
+class SkillCreate(BaseModel):
+    skill_name: str
+    years_exp: float = 0.0
+    level: str = "Mid-level"
+    category: Optional[str] = "Other"
+
+class SkillUpdate(BaseModel):
+    years_exp: Optional[float] = None
+    level: Optional[str] = None
+
+class CVUpdate(BaseModel):
+    full_name: Optional[str] = None
+    summary: Optional[str] = None
+    experience_years_total: Optional[float] = None
 
 app = FastAPI(title="CV Service")
 
@@ -122,6 +138,26 @@ async def delete_cv(cv_id: str, request: Request, db: Session = Depends(get_db))
     db.commit()
     return {"message": "Successfully deleted CV and associated data."}
 
+@app.patch("/cv/{cv_id}")
+async def update_cv_metadata(cv_id: str, payload: CVUpdate, request: Request, db: Session = Depends(get_db)):
+    """Cập nhật thông tin cơ bản của CV."""
+    user_id_str = request.headers.get("X-User-ID")
+    if not user_id_str:
+        raise HTTPException(status_code=401, detail="Authentication required")
+        
+    cv = db.query(UserCV).filter(UserCV.id == uuid.UUID(cv_id)).first()
+    if not cv: raise HTTPException(status_code=404, detail="CV not found")
+    
+    if not is_admin(request) and str(cv.user_id) != user_id_str:
+        raise HTTPException(status_code=403, detail="Not authorized")
+        
+    if payload.full_name is not None: cv.full_name = payload.full_name
+    if payload.summary is not None: cv.summary = payload.summary
+    if payload.experience_years_total is not None: cv.experience_years_total = payload.experience_years_total
+    
+    db.commit()
+    return {"message": "CV updated successfully", "cv": {"full_name": cv.full_name, "experience_years_total": cv.experience_years_total}}
+
 @app.get("/cv/{cv_id}")
 async def get_cv_detail(cv_id: str, db: Session = Depends(get_db)):
     cv_uuid = uuid.UUID(cv_id)
@@ -138,9 +174,97 @@ async def get_cv_detail(cv_id: str, db: Session = Depends(get_db)):
         "summary": cv.summary,
         "experience_years_total": cv.experience_years_total,
         "status": cv.status,
-        "skills": [{"name": n, "category": c, "years_exp": sp.years_exp} for sp, n, c in skills_profiles],
+        "skills": [
+            {
+                "id": str(sp.id),
+                "skill_id": str(sp.skill_id),
+                "name": n,
+                "category": c,
+                "years_exp": sp.years_exp,
+                "level": sp.level
+            } for sp, n, c in skills_profiles
+        ],
         "created_at": cv.created_at
     }
+
+@app.post("/cv/{cv_id}/skills")
+async def add_cv_skill(cv_id: str, payload: SkillCreate, request: Request, db: Session = Depends(get_db)):
+    user_id_str = request.headers.get("X-User-ID")
+    if not user_id_str:
+        raise HTTPException(status_code=401, detail="Authentication required")
+        
+    cv = db.query(UserCV).filter(UserCV.id == uuid.UUID(cv_id)).first()
+    if not cv: raise HTTPException(status_code=404, detail="CV not found")
+    if not is_admin(request) and str(cv.user_id) != user_id_str:
+        raise HTTPException(status_code=403, detail="Not authorized")
+        
+    s_name = payload.skill_name.strip()
+    if not s_name: raise HTTPException(status_code=400, detail="Skill name cannot be empty")
+    s_name_cap = s_name.title() if len(s_name) > 3 else s_name.upper()
+    
+    skill = db.query(Skill).filter(Skill.name.ilike(s_name)).first()
+    if not skill:
+        skill = Skill(id=uuid.uuid4(), name=s_name_cap, category=payload.category)
+        db.add(skill)
+        db.commit()
+        db.refresh(skill)
+        
+    existing = db.query(UserSkillProfile).filter(UserSkillProfile.cv_id == cv.id, UserSkillProfile.skill_id == skill.id).first()
+    if existing:
+        existing.years_exp = payload.years_exp
+        existing.level = payload.level
+    else:
+        new_prof = UserSkillProfile(
+            id=uuid.uuid4(),
+            user_id=cv.user_id, 
+            cv_id=cv.id,
+            skill_id=skill.id,
+            years_exp=payload.years_exp,
+            level=payload.level,
+            source="manual"
+        )
+        db.add(new_prof)
+    
+    db.commit()
+    return {"message": "Skill added successfully"}
+
+@app.put("/cv/{cv_id}/skills/{profile_id}")
+async def update_cv_skill(cv_id: str, profile_id: str, payload: SkillUpdate, request: Request, db: Session = Depends(get_db)):
+    user_id_str = request.headers.get("X-User-ID")
+    if not user_id_str:
+        raise HTTPException(status_code=401, detail="Authentication required")
+        
+    cv = db.query(UserCV).filter(UserCV.id == uuid.UUID(cv_id)).first()
+    if not cv: raise HTTPException(status_code=404, detail="CV not found")
+    if not is_admin(request) and str(cv.user_id) != user_id_str:
+        raise HTTPException(status_code=403, detail="Not authorized")
+        
+    prof = db.query(UserSkillProfile).filter(UserSkillProfile.id == uuid.UUID(profile_id), UserSkillProfile.cv_id == cv.id).first()
+    if not prof: raise HTTPException(status_code=404, detail="Skill profile not found")
+    
+    if payload.years_exp is not None: prof.years_exp = payload.years_exp
+    if payload.level: prof.level = payload.level
+    
+    db.commit()
+    return {"message": "Skill updated successfully"}
+
+@app.delete("/cv/{cv_id}/skills/{profile_id}")
+async def delete_cv_skill(cv_id: str, profile_id: str, request: Request, db: Session = Depends(get_db)):
+    user_id_str = request.headers.get("X-User-ID")
+    if not user_id_str:
+        raise HTTPException(status_code=401, detail="Authentication required")
+        
+    cv = db.query(UserCV).filter(UserCV.id == uuid.UUID(cv_id)).first()
+    if not cv: raise HTTPException(status_code=404, detail="CV not found")
+    if not is_admin(request) and str(cv.user_id) != user_id_str:
+        raise HTTPException(status_code=403, detail="Not authorized")
+        
+    prof = db.query(UserSkillProfile).filter(UserSkillProfile.id == uuid.UUID(profile_id), UserSkillProfile.cv_id == cv.id).first()
+    if not prof: raise HTTPException(status_code=404, detail="Skill profile not found")
+    
+    db.delete(prof)
+    db.commit()
+    return {"message": "Skill deleted successfully"}
 
 @app.get("/cv/status/{task_id}")
 async def get_cv_status(task_id: str):
