@@ -1,7 +1,7 @@
 import torch
 import gc
 import logging
-from transformers import AutoModel, AutoTokenizer, AutoProcessor
+from transformers import AutoModel, AutoModelForCausalLM, AutoTokenizer, AutoProcessor
 from bert_score import BERTScorer
 import os
 from dotenv import load_dotenv
@@ -25,7 +25,7 @@ class AIModelHub:
             logger.info(f"Loading Chandra from {self.chandra_path}...")
             # Using 4-bit quantization if possible, else low memory usage
             try:
-                self.chandra_model = AutoModel.from_pretrained(
+                self.chandra_model = AutoModelForCausalLM.from_pretrained(
                     self.chandra_path,
                     trust_remote_code=True,
                     torch_dtype=torch.float32, # CPU usually likes float32 or bfloat16
