@@ -1,7 +1,7 @@
 from worker.celery_app import celery_app
 from shared.database import SessionLocal
 from services.analysis_service.gap_calculator import GapCalculator
-from shared.models import JobSkillRequirement, UserAnalysis
+from shared.models import JobSkillRequirement, UserAnalysis, Job
 from sqlalchemy.orm import joinedload
 import logging
 import asyncio
