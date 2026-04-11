@@ -37,14 +37,14 @@ class CourseRecommender:
                 logger.info(f"Skill '{primary_term}' not in taxonomy. Generating semantic vector...")
                 target_vector = get_embedding(primary_term)
 
-            if target_vector:
+            if target_vector and len(target_vector) > 0:
                 # Tìm kiếm Vector Similarity trực tiếp trên bảng courses
                 query = text("""
                     SELECT id, title, platform, url, level, is_certification, provider,
-                           1 - (vector <=> :skill_vector) as similarity
+                           1 - (vector <=> :skill_vector::vector) as similarity
                     FROM courses
                     WHERE vector IS NOT NULL
-                    ORDER BY (1 - (vector <=> :skill_vector)) DESC
+                    ORDER BY (1 - (vector <=> :skill_vector::vector)) DESC
                     LIMIT :limit
                 """)
                 params = {"skill_vector": target_vector, "limit": limit * 5}
@@ -95,5 +95,6 @@ class CourseRecommender:
             return [c["course"] for c in scored_courses[:limit]]
             
         except Exception as e:
+            self.db.rollback()
             logger.error(f"Recommendation Error: {e}")
             return []
