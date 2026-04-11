@@ -1,6 +1,5 @@
 #  Hướng Dẫn
 
-
 ## 1. Chuẩn bị công cụ (Prerequisites)
 
 1.  **Docker Desktop** : [Tải tại đây](https://www.docker.com/products/docker-desktop/)
@@ -55,11 +54,5 @@ Bước này giúp ứng dụng có sẵn dữ liệu về công việc và khó
     *(Bạn có thể thay đổi email và mật khẩu theo ý muốn)*
 
 ## Launch
-Truy cập vào địa chỉ: [**http://localhost:3000**](http://localhost:3000)
+Truy cập vào địa chỉ: [**http://localhost:3000**](http://localhost:3000).
 Đăng nhập bằng tài khoản bạn vừa tạo ở Bước 6 để bắt đầu sử dụng.
-
-## ❓ Xử lý lỗi thường gặp (Troubleshooting)
-
-- **Lỗi "Docker not found"**: Hãy chắc chắn bạn đã mở phần mềm Docker Desktop lên.
-- **Lỗi không chạy được lệnh python**: Khi cài đặt Python, hãy nhớ tích vào ô **"Add Python to PATH"**.
-- **Lỗi AI không phản hồi**: Kiểm tra lại file `.env` xem mã OpenAI Key đã dán đúng chưa và tài khoản của bạn còn hạn mức sử dụng không.
