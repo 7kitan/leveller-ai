@@ -17,10 +17,12 @@ import {
   LogOut
 } from "lucide-react";
 import AuthGuard from "@/components/auth/AuthGuard";
+import { useAuth } from "@/context/AuthContext";
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const { logout } = useAuth();
 
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -97,12 +99,15 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
               })}
             </nav>
 
-            {/* User Info / Logout */}
+            {/* Logout Button */}
             <div className="mt-auto border-t border-white/5 pt-6 pb-2">
-              <Link href="/user/dashboard" className="flex items-center gap-4 px-4 py-3 rounded-2xl hover:bg-white/5 transition-all text-slate-400 hover:text-white group">
-                <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" />
-                {isSidebarOpen && <span className="text-sm font-bold">Quay lại Portal</span>}
-              </Link>
+              <button 
+                onClick={logout} 
+                className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl hover:bg-rose-500/10 transition-all text-slate-400 hover:text-rose-400 group"
+              >
+                <LogOut size={20} className="group-hover:translate-x-1 transition-transform" />
+                {isSidebarOpen && <span className="text-sm font-bold">Đăng xuất</span>}
+              </button>
             </div>
           </div>
         </aside>
