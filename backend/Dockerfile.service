@@ -1,0 +1,28 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Cài đặt các thư viện hệ thống cần thiết
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements và cài đặt dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Thiết lập biến môi trường để Python tìm thấy các module trong /app
+ENV PYTHONPATH=/app
+
+# Copy mã nguồn (Giữ nguyên cấu trúc thư mục)
+COPY shared/ ./shared/
+COPY gateway/ ./gateway/
+COPY services/ ./services/
+COPY worker/ ./worker/
+
+# Mặc định sử dụng biến môi trường để quyết định module chạy
+# Giá trị này sẽ được ghi đè trong docker-compose.yml
+ENV APP_MODULE=gateway.main:app
+
+CMD ["sh", "-c", "uvicorn ${APP_MODULE} --host 0.0.0.0 --port 8000"]

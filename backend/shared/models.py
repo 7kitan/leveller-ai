@@ -1,0 +1,151 @@
+from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, ForeignKey, Text, BigInteger, JSON
+from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from pgvector.sqlalchemy import Vector
+from sqlalchemy.sql import func
+import uuid
+from .database import Base
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    full_name = Column(String(255))
+    is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class UserCV(Base):
+    __tablename__ = "user_cvs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
+    file_id = Column(String(100), unique=True) # ID từ storage (MinIO/Local)
+    
+    full_name = Column(String(255))
+    summary = Column(Text)
+    experience_years_total = Column(Float, default=0)
+    file_hash = Column(String(64), index=True) # SHA256 hash của file
+    
+    status = Column(String(20), default="processing") # processing, completed, failed
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class Job(Base):
+    __tablename__ = "jobs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    source_id = Column(String(100), unique=True, nullable=False)
+    title_raw = Column(Text, nullable=False)
+    title_category = Column(String(100))
+    domain_role = Column(String(100))
+    company_name = Column(String(255))
+    source_url = Column(Text)
+    source_label = Column(String(100))
+    raw_text = Column(Text)
+    
+    min_salary_vnd = Column(BigInteger)
+    max_salary_vnd = Column(BigInteger)
+    required_exp_years = Column(Float)
+    employment_type = Column(String(50))
+    
+    location_raw = Column(Text)
+    location_normalized = Column(String(100))
+    location_district = Column(String(100))
+    
+    status = Column(String(20), nullable=False, default="active")
+    
+    embedding_context = Column(Text)
+    vector = Column(Vector(1536)) # pgvector embedding
+    
+    has_insurance = Column(Boolean, default=False)
+    has_13th_month = Column(Boolean, default=False)
+    remote_friendly = Column(Boolean, default=False)
+    
+    indexed_at = Column(DateTime(timezone=True))
+    last_analyzed_at = Column(DateTime(timezone=True))
+    extracted_requirements_json = Column(JSON) # Lưu kết quả bóc tách từ LLM
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class Skill(Base):
+    __tablename__ = "skills"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(200), unique=True, nullable=False)
+    parent_skill_id = Column(UUID(as_uuid=True), ForeignKey("skills.id"))
+    category = Column(String(50))
+    vector = Column(Vector(1536))
+
+class JobSkillRequirement(Base):
+    __tablename__ = "job_skill_requirement"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id", ondelete="CASCADE"))
+    skill_id = Column(UUID(as_uuid=True), ForeignKey("skills.id"))
+    importance_weight = Column(Integer)
+    required_level = Column(String(20))
+    min_years_exp = Column(Float)
+    is_mandatory = Column(Boolean, default=True)
+
+class UserSkillProfile(Base):
+    __tablename__ = "user_skill_profile"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True)) # Will link to Auth service user if needed
+    skill_id = Column(UUID(as_uuid=True), ForeignKey("skills.id"))
+    years_exp = Column(Float, default=0)
+    level = Column(String(20))
+    confidence_score = Column(Float, default=1.0)
+    source = Column(String(50), default="cv")
+    cv_id = Column(UUID(as_uuid=True), ForeignKey("user_cvs.id", ondelete="CASCADE"))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class Course(Base):
+    __tablename__ = "courses"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(Text, nullable=False)
+    description = Column(Text)
+    platform = Column(String(100))
+    url = Column(Text)
+    language = Column(String(10))
+    level = Column(String(20))
+    is_certification = Column(Boolean, default=False)
+    provider = Column(String(100))
+    duration_hours = Column(Float)
+    cost_usd = Column(Float, default=0)
+    tags = Column(ARRAY(Text))
+    embedding_context = Column(Text)
+    vector = Column(Vector(1536))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class UserWorkExperience(Base):
+    __tablename__ = "user_work_experiences"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    cv_id = Column(UUID(as_uuid=True), ForeignKey("user_cvs.id", ondelete="CASCADE"))
+    position_name = Column(String(255), nullable=False)
+    company_name = Column(String(255))
+    duration_years = Column(Float, default=0)
+    description = Column(Text)
+    skills_context = Column(JSON) # Danh sách skills liên quan đến vị trí này
+    is_primary = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class UserAnalysis(Base):
+    __tablename__ = "user_analysis"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    cv_id = Column(UUID(as_uuid=True), ForeignKey("user_cvs.id", ondelete="CASCADE"), index=True)
+    job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id", ondelete="SET NULL"), nullable=True)
+    
+    match_score = Column(Float)
+    result_json = Column(JSON) # Lưu trữ toàn diện Breakdown và Recommendations
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
