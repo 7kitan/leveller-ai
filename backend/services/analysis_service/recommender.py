@@ -41,10 +41,10 @@ class CourseRecommender:
                 # Tìm kiếm Vector Similarity trực tiếp trên bảng courses
                 query = text("""
                     SELECT id, title, platform, url, level, is_certification, provider,
-                           1 - (vector <=> :skill_vector::vector) as similarity
+                           1 - (vector <=> CAST(:skill_vector AS vector)) as similarity
                     FROM courses
                     WHERE vector IS NOT NULL
-                    ORDER BY (1 - (vector <=> :skill_vector::vector)) DESC
+                    ORDER BY (1 - (vector <=> CAST(:skill_vector AS vector))) DESC
                     LIMIT :limit
                 """)
                 params = {"skill_vector": target_vector, "limit": limit * 5}
