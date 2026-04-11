@@ -43,6 +43,9 @@ class GapCalculator:
             summary = cv.summary.lower()
             pos_list = neo4j_client.get_positions()
             
+            if not pos_list:
+                return None
+
             for pos_name in pos_list:
                 if pos_name.lower() in summary: return pos_name
             
@@ -53,6 +56,7 @@ class GapCalculator:
             if user_pos_skill: return user_pos_skill.name
             return None
         except Exception as e:
+            self.db.rollback()
             logger.error(f"Error detecting user role via graph: {e}")
             return None
 
@@ -86,6 +90,7 @@ class GapCalculator:
                 return result.extracted_requirements_json
             return None
         except Exception as e:
+            self.db.rollback()
             logger.error(f"Error checking keyword cache: {e}")
             return None
 
@@ -114,6 +119,7 @@ class GapCalculator:
             
             return best_match
         except Exception as e:
+            self.db.rollback()
             logger.error(f"Error checking semantic cache: {e}")
             return None
 
