@@ -2,6 +2,7 @@ from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, Foreig
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from pgvector.sqlalchemy import Vector
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 import uuid
 from .database import Base
 
@@ -16,6 +17,8 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    cvs = relationship("UserCV", back_populates="user")
 
 class UserCV(Base):
     __tablename__ = "user_cvs"
@@ -33,6 +36,10 @@ class UserCV(Base):
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    user = relationship("User", back_populates="cvs")
+    skills = relationship("UserSkillProfile", back_populates="cv")
+    work_experiences = relationship("UserWorkExperience", back_populates="cv")
 
 class Job(Base):
     __tablename__ = "jobs"
@@ -71,14 +78,18 @@ class Job(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
+    skills_required = relationship("JobSkillRequirement", back_populates="job")
+    analysis_reports = relationship("UserAnalysis", back_populates="job")
+
 class Skill(Base):
     __tablename__ = "skills"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(200), unique=True, nullable=False)
     parent_skill_id = Column(UUID(as_uuid=True), ForeignKey("skills.id"))
-    category = Column(String(50))
     vector = Column(Vector(1536))
+
+    requirements = relationship("JobSkillRequirement", back_populates="skill")
 
 class JobSkillRequirement(Base):
     __tablename__ = "job_skill_requirement"
@@ -90,6 +101,9 @@ class JobSkillRequirement(Base):
     required_level = Column(String(20))
     min_years_exp = Column(Float)
     is_mandatory = Column(Boolean, default=True)
+    
+    job = relationship("Job", back_populates="skills_required")
+    skill = relationship("Skill", back_populates="requirements")
 
 class UserSkillProfile(Base):
     __tablename__ = "user_skill_profile"
@@ -103,6 +117,9 @@ class UserSkillProfile(Base):
     source = Column(String(50), default="cv")
     cv_id = Column(UUID(as_uuid=True), ForeignKey("user_cvs.id", ondelete="CASCADE"))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    cv = relationship("UserCV", back_populates="skills")
+    skill = relationship("Skill")
 
 class Course(Base):
     __tablename__ = "courses"
@@ -137,6 +154,8 @@ class UserWorkExperience(Base):
     is_primary = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    cv = relationship("UserCV", back_populates="work_experiences")
+
 class UserAnalysis(Base):
     __tablename__ = "user_analysis"
 
@@ -149,3 +168,7 @@ class UserAnalysis(Base):
     result_json = Column(JSON) # Lưu trữ toàn diện Breakdown và Recommendations
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User")
+    cv = relationship("UserCV")
+    job = relationship("Job", back_populates="analysis_reports")
