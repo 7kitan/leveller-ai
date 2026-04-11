@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session, joinedload
-from shared.models import UserSkillProfile, JobSkillRequirement, Job, Skill, UserCV, Course
+from shared.models import UserSkillProfile, JobSkillRequirement, Job, Skill, UserCV, Course, UserWorkExperience
 from shared.database import SessionLocal
 from shared.neo4j_client import neo4j_client
 from shared.level_mapper import LevelMapper
