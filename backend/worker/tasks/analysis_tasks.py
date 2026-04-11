@@ -6,6 +6,7 @@ from sqlalchemy.orm import joinedload
 import logging
 import asyncio
 import uuid
+import json
 from datetime import datetime
 
 # Cấu hình logging chuyên sâu cho Worker
@@ -28,35 +29,33 @@ def run_gap_analysis(user_id: str, cv_id: str, job_id: str = None, jd_text: str 
         
         # 1. Xác định Requirements (Kỹ năng yêu cầu)
         requirements = []
+        # 1. Xác định Requirements (STRICT MODE: Bypass Cache per user request)
+        # if job_id:
+        #     # Ưu tiên 1.1: Kiểm tra bảng chuẩn hóa JobSkillRequirement
+        #     requirements = db.query(JobSkillRequirement)...
+        #     # Ưu tiên 1.2: Cache JSON bảng Job
+        #     ...
+        
+        # Enforce fresh extraction or market inference
         if job_id:
-            # Ưu tiên 1.1: Kiểm tra bảng chuẩn hóa JobSkillRequirement
-            requirements = db.query(JobSkillRequirement)\
-                .options(joinedload(JobSkillRequirement.skill))\
-                .filter(JobSkillRequirement.job_id == uuid.UUID(job_id)).all()
-            
-            # Ưu tiên 1.2: Nếu bảng chuẩn hóa trống, kiểm tra Cache JSON trong bảng Job
-            if not requirements:
-                logger.info(f"Normalized requirements empty for job {job_id}. Checking Job Model Cache...")
-                job = db.query(Job).filter(Job.id == uuid.UUID(job_id)).first()
-                if job and job.extracted_requirements_json:
-                    requirements = job.extracted_requirements_json
-                    logger.info(f"LAYER 1.2 HIT: Loaded requirements from Job.extracted_requirements_json")
-                elif job and job.raw_text:
-                    # Ưu tiên 1.3: Nếu chỉ có text thô, tiến hành bóc tách Hybrid
-                    logger.info(f"Job {job_id} has raw text but no parsed requirements. Extracting...")
-                    requirements = loop.run_until_complete(calculator.extract_requirements_from_text(job.raw_text))
+            job = db.query(Job).filter(Job.id == uuid.UUID(job_id)).first()
+            if job and job.raw_text:
+                logger.info(f"Stricly extracting requirements for Job {job_id} from raw text...")
+                requirements = loop.run_until_complete(calculator.extract_requirements_from_text(job.raw_text))
+        
+        # Ưu tiên 2: Nếu không có job_id hoặc jd_text truyền lên
 
         # Ưu tiên 2: Nếu không có job_id hoặc các bước trên thất bại, bóc tách từ jd_text truyền lên
         if not requirements and jd_text:
             logger.info("Extracting requirements from provided raw JD text using 4-Layer Hybrid Retrieval...")
             requirements = loop.run_until_complete(calculator.extract_requirements_from_text(jd_text))
-            logger.info(f"Hybrid Retrieval returned {len(requirements)} requirement items.")
+            logger.info(f"Hybrid Retrieval Data: {json.dumps(requirements, indent=2)}")
         
         # NÂNG CẤP: Fallback nếu hoàn toàn không có JD (Phân tích dựa trên Market Standard)
         if not requirements:
             logger.info("No JD provided. Inferring market standard requirements based on CV profile...")
             requirements = loop.run_until_complete(calculator.infer_market_requirements_for_cv(cv_id))
-            logger.info(f"AI Inferred {len(requirements)} market-standard requirements.")
+            logger.info(f"AI Inferred Data: {json.dumps(requirements, indent=2)}")
 
         if not requirements:
             logger.warning("Still no requirements found after inference. Aborting.")

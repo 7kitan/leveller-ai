@@ -26,40 +26,18 @@ class CourseRecommender:
         
         try:
             res = []
-            # Thử tìm kỹ năng trong Taxonomy để lấy Vector có sẵn
-            skill_obj = self.db.query(Skill).filter(Skill.name.ilike(primary_term)).first()
-            
-            target_vector = None
-            if skill_obj and skill_obj.vector is not None:
-                target_vector = skill_obj.vector
-            else:
-                # SEMANTIC FALLBACK: Tạo embedding trực tiếp cho tên kỹ năng
-                logger.info(f"Skill '{primary_term}' not in taxonomy. Generating semantic vector...")
-                target_vector = get_embedding(primary_term)
+            # 1. Semantic Match (DISABLED: Removed legacy vector logic per user request)
+            # res = self._execute_vector_search(...) 
 
-            if target_vector and len(target_vector) > 0:
-                # Tìm kiếm Vector Similarity trực tiếp trên bảng courses
-                query = text("""
-                    SELECT id, title, platform, url, level, is_certification, provider,
-                           1 - (vector <=> CAST(:skill_vector AS vector)) as similarity
-                    FROM courses
-                    WHERE vector IS NOT NULL
-                    ORDER BY (1 - (vector <=> CAST(:skill_vector AS vector))) DESC
-                    LIMIT :limit
-                """)
-                params = {"skill_vector": target_vector, "limit": limit * 5}
-                res = self.db.execute(query, params).fetchall()
-            
-            # 2. Keyword Fallback (Nếu vector search vẫn rỗng hoặc thất bại)
-            if not res:
-                logger.info(f"Vector search failed. Falling back to Keyword search for '{primary_term}'")
-                query = text("""
-                    SELECT id, title, platform, url, level, is_certification, provider, 0.5 as similarity
-                    FROM courses
-                    WHERE title ILIKE :name_pattern OR provider ILIKE :name_pattern OR tags::text ILIKE :name_pattern
-                    LIMIT :limit
-                """)
-                res = self.db.execute(query, {"name_pattern": f"%{primary_term}%", "limit": limit * 5}).fetchall()
+            # 2. Keyword Match (Defaulting to this to remove legacy logs/overhead)
+            logger.info(f"Using Keyword matching for course recommendations: '{primary_term}'")
+            query = text("""
+                SELECT id, title, platform, url, level, is_certification, provider, 0.9 as similarity
+                FROM courses
+                WHERE title ILIKE :name_pattern OR provider ILIKE :name_pattern OR tags::text ILIKE :name_pattern
+                LIMIT :limit
+            """)
+            res = self.db.execute(query, {"name_pattern": f"%{primary_term}%", "limit": limit * 5}).fetchall()
 
             # 3. Ranking & Filtering
             scored_courses = []

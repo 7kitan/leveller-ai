@@ -16,6 +16,7 @@ import hashlib
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 import httpx # Dùng cho BERTScore API call
+import asyncio
 
 # Cấu hình logging
 logger = logging.getLogger("gap_calculator")
@@ -182,55 +183,59 @@ class GapCalculator:
         # CHUẨN HÓA TRƯỚC: Tránh việc dư khoảng trắng làm sai lệch Hash
         jd_text = jd_text.strip()
         
+        # Layer 1-3 (STRICT MODE: Cache Disabled per user request)
+        # logger.info(f"LAYER 1-3 Bypass: Skipping knowledge retrieval cache...")
+        jd_embedding = None
+        
         # Layer 1: Exact Hit (Hash-based) - SIÊU NHANH, 0 API
-        text_hash = hashlib.sha256(jd_text.encode()).hexdigest()[:16]
-        exact_id = f"cache_{text_hash}"
-        
-        # SỬA: Dùng explicit check cho SQL
-        query = self.db.query(Job).filter(Job.source_id == exact_id)
-        exact_hit = query.first()
-        
-        if exact_hit and exact_hit.extracted_requirements_json:
-            logger.info(f"LAYER 1 HIT: Exact hash match {text_hash}")
-            return exact_hit.extracted_requirements_json
+        # text_hash = hashlib.sha256(jd_text.encode()).hexdigest()[:16]
+        # exact_id = f"cache_{text_hash}"
+        # query = self.db.query(Job).filter(Job.source_id == exact_id)
+        # exact_hit = query.first()
+        # if exact_hit and exact_hit.extracted_requirements_json:
+        #     logger.info(f"LAYER 1 HIT: Exact hash match {text_hash}")
+        #     return exact_hit.extracted_requirements_json
 
         # Layer 2: Keyword Hit (Postgres FTS) - NHANH, 0 API
-        keyword_hit = self._find_keyword_cache(jd_text)
-        if keyword_hit:
-            logger.info("LAYER 2 HIT: Semantic match via Keywords")
-            return keyword_hit
+        # keyword_hit = self._find_keyword_cache(jd_text)
+        # if keyword_hit:
+        #     logger.info("LAYER 2 HIT: Semantic match via Keywords")
+        #     return keyword_hit
 
         # Layer 3: Semantic Hit (Vector Similarity) - 1 Embedding API call
-        logger.info("No text-based hits. Transitioning to Semantic Search (Vector)...")
-        jd_embedding = get_embedding(jd_text)
-        cached_reqs = self._find_semantic_cache(jd_text, jd_embedding)
-        if cached_reqs:
-            logger.info("LAYER 3 HIT: Matched via Vector Similarity")
-            return cached_reqs
+        # logger.info("No text-based hits. Transitioning to Semantic Search (Vector)...")
+        # jd_embedding = get_embedding(jd_text)
+        # cached_reqs = self._find_semantic_cache(jd_text, jd_embedding)
+        # if cached_reqs:
+        #     logger.info("LAYER 3 HIT: Matched via Vector Similarity")
+        #     return cached_reqs
 
         # Layer 4: AI Extraction (Chat Completion) - PHƯƠNG ÁN CUỐI
         logger.info("Knowledge Retrieval failed. Executing AI Extraction (GPT)...")
 
-        # 3. Normalization (Multilingual Bridge)
-        logger.info("Normalizing JD terms via Knowledge Graph...")
-        normalized_jd = self._normalize_terms_in_text(jd_text)
+        # 3. Normalization (DISABLED: Skip alias matching per user request)
+        # logger.info("Normalizing JD terms via Knowledge Graph...")
+        # normalized_jd = self._normalize_terms_in_text(jd_text)
+        normalized_jd = jd_text
 
         prompt = f"""
         BẠN LÀ MỘT CHUYÊN GIA TUYỂN DỤNG CÔNG NGHỆ CAO CẤP.
-        Hãy trích xuất hoặc suy luận danh sách các kỹ năng yêu cầu từ mô tả công việc (JD) sau.
+        Hãy trích xuất danh sách các kỹ năng kỹ thuật yêu cầu từ mô tả công việc (JD) sau.
 
         JD CONTENT: 
         {normalized_jd}
 
-        YÊU CẦU:
-        1. Trích xuất tối thiểu 5-8 yêu cầu quan trọng nhất.
-        2. Với mỗi yêu cầu, định dạng JSON như sau:
-           - skill: Tên kỹ năng chuẩn (ví dụ: 'Python', 'React', 'Cloud Architecture')
+        YÊU CẦU QUAN TRỌNG:
+        1. TRÍCH XUẤT NGUYÊN TỬ (ATOMIC): Mỗi kỹ năng phải là một thực thể riêng biệt. KHÔNG gộp nhiều kỹ năng vào một dòng (ví dụ: thay vì 'Java/Kotlin', hãy tách thành 'Java' và 'Kotlin').
+        2. CỤ THỂ HOÁ CÔNG NGHỆ: Ưu tiên các ngôn ngữ lập trình, framework, công cụ cụ thể (ví dụ: 'React', 'Node.js', 'PostgreSQL'). 
+        3. TRÁNH CHUNG CHUNG: Không trích xuất các môn học hoặc phạm trù quá rộng như 'Computer Science', 'Software Development', 'Networking' trừ khi JD yêu cầu bằng cấp cụ thể về ngành đó.
+        4. Với mỗi yêu cầu, định dạng JSON như sau:
+           - skill: Tên kỹ năng chuẩn, ngắn gọn (ví dụ: 'Python', 'Docker-Compose', 'CI/CD')
            - target_level: Cấp độ mong muốn (Junior, Mid-level, Senior, Expert)
            - years_required: Số năm kinh nghiệm tối thiểu (số nguyên, mặc định 2 nếu không rõ)
            - is_primary: true nếu là bắt buộc/cốt lõi, false nếu là điểm cộng.
 
-        LƯU Ý: Nếu JD quá ngắn, hãy dựa vào tiêu đề hoặc ngữ cảnh để ĐỀ XUẤT các kỹ năng tiêu chuẩn cho vị trí đó. Tuyệt đối không để trống.
+        LƯU Ý: Nếu JD quá ngắn, hãy dựa vào tiêu đề để ĐỀ XUẤT các công cụ/kỹ năng THỰC TẾ nhất cho vị trí đó (ví dụ: 'Git', 'REST API').
         Trả về JSON với key duy nhất là "requirements".
         """
         try:
@@ -313,7 +318,7 @@ class GapCalculator:
         }
         return mapping.get(cleansed.lower(), cleansed.strip())
 
-    def _process_skill_logic(self, req: Dict[str, Any], user_skill_map_name: Dict[str, Any], user_skill_names_list: List[str], cv_id: str, user_max_years: float, user_role: Optional[str]) -> Dict[str, Any]:
+    def _process_skill_logic(self, req: Dict[str, Any], user_skill_map_name: Dict[str, Any], user_skill_names_list: List[str], cv_id: str, user_max_years: float, user_role: Optional[str], bertscore_results: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         s_name_raw = req.get("skill_name", "Unknown Skill")
         req_level = req.get("required_level", "intermediate")
         req_level_score = LevelMapper.to_score(req_level)
@@ -326,63 +331,69 @@ class GapCalculator:
             "details": {"required_level": req_level, "reason": "Kỹ năng này hiện chưa tìm thấy trong CV của bạn."}
         }
 
-        # Stage 0: Inference
-        if not user_skill and neo4j_client.is_skill_implied_by_role(s_name_raw, user_role):
-            inf_score = 0.8 if user_max_years >= 3 else 0.6
-            result.update({"score": inf_score, "match_found": True, "gap_type": "INFERRED"})
-            result["details"]["reason"] = f"Graph Inference: Kỹ năng ngầm định dựa trên vai trò '{user_role}' của bạn."
-            return result
+        # Stage 0: Inference (DISABLED: Using ONLY BERTScore per user request)
+        # if not user_skill and neo4j_client.is_skill_implied_by_role(s_name_raw, user_role):
+        #     inf_score = 0.8 if user_max_years >= 3 else 0.6
+        #     result.update({"score": inf_score, "match_found": True, "gap_type": "INFERRED"})
+        #     result["details"]["reason"] = f"Graph Inference: Kỹ năng ngầm định dựa trên vai trò '{user_role}' của bạn."
+        #     return result
 
-        if not user_skill and neo4j_client.is_foundational_standard(s_name_raw):
-            inf_score = 0
-            if user_max_years >= 5: inf_score = 0.9
-            elif user_max_years >= 2: inf_score = 0.7
-            if inf_score > 0:
-                result.update({"score": inf_score, "match_found": True, "gap_type": "INFERRED"})
-                result["details"]["reason"] = f"Seniority Inference: Tự động công nhận dựa trên {user_max_years} năm chuyên môn."
-                return result
+        # if not user_skill and neo4j_client.is_foundational_standard(s_name_raw):
+        #     inf_score = 0
+        #     if user_max_years >= 5: inf_score = 0.9
+        #     elif user_max_years >= 2: inf_score = 0.7
+        #     if inf_score > 0:
+        #         result.update({"score": inf_score, "match_found": True, "gap_type": "INFERRED"})
+        #         result["details"]["reason"] = f"Seniority Inference: Tự động công nhận dựa trên {user_max_years} năm chuyên môn."
+        #         return result
 
-        # Stage 1: Exact Match
-        if user_skill:
-            user_level_score = LevelMapper.to_score(user_skill.get("level", "Junior"))
-            level_gap = req_level_score - user_level_score
-            final_score = 1.0 if level_gap <= 0 else max(1.0 - (level_gap * 0.25), 0.1)
-            result.update({
-                "match_found": True, "score": final_score,
-                "details": {"your_level": user_skill.get("level", "Junior"), "required_level": req_level, "reason": "Khớp chính xác tên kỹ năng."}
-            })
-            return result
+        # Stage 1: Exact Match (DISABLED: Using ONLY BERTScore per user request)
+        # if user_skill:
+        #     user_level_score = LevelMapper.to_score(user_skill.get("level", "Junior"))
+        #     level_gap = req_level_score - user_level_score
+        #     final_score = 1.0 if level_gap <= 0 else max(1.0 - (level_gap * 0.25), 0.1)
+        #     result.update({
+        #         "match_found": True, "score": final_score,
+        #         "details": {"your_level": user_skill.get("level", "Junior"), "required_level": req_level, "reason": "Khớp chính xác tên kỹ năng."}
+        #     })
+        #     return result
 
-        # Stage 2: Semantic Match
-        target_skill_obj = self.db.query(Skill).filter(Skill.name.ilike(s_name_raw)).first()
-        if target_skill_obj and target_skill_obj.vector is not None:
-            query = text("""
-                SELECT usp.level, s.name, 1 - (s.vector <=> :target_vec::vector) as similarity
-                FROM user_skill_profile usp JOIN skills s ON usp.skill_id = s.id
-                WHERE usp.cv_id = :cv_id ORDER BY similarity DESC LIMIT 1
-            """)
-            sim_res = self.db.execute(query, {"target_vec": target_skill_obj.vector, "cv_id": cv_id}).first()
-            if sim_res and sim_res.similarity > 0.88:
-                user_level_score = LevelMapper.to_score(sim_res.level)
-                level_gap = req_level_score - user_level_score
-                sim_pct = round(float(sim_res.similarity) * 100, 1)
-                result.update({
-                    "match_found": True, "score": max(0.95 - (level_gap * 0.2), 0.1),
-                    "gap_type": "SYNONYM", 
-                    "details": {"matched_by": sim_res.name, "your_level": sim_res.level, "required_level": req_level, "similarity": sim_pct, "reason": f"Khớp qua tương đồng ({sim_pct}%) với '{sim_res.name}'."}
-                })
-                return result
+        # Stage 2: Semantic Match (NOW POWERED BY BERTSCORE)
+        if bertscore_results and s_name_raw in bertscore_results:
+            b_res = bertscore_results[s_name_raw]
+            # SỬA: Đồng bộ threshold 0.85 với AI Hub cho High-Precision Match
+            if b_res["score"] >= 0.85:
+                # Find the user skill profile for the best match found by BERTScore
+                matched_skill_name = b_res["best_match"]
+                matched_skill_norm = self._normalize_name(matched_skill_name)
+                user_skill = user_skill_map_name.get(matched_skill_norm)
+                
+                if user_skill:
+                    user_level_score = LevelMapper.to_score(user_skill.get("level", "Junior"))
+                    level_gap = req_level_score - user_level_score
+                    sim_pct = round(b_res["score"] * 100, 1)
+                    result.update({
+                        "match_found": True, "score": max(0.95 - (level_gap * 0.2), 0.1),
+                        "gap_type": "SYNONYM", 
+                        "details": {"matched_by": matched_skill_name, "your_level": user_skill.get("level", "Junior"), "required_level": req_level, "similarity": sim_pct, "reason": f"BERTScore Match: Khớp qua tương đồng ({sim_pct}%) với '{matched_skill_name}'."}
+                    })
+                    return result
+        
+        # Stage 2 Fallback (DISABLED: Using ONLY BERTScore per user request)
+        # target_skill_obj = self.db.query(Skill).filter(Skill.name.ilike(s_name_raw)).first()
+        # if target_skill_obj and target_skill_obj.vector is not None:
+        #     ... [Legacy PGVector Code Removed] ...
 
-        # Stage 3: Graph Match
-        graph_res = neo4j_client.get_gap_classification(user_skill_names_list, s_name_raw)
-        if graph_res["gap_type"] != "MISSING":
-            gap_type = graph_res["gap_type"]
-            g_score = 0.6 if gap_type == "TRANSITION" else 0.5
-            result.update({
-                "match_found": True, "gap_type": gap_type, "score": g_score,
-                "details": {"matched_via_graph": True, "required_level": req_level, "matched_by": graph_res["matched_by"], "reason": f"Mối quan hệ Graph: {graph_res['reason']}."}
-            })
-            return result
+        # Stage 3: Graph Match (DISABLED: Using ONLY BERTScore per user request)
+        # graph_res = neo4j_client.get_gap_classification(user_skill_names_list, s_name_raw)
+        # if graph_res["gap_type"] != "MISSING":
+        #     gap_type = graph_res["gap_type"]
+        #     g_score = 0.6 if gap_type == "TRANSITION" else 0.5
+        #     result.update({
+        #         "match_found": True, "gap_type": gap_type, "score": g_score,
+        #         "details": {"matched_via_graph": True, "required_level": req_level, "matched_by": graph_res["matched_by"], "reason": f"Mối quan hệ Graph: {graph_res['reason']}."}
+        #     })
+        #     return result
         return result
 
     async def calculate_gap_v2(self, user_id: str, cv_id: str, requirements_source: Any):
@@ -394,31 +405,10 @@ class GapCalculator:
         user_skills_query = self.db.query(UserSkillProfile, Skill.name).join(Skill).filter(UserSkillProfile.cv_id == uuid.UUID(cv_id)).all()
         user_skill_map_name = {self._normalize_name(s_name): {"level": usp.level, "years": usp.years_exp} for usp, s_name in user_skills_query}
         user_skill_names_list = [s_name for _, s_name in user_skills_query]
+        logger.info(f"DEBUG: CV Skills for matching: {user_skill_names_list}")
         user_max_years = max([s["years"] for s in user_skill_map_name.values()] + [0])
         user_role = self._detect_user_role(cv_id)
 
-        # --- NEW: BERTScore Semantic Matching (API Call) ---
-        bert_score_result = {"f1": 0, "status": "skipped"}
-        cv_obj = self.db.query(UserCV).filter(UserCV.id == uuid.UUID(cv_id)).first()
-        
-        # Lấy JD text (giả định requirements_source được bóc tách từ 1 JD nào đó)
-        # Trong thực tế, JD text thường có sẵn trong requirements_source metadata hoặc truyền từ task
-        jd_text = None
-        # Thử tìm JD từ DB nếu có job_id liên quan (Sẽ truyền qua context ở level cao hơn nếu cần)
-        
-        # Nếu đã có cv_obj.raw_text và jd_text, chúng ta gọi BERTScore API
-        # Ở đây tôi sẽ implement helper gọi API trực tiếp để tránh circular import phức tạp
-        async def _call_bertscore(cv_text, jd_text):
-            api_url = os.getenv("BERTSCORE_API_URL")
-            api_key = os.getenv("BERTSCORE_API_KEY")
-            if not api_url or not cv_text or not jd_text: return None
-            try:
-                async with httpx.AsyncClient(timeout=30.0) as client:
-                    resp = await client.post(api_url, json={"text1": cv_text, "text2": jd_text}, 
-                                             headers={"X-Api-Key": api_key} if api_key else {})
-                    return resp.json()
-            except: return None
-            
         results = {
             "overall_match_pct": 0,
             "bert_semantic_score": 0, # Metric mới
@@ -427,7 +417,24 @@ class GapCalculator:
             "seniority_report": [],
             "notes": []
         }
-        
+
+        # --- NEW: BATCH BERTSCORE SEMANTIC MATCHING ---
+        bert_matches = {}
+        if requirements_source and user_skill_names_list:
+            jd_skill_names = []
+            for r_src in requirements_source:
+                if hasattr(r_src, "__dict__"):
+                    s_name = r_src.skill.name if (hasattr(r_src, "skill") and r_src.skill) else "Unknown"
+                elif isinstance(r_src, dict):
+                    s_name = r_src.get("skill") or r_src.get("skill_name") or "Unknown"
+                else: s_name = str(r_src)
+                if s_name != "Unknown": jd_skill_names.append(s_name)
+
+            if jd_skill_names:
+                logger.info(f"DEBUG: Triggering Batch BERTScore for Skills: {jd_skill_names}")
+                bert_matches = await self._call_batch_bertscore(user_skill_names_list, jd_skill_names)
+                logger.info(f"DEBUG: Raw BERTScore Results: {json.dumps(bert_matches, indent=2)}")
+
         m_score, m_weight, o_score, o_weight = 0.0, 0.0, 0.0, 0.0
         any_mandatory_gap = False
         if not requirements_source: return results
@@ -458,7 +465,7 @@ class GapCalculator:
             min_years_required = float(req.get("min_years_exp", 0))
             
             if not is_group:
-                eval_res = self._process_skill_logic(req, user_skill_map_name, user_skill_names_list, cv_id, user_max_years, user_role)
+                eval_res = self._process_skill_logic(req, user_skill_map_name, user_skill_names_list, cv_id, user_max_years, user_role, bert_matches)
                 final_score = eval_res["score"]
                 item_name = eval_res["skill"]
                 
@@ -567,23 +574,7 @@ class GapCalculator:
         
         results["overall_match_pct"] = final_match
         
-        # --- Final Update for BERTScore ---
-        # Logic: Nếu JD text được xác định (ví dụ từ job list đầu tiên)
-        # Chúng ta thử lấy JD text từ job liên quan
-        job_id_found = None
-        for r in requirements_source:
-             if isinstance(r, dict) and r.get("job_id"): 
-                 job_id_found = r.get("job_id")
-                 break
-        
-        if job_id_found:
-            job_obj = self.db.query(Job).filter(Job.id == uuid.UUID(str(job_id_found))).first()
-            if job_obj and job_obj.raw_text and cv_obj and cv_obj.raw_text:
-                logger.info(f"Triggering BERTScore API for JD context...")
-                b_res = await _call_bertscore(cv_obj.raw_text, job_obj.raw_text)
-                if b_res:
-                    results["bert_semantic_score"] = round(b_res.get("f1", 0) * 100, 1)
-                    results["notes"].append(f"Semantic Alignment (BERTScore): {results['bert_semantic_score']}%")
+        logger.info(f"DEBUG: Final Analysis Result: {json.dumps(results, indent=2)}")
 
         # Sắp xếp và làm sạch recommendations
         seen_courses = set()
@@ -595,3 +586,44 @@ class GapCalculator:
         results["recommendations"] = clean_recs[:5]
         
         return results
+
+    async def _call_batch_bertscore(self, cv_skills: List[str], jd_skills: List[str]) -> Dict[str, Any]:
+        """Gọi API AI Hub để tính toán BERTScore cho một loạt kỹ năng."""
+        api_url = os.getenv("BERTSCORE_API_URL")
+        api_key = os.getenv("BERTSCORE_API_KEY")
+        if not api_url or not cv_skills or not jd_skills: return {}
+
+        payload = {"cv_skills": cv_skills, "jd_skills": jd_skills}
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                resp = await client.post(api_url, json=payload, headers={"X-AI-Key": api_key} if api_key else {})
+                if resp.status_code == 200:
+                    task_id = resp.json().get("task_id")
+                    if task_id:
+                        return await self._poll_ai_hub_task(task_id) or {}
+        except Exception as e:
+            logger.error(f"Error calling batch BERTScore: {e}")
+        return {}
+
+    async def _poll_ai_hub_task(self, task_id: str, timeout: float = 45.0) -> Optional[Dict[str, Any]]:
+        """Poling kết quả từ AI Hub Worker."""
+        # Chuyển http://.../tasks/bertscore -> http://.../tasks/{task_id}
+        base_url = os.getenv("BERTSCORE_API_URL", "").rsplit("/", 1)[0]
+        poll_url = f"{base_url}/{task_id}"
+        api_key = os.getenv("BERTSCORE_API_KEY")
+
+        start_time = datetime.now()
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            while (datetime.now() - start_time).total_seconds() < timeout:
+                try:
+                    resp = await client.get(poll_url, headers={"X-AI-Key": api_key} if api_key else {})
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        if data.get("status") == "completed":
+                            return data.get("result")
+                        elif data.get("status") in ["failed", "not_found"]:
+                            return None
+                    await asyncio.sleep(0.5)
+                except:
+                    break
+        return None

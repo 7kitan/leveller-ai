@@ -102,6 +102,7 @@ async def calculate_bertscore_task(payload: dict):
 
     try:
         results = {}
+        logger.info(f"DEBUG HUB: Comparing CV Skills: {cv_skills}")
         for skill in jd_skills:
             # Parallelize over CV skills using BERTScore's vectorization
             P, R, F1 = hub.bert_scorer.score(cv_skills, [skill] * len(cv_skills))
@@ -110,11 +111,13 @@ async def calculate_bertscore_task(payload: dict):
             best_idx = F1.argmax().item()
             best_score = F1[best_idx].item()
             
+            # SỬA: Đồng bộ threshold 0.85 (Strict High-Precision)
             results[skill] = {
                 "best_match": cv_skills[best_idx],
                 "score": round(best_score, 4),
-                "status": "PASS" if best_score > 0.88 else "PARTIAL" if best_score > 0.70 else "MISSING"
+                "status": "PASS" if best_score >= 0.85 else "PARTIAL" if best_score > 0.70 else "MISSING"
             }
+            logger.info(f"DEBUG HUB: Result for '{skill}': Match='{cv_skills[best_idx]}' Score={round(best_score, 4)} Status={results[skill]['status']}")
         
         # Return object depends on input type
         if jd_skill and len(jd_skills) == 1:

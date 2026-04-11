@@ -93,15 +93,8 @@ def parse_cv(user_id: str, cv_id: str, file_path: str):
                     db.add(user_skill)
                 
                 db.commit()
-                logging.warning(f"Successfully updated CV {cv_id} with AI results. Triggering Gap Analysis...")
-                
-                # TỰ ĐỘNG TRIGGER PHÂN TÍCH (Automation)
-                # Chúng ta chạy analysis cho CV này với User hiện tại
-                # Ở đây chúng ta có thể truyền JD mặc định hoặc JD cuối cùng người dùng quan tâm
-                celery_app.send_task(
-                    "worker.tasks.analysis_tasks.run_gap_analysis",
-                    args=[user_id, cv_id, None, None] # Trigger analysis cho CV vừa tạo
-                )
+                # Note: Automatic Gap Analysis is removed to prevent unrequested JD inference.
+                # It should be triggered explicitly by the frontend/API when needed.
                 
             except Exception as db_err:
                 db.rollback()

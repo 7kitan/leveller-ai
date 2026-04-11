@@ -191,7 +191,7 @@ async def compute_bert_score(text1: str, text2: str) -> Dict[str, Any]:
             }
             headers = {}
             if api_key:
-                headers["X-Api-Key"] = api_key
+                headers["X-AI-Key"] = api_key
 
             response = await client.post(api_url, json=payload, headers=headers)
             response.raise_for_status()

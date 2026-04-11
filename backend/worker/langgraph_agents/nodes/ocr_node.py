@@ -8,7 +8,9 @@ from pathlib import Path
 
 logger = logging.getLogger("cv_parsing")
 
-CHANDRA_API_URL = os.getenv("CHANDRA_API_URL", "http://your-vps-ip:8080/tasks/ocr")
+CHANDRA_API_URL = os.getenv("CHANDRA_API_URL")
+if not CHANDRA_API_URL:
+    logger.error("CHANDRA_API_URL is not set!")
 CHANDRA_API_KEY = os.getenv("CHANDRA_API_KEY")
 
 async def poll_task_result(task_id: str) -> Dict[str, Any]:
@@ -18,7 +20,7 @@ async def poll_task_result(task_id: str) -> Dict[str, Any]:
     base_url = CHANDRA_API_URL.rsplit('/', 1)[0] # Cắt bỏ /ocr
     poll_url = f"{base_url}/{task_id}"
     
-    headers = {"X-Api-Key": CHANDRA_API_KEY} if CHANDRA_API_KEY else {}
+    headers = {"X-AI-Key": CHANDRA_API_KEY} if CHANDRA_API_KEY else {}
 
     max_retries = 60 # 60 * 2s = 2 phút tối đa
     for i in range(max_retries):
@@ -30,8 +32,9 @@ async def poll_task_result(task_id: str) -> Dict[str, Any]:
                 
                 status = data.get("status")
                 if status == "completed":
-                    logger.info(f"Task {task_id} completed.")
-                    return {"status": "success", "text": data.get("result", {}).get("text", "")}
+                    ocr_text = data.get("result", {}).get("text", "")
+                    logger.info(f"Task {task_id} completed. Extracted text ({len(ocr_text)} chars): \n{ocr_text[:500]}...\n[...]")
+                    return {"status": "success", "text": ocr_text}
                 elif status == "failed":
                     logger.error(f"Task {task_id} failed on Hub: {data.get('error')}")
                     return {"status": "failed", "error": data.get("error")}
@@ -67,7 +70,7 @@ async def ocr_node_func(state: Dict[str, Any]) -> Dict[str, Any]:
 
         # 2. Tạo task OCR trên Hub
         async with httpx.AsyncClient(timeout=30.0) as client:
-            headers = {"X-Api-Key": CHANDRA_API_KEY} if CHANDRA_API_KEY else {}
+            headers = {"X-AI-Key": CHANDRA_API_KEY} if CHANDRA_API_KEY else {}
             payload = {
                 "file_base64": file_base64,
                 "file_ext": file_ext
