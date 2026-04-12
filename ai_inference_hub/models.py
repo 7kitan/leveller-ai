@@ -10,6 +10,13 @@ os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
 os.environ["HF_HUB_DISABLE_EXPERIMENTAL_WARNING"] = "1"
 os.environ["HF_HUB_DISABLE_IMPLICIT_TOKEN"] = "1"
 
+# --- Force Local Caching to avoid re-downloading models in ephemeral containers ---
+# If HF_HOME is not set, we use a local directory inside the project
+if not os.environ.get("HF_HOME"):
+    os.environ["HF_HOME"] = os.path.join(os.path.dirname(__file__), "models_cache")
+if not os.environ.get("TRANSFORMERS_CACHE"):
+    os.environ["TRANSFORMERS_CACHE"] = os.environ["HF_HOME"]
+
 # --- Monkeypatch for PyTorch < 2.4.0 (for BitsAndBytes compatibility) ---
 if not hasattr(torch.nn.Module, "set_submodule"):
     def set_submodule(self, target: str, module: torch.nn.Module) -> None:
@@ -72,26 +79,43 @@ class AIModelHub:
         self.bert_model_name = os.getenv("BERTSCORE_MODEL_NAME", "microsoft/deberta-base-mnli")
         
     def load_chandra(self):
-        """Load Chandra OCR 2 (datalab-to/chandra-ocr-2) with 4-bit quantization for 8GB RAM."""
+        """Load Chandra OCR 2 (datalab-to/chandra-ocr-2).
+        Optimized: Uses 4-bit quantization on GPU, and BFloat16/Float32 on CPU.
+        """
         if self.chandra_model is None:
             logger.info(f"Loading Chandra OCR 2 from {self.chandra_path}...")
             
-            # --- 4-bit Quantization để chạy trên 8GB RAM ---
-            # Model 5B params: FP16 ~10GB → 4-bit ~3-4GB
-            quantization_config = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_compute_dtype=torch.bfloat16,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_use_double_quant=True,  # Double quantization để tiết kiệm thêm RAM
-            )
+            use_cuda = torch.cuda.is_available()
             
+            if use_cuda:
+                logger.info("DEBUG MODELS: CUDA detected. Using GPU mode with 4-bit Quantization.")
+                quantization_config = BitsAndBytesConfig(
+                    load_in_4bit=True,
+                    bnb_4bit_compute_dtype=torch.bfloat16,
+                    bnb_4bit_quant_type="nf4",
+                    bnb_4bit_use_double_quant=True,
+                )
+                model_kwargs = {
+                    "quantization_config": quantization_config,
+                    "device_map": "auto",
+                    "torch_dtype": torch.bfloat16,
+                }
+            else:
+                logger.info("DEBUG MODELS: No CUDA detected. Using CPU-only mode (Quantization Disabled).")
+                # On CPU, bitsandbytes 4-bit is unstable/slow. Use BFloat16 if supported, else Float32.
+                # BFloat16 is supported on most modern CPUs and is much faster/leaner than Float32.
+                model_kwargs = {
+                    "quantization_config": None,
+                    "device_map": "cpu",
+                    "torch_dtype": torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float32,
+                }
+
             try:
                 self.chandra_model = AutoModelForImageTextToText.from_pretrained(
                     self.chandra_path,
-                    quantization_config=quantization_config,
-                    device_map="auto",  # Changed from "cpu" to "auto" for GPU support
                     trust_remote_code=True,
                     low_cpu_mem_usage=True,
+                    **model_kwargs
                 ).eval()
                 
                 self.chandra_processor = AutoProcessor.from_pretrained(
