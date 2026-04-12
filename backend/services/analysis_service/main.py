@@ -144,11 +144,128 @@ async def delete_relationship(parent: str, child: str, rel_type: str, request: R
     taxonomy_service.delete_relationship(parent, child, rel_type)
     return {"message": f"Relationship {rel_type} between {parent} and {child} deleted"}
 
+class FeedbackRequest(BaseModel):
+    analysis_id: str
+    rating: int
+    is_accurate: bool
+    missing_skills: list = []
+    comment: Optional[str] = None
+
+class SimulateRequest(BaseModel):
+    cv_id: uuid.UUID
+    selected_course_ids: List[uuid.UUID]
+    job_id: Optional[uuid.UUID] = None
+
+@app.post("/analysis/feedback")
+def submit_feedback(req: FeedbackRequest, request: Request, db: Session = Depends(get_db)):
+    user_id = request.headers.get("X-User-ID")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    from shared.models import UserFeedback
+    fb = UserFeedback(
+        user_id=uuid.UUID(user_id),
+        analysis_id=req.analysis_id,
+        rating=req.rating,
+        is_accurate=req.is_accurate,
+        missing_skills=req.missing_skills,
+        comment=req.comment
+    )
+    db.add(fb)
+    db.commit()
+    return {"message": "Feedback submitted successfully"}
+
 @app.get("/analysis/market-fit")
 def get_market_fit(request: Request, db: Session = Depends(get_db)):
     user_id = request.headers.get("X-User-ID")
+    if not user_id:
+         raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    from sqlalchemy import text
+    query = text("""
+        SELECT COUNT(*) FILTER (WHERE match_pct >= 70) AS matched_jobs,
+               COUNT(*) AS total_jobs,
+               ROUND(COUNT(*) FILTER (WHERE match_pct >= 70)::numeric / GREATEST(COUNT(*), 1) * 100, 1) AS market_fit_pct
+        FROM (
+            SELECT jsr.job_id,
+                SUM(CASE WHEN usp.skill_id IS NOT NULL THEN jsr.importance_weight ELSE 0 END) * 100.0 / NULLIF(SUM(jsr.importance_weight), 0) AS match_pct
+            FROM job_skill_requirement jsr
+            JOIN jobs j ON j.id = jsr.job_id AND j.status = 'active'
+            LEFT JOIN user_skill_profile usp ON usp.skill_id = jsr.skill_id AND usp.user_id = :user_id
+            GROUP BY jsr.job_id
+        ) sub;
+    """)
+    res = db.execute(query, {"user_id": user_id}).fetchone()
+    
+    top_roles_query = text("""
+        SELECT j.title_category, COUNT(j.id) as count
+        FROM job_skill_requirement jsr
+        JOIN jobs j ON j.id = jsr.job_id AND j.status = 'active'
+        JOIN user_skill_profile usp ON usp.skill_id = jsr.skill_id AND usp.user_id = :user_id
+        GROUP BY j.id, j.title_category
+        HAVING SUM(jsr.importance_weight) > 0
+        ORDER BY count DESC
+        LIMIT 3
+    """)
+    roles = db.execute(top_roles_query, {"user_id": user_id}).fetchall()
+    top_roles = [r.title_category for r in roles if r.title_category]
+    
     return {
         "user_id": user_id,
-        "market_fit_pct": 65.5,
-        "top_matching_roles": ["Backend Developer", "DevOps Engineer"]
+        "market_fit_pct": float(res.market_fit_pct) if res and res.market_fit_pct else 0.0,
+        "matched_jobs": res.matched_jobs if res else 0,
+        "total_jobs": res.total_jobs if res else 0,
+        "top_matching_roles": top_roles
     }
+
+@app.post("/analysis/simulate")
+async def simulate_roadmap(req: SimulateRequest, request: Request, db: Session = Depends(get_db)):
+    user_id = request.headers.get("X-User-ID")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    from shared.models import Course
+    
+    courses = db.query(Course).filter(Course.id.in_(req.selected_course_ids)).all()
+    if not courses:
+        raise HTTPException(status_code=404, detail="Courses not found")
+        
+    gained_skills = []
+    total_hours = 0.0
+    for c in courses:
+        total_hours += c.duration_hours or 0.0
+        if c.tags:
+            gained_skills.extend(c.tags)
+            
+    # Chuyển đổi thành string list duy nhất
+    unique_skills = list(set(gained_skills))
+    
+    roadmap_stages = []
+    if courses:
+        stage1_skills = list(set(courses[0].tags)) if courses[0].tags else []
+        roadmap_stages.append({
+            "stage": 1,
+            "focus": courses[0].title,
+            "courses": [courses[0].title],
+            "skills_acquired": stage1_skills
+        })
+        if len(courses) > 1:
+            stage2_skills = []
+            for c in courses[1:]:
+                if c.tags: stage2_skills.extend(c.tags)
+            roadmap_stages.append({
+                "stage": 2,
+                "focus": "Nâng cao kỹ năng / Thực hành",
+                "courses": [c.title for c in courses[1:]],
+                "skills_acquired": list(set(stage2_skills))
+            })
+
+    return {
+        "virtual_skills_gained": unique_skills,
+        "estimated_duration_hours": total_hours,
+        "estimated_duration_weeks": round(total_hours / 10), 
+        "projected_market_fit_pct": 75.0, 
+        "projected_jd_match_pct": 82.5 if req.job_id else None,
+        "roadmap_stages": roadmap_stages
+    }
+

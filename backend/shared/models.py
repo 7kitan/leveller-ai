@@ -175,3 +175,16 @@ class UserAnalysis(Base):
     user = relationship("User")
     cv = relationship("UserCV")
     job = relationship("Job", back_populates="analysis_reports")
+
+class UserFeedback(Base):
+    __tablename__ = "user_feedback"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    analysis_id = Column(String(100), nullable=False)
+    rating = Column(Integer)
+    is_accurate = Column(Boolean)
+    missing_skills = Column(JSON)
+    comment = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+

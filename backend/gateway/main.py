@@ -26,6 +26,7 @@ SERVICES = {
     "cv": os.getenv("CV_SVC_URL", "http://cv-service:8000"),
     "jd": os.getenv("JD_SVC_URL", "http://jd-service:8000"),
     "analysis": os.getenv("ANALYSIS_SVC_URL", "http://analysis-service:8000"),
+    "recommend": os.getenv("RECOMMEND_SVC_URL", "http://recommender-service:8000"),
 }
 
 client = httpx.AsyncClient()

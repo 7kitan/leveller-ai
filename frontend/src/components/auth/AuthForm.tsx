@@ -34,11 +34,8 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
       
       login(access_token, user);
       
-      if (user.is_admin) {
-        router.push("/admin");
-      } else {
-        router.push("/cv");
-      }
+      const userRole = user.role || (user.is_admin ? 'admin' : 'user');
+      router.push(`/${userRole}`);
     } catch (err: any) {
       setError(err.response?.data?.detail || "Đã xảy ra lỗi vui lòng thử lại.");
     } finally {

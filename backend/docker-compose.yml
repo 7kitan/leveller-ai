@@ -157,6 +157,23 @@ services:
     networks:
       - advisor_net
 
+  recommender-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+    container_name: advisor_recommender
+    environment:
+      - APP_MODULE=services.recommender_service.main:app
+    env_file: .env
+    command: sh -c "uvicorn services.recommender_service.main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - advisor_net
+
   worker:
     build:
       context: .

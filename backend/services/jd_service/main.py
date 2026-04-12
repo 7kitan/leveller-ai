@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import FastAPI, Depends, HTTPException, Request, Query
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from shared.database import get_db
 from shared.models import Job
@@ -53,9 +54,37 @@ def import_jd_text(job_in: JobCreate, request: Request, db: Session = Depends(ge
 def list_jobs(db: Session = Depends(get_db)):
     return db.query(Job).filter(Job.status == "active").all()
 
+@app.get("/jd/search", response_model=List[JobResponse])
+def search_jobs(
+    db: Session = Depends(get_db),
+    location: Optional[str] = None,
+    min_salary: Optional[int] = None,
+    role: Optional[str] = None,
+    search_text: Optional[str] = None
+):
+    query = db.query(Job).filter(Job.status == "active")
+    
+    if location:
+        query = query.filter(Job.location_normalized.ilike(f"%{location}%"))
+    if min_salary:
+        query = query.filter(Job.min_salary_vnd >= min_salary)
+    if role:
+        query = query.filter(Job.title_category.ilike(f"%{role}%"))
+    if search_text:
+        query = query.filter(
+            or_(
+                Job.title_raw.ilike(f"%{search_text}%"),
+                Job.company_name.ilike(f"%{search_text}%"),
+                Job.raw_text.ilike(f"%{search_text}%")
+            )
+        )
+        
+    return query.limit(50).all()
+
 @app.get("/jd/{job_id}", response_model=JobResponse)
 def get_job(job_id: uuid.UUID, db: Session = Depends(get_db)):
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return job
+

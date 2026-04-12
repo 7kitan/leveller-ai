@@ -1,72 +1,181 @@
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+import sys
 import os
 import uuid
-import json
-from shared.models import Course, Skill
-from shared.database import SessionLocal, engine
-from openai import OpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-def get_embedding(text_content: str):
-    response = client.embeddings.create(
-        input=text_content,
-        model="text-embedding-3-small"
-    )
-    return response.data[0].embedding
-
-COURSES_DATA = [
-    # Java
-    {"title": "Java Programming: Solving Problems with Software", "platform": "Coursera", "level": "Basic", "url": "https://coursera.org/learn/java-programming", "duration": 20},
-    {"title": "Spring Framework Specialization", "platform": "Coursera", "level": "Middle", "url": "https://coursera.org/specializations/spring-framework", "duration": 60},
-    {"title": "Advanced Java and Microservices", "platform": "Udemy", "level": "Senior", "url": "https://udemy.com/advanced-java", "duration": 40},
-    
-    # Python
-    {"title": "Python for Everybody Specialization", "platform": "Coursera", "level": "Basic", "url": "https://coursera.org/specializations/python", "duration": 50},
-    {"title": "Django for Beginners", "platform": "Udemy", "level": "Junior", "url": "https://udemy.com/django-beginners", "duration": 15},
-    {"title": "Machine Learning with Python", "platform": "EdX", "level": "Middle", "url": "https://edx.org/course/ml-python", "duration": 30},
-    
-    # Frontend/Web
-    {"title": "Modern React with Redux", "platform": "Udemy", "level": "Junior", "url": "https://udemy.com/react-redux", "duration": 52},
-    {"title": "Frontend Web Development Bootcamp", "platform": "Udemy", "level": "Basic", "url": "https://udemy.com/frontend-bootcamp", "duration": 80},
-    {"title": "Next.js 14 & Enterprise Architecture", "platform": "Pluralsight", "level": "Senior", "url": "https://pluralsight.com/nextjs-advanced", "duration": 25},
-    
-    # Infrastructure/SQL
-    {"title": "SQL for Data Science", "platform": "Coursera", "level": "Basic", "url": "https://coursera.org/learn/sql-for-data-science", "duration": 14},
-    {"title": "Docker and Kubernetes: The Complete Guide", "platform": "Udemy", "level": "Middle", "url": "https://udemy.com/docker-and-kubernetes", "duration": 22},
-    {"title": "AWS Certified Solutions Architect", "platform": "A Cloud Guru", "level": "Middle", "url": "https://acloudguru.com/aws-csa", "duration": 35}
-]
+from sqlalchemy.orm import Session
+from shared.database import SessionLocal, Base
+from shared.models import Course
 
 def seed_courses():
     db = SessionLocal()
-    try:
-        print("--- [CLEAN] Clearing old courses ---")
-        db.execute(text("DELETE FROM courses"))
-        db.commit()
+    
+    mock_courses = [
+        {
+            "title": "Complete NodeJS Developer in 2026",
+            "description": "Master Node.js by building real-world RESTful APIs and GraphQL.",
+            "platform": "Udemy",
+            "url": "https://udemy.com/nodejs",
+            "language": "en",
+            "level": "Intermediate",
+            "is_certification": False,
+            "provider": "Andrei Neagoie",
+            "duration_hours": 45.5,
+            "cost_usd": 15.0,
+            "tags": ["Node.js", "Express", "REST API", "Backend", "JavaScript", "GraphQL"]
+        },
+        {
+            "title": "Docker & Kubernetes: The Practical Guide",
+            "description": "Learn Docker & Kubernetes from scratch and deploy applications.",
+            "platform": "Udemy",
+            "url": "https://udemy.com/docker-kubernetes",
+            "language": "en",
+            "level": "Intermediate",
+            "is_certification": False,
+            "provider": "Maximilian Schwarzmüller",
+            "duration_hours": 23.0,
+            "cost_usd": 12.0,
+            "tags": ["Docker", "Kubernetes", "DevOps", "Containerization"]
+        },
+        {
+            "title": "AWS Certified Solutions Architect - Associate",
+            "description": "Pass the AWS Certified Solutions Architect Associate Certification.",
+            "platform": "Coursera",
+            "url": "https://coursera.org/aws",
+            "language": "en",
+            "level": "Advanced",
+            "is_certification": True,
+            "provider": "Amazon Web Services",
+            "duration_hours": 60.0,
+            "cost_usd": 49.0,
+            "tags": ["AWS", "Cloud Computing", "Architecture", "EC2", "S3"]
+        },
+        {
+            "title": "React - The Complete Guide (incl Hooks, React Router, Redux)",
+            "description": "Dive in and learn React.js from scratch!",
+            "platform": "Udemy",
+            "url": "https://udemy.com/react",
+            "language": "en",
+            "level": "Beginner",
+            "is_certification": False,
+            "provider": "Academind",
+            "duration_hours": 50.5,
+            "cost_usd": 14.0,
+            "tags": ["React", "JavaScript", "Frontend", "Redux", "Hooks"]
+        },
+        {
+            "title": "Data Structures and Algorithms: Deep Dive Using Java",
+            "description": "Learn about Arrays, Linked Lists, Trees, Hashtables, Stacks, Queues, Heaps, Sort algorithms.",
+            "platform": "Udemy",
+            "url": "https://udemy.com/dsa-java",
+            "language": "en",
+            "level": "Intermediate",
+            "is_certification": False,
+            "provider": "Tim Buchalka",
+            "duration_hours": 16.0,
+            "cost_usd": 10.0,
+            "tags": ["Java", "Data Structures", "Algorithms", "Core CS"]
+        },
+        {
+            "title": "The Complete SQL Bootcamp 2026: Go from Zero to Hero",
+            "description": "Become an expert at SQL!",
+            "platform": "Udemy",
+            "url": "https://udemy.com/sql-bootcamp",
+            "language": "en",
+            "level": "Beginner",
+            "is_certification": False,
+            "provider": "Jose Portilla",
+            "duration_hours": 9.0,
+            "cost_usd": 9.0,
+            "tags": ["SQL", "Database", "PostgreSQL"]
+        },
+        {
+            "title": "Microservices with Node JS and React",
+            "description": "Build, deploy, and scale an E-Commerce app using Microservices.",
+            "platform": "Udemy",
+            "url": "https://udemy.com/microservices",
+            "language": "en",
+            "level": "Advanced",
+            "is_certification": False,
+            "provider": "Stephen Grider",
+            "duration_hours": 54.0,
+            "cost_usd": 20.0,
+            "tags": ["Microservices", "Node.js", "React", "Docker", "Kubernetes", "Architecture"]
+        },
+        {
+            "title": "Professional Leadership & Team Management",
+            "description": "Learn essential skills for leading engineering teams.",
+            "platform": "Coursera",
+            "url": "https://coursera.org/leadership",
+            "language": "en",
+            "level": "Intermediate",
+            "is_certification": True,
+            "provider": "University of Michigan",
+            "duration_hours": 15.0,
+            "cost_usd": 39.0,
+            "tags": ["Leadership", "Management", "Agile", "Scrum", "Soft Skills"]
+        },
+        {
+            "title": "Mastering Go Programming",
+            "description": "In-depth guide to developing applications with Go.",
+            "platform": "Pluralsight",
+            "url": "https://pluralsight.com/go",
+            "language": "en",
+            "level": "Intermediate",
+            "is_certification": False,
+            "provider": "Pluralsight",
+            "duration_hours": 30.0,
+            "cost_usd": 29.0,
+            "tags": ["Go", "Golang", "Backend", "Concurrency"]
+        },
+        {
+            "title": "System Design Interview Course",
+            "description": "Prepare for distributed systems design interview questions.",
+            "platform": "Educative.io",
+            "url": "https://educative.io/system-design",
+            "language": "en",
+            "level": "Advanced",
+            "is_certification": False,
+            "provider": "Educative",
+            "duration_hours": 20.0,
+            "cost_usd": 50.0,
+            "tags": ["System Design", "Architecture", "Scalability", "Distributed Systems", "Cloud"]
+        }
+    ]
 
-        print(f"--- [SEED] Planting {len(COURSES_DATA)} high-quality courses ---")
-        for c in COURSES_DATA:
-            print(f"  > Processing: {c['title']}")
-            # Tạo embedding cho title để hỗ trợ Semantic Search
-            vector = get_embedding(c['title'])
+    try:
+        count = db.query(Course).count()
+        if count > 0:
+            print(f"Bảng courses đã chứa {count} bản ghi. Không cần seed thêm.")
+            return
             
+        print("Đang tiến hành insert mock data cho Bảng courses...")
+        inserted = 0
+        for data in mock_courses:
             course = Course(
                 id=uuid.uuid4(),
-                title=c['title'],
-                platform=c['platform'],
-                level=c['level'],
-                url=c['url'],
-                duration_hours=c['duration'],
-                vector=vector
+                title=data["title"],
+                description=data["description"],
+                platform=data["platform"],
+                url=data["url"],
+                language=data["language"],
+                level=data["level"],
+                is_certification=data["is_certification"],
+                provider=data["provider"],
+                duration_hours=data["duration_hours"],
+                cost_usd=data["cost_usd"],
+                tags=data["tags"],
+                embedding_context=f"{data['title']}. {data['description']}"
             )
             db.add(course)
-        
+            inserted += 1
+            
         db.commit()
-        print("--- [SUCCESS] Course recommendation pool is ready! ---")
+        print(f"✅ Đã seed thành công {inserted} khóa học lập trình mồi.")
     except Exception as e:
-        print(f"ERROR: {e}")
         db.rollback()
+        print(f"Lỗi thao tác DB: {e}")
     finally:
         db.close()
 

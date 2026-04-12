@@ -1,36 +1,213 @@
 "use client";
 
-import React from "react";
-import { Sparkles, Zap, ArrowLeft, Construction } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { 
+  Sparkles, Zap, ArrowLeft, TrendingUp, 
+  BarChart3, Globe, Briefcase, DollarSign,
+  ChevronRight, Flame, Target, Star
+} from "lucide-react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
+import { useAuth } from "@/context/AuthContext";
+
+interface TrendingSkill {
+  skill_name: string;
+  job_count: number;
+  avg_salary_vnd: number | null;
+}
+
+interface Job {
+  id: string;
+  title_raw: string;
+  company_name?: string;
+}
 
 export default function UserRecommendPage() {
-  return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center text-center space-y-8 animate-in fade-in zoom-in duration-700">
-      <div className="relative">
-        <div className="absolute inset-0 bg-cyan-500/20 blur-[100px] rounded-full scale-150 animate-pulse"></div>
-        <div className="w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center relative z-10">
-          <Zap className="w-12 h-12 text-cyan-400 animate-bounce" />
-        </div>
-      </div>
-      
-      <div className="space-y-4 max-w-md relative z-10">
-        <h1 className="text-4xl font-black text-white tracking-tighter uppercase">Smart Recommendations.</h1>
-        <p className="text-white/40 font-medium leading-relaxed">
-          Hệ thống đang tinh lọc các cơ hội nghề nghiệp và lộ trình học tập tối ưu nhất dựa trên Knowledge Graph của bạn.
-        </p>
-      </div>
+  const { token } = useAuth();
+  const [trendingSkills, setTrendingSkills] = useState<TrendingSkill[]>([]);
+  const [featuredJobs, setFeaturedJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
 
-      <div className="flex items-center gap-6 relative z-10">
+  useEffect(() => {
+    if (token) {
+        fetchData();
+    }
+  }, [token]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+        const [skillRes, jobRes] = await Promise.all([
+            axios.get("/api/recommend/trending-skills?days=30&limit=10", {
+                headers: { "Authorization": `Bearer ${token}` }
+            }),
+            axios.get("/api/jd/search?limit=3", {
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+        ]);
+        setTrendingSkills(skillRes.data);
+        setFeaturedJobs(jobRes.data);
+    } catch (err) {
+        console.error("Lỗi fetch recommendation:", err);
+    } finally {
+        setLoading(false);
+    }
+  };
+
+  const formatSalary = (val: number | null) => {
+    if (!val) return "N/A";
+    return (val / 1000000).toFixed(1) + "M";
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center">
+        <div className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
+        <p className="mt-4 text-cyan-400 font-bold animate-pulse uppercase tracking-widest text-xs">Phân tích thị trường...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-12 pb-20 animate-in fade-in duration-700">
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+        <div className="space-y-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-cyan-500/10 border border-cyan-500/20 rounded-full">
+            <Sparkles size={14} className="text-cyan-400" />
+            <span className="text-cyan-400 text-[10px] font-black tracking-[0.2em] uppercase">Market Intelligence v2.0</span>
+          </div>
+          <h1 className="text-6xl font-black text-white tracking-tighter italic lg:leading-none">
+            SMART <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-500">INSIGHTS.</span>
+          </h1>
+          <p className="text-white/40 font-medium text-lg max-w-xl">
+            Tối ưu hóa sự nghiệp dựa trên dữ liệu thực tế từ thị trường lao động toàn cầu.
+          </p>
+        </div>
+
         <Link 
             href="/user" 
-            className="flex items-center gap-2 px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-bold transition-all"
+            className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-bold transition-all w-fit"
         >
-          <ArrowLeft className="w-4 h-4" /> Quay lại Dashboard
+          <ArrowLeft className="w-4 h-4" /> Dashboard
         </Link>
-        <div className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400">Coming Soon</span>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Column: Trending Skills Heatmap */}
+        <div className="lg:col-span-8 space-y-8">
+          <div className="glass-panel p-10 border-white/5 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-1000">
+                <TrendingUp size={120} />
+            </div>
+            
+            <div className="flex items-center gap-4 mb-10 relative z-10">
+                <div className="p-3 bg-cyan-500/20 rounded-xl">
+                    <Flame className="text-cyan-400 w-6 h-6" />
+                </div>
+                <div>
+                    <h2 className="text-2xl font-black text-white tracking-tight uppercase italic">Market Heatmap</h2>
+                    <p className="text-white/30 text-xs font-bold uppercase tracking-widest">Top kỹ năng đang "khát" nhân lực nhất</p>
+                </div>
+            </div>
+
+            <div className="space-y-6 relative z-10">
+                {trendingSkills.map((skill, idx) => (
+                    <motion.div 
+                        key={idx}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="group/item"
+                    >
+                        <div className="flex justify-between items-end mb-2">
+                            <span className="text-white font-black italic uppercase text-sm group-hover/item:text-cyan-400 transition-colors">{skill.skill_name}</span>
+                            <span className="text-white/40 text-[10px] font-black uppercase tracking-widest">
+                                {skill.job_count} Jobs Available
+                            </span>
+                        </div>
+                        <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                            <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: `${Math.min(100, (skill.job_count / (trendingSkills[0]?.job_count || 1)) * 100)}%` }}
+                                transition={{ duration: 1.5, ease: "easeOut" }}
+                                className="h-full bg-gradient-to-r from-cyan-600 to-indigo-600 shadow-[0_0_15px_rgba(6,182,212,0.5)]"
+                            />
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+             <div className="glass-panel p-8 border-white/5 bg-gradient-to-br from-indigo-500/5 to-transparent">
+                <div className="flex items-center gap-3 mb-6">
+                    <DollarSign className="text-indigo-400" />
+                    <h3 className="text-white font-black italic uppercase text-sm tracking-widest">Salary Benchmarks</h3>
+                </div>
+                <div className="space-y-4">
+                    {trendingSkills.slice(0, 4).map((skill, idx) => (
+                        <div key={idx} className="flex justify-between items-center py-3 border-b border-white/5 last:border-0">
+                            <span className="text-white/60 text-xs font-bold">{skill.skill_name}</span>
+                            <span className="text-indigo-400 font-black italic">avg. {formatSalary(skill.avg_salary_vnd)}</span>
+                        </div>
+                    ))}
+                </div>
+             </div>
+
+             <div className="glass-panel p-8 border-white/5 flex flex-col items-center justify-center text-center">
+                <Globe className="text-cyan-500 mb-4 animate-pulse" size={40} />
+                <h3 className="text-white font-black italic uppercase text-sm">Global Reach</h3>
+                <p className="text-white/30 text-xs mt-2 font-medium">Báo cáo dựa trên 50,000+ tin tuyển dụng từ LinkedIn, Indeed và TopCV.</p>
+             </div>
+          </div>
+        </div>
+
+        {/* Right Column: Featured Opportunities */}
+        <div className="lg:col-span-4 space-y-8">
+          <div className="glass-panel p-8 border-white/5">
+            <h3 className="text-white font-black italic uppercase text-sm tracking-[0.2em] mb-8 flex items-center gap-2">
+                <Target className="w-5 h-5 text-rose-500" /> New Opportunities
+            </h3>
+            <div className="space-y-6">
+                {featuredJobs.map((job) => (
+                    <div key={job.id} className="group cursor-pointer">
+                        <Link href={`/user/jobs`} className="block bg-white/3 border border-white/5 p-5 rounded-2xl hover:border-cyan-500/30 hover:bg-white/5 transition-all">
+                            <h4 className="text-white font-black text-sm uppercase italic line-clamp-1 group-hover:text-cyan-400">{job.title_raw}</h4>
+                            <div className="flex items-center gap-2 mt-2 opacity-40">
+                                <Briefcase size={12} />
+                                <span className="text-[10px] font-bold uppercase tracking-widest">Verified Employer</span>
+                            </div>
+                            <div className="mt-4 flex justify-end">
+                                <span className="text-[10px] font-black text-cyan-400 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                                    PHÂN TÍCH MATCH <ChevronRight size={12} />
+                                </span>
+                            </div>
+                        </Link>
+                    </div>
+                ))}
+            </div>
+
+            <Link 
+                href="/user/jobs"
+                className="mt-8 flex w-full items-center justify-center py-4 bg-white/5 hover:bg-white/10 text-white font-black text-xs uppercase tracking-widest rounded-xl border border-white/10 transition-all"
+            >
+                Xem tất cả Job Market
+            </Link>
+          </div>
+
+          <div className="glass-panel p-8 border-white/5 bg-gradient-to-t from-emerald-500/5 to-transparent relative overflow-hidden">
+             <div className="absolute -bottom-4 -right-4 opacity-5">
+                <Star size={100} fill="currentColor" />
+             </div>
+             <h3 className="text-white font-black italic uppercase text-sm flex items-center gap-2 mb-4">
+                <Zap className="text-amber-500" /> AI Career Advice
+             </h3>
+             <p className="text-white/50 text-xs italic leading-relaxed font-medium">
+                "Thị trường đang dịch chuyển mạnh sang AI-Native development. Tập trung nâng cấp kỹ năng Prompt Engineering và LLM Integration để tăng 40% khả năng nhận offer lương cao hơn."
+             </p>
+          </div>
         </div>
       </div>
     </div>

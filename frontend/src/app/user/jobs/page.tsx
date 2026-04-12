@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { Briefcase, MapPin, Search, Loader2, Info } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 interface Job {
   id: string;
@@ -16,24 +17,41 @@ export default function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [location, setLocation] = useState("");
+  const [minSalary, setMinSalary] = useState("");
+  const [role, setRole] = useState("");
+  const { token } = useAuth();
+
+  const fetchJobs = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("/api/jd/search", {
+        params: {
+          search_text: searchTerm || undefined,
+          location: location || undefined,
+          min_salary: minSalary || undefined,
+          role: role || undefined
+        },
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      setJobs(res.data);
+    } catch (err) {
+      console.error("Lỗi tìm kiếm jobs:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const res = await axios.get("/api/jd/list");
-        setJobs(res.data);
-      } catch (err) {
-        console.error("Lỗi lấy danh sách jobs:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchJobs();
   }, []);
 
-  const filteredJobs = jobs.filter(job => 
-    job.title_raw.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchJobs();
+  };
+
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
@@ -43,16 +61,47 @@ export default function JobsPage() {
           <p className="text-gray-400 mt-2">Tìm kiếm và phân tích độ phù hợp với các vị trí hàng đầu</p>
         </div>
         
-        <div className="relative max-w-md w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
-          <input 
-            type="text"
-            placeholder="Tìm kiếm vị trí..."
-            className="w-full pl-10 pr-4 py-3 glass rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-primary"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <form onSubmit={handleSearch} className="w-full space-y-4">
+            <div className="flex flex-col lg:flex-row gap-4">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+                    <input 
+                        type="text"
+                        placeholder="Từ khóa (Vị trí, Công ty...)"
+                        className="w-full pl-10 pr-4 py-3 glass rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-primary"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="relative w-full lg:w-48">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+                    <input 
+                        type="text"
+                        placeholder="Địa điểm"
+                        className="w-full pl-10 pr-4 py-3 glass rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-primary"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                    />
+                </div>
+                <div className="relative w-full lg:w-48">
+                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+                    <input 
+                        type="text"
+                        placeholder="Lương tối thiểu"
+                        className="w-full pl-10 pr-4 py-3 glass rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-primary"
+                        value={minSalary}
+                        onChange={(e) => setMinSalary(e.target.value)}
+                    />
+                </div>
+                <button 
+                    type="submit"
+                    className="px-8 py-3 bg-primary hover:bg-primary/80 text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/20"
+                >
+                    TÌM KIẾM
+                </button>
+            </div>
+        </form>
+
       </div>
 
       <AnimatePresence mode="wait">
@@ -66,13 +115,13 @@ export default function JobsPage() {
             <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
             <p className="text-gray-400">Đang tải dữ liệu việc làm...</p>
           </motion.div>
-        ) : filteredJobs.length > 0 ? (
+        ) : jobs.length > 0 ? (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {filteredJobs.map((job) => (
+            {jobs.map((job) => (
               <JobCard key={job.id} job={job} />
             ))}
           </motion.div>

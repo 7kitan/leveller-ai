@@ -42,8 +42,16 @@ function AnalysisContent() {
   const [analyzing, setAnalyzing] = useState(false);
   const [pollingStage, setPollingStage] = useState("");
   const [data, setData] = useState<AnalysisResult | null>(null);
+  const [recommendedCourses, setRecommendedCourses] = useState<any[]>([]);
+  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
+  const [simulationResult, setSimulationResult] = useState<any>(null);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackComment, setFeedbackComment] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
 
   useEffect(() => {
     if (token) {
@@ -83,7 +91,11 @@ function AnalysisContent() {
             headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.ok) {
-            setData(await response.json());
+            const resData = await response.json();
+            setData(resData);
+            if (resData.recommendations) {
+                fetchRealCourses(resData.recommendations);
+            }
         } else {
             setData(null);
         }
@@ -91,6 +103,29 @@ function AnalysisContent() {
         console.error("Fetch analysis error:", err);
     }
   };
+
+  const fetchRealCourses = async (gaps: any[]) => {
+      try {
+          const res = await fetch("/api/recommend/courses", {
+              method: "POST",
+              headers: { 
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify({ gap_skills: gaps.map(g => ({
+                  skill_name: g.skill,
+                  target_level: g.target_level || "Mid-level",
+                  gap_type: g.type
+              }))})
+          });
+          if (res.ok) {
+              setRecommendedCourses(await res.json());
+          }
+      } catch (err) {
+          console.error("Fetch real courses error:", err);
+      }
+  };
+
 
   const handleStartAnalysis = async () => {
     if (!selectedCvId) return;
@@ -152,6 +187,9 @@ function AnalysisContent() {
                             setAnalyzing(false);
                         } else {
                             setData(s.result);
+                            if (s.result.recommendations) {
+                                fetchRealCourses(s.result.recommendations);
+                            }
                             setAnalyzing(false);
                         }
                         return;
@@ -179,6 +217,55 @@ function AnalysisContent() {
       setError("Mất kết nối với AI Engine.");
     }
   };
+
+  const handleSimulate = async () => {
+      if (selectedCourseIds.length === 0) return;
+      setIsSimulating(true);
+      try {
+          const res = await fetch("/api/analysis/simulate", {
+              method: "POST",
+              headers: { 
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                  cv_id: selectedCvId,
+                  selected_course_ids: selectedCourseIds,
+                  job_id: selectedJobId || null
+              })
+          });
+          if (res.ok) {
+              setSimulationResult(await res.json());
+          }
+      } catch (err) {
+          console.error("Simulation error:", err);
+      } finally {
+          setIsSimulating(false);
+      }
+  };
+
+  const submitFeedback = async () => {
+      if (feedbackRating === 0 || !data) return;
+      try {
+          const res = await fetch("/api/analysis/feedback", {
+              method: "POST",
+              headers: { 
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                  analysis_id: selectedCvId, // Hoặc ID của report nếu có
+                  rating: feedbackRating,
+                  is_accurate: feedbackRating >= 4,
+                  comment: feedbackComment
+              })
+          });
+          if (res.ok) setFeedbackSubmitted(true);
+      } catch (err) {
+          console.error("Feedback error:", err);
+      }
+  };
+
 
   if (loading) {
     return (
@@ -573,7 +660,7 @@ function AnalysisContent() {
               </div>
             </div>
 
-            {/* Recommendations */}
+            {/* Recommendations & Simulation Section */}
             <section className="mt-10 bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[4rem] p-12 lg:p-16 relative overflow-hidden">
                <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-600/5 rounded-full blur-[100px] translate-y-1/2 translate-x-1/2"></div>
                
@@ -587,20 +674,78 @@ function AnalysisContent() {
                        <p className="text-slate-500 font-bold italic text-lg mt-1">Lộ trình nâng cấp năng lực được hỗ trợ bởi AI</p>
                     </div>
                   </div>
-                  <button className="px-10 py-5 bg-white/5 border border-white/10 rounded-2xl text-white font-black text-sm italic hover:bg-indigo-600 transition-all shadow-xl">
-                     LEARNING PATHWAY FULL
-                  </button>
+                  {selectedCourseIds.length > 0 && (
+                      <button 
+                         onClick={handleSimulate}
+                         disabled={isSimulating}
+                         className="px-10 py-5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm italic rounded-2xl transition-all shadow-xl flex items-center gap-3"
+                      >
+                         {isSimulating ? <RefreshCw className="animate-spin" /> : <Zap fill="white" />} 
+                         SIMULATE ROADMAP ({selectedCourseIds.length})
+                      </button>
+                  )}
                </div>
 
+               {simulationResult && (
+                    <div className="mb-16 p-10 bg-indigo-500/10 border border-indigo-500/30 rounded-[3rem] animate-in fade-in slide-in-from-top-10 duration-700 relative z-10">
+                        <div className="flex flex-col lg:flex-row gap-12 items-center">
+                            <div className="text-center lg:text-left space-y-4">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Projected Growth</h4>
+                                <div className="text-7xl font-black text-white italic">
+                                    {simulationResult.projected_market_fit_pct}% 
+                                    <span className="text-xs text-emerald-400 ml-4 font-bold">+10% Growth</span>
+                                </div>
+                                <p className="text-slate-400 text-sm italic">Sau khi hoàn thành lộ trình, tỉ lệ khớp thị trường của bạn sẽ tăng mạnh.</p>
+                                <div className="flex gap-4 mt-6">
+                                    <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                                        <div className="text-white font-black">{simulationResult.estimated_duration_hours}h</div>
+                                        <div className="text-[8px] text-slate-500 uppercase font-black">Total Hours</div>
+                                    </div>
+                                    <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                                        <div className="text-white font-black">~{simulationResult.estimated_duration_weeks}w</div>
+                                        <div className="text-[8px] text-slate-500 uppercase font-black">Timeline</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex-1 space-y-6">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-6">Learning Stages</h4>
+                                <div className="space-y-4">
+                                    {simulationResult.roadmap_stages.map((stage: any) => (
+                                        <div key={stage.stage} className="flex gap-6 items-start">
+                                            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-black shrink-0 shadow-lg shadow-indigo-500/30">{stage.stage}</div>
+                                            <div>
+                                                <div className="text-white font-black text-sm uppercase italic tracking-tight">{stage.focus}</div>
+                                                <div className="flex flex-wrap gap-2 mt-2">
+                                                    {stage.skills_acquired.map((s: string) => (
+                                                        <span key={s} className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 text-[9px] text-indigo-300 rounded font-bold">{s}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+               )}
+
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 relative z-10">
-                  {data?.recommendations?.map((course, idx) => (
-                    <div key={idx} className="bg-white/[0.02] border border-white/5 rounded-[3rem] p-9 group hover:bg-white/[0.05] hover:border-indigo-500/20 transition-all hover:translate-y-[-8px]">
+                  {recommendedCourses.map((course, idx) => (
+                    <div 
+                        key={idx} 
+                        onClick={() => setSelectedCourseIds(prev => prev.includes(course.id) ? prev.filter(id => id !== course.id) : [...prev, course.id])}
+                        className={`bg-white/[0.02] border rounded-[3rem] p-9 group hover:bg-white/[0.05] transition-all cursor-pointer ${
+                            selectedCourseIds.includes(course.id) ? "border-emerald-500/50 bg-emerald-500/5" : "border-white/5"
+                        }`}
+                    >
                        <div className="flex justify-between items-center mb-10">
                           <span className="px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black rounded-xl uppercase tracking-widest italic">
                              {course.platform || 'Academy'}
                           </span>
-                          <div className="w-10 h-10 bg-indigo-500/10 rounded-full flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
-                             <ChevronRight size={20} />
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                              selectedCourseIds.includes(course.id) ? "bg-emerald-500 text-white" : "bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white"
+                          }`}>
+                             {selectedCourseIds.includes(course.id) ? <CheckCircle2 size={20} /> : <ChevronRight size={20} />}
                           </div>
                        </div>
                        <h4 className="text-2xl font-black text-white italic mb-10 leading-tight group-hover:text-indigo-400 transition-colors line-clamp-2">{course.title}</h4>
@@ -612,6 +757,7 @@ function AnalysisContent() {
                             href={course.url} 
                             target="_blank" 
                             rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
                             className="text-white font-black text-[10px] bg-indigo-600/10 border border-indigo-600/20 hover:bg-indigo-600 px-4 py-2 rounded-xl transition-all uppercase tracking-widest"
                           >
                             Explore
@@ -621,6 +767,49 @@ function AnalysisContent() {
                   ))}
                </div>
             </section>
+
+            {/* User Feedback Section */}
+            {!feedbackSubmitted ? (
+                <section className="mt-10 bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[3rem] p-12 text-center relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-500"></div>
+                    <h3 className="text-xl font-black text-white italic mb-4">REPORT ACCURACY FEEDBACK</h3>
+                    <p className="text-slate-500 text-sm font-bold italic mb-8">Đánh giá độ chính xác của AI trong bản báo cáo này</p>
+                    
+                    <div className="flex justify-center gap-4 mb-8">
+                        {[1, 2, 3, 4, 5].map(star => (
+                            <button 
+                                key={star}
+                                onClick={() => setFeedbackRating(star)}
+                                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${feedbackRating >= star ? 'bg-amber-400 text-[#020617] scale-110 shadow-lg shadow-amber-500/20' : 'bg-white/5 text-slate-500 hover:bg-white/10'}`}
+                            >
+                                <Sparkles size={24} fill={feedbackRating >= star ? "currentColor" : "none"} />
+                            </button>
+                        ))}
+                    </div>
+
+                    <textarea 
+                        value={feedbackComment}
+                        onChange={(e) => setFeedbackComment(e.target.value)}
+                        placeholder="Có kỹ năng nào AI bóc tách chưa chuẩn không? Hãy góp ý để chúng tôi cải thiện..."
+                        className="w-full max-w-2xl mx-auto block p-4 bg-white/5 border border-white/10 rounded-2xl text-white text-sm outline-none focus:border-indigo-500 transition-all mb-6 h-28"
+                    />
+
+                    <button 
+                        onClick={submitFeedback}
+                        disabled={feedbackRating === 0}
+                        className="px-12 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-20 text-white font-black text-sm italic rounded-full transition-all shadow-xl"
+                    >
+                        SUBMIT FEEDBACK
+                    </button>
+                </section>
+            ) : (
+                <section className="mt-10 bg-emerald-500/10 border border-emerald-500/20 rounded-[3rem] p-12 text-center animate-in zoom-in duration-500">
+                    <CheckCircle2 size={48} className="text-emerald-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-black text-white italic">CẢM ƠN BẠN ĐÃ ĐÓNG GÓP!</h3>
+                    <p className="text-emerald-400/60 text-sm font-bold italic">Ý kiến của bạn giúp hệ thống AI thông minh hơn mỗi ngày.</p>
+                </section>
+            )}
+
           </div>
         )}
       </div>
