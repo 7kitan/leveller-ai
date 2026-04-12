@@ -108,20 +108,42 @@ class AIModelHub:
                     "torch_dtype": torch.bfloat16,
                 }
             else:
-                logger.info("DEBUG MODELS: No CUDA detected. Using CPU-only mode (Quantization Disabled).")
-                # On CPU, bitsandbytes 4-bit is unstable/slow. Use BFloat16 if supported, else Float32.
-                # BFloat16 is supported on most modern CPUs and is much faster/leaner than Float32.
+                logger.info("DEBUG MODELS: No CUDA detected. Using CPU-only mode.")
+                
+                # Check for CPU BFloat16 support
+                cpu_bf16 = False
+                if hasattr(torch.cpu, "is_bf16_supported"):
+                    cpu_bf16 = torch.cpu.is_bf16_supported()
+                
+                # Force 4-bit Quantization on CPU for 8GB RAM limit
+                # Requires bitsandbytes >= 0.44.0
+                logger.info("DEBUG MODELS: Enabling CPU 4-bit Quantization (bitsandbytes).")
+                quantization_config = BitsAndBytesConfig(
+                    load_in_4bit=True,
+                    bnb_4bit_compute_dtype=torch.bfloat16 if cpu_bf16 else torch.float32,
+                    bnb_4bit_quant_type="nf4",
+                )
+                
                 model_kwargs = {
-                    "quantization_config": None,
+                    "quantization_config": quantization_config,
                     "device_map": "cpu",
-                    "torch_dtype": torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float32,
+                    "dtype": torch.bfloat16 if cpu_bf16 else torch.float32,
+                    "low_cpu_mem_usage": True,
                 }
+                
+            # Extra safety: Clean memory before loading heavy weights
+            gc.collect()
+            
+            # Check for local-only flag to avoid re-downloads
+            local_only = os.getenv("HF_LOCAL_FILES_ONLY", "0").lower() in ("1", "true", "yes")
+            if local_only:
+                logger.info("DEBUG MODELS: Forcing local_files_only=True")
 
             try:
                 self.chandra_model = AutoModelForImageTextToText.from_pretrained(
                     self.chandra_path,
                     trust_remote_code=True,
-                    low_cpu_mem_usage=True,
+                    local_files_only=local_only,
                     **model_kwargs
                 ).eval()
                 

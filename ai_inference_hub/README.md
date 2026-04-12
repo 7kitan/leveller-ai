@@ -45,7 +45,22 @@ AI_INFERENCE_API_KEY=your_secret_api_key
 PORT=8080
 CHANDRA_MODEL_PATH=datalab-to/chandra-ocr-2
 BERTSCORE_MODEL_NAME=microsoft/deberta-base-mnli
+
+# Low-RAM (8GB) CPU Optimization
+HF_LOCAL_FILES_ONLY=1  # Prevent re-checking Hugging Face Hub if already downloaded
+EOT
 ```
+
+> [!TIP]
+> **Stability Tip for 8GB RAM**: 
+> Chandra OCR 2 (5B) is heavy. Even with 4-bit quantization, you should ensure your system has at least **8GB-16GB of Swap memory** to prevent `SIGKILL` during the initial loading phase.
+> ```bash
+> # Create a 16GB swap file (Ubuntu)
+> sudo fallocate -l 16G /swapfile
+> sudo chmod 600 /swapfile
+> sudo mkswap /swapfile
+> sudo swapon /swapfile
+> ```
 
 ### 4. Running the Service
 ```bash
