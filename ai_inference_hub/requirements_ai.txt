@@ -9,9 +9,10 @@ pydantic-settings>=2.11.0
 python-multipart==0.0.9
 
 # ML Stack (CPU + 4-bit Quantization)
+# ML Stack (CPU-only, clean install required to match torchvision ops)
 torch==2.4.1 --index-url https://download.pytorch.org/whl/cpu
 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cpu
-transformers>=4.57.0
+transformers>=4.46.0
 bert-score==0.3.13
 accelerate>=0.34.0
 bitsandbytes>=0.43.0

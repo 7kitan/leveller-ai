@@ -1,9 +1,26 @@
 import torch
 import gc
 import logging
-from bert_score import BERTScorer
 import os
 from dotenv import load_dotenv
+from bert_score import BERTScorer
+
+# --- Optimization: Ensure torchvision is initialized before transformers ---
+try:
+    import torchvision
+    # Trigger operator registration
+    if hasattr(torchvision, "ops"):
+        import torchvision.ops
+    logging.info(f"Torchvision initialized. version={torchvision.__version__}")
+except Exception as e:
+    logging.warning(f"Failed to pre-initialize torchvision: {e}")
+
+# --- Heavy Imports moved to top to avoid late import issues ---
+try:
+    from transformers import AutoModelForImageTextToText, AutoProcessor, BitsAndBytesConfig
+except ImportError as e:
+    logging.error(f"Failed to import transformers: {e}")
+    raise
 
 load_dotenv()
 
@@ -23,8 +40,6 @@ class AIModelHub:
         """Load Chandra OCR 2 (datalab-to/chandra-ocr-2) with 4-bit quantization for 8GB RAM."""
         if self.chandra_model is None:
             logger.info(f"Loading Chandra OCR 2 from {self.chandra_path}...")
-            
-            from transformers import AutoModelForImageTextToText, AutoProcessor, BitsAndBytesConfig
             
             # --- 4-bit Quantization để chạy trên 8GB RAM ---
             # Model 5B params: FP16 ~10GB → 4-bit ~3-4GB
