@@ -10,9 +10,9 @@ python-multipart==0.0.9
 
 # ML Stack (CPU + 4-bit Quantization)
 torch==2.4.1 --index-url https://download.pytorch.org/whl/cpu
-transformers>=4.45.0
+transformers==4.46.3
 bert-score==0.3.13
-accelerate>=0.33.0
+accelerate==0.34.2
 bitsandbytes>=0.43.0
 Pillow==10.2.0
 numpy==1.26.4

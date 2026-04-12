@@ -41,6 +41,7 @@ class AIModelHub:
                     quantization_config=quantization_config,
                     device_map="auto",  # Auto-map CPU/GPU
                     trust_remote_code=True,
+                    low_cpu_mem_usage=True,
                 ).eval()
                 
                 self.chandra_processor = AutoProcessor.from_pretrained(
