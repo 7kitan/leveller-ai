@@ -51,25 +51,32 @@ fi
 
 # --- Check 1: Log file exists and is not empty ---
 if [ ! -f "$LOG_FILE" ] || [ ! -s "$LOG_FILE" ]; then
-    echo "❌ [ai-log] BLOCKED: No AI logs found!"
-    echo ""
-    echo "   Bạn chưa ghi log sử dụng AI nào cho phiên làm việc này."
-    echo "   Mọi thành viên đều PHẢI ghi log AI trước khi push."
-    echo ""
-    echo "   Cách ghi log:"
-    echo "   ─────────────────────────────────────────────────"
-    echo "   📌 Tool có hook tự động (Claude Code, Cursor, Codex, Gemini CLI, Copilot):"
-    echo "       → (Tự động ghi khi bạn chat)"
-    echo ""
-    echo "   📌 Antigravity IDE:"
-    echo "       → (Tự động quét khi push, hoặc: $PY scripts/log_antigravity.py --auto)"
-    echo ""
-    echo "   📌 ChatGPT, Gemini Web, hoặc tool khác:"
-    echo "       → $PY scripts/log_manual.py"
-    echo ""
-    echo "   Sau khi ghi log, hãy thực hiện push lại."
-    echo ""
-    exit 1
+    # Allow empty logs IF the current commit has already been synced
+    SYNC_FILE=".ai-log/.last_synced_commit"
+    CURR_COMMIT=$(git rev-parse HEAD)
+    if [ -f "$SYNC_FILE" ] && [ "$(cat "$SYNC_FILE")" = "$CURR_COMMIT" ]; then
+        echo "✅ [ai-log] Current commit ($CURR_COMMIT) already synced. No new logs needed."
+    else
+        echo "❌ [ai-log] BLOCKED: No AI logs found!"
+        echo ""
+        echo "   Bạn chưa ghi log sử dụng AI nào cho phiên làm việc này."
+        echo "   Mọi thành viên đều PHẢI ghi log AI trước khi push."
+        echo ""
+        echo "   Cách ghi log:"
+        echo "   ─────────────────────────────────────────────────"
+        echo "   📌 Tool có hook tự động (Claude Code, Cursor, Codex, Gemini CLI, Copilot):"
+        echo "       → (Tự động ghi khi bạn chat)"
+        echo ""
+        echo "   📌 Antigravity IDE:"
+        echo "       → (Tự động quét khi push, hoặc: $PY scripts/log_antigravity.py --auto)"
+        echo ""
+        echo "   📌 ChatGPT, Gemini Web, hoặc tool khác:"
+        echo "       → $PY scripts/log_manual.py"
+        echo ""
+        echo "   Sau khi ghi log, hãy thực hiện push lại."
+        echo ""
+        exit 1
+    fi
 fi
 
 # --- Check 2: Count entries ---

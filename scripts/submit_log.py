@@ -60,6 +60,14 @@ def main():
             if 200 <= resp.status < 300:
                 print(f"[ai-log] Submitted {len(entries)} entries → {resp.status}", file=sys.stderr)
                 
+                # --- Track current commit as synced ---
+                try:
+                    commit = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+                    with open(LOG_FILE.parent / ".last_synced_commit", "w", encoding="utf-8") as f:
+                        f.write(commit)
+                except Exception as e:
+                    print(f"[ai-log] ⚠️ Failed to track synced commit: {e}", file=sys.stderr)
+
                 # --- Update Antigravity history ---
                 HISTORY_FILE = LOG_FILE.parent / ".antigravity_history"
                 ag_ids = [e.get("session_id") for e in entries if e.get("tool") == "antigravity" and e.get("session_id")]

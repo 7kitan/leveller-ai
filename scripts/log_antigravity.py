@@ -179,7 +179,7 @@ def scan_conversation(conv_dir: Path, repo_ids: list[str]):
 
 
 def _extract_conversation_data(conv_dir: Path, conv_id: str, overview_content: str = "") -> dict:
-    """Extract metadata from a conversation directory."""
+    """Extract metadata from a conversation directory with improved prompt discovery."""
     data = {
         "conversation_id": conv_id,
         "conv_dir": conv_dir,
@@ -188,17 +188,7 @@ def _extract_conversation_data(conv_dir: Path, conv_id: str, overview_content: s
         "title": "",
     }
 
-    # Try to extract title from overview
-    if overview_content:
-        lines = overview_content.split("\n")
-        for line in lines[:20]:
-            line = line.strip()
-            if line and not line.startswith("#") and not line.startswith("---"):
-                if len(line) > 10 and len(line) < 500:
-                    data["title"] = line[:200]
-                    break
-
-    # Get conversation modification times
+    # 1. Get conversation modification times
     try:
         mtime = conv_dir.stat().st_mtime
         data["timestamps"].append(
@@ -207,41 +197,83 @@ def _extract_conversation_data(conv_dir: Path, conv_id: str, overview_content: s
     except Exception:
         data["timestamps"].append(datetime.now(VN_TZ).isoformat())
 
-    # Try to extract prompts from step content
-    steps_dir = conv_dir / ".system_generated" / "steps"
-    if steps_dir.exists():
-        try:
-            step_dirs = sorted(steps_dir.iterdir(), key=lambda d: d.name)
-            for step_dir in step_dirs[:5]:
-                content_file = step_dir / "content.md"
-                if content_file.exists():
-                    content = content_file.read_text(encoding="utf-8", errors="ignore")[:2000]
-                    for line in content.split("\n"):
-                        line = line.strip()
-                        if line.startswith("Title:"):
-                            data["prompts"].append(line.replace("Title:", "").strip()[:200])
-                            break
-                        elif line.startswith("# "):
-                            data["prompts"].append(line.replace("# ", "").strip()[:200])
-                            break
-        except Exception:
-            pass
+    # 2. Extract specific USER prompts from overview.txt if available
+    if overview_content:
+        import re
+        # Try to find a title for the session
+        lines = overview_content.split("\n")
+        for line in lines[:20]:
+            line = line.strip()
+            if line and not line.startswith("#") and not line.startswith("---"):
+                if 10 < len(line) < 500:
+                    data["title"] = line[:200]
+                    break
+        
+        # Extract user messages
+        user_msgs = []
+        for line in lines:
+            line = line.strip()
+            # Antigravity logs often use "User:" or "USER:" markers
+            if "User:" in line or "USER:" in line:
+                msg = re.sub(r'.*USER:\s*', '', line).strip()
+                if msg and len(msg) > 5: user_msgs.append(msg[:200])
+        
+        if user_msgs:
+            data["prompts"].extend(user_msgs)
 
-    # Check artifact files
-    for artifact_name in ["task.md", "walkthrough.md", "implementation_plan.md"]:
-        artifact = conv_dir / artifact_name
-        if artifact.exists():
+    # 3. Check all artifact files and metadata (Thorough scan)
+    # This captures summaries from metadata.json and titles from .md files (including historical versions)
+    potential_files = list(conv_dir.glob("*.md*")) + list(conv_dir.glob("*.json"))
+    for p in potential_files:
+        if p.name.endswith(".metadata.json"):
             try:
-                content = artifact.read_text(encoding="utf-8", errors="ignore")
+                meta = json.loads(p.read_text(encoding="utf-8-sig", errors="ignore"))
+                summary = meta.get("summary") or meta.get("Summary")
+                if summary:
+                    summary = summary.split(".")[0].strip()[:200]
+                    if summary and summary not in data["prompts"]:
+                        data["prompts"].append(summary)
+            except: pass
+        elif p.suffix == ".md" or ".md.resolved" in p.name:
+            try:
+                content = p.read_text(encoding="utf-8-sig", errors="ignore")
                 for line in content.split("\n"):
                     line = line.strip()
                     if line.startswith("# "):
-                        summary = line.replace("# ", "").strip()[:200]
-                        if summary and summary not in data["prompts"]:
-                            data["prompts"].insert(0, summary)
+                        title = line.replace("# ", "").strip()[:200]
+                        if title and title not in data["prompts"] and "Implementation Plan" not in title and "Walkthrough" not in title:
+                            data["prompts"].append(title)
                         break
-            except Exception:
-                pass
+            except: pass
+
+    # 4. Fallback to step-based scans if prompts are still thin
+    if len(data["prompts"]) < 2:
+        steps_dir = conv_dir / ".system_generated" / "steps"
+        if steps_dir.exists():
+            try:
+                step_dirs = sorted(steps_dir.iterdir(), key=lambda d: d.name, reverse=True)
+                for step_dir in step_dirs[:10]:
+                    content_file = step_dir / "content.md"
+                    if content_file.exists():
+                        content = content_file.read_text(encoding="utf-8-sig", errors="ignore")[:2000]
+                        for line in content.split("\n"):
+                            line = line.strip()
+                            if line.startswith("Title:") or line.startswith("# "):
+                                title = re.sub(r'^(Title:|# )\s*', '', line).strip()[:200]
+                                if title and title not in data["prompts"]:
+                                    data["prompts"].append(title)
+                                    break
+            except: pass
+
+    # 5. Deduplicate and limit
+    seen = set()
+    unique_prompts = []
+    for p in data["prompts"]:
+        p_clean = p.lower().strip()
+        if p_clean not in seen:
+            seen.add(p_clean)
+            unique_prompts.append(p)
+    data["prompts"] = unique_prompts[:15]
 
     return data
 
