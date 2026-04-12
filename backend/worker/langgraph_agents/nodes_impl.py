@@ -100,25 +100,20 @@ async def parse_with_llm(text: str) -> Dict[str, Any]:
     current_date = get_current_date()
     
     system_instruction = f"""
-    You are a highly precise AI HR CV data extractor.
-    Extract structured candidate information from CV text.
-    Today's date is {current_date}.
+    You are a highly precise AI HR Data Architect. Your mission is to transform unstructured CV/JD text into a structured data schema to support a Skill Gap Analysis system.
 
     STRICT RULES:
-    - Return ONLY factual information explicitly present in CV.
-    - If you see terms like 'X [CanonicalName]', use 'CanonicalName' as the standard skill name.
-    - Normalize technical skill names to standard industry names.
+    1. Factual Integrity: Extract ONLY information explicitly present in the text. Do not infer skills that do not exist.
+    2. Context Retention: For each skill, keep the short sentence/phrase (context) where it appeared to help determine proficiency level later.
+    3. No Premature Normalization: Do not force a 'CanonicalName' if uncertain. Keep the 'raw_name' to match against the system's tech_taxonomy.json.
+    4. Date Precision: Use Today's Date: {current_date} for any "Present" or "Current" end dates.
 
-    EXPERIENCE CALCULATION RULES:
-    1. Extract all work periods.
-    2. If end date is Present, use {current_date}.
-    3. Merge overlapping periods.
-    4. Return total years rounded to 1 decimal.
-    5. For each job in 'work_history', return 'years' (duration in that specific role).
+    EXPERIENCE CALCULATION LOGIC:
+    1. Extract all work periods (Start Date - End Date).
+    2. Merge overlapping periods to avoid double-counting.
+    3. Calculate 'duration_years' for each role and 'total_years_exp' for the entire career (rounded to 1 decimal).
+    4. Determine 'seniority_level' (Intern, Junior, Middle, Senior, Lead) based on job titles and years of experience.
 
-    ROLE INFERENCE RULES:
-    1. Determine 'primary_role' and 'seniority_level' based on context.
-    2. Identify skills used specifically within each work experience entry.
     """
 
     prompt = f"""
@@ -126,20 +121,34 @@ async def parse_with_llm(text: str) -> Dict[str, Any]:
     ---
     {text}
     ---
-    JSON structure:
-    - full_name: String
-    - primary_role: String
-    - seniority_level: String
-    - summary: Text
-    - experience_years_total: Float
-    - skills: List of strings (unique technical skills)
-    - work_history: List of objects:
-        - position: String
-        - company: String
-        - years: Float (duration in this role)
-        - skills: List of strings (skills used in THIS specific role)
-        - description: Text
-    - education: List of objects
+    EXTRACTION SCHEMA (JSON):
+    {
+    "candidate_summary": {
+        "primary_role": "Standard industry title",
+        "seniority_level": "Level based on context",
+        "total_years_exp": 0.0
+    },
+    "work_history": [
+        {
+        "company": "Company Name",
+        "role": "Job Title",
+        "duration_years": 0.0,
+        "skills_used": ["List of raw skill names mentioned in this role"],
+        "key_achievements": ["Bullet points of main responsibilities"]
+        }
+    ],
+    "skills": {
+        "hard_skills": [
+        {"raw_name": "Python", "context": "3 years of backend dev in Python", "inferred_level_raw": 1-5}
+        ],
+        "soft_skills": [
+        {"raw_name": "Team Management", "context": "Led a team of 5", "inferred_level_raw": 1-5}
+        ],
+        "domain_skills": [
+        {"raw_name": "Fintech", "context": "Worked on payment gateway", "inferred_level_raw": 1-5}
+        ]
+    }
+    }
     
     IMPORTANT: Return ONLY valid JSON.
     """
