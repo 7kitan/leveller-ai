@@ -51,12 +51,20 @@ fi
 
 # --- Check 1: Log file exists and is not empty ---
 if [ ! -f "$LOG_FILE" ] || [ ! -s "$LOG_FILE" ]; then
-    # Allow empty logs IF the current commit has already been synced
     SYNC_FILE=".ai-log/.last_synced_commit"
     CURR_COMMIT=$(git rev-parse HEAD)
-    if [ -f "$SYNC_FILE" ] && [ "$(cat "$SYNC_FILE")" = "$CURR_COMMIT" ]; then
-        echo "✅ [ai-log] Current commit ($CURR_COMMIT) already synced. No new logs needed."
+    if [ -f "$SYNC_FILE" ]; then
+        SYNCED_COMMIT=$(cat "$SYNC_FILE" | tr -d '\0\r\n')
+        if git merge-base --is-ancestor "$SYNCED_COMMIT" "$CURR_COMMIT" 2>/dev/null; then
+            echo "✅ [ai-log] Work up to $SYNCED_COMMIT already synced. No new logs required for this push."
+        else
+            BLOCK=1
+        fi
     else
+        BLOCK=1
+    fi
+
+    if [ "$BLOCK" = "1" ]; then
         echo "❌ [ai-log] BLOCKED: No AI logs found!"
         echo ""
         echo "   Bạn chưa ghi log sử dụng AI nào cho phiên làm việc này."

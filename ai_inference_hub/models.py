@@ -223,10 +223,17 @@ class AIModelHub:
             logger.info(f"Loading BERTScore with {self.bert_model_name}...")
             # Detect device: use CUDA if available
             device = "cuda" if torch.cuda.is_available() else "cpu"
-            self.bert_scorer = BERTScorer(model_type=self.bert_model_name, device=device)
+            
+            # SỬA: Chỉ định chính xác num_layers=9 cho DeBERTa base để tránh Semantic Collapse
+            # và đặt all_layers=False để tập trung vào layer tối ưu nhất cho similarity.
+            self.bert_scorer = BERTScorer(
+                model_type=self.bert_model_name, 
+                device=device,
+                num_layers=9,
+                all_layers=False
+            )
             
             # --- Fix: Cap model_max_length to prevent 'OverflowError: int too big to convert' ---
-            # This happens with certain DeBERTa models in recent transformers versions.
             try:
                 if hasattr(self.bert_scorer, "_tokenizer"):
                     base_tokenizer = self.bert_scorer._tokenizer

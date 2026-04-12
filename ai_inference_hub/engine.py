@@ -205,6 +205,10 @@ async def calculate_bertscore_task(payload: dict):
                 "status": "PASS" if best_score >= 0.85 else "PARTIAL" if best_score > 0.70 else "MISSING"
             }
             logger.info(f"DEBUG HUB: Result for '{skill}': Match='{cv_skills[best_idx]}' Score={round(best_score, 4)} Status={results[skill]['status']}")
+            
+            # --- Diagnostic: Detect Semantic Collapse ---
+            if best_score > 0.999 and skill.lower() != cv_skills[best_idx].lower():
+                logger.warning(f"⚠️ SUSPECT MATCH: '{skill}' matched '{cv_skills[best_idx]}' with 1.0 score. Possible Semantic Collapse.")
         
         # Return object depends on input type
         if jd_skill and len(jd_skills) == 1:
