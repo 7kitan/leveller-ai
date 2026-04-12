@@ -1,8 +1,8 @@
 from langgraph.graph import StateGraph, END
 from typing import TypedDict, Optional, Dict, List, Any
-from .nodes_impl import extract_from_pdf, parse_with_llm, mask_pii, normalize_terms
+from .nodes_impl import parse_with_llm, mask_pii, normalize_terms
 from .neo4j_node import neo4j_normalize_node
-from .nodes.ocr_node import ocr_node_func
+from ..tasks.cv_parsing_utils import extract_cv_hybrid
 
 class AgentState(TypedDict):
     user_id: str
@@ -10,36 +10,28 @@ class AgentState(TypedDict):
     file_path: str
     raw_text: Optional[str]
     is_ocr: bool
+    method: Optional[str]
     parsed_data: Optional[Dict[str, Any]]
     skill_categories: Optional[Dict[str, str]]
     error: Optional[str]
     status: str
 
-# --- FLOW CŨ (ĐÃ TẠM DỪNG ĐỂ CHUYỂN SANG 100% OCR) ---
-# def extract_node(state: AgentState):
-#     """Trích xuất text từ PDF bằng PyMuPDF."""
-#     print("---EXTRACTING TEXT---")
-#     text = extract_from_pdf(state["file_path"])
-#     if text:
-#         return {"raw_text": text, "is_ocr": False, "status": "extracted"}
-#     return {"status": "needs_ocr"}
-
-# def should_ocr(state: AgentState):
-#     if state["status"] == "needs_ocr":
-#         return "ocr"
-#     if state["status"] == "failed":
-#         return END
-#     return "pii_mask"
-# ----------------------------------------------------
-
-async def ocr_node(state: AgentState):
+async def extraction_node(state: AgentState):
     """
-    Dùng Chandra OCR API thông qua ocr_node_func.
-    Mọi tài liệu đều đi qua node này để OCR 100%.
+    Sử dụng Hybrid Strategy (Direct Text + OCR fallback).
     """
-    print("---RUNNING CHANDRA OCR (Always-on)---")
-    result = await ocr_node_func(state)
-    return result
+    print("---EXTRACTION---")
+    result = await extract_cv_hybrid(state["file_path"])
+    
+    if result.get("raw_text"):
+        return {
+            "raw_text": result["raw_text"], 
+            "is_ocr": result["is_ocr"], 
+            "method": result["method"],
+            "status": "extracted"
+        }
+    
+    return {"error": "Không thể trích xuất văn bản từ CV.", "status": "failed"}
 
 def pii_mask_node(state: AgentState):
     """Ẩn danh thông tin nhạy cảm trước khi gửi tới LLM."""
@@ -84,27 +76,17 @@ def cleanup_node(state: AgentState):
 # Xây dựng Graph
 workflow = StateGraph(AgentState)
 
-# workflow.add_node("extract", extract_node) # Tạm dừng
-workflow.add_node("ocr", ocr_node)
+workflow.add_node("extraction", extraction_node)
 workflow.add_node("pii_mask", pii_mask_node)
 workflow.add_node("normalization", normalization_node)
 workflow.add_node("llm_parse", llm_parse_node)
 workflow.add_node("neo4j_normalize", neo4j_normalize_node)
 workflow.add_node("cleanup", cleanup_node)
 
-# Bắt đầu thẳng từ OCR theo yêu cầu mới (Always OCR)
-workflow.set_entry_point("ocr")
+# Bắt đầu từ Hybrid Extraction
+workflow.set_entry_point("extraction")
 
-# workflow.add_conditional_edges(
-#     "extract",
-#     should_ocr,
-#     {
-#         "ocr": "ocr",
-#         "pii_mask": "pii_mask"
-#     }
-# )
-
-workflow.add_edge("ocr", "pii_mask")
+workflow.add_edge("extraction", "pii_mask")
 workflow.add_edge("pii_mask", "normalization")
 workflow.add_edge("normalization", "llm_parse")
 workflow.add_edge("llm_parse", "neo4j_normalize")

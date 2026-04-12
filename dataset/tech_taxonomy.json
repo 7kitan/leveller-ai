@@ -54,6 +54,9 @@
     { "from": "SwiftUI", "to": "Swift", "type": "BUILT_ON" },
     { "from": "UIKit", "to": "Swift", "type": "BUILT_ON" },
     { "from": "Android Development", "to": "Kotlin", "type": "USES" },
+    { "from": "Android Development", "to": "Java", "type": "USES" },
+    { "from": "iOS Development", "to": "Swift", "type": "USES" },
+    { "from": "iOS Development", "to": "Objective-C", "type": "USES" },
     { "from": "Unity", "to": "C#", "type": "BUILT_ON" },
     { "from": "Unreal Engine", "to": "C++", "type": "BUILT_ON" },
     { "from": "Solidity", "to": "Smart Contracts", "type": "TECH_FOR" }

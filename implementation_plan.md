@@ -712,7 +712,7 @@ CV Service: Lưu file vào MinIO, tạo record cv_metadata (status=pending)
 Push Task: parse_cv_task(cv_id) → Redis Queue (db=1)
         ↓ (Async)
 Worker: LangGraph Pipeline
-  [1] extract_node: PDF → text hoặc ảnh → PaddleOCR → text
+  [1] extract_node: PDF → text hoặc ảnh → Chandra OCR 2 → text
   [2] pii_mask_node: Xóa/mask SĐT, Email, địa chỉ trước khi lưu  ← MỚI
        VD: "Bach - 0912345678" → "Bach - ***"
   [3] llm_parse_node: LLM → skills[], experience, education

@@ -88,6 +88,7 @@ except Exception as e:
 try:
     from transformers import AutoModelForImageTextToText, AutoProcessor, BitsAndBytesConfig, AutoModel
     from bert_score import BERTScorer
+    from sentence_transformers import CrossEncoder
     
     # --- Monkeypatch AutoModel to prefer safetensors but fallback to pickle ---
     _orig_from_pretrained = AutoModel.from_pretrained
@@ -121,11 +122,11 @@ class AIModelHub:
     def __init__(self):
         self.chandra_model = None
         self.chandra_processor = None
-        self.bert_scorer = None
+        self.skill_matcher = None
         
         # Chandra OCR 2 — Real model from Datalab
         self.chandra_path = os.getenv("CHANDRA_MODEL_PATH", "datalab-to/chandra-ocr-2")
-        self.bert_model_name = os.getenv("BERTSCORE_MODEL_NAME", "roberta-large")
+        self.bert_model_name = os.getenv("BERTSCORE_MODEL_NAME", "microsoft/deberta-v3-base")
         
     def load_chandra(self):
         """Load Chandra OCR 2 (datalab-to/chandra-ocr-2).
@@ -219,40 +220,29 @@ class AIModelHub:
                 raise
 
     def load_bertscore(self):
-        """Load BERTScore model."""
-        if self.bert_scorer is None:
-            logger.info(f"Loading BERTScore with {self.bert_model_name}...")
-            # Detect device: use CUDA if available
+        """Load Cross-Encoder model (used for skill matching).
+        Note: We keep the method name 'load_bertscore' for internal backward compatibility 
+        with engine calls for now, but it initializes a Cross-Encoder.
+        """
+        if self.skill_matcher is None:
+            logger.info(f"Loading Cross-Encoder with {self.bert_model_name}...")
             device = "cuda" if torch.cuda.is_available() else "cpu"
             
-            # SỬA: Chuyển sang roberta-large (Độ chính xác cao hơn base)
-            # Không cần ép layer nữa vì RoBERTa đã được thư viện hỗ trợ mặc định rất tốt.
-            # SỬA: Bật rescale_with_baseline=True để giải quyết "Semantic Collapse"
-            # Giúp phân biệt tốt hơn giữa các kỹ năng khác nhau (như Java vs Python)
-            self.bert_scorer = BERTScorer(
-                model_type=self.bert_model_name, 
-                device=device,
-                lang="en", # Ưu tiên tiếng Anh để so khớp skill chính xác hơn
-                rescale_with_baseline=True
+            # Use CrossEncoder for high-precision short-string matching
+            self.skill_matcher = CrossEncoder(
+                self.bert_model_name,
+                device=device
             )
+            logger.info(f"Cross-Encoder initialized on {device}.")
             
-            # --- Fix: Cap model_max_length to prevent 'OverflowError: int too big to convert' ---
-            try:
-                if hasattr(self.bert_scorer, "_tokenizer"):
-                    base_tokenizer = self.bert_scorer._tokenizer
-                    if hasattr(base_tokenizer, "model_max_length") and base_tokenizer.model_max_length > 1_000_000:
-                        logger.info(f"Capping tokenizer.model_max_length from {base_tokenizer.model_max_length} to 4096")
-                        base_tokenizer.model_max_length = 4096
-            except Exception as e:
-                logger.warning(f"Failed to cap BERTScore tokenizer length: {e}")
-                
-            logger.info(f"BERTScore initialized on {device}.")
+            # Backwards compatibility reference (if any code still uses self.bert_scorer)
+            # self.bert_scorer = self.skill_matcher 
 
     def unload_models(self):
         """Force memory cleanup."""
         self.chandra_model = None
         self.chandra_processor = None
-        self.bert_scorer = None
+        self.skill_matcher = None
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()

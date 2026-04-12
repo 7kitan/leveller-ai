@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Request, UploadFile, File
+from fastapi import FastAPI, Depends, HTTPException, Request, UploadFile, File, Query
 from sqlalchemy.orm import Session
 from shared.database import get_db
 from shared.models import User, UserCV, UserSkillProfile, Skill
@@ -40,7 +40,11 @@ def is_admin(request: Request) -> bool:
     return request.headers.get("X-Is-Admin") == "true"
 
 @app.post("/cv/upload")
-async def upload_cv(request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_cv(
+    request: Request, 
+    file: UploadFile = File(...), 
+    db: Session = Depends(get_db)
+):
     user_id_str = request.headers.get("X-User-ID")
     is_admin_header = request.headers.get("X-Is-Admin")
     

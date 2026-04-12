@@ -3,7 +3,7 @@ class LevelMapper:
     LEVEL_MAP = {
         "beginner": 1, "basic": 1, "intern": 1, "novice": 1,
         "junior": 2, "low": 2,
-        "middle": 3, "intermediate": 3, "mid": 3,
+        "middle": 3, "intermediate": 3, "mid": 3, "mid-level": 3,
         "senior": 4, "advanced": 4, "high": 4,
         "expert": 5, "lead": 5, "specialist": 5
     }

@@ -15,11 +15,11 @@
 
 ---
 
-### 1.2 Xử lý CV từ ảnh ⭐
+### 1.2 Xử lý CV từ ảnh (Chandra OCR 2) ⭐
 
-- Tự động đọc nội dung từ CV dạng ảnh hoặc scan
-- Trích xuất văn bản để tiếp tục phân tích
-- Đánh dấu CV được xử lý từ ảnh
+- Tự động đọc nội dung từ CV dạng ảnh hoặc scan bằng engine **Chandra OCR 2** chuyên dụng.
+- Trích xuất văn bản có cấu trúc (Markdown) để tiếp tục phân tích.
+- Đánh dấu CV được xử lý từ ảnh.
 
 👉 Người dùng có thể kiểm tra lại nếu có sai sót
 

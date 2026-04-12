@@ -186,7 +186,7 @@ Raw JD → Clean → Extract → Normalize → Embed
 Nodes:
 
 - PDF Extractor
-- OCR Fallback (PaddleOCR) ⭐
+- OCR Fallback (Chandra OCR 2) ⭐
 - Skill Parser (LLM)
 - Skill Normalizer
 - Skill Enricher (Graph)
@@ -196,7 +196,7 @@ Nodes:
 
 Details:
 
-- If CV is image-based or PDF scan → trigger PaddleOCR (self-hosted)
+- If CV is image-based or PDF scan → trigger Chandra OCR 2 (self-hosted)
 - Ensure high-accuracy text extraction before LLM parsing
 
 
@@ -261,7 +261,7 @@ importance_weight
 cv_id
 user_id
 source_type (pdf | image | scanned_pdf)
-parsed_with (pdf_parser | paddleocr)
+parsed_with (pdf_parser | chandra)
 is_ocr (boolean)
 confidence_score
 created_at

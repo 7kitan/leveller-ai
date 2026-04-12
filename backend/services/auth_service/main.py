@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from shared.database import get_db
 from shared.models import User
-from shared.auth_utils import get_password_hash, verify_password, create_access_token, hash_token, ACCESS_TOKEN_EXPIRE_SECONDS
+from shared.auth_utils import get_password_hash, verify_password, create_access_token, hash_token, decode_access_token, ACCESS_TOKEN_EXPIRE_SECONDS
 from shared.redis_client import auth_cache
 from pydantic import BaseModel, EmailStr
 import json
@@ -115,12 +115,53 @@ def login(user_in: UserLogin, db: Session = Depends(get_db)):
     }
 
 @app.get("/auth/verify")
-def verify(token: str):
+def verify(token: str, db: Session = Depends(get_db)):
     token_key = f"token:{hash_token(token)}"
     cached = auth_cache.get(token_key)
-    if not cached:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-    return json.loads(cached)
+    
+    if cached:
+        return json.loads(cached)
+    
+    # Cache miss -> Deep Verification (JWT Decode + DB Check)
+    logging.info(f"DEBUG Auth: Cache miss for token. Performing deep verification...")
+    payload = decode_access_token(token)
+    if not payload:
+        logging.error("DEBUG Auth: JWT decode failed or token expired.")
+        raise HTTPException(status_code=401, detail="Invalid or expired token (JWT decode failed)")
+        
+    if "sub" not in payload:
+        logging.error(f"DEBUG Auth: JWT payload missing 'sub' claim: {payload}")
+        raise HTTPException(status_code=401, detail="Invalid token payload (missing sub)")
+
+    try:
+        user_id_str = payload["sub"]
+        # Safe UUID conversion
+        try:
+            user_uuid = uuid.UUID(user_id_str) if isinstance(user_id_str, str) else user_id_str
+        except (ValueError, TypeError):
+            logging.error(f"DEBUG Auth: Invalid UUID format in JWT sub: {user_id_str}")
+            raise HTTPException(status_code=401, detail="Invalid user ID format in token")
+
+        user = db.query(User).filter(User.id == user_uuid).first()
+        if not user:
+            logging.error(f"DEBUG Auth: User {user_uuid} not found in database.")
+            raise HTTPException(status_code=401, detail="User not found")
+            
+        if not user.is_active:
+            logging.error(f"DEBUG Auth: User {user_uuid} is inactive.")
+            raise HTTPException(status_code=401, detail="User found but inactive")
+            
+        # Re-cache user data for subsequent requests (if caching is enabled)
+        user_data = {"id": str(user.id), "email": user.email, "is_admin": user.is_admin}
+        auth_cache.setex(token_key, ACCESS_TOKEN_EXPIRE_SECONDS, json.dumps(user_data))
+        logging.info(f"DEBUG Auth: Deep verification successful for user {user.email}")
+        
+        return user_data
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        logging.error(f"DEBUG Auth: Unexpected error during deep verification: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal error during verification")
 
 @app.get("/auth/me", response_model=UserResponse)
 def get_me(request: Request, db: Session = Depends(get_db)):

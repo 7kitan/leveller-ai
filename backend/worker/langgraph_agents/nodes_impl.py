@@ -94,9 +94,27 @@ def normalize_terms(text: str) -> str:
     logger.debug("Term normalization complete via Knowledge Graph.")
     return normalized_text
 
+import hashlib
+from shared.redis_client import cv_parsed_cache
+
 async def parse_with_llm(text: str) -> Dict[str, Any]:
-    """Sử dụng LLM (OpenAI/Gemini) để chuyển đổi text CV sang JSON."""
+    """Sử dụng LLM (OpenAI/Gemini) để chuyển đổi text CV sang JSON (kèm caching)."""
+    if not text:
+        return {}
+        
+    # 1. Check Cache
+    text_hash = hashlib.md5(text.encode('utf-8')).hexdigest()
+    cache_key = f"cv_parse:{text_hash}"
     
+    cached_result = cv_parsed_cache.get(cache_key)
+    if cached_result:
+        logger.info(f"CV Parsed JSON Cache Hit for hash: {text_hash}")
+        try:
+            return json.loads(cached_result)
+        except:
+            logger.warning("Failed to parse cached JSON, re-calculating...")
+
+    # 2. Extract context
     current_date = get_current_date()
     
     system_instruction = f"""
@@ -126,7 +144,6 @@ async def parse_with_llm(text: str) -> Dict[str, Any]:
        - 4: Expert/Lead usage.
        - 5: Extensive years or architectural leadership in that skill.
     5. Verify that every 'raw_name' in the skills section can be traced back to a specific sentence in the CV.
-
     """
 
     prompt = f"""
@@ -135,33 +152,33 @@ async def parse_with_llm(text: str) -> Dict[str, Any]:
     {text}
     ---
     EXTRACTION SCHEMA (JSON):
-    {
-    "candidate_summary": {
+    {{
+    "candidate_summary": {{
         "primary_role": "Standard industry title",
         "seniority_level": "Level based on context",
         "total_years_exp": 0.0
-    },
+    }},
     "work_history": [
-        {
+        {{
         "company": "Company Name",
         "role": "Job Title",
         "duration_years": 0.0,
         "skills_used": ["List of raw skill names mentioned in this role"],
         "key_achievements": ["Bullet points of main responsibilities"]
-        }
+        }}
     ],
-    "skills": {
+    "skills": {{
         "hard_skills": [
-        {"raw_name": "Python", "context": "3 years of backend dev in Python", "inferred_level_raw": 1-5}
+        {{"raw_name": "Python", "context": "3 years of backend dev in Python", "inferred_level_raw": 1-5}}
         ],
         "soft_skills": [
-        {"raw_name": "Team Management", "context": "Led a team of 5", "inferred_level_raw": 1-5}
+        {{"raw_name": "Team Management", "context": "Led a team of 5", "inferred_level_raw": 1-5}}
         ],
         "domain_skills": [
-        {"raw_name": "Fintech", "context": "Worked on payment gateway", "inferred_level_raw": 1-5}
+        {{"raw_name": "Fintech", "context": "Worked on payment gateway", "inferred_level_raw": 1-5}}
         ]
-    }
-    }
+    }}
+    }}
     
     IMPORTANT: Return ONLY valid JSON.
     """
@@ -169,6 +186,7 @@ async def parse_with_llm(text: str) -> Dict[str, Any]:
     logger.debug(f"--- [LLM REQUEST (CV PARSING)] ---")
     
     try:
+        parsed_result = {}
         if LLM_PROVIDER == "openai":
             response = client.chat.completions.create(
                 model=LLM_MODEL,
@@ -180,14 +198,21 @@ async def parse_with_llm(text: str) -> Dict[str, Any]:
                 temperature=0
             )
             raw_content = response.choices[0].message.content
-            return json.loads(raw_content)
+            parsed_result = json.loads(raw_content)
         
         elif LLM_PROVIDER == "gemini":
             response = gemini_model.generate_content(
                 system_instruction + "\n" + prompt,
                 generation_config={"response_mime_type": "application/json", "temperature": 0}
             )
-            return json.loads(response.text)
+            parsed_result = json.loads(response.text)
+            
+        # 3. Store in Cache
+        if parsed_result:
+            cv_parsed_cache.setex(cache_key, 3600*24, json.dumps(parsed_result))
+            logger.info("Saved CV parsed JSON to cache.")
+            
+        return parsed_result
             
     except Exception as e:
         logger.error(f"{LLM_PROVIDER.upper()} parsing error: {e}")

@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from models import hub
 import logging
 from PIL import Image
@@ -185,30 +186,38 @@ async def calculate_bertscore_task(payload: dict):
         results = {}
         logger.info(f"DEBUG HUB: Comparing {len(cv_skills)} CV Skills. First 3: {cv_skills[:3]}")
         
-        for skill in jd_skills:
-            logger.info(f"DEBUG HUB: Scoring JD Skill: '{skill}' against {len(cv_skills)} CV skills")
-            # Parallelize over CV skills using BERTScore's vectorization
-            P, R, F1 = hub.bert_scorer.score(cv_skills, [skill] * len(cv_skills))
+        # Create Cartesian product of pairs (JD Skill, CV Skill)
+        # This allows the Cross-Encoder to see both concepts simultaneously.
+        all_pairs = []
+        for jd_skill_item in jd_skills:
+            for cv_skill_item in cv_skills:
+                all_pairs.append((jd_skill_item, cv_skill_item))
+        
+        logger.info(f"DEBUG HUB: Batch matching {len(all_pairs)} pairs using Cross-Encoder...")
+        
+        # Batch prediction on GPU
+        all_scores = hub.skill_matcher.predict(all_pairs, batch_size=32, show_progress_bar=False)
+        
+        # Aggregate Results
+        # For each JD skill, we find the best match in the CV.
+        idx = 0
+        for jd_skill_item in jd_skills:
+            jd_scores = all_scores[idx : idx + len(cv_skills)]
+            idx += len(cv_skills)
             
-            logger.info(f"DEBUG HUB: BERTScore Tensors Output - F1 Shape: {F1.shape}")
+            # Find best match in this JD skill's result slice
+            best_cv_idx = int(np.argmax(jd_scores))
+            best_score = float(jd_scores[best_cv_idx])
             
-            # Find best match
-            best_idx = int(F1.argmax().item())
-            best_score = float(F1[best_idx].item())
-            
-            logger.info(f"DEBUG HUB: Best Index: {best_idx}, Best Score: {best_score}")
-            
-            # SỬA: Điều chỉnh threshold cho Rescaled BERTScore (0.0 là baseline ngẫu nhiên)
-            results[skill] = {
-                "best_match": cv_skills[best_idx],
+            # Calibrate Status: Cross-Encoder scores are more discriminative.
+            # 0.7+ is usually a strong match. 0.3-0.7 is partial/related.
+            results[jd_skill_item] = {
+                "best_match": cv_skills[best_cv_idx],
                 "score": round(best_score, 4),
-                "status": "PASS" if best_score >= 0.45 else "PARTIAL" if best_score > 0.25 else "MISSING"
+                "status": "PASS" if best_score >= 0.7 else "PARTIAL" if best_score > 0.3 else "MISSING"
             }
-            logger.info(f"DEBUG HUB: Result for '{skill}': Match='{cv_skills[best_idx]}' Score={round(best_score, 4)} Status={results[skill]['status']}")
             
-            # --- Diagnostic: Detect Semantic Collapse ---
-            if best_score > 0.999 and skill.lower() != cv_skills[best_idx].lower():
-                logger.warning(f"⚠️ SUSPECT MATCH: '{skill}' matched '{cv_skills[best_idx]}' with 1.0 score. Possible Semantic Collapse.")
+            logger.info(f"DEBUG HUB: Result for '{jd_skill_item}': BestMatch='{cv_skills[best_cv_idx]}' Score={round(best_score, 4)} Status={results[jd_skill_item]['status']}")
         
         # Return object depends on input type
         if jd_skill and len(jd_skills) == 1:
