@@ -1,10 +1,10 @@
-name: Deploy AI Inference Hub
-
-on:
-  push:
-    branches: [demo]
-    paths:
-      - 'ai_inference_hub/**'
+# name: Deploy AI Inference Hub
+# 
+# on:
+#   push:
+#     branches: [demo]
+#     paths:
+#       - 'ai_inference_hub/**'
 
 jobs:
   deploy:

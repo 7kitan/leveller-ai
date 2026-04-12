@@ -1,9 +1,14 @@
 import torch
 import gc
 import logging
-import os
 from dotenv import load_dotenv
 from bert_score import BERTScorer
+import os
+
+# --- Tắt cảnh báo tạo thread convert safetensors nền của Transformers ---
+os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
+os.environ["HF_HUB_DISABLE_EXPERIMENTAL_WARNING"] = "1"
+os.environ["HF_HUB_DISABLE_IMPLICIT_TOKEN"] = "1"
 
 # --- Monkeypatch for PyTorch < 2.4.0 (for BitsAndBytes compatibility) ---
 if not hasattr(torch.nn.Module, "set_submodule"):
@@ -84,7 +89,7 @@ class AIModelHub:
                 self.chandra_model = AutoModelForImageTextToText.from_pretrained(
                     self.chandra_path,
                     quantization_config=quantization_config,
-                    device_map="cpu",  # Explicitly map to CPU to avoid accelerate placement complications on VPS
+                    device_map="auto",  # Changed from "cpu" to "auto" for GPU support
                     trust_remote_code=True,
                     low_cpu_mem_usage=True,
                 ).eval()
@@ -98,7 +103,7 @@ class AIModelHub:
                 # Chandra's generate_hf() expects model.processor to be set
                 self.chandra_model.processor = self.chandra_processor
                 
-                logger.info("Chandra OCR 2 loaded successfully (4-bit quantized).")
+                logger.info(f"Chandra OCR 2 loaded successfully on {self.chandra_model.device}")
             except Exception as e:
                 logger.error(f"Failed to load Chandra OCR 2: {e}")
                 raise
@@ -107,9 +112,10 @@ class AIModelHub:
         """Load BERTScore model."""
         if self.bert_scorer is None:
             logger.info(f"Loading BERTScore with {self.bert_model_name}...")
-            # DeBERTa-base is much lighter than RoBERTa-large for 8GB RAM
-            self.bert_scorer = BERTScorer(model_type=self.bert_model_name, device="cpu")
-            logger.info("BERTScore initialized.")
+            # Detect device: use CUDA if available
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            self.bert_scorer = BERTScorer(model_type=self.bert_model_name, device=device)
+            logger.info(f"BERTScore initialized on {device}.")
 
     def unload_models(self):
         """Force memory cleanup."""

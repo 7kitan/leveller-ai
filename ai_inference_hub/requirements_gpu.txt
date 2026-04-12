@@ -1,0 +1,25 @@
+# AI Inference Dependencies (GPU Optimized)
+# Designed for RTX 3060+ with CUDA 12.1+
+
+fastapi==0.110.0
+uvicorn==0.27.1
+python-dotenv>=1.1.1
+pydantic>=2.12.5
+pydantic-settings>=2.11.0
+python-multipart==0.0.9
+
+# ML Stack (GPU enabled)
+# Note: On vast.ai PyTorch images, torch/torchvision are usually pre-installed.
+# We install them here to ensure compatibility if using a clean image.
+torch
+torchvision
+transformers>=4.46.0
+bert-score==0.3.13
+accelerate>=0.34.0
+bitsandbytes>=0.43.0
+Pillow==10.2.0
+numpy==1.26.4
+pdf2image==1.17.0
+
+# Chandra OCR 2 (datalab-to/chandra-ocr-2)
+chandra-ocr
