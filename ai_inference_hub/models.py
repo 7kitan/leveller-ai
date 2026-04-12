@@ -147,11 +147,12 @@ class AIModelHub:
                     bnb_4bit_compute_dtype=torch.bfloat16,
                     bnb_4bit_quant_type="nf4",
                     bnb_4bit_use_double_quant=True,
+                    llm_int8_enable_fp32_cpu_offload=True, # Enable offload to avoid accelerate/bnb crash
                 )
                 model_kwargs = {
                     "quantization_config": quantization_config,
                     "device_map": "auto",
-                    "torch_dtype": torch.bfloat16,
+                    "dtype": torch.bfloat16, # Changed torch_dtype to dtype as per warning
                 }
             else:
                 if device_count > 0:
