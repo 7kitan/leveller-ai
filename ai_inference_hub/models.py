@@ -1,9 +1,15 @@
+from dotenv import load_dotenv
+# Load .env from script's directory or project root
+script_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.dirname(script_dir)
+load_dotenv(os.path.join(script_dir, ".env"))
+load_dotenv(os.path.join(root_dir, ".env"))
+load_dotenv() # Fallback to CWD
+
 import torch
 import gc
 import logging
-from dotenv import load_dotenv
 from bert_score import BERTScorer
-import os
 
 # --- Tắt cảnh báo tạo thread convert safetensors nền của Transformers ---
 os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
@@ -11,6 +17,11 @@ os.environ["HF_HUB_DISABLE_EXPERIMENTAL_WARNING"] = "1"
 os.environ["HF_HUB_DISABLE_IMPLICIT_TOKEN"] = "1"
 os.environ["SAFETENSORS_AUTO_CONVERSION"] = "0"
 os.environ["HF_HUB_DISABLE_AUTO_CONVERSION"] = "1"
+
+# Force offline mode if requested to stop ALL network checks
+if os.getenv("HF_LOCAL_FILES_ONLY", "0").lower() in ("1", "true", "yes"):
+    os.environ["HF_HUB_OFFLINE"] = "1"
+    os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 # Silence noisy loggers
 logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
@@ -150,6 +161,7 @@ class AIModelHub:
                 self.chandra_processor = AutoProcessor.from_pretrained(
                     self.chandra_path,
                     trust_remote_code=True,
+                    local_files_only=local_only,
                 )
                 logger.info(f"DEBUG MODELS: Processor loaded. Tokenizer size: {len(self.chandra_processor.tokenizer)}")
                 

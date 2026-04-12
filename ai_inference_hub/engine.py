@@ -6,6 +6,7 @@ import io
 import base64
 import os
 import gc
+import time
 from pdf2image import convert_from_bytes
 from typing import List
 
@@ -37,7 +38,6 @@ async def run_chandra_on_image(image: Image.Image) -> str:
     ]
     
     logger.info("DEBUG ENGINE: >>> Starting generate_hf inference loop...")
-    import time
     start_time = time.time()
     
     # Run inference using Chandra's HuggingFace helper

@@ -57,7 +57,14 @@ def main():
 
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
-            print(f"[ai-log] Submitted {len(entries)} entries → {resp.status}", file=sys.stderr)
+            if 200 <= resp.status < 300:
+                print(f"[ai-log] Submitted {len(entries)} entries → {resp.status}", file=sys.stderr)
+                # Clear the log file after successful submission
+                with open(LOG_FILE, 'w', encoding='utf-8') as f:
+                    pass
+                print("[ai-log] Local log cleared.", file=sys.stderr)
+            else:
+                print(f"[ai-log] Submit returned unexpected status: {resp.status} — logs kept locally.", file=sys.stderr)
     except urllib.error.URLError as e:
         print(f"[ai-log] Submit failed: {e} — logs kept locally.", file=sys.stderr)
         sys.exit(0)  # Don't block push on server error
