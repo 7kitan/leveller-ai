@@ -41,7 +41,7 @@ pip install -r requirements_ai.txt
 ### 3. Environment Variables
 Create a `.env` file in this directory:
 ```env
-HUB_API_KEY=your_secret_api_key
+AI_INFERENCE_API_KEY=your_secret_api_key
 PORT=8080
 CHANDRA_MODEL_PATH=datalab-to/chandra-ocr-2
 BERTSCORE_MODEL_NAME=microsoft/deberta-base-mnli
@@ -54,6 +54,14 @@ uvicorn main:app --host 0.0.0.0 --port 8080
 
 # Production (using PM2)
 pm2 start "uvicorn main:app --host 0.0.0.0 --port 8080" --name ai-hub
+```
+
+### 5. GPU Deployment (RunPod / Vast.ai)
+For high-performance OCR on GPU nodes:
+```bash
+# Run the automated setup script
+chmod +x setup_gpu_node.sh
+./setup_gpu_node.sh
 ```
 
 ## 🚥 API Reference

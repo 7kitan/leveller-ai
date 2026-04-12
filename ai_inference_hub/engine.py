@@ -21,26 +21,37 @@ async def run_chandra_on_image(image: Image.Image) -> str:
     """Run Chandra OCR 2 inference on a single PIL Image.
     Returns structured Markdown preserving layout, headings, tables, etc.
     """
+    logger.info(f"DEBUG ENGINE: Prepared image for inference. Size: {image.size}, Mode: {image.mode}")
+    
     # Ensure image is RGB
     if image.mode != "RGB":
+        logger.info("DEBUG ENGINE: Converting image mode to RGB")
         image = image.convert("RGB")
     
     # Chandra uses BatchInputItem with prompt_type="ocr_layout" for layout-preserving OCR
     batch = [
         BatchInputItem(
             image=image,
-            prompt_type="ocr_layout"  # Layout-aware OCR: preserves headings, tables, reading order
+            prompt_type="ocr_layout"
         )
     ]
     
+    logger.info("DEBUG ENGINE: >>> Starting generate_hf inference loop...")
     # Run inference using Chandra's HuggingFace helper
     # This handles tokenization, generation, and decoding internally
-    with torch.no_grad():
-        result = generate_hf(batch, hub.chandra_model)[0]
+    try:
+        with torch.no_grad():
+            result = generate_hf(batch, hub.chandra_model)[0]
+    except Exception as ge:
+        logger.error(f"DEBUG ENGINE: Error inside generate_hf: {ge}")
+        raise ge
+        
+    logger.info("DEBUG ENGINE: <<< generate_hf finished. Parsing results...")
     
     # Parse raw output into clean Markdown
     markdown_output = parse_markdown(result.raw)
     
+    logger.info(f"DEBUG ENGINE: Parsing complete. Output length: {len(markdown_output)}")
     return markdown_output
 
 

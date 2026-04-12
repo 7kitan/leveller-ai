@@ -98,12 +98,15 @@ class AIModelHub:
                     self.chandra_path,
                     trust_remote_code=True,
                 )
+                logger.info(f"DEBUG MODELS: Processor loaded. Tokenizer size: {len(self.chandra_processor.tokenizer)}")
+                
                 self.chandra_processor.tokenizer.padding_side = "left"
                 
                 # Chandra's generate_hf() expects model.processor to be set
                 self.chandra_model.processor = self.chandra_processor
                 
-                logger.info(f"Chandra OCR 2 loaded successfully on {self.chandra_model.device}")
+                logger.info(f"DEBUG MODELS: Chandra OCR 2 loaded successfully on {self.chandra_model.device}")
+                logger.info(f"DEBUG MODELS: Model dtype: {self.chandra_model.dtype}, is_quantized: {getattr(self.chandra_model, 'is_quantized', False)}")
             except Exception as e:
                 logger.error(f"Failed to load Chandra OCR 2: {e}")
                 raise

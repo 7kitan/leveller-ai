@@ -2,11 +2,12 @@
   "hooks": {
     "BeforeAgent": [
       {
+        "matcher": "*",
         "hooks": [
           {
             "name": "log-prompt",
             "type": "command",
-            "command": "AI_TOOL_NAME=gemini python3 scripts/log_hook.py",
+            "command": "python scripts/log_hook.py",
             "timeout": 10000
           }
         ]
@@ -14,12 +15,12 @@
     ],
     "AfterModel": [
       {
-        "matcher": ".*",
+        "matcher": "*",
         "hooks": [
           {
             "name": "log-model",
             "type": "command",
-            "command": "AI_TOOL_NAME=gemini python3 scripts/log_hook.py",
+            "command": "python scripts/log_hook.py",
             "timeout": 10000
           }
         ]
@@ -27,12 +28,12 @@
     ],
     "SessionEnd": [
       {
-        "matcher": ".*",
+        "matcher": "*",
         "hooks": [
           {
             "name": "log-session-end",
             "type": "command",
-            "command": "AI_TOOL_NAME=gemini python3 scripts/log_hook.py",
+            "command": "python scripts/log_hook.py",
             "timeout": 10000
           }
         ]

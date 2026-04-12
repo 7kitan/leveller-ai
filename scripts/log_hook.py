@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 Shared AI hook logger — works with Claude Code, Gemini CLI, Codex, Cursor, Copilot.
-Reads JSON from stdin, normalizes to common format, appends to .ai-log/session.jsonl
+Reads JSON from stdin (sent by AI tool), normalizes to common format,
+appends to .ai-log/session.jsonl.
+
+You don't call this directly — it's called by tool configs (.claude/, .cursor/, etc.)
 """
 import json
 import os
@@ -15,6 +18,7 @@ VN_TZ = timezone(timedelta(hours=7))
 
 def git(cmd):
     try:
+        # Use shell=True for Windows compatibility with complex commands
         return subprocess.check_output(cmd, shell=True, text=True, stderr=subprocess.DEVNULL).strip()
     except Exception:
         return ""
@@ -31,7 +35,6 @@ def detect_tool(data: dict) -> str:
     if data.get("hook_event_name", "").startswith(("Before", "After", "Session", "Pre", "Notification")):
         return "gemini"
     if data.get("hook_event_name", "")[0:1].islower():
-        # camelCase event names → Cursor or Copilot
         if "workspace_roots" in data:
             return "cursor"
         if "toolName" in data:
@@ -41,10 +44,19 @@ def detect_tool(data: dict) -> str:
     return "unknown"
 
 
-def normalize(data: dict, tool: str) -> dict | None:
+def normalize(data: dict, tool: str):
     """Normalize tool-specific payload to common log entry."""
     event = data.get("hook_event_name") or data.get("event", "")
     ts = datetime.now(VN_TZ).isoformat()
+
+    student = git("git config user.email")
+    if not student:
+        student = os.environ.get("USERNAME", os.environ.get("USER", "unknown"))
+
+    repo = ""
+    remote = git("git remote get-url origin")
+    if remote:
+        repo = remote.split("/")[-1].replace(".git", "")
 
     base = {
         "ts": ts,
@@ -56,25 +68,22 @@ def normalize(data: dict, tool: str) -> dict | None:
             data.get("generation_id") or ""
         ),
         "model": data.get("model", ""),
-        "repo": git("git remote get-url origin").split("/")[-1].replace(".git", ""),
+        "repo": repo if repo else Path.cwd().name,
         "branch": git("git rev-parse --abbrev-ref HEAD"),
         "commit": git("git rev-parse --short HEAD"),
-        "student": git("git config user.email"),
+        "student": student,
     }
 
     if tool == "claude":
         prompt = ""
-        # UserPromptSubmit: prompt is at top level
         if event == "UserPromptSubmit":
             prompt = data.get("prompt", "")[:1000]
-        # PostToolUse: extract from tool_input
         elif isinstance(data.get("tool_input"), dict):
             prompt = data["tool_input"].get("prompt") or data["tool_input"].get("content") or ""
         base.update({
             "prompt": prompt,
             "tool_name": data.get("tool_name", ""),
-            "tool_input": data.get("tool_input") if event != "UserPromptSubmit" else None,
-            "tool_response": str(data.get("tool_response", ""))[:500],
+            "tool_response_summary": str(data.get("tool_response", ""))[:200],
         })
 
     elif tool == "gemini":
@@ -86,12 +95,17 @@ def normalize(data: dict, tool: str) -> dict | None:
             contents = req.get("contents", [])
             prompt = ""
             for c in reversed(contents):
-                for part in c.get("parts", []):
-                    if part.get("text"):
-                        prompt = part["text"][:1000]
-                        break
-                if prompt:
-                    break
+                if c.get("role") == "user":
+                    for part in c.get("parts", []):
+                        if part.get("text"):
+                            prompt = part["text"][:1000]
+                            break
+                if prompt: break
+            
+            # Fallback for prompt if not found in contents
+            if not prompt:
+                prompt = data.get("prompt", "")[:1000]
+
             resp = data.get("response", {})
             answer = ""
             try:
@@ -104,20 +118,17 @@ def normalize(data: dict, tool: str) -> dict | None:
         base.update({
             "prompt": data.get("prompt", "")[:1000],
             "turn_id": data.get("turn_id", ""),
-            "transcript_path": data.get("transcript_path", ""),
         })
 
     elif tool == "cursor":
         base.update({
             "prompt": data.get("prompt", "")[:1000],
-            "files_context": data.get("attachments", []),
         })
 
     elif tool == "copilot":
         base.update({
             "prompt": data.get("prompt", "")[:1000],
             "tool_name": data.get("toolName", ""),
-            "tool_args": data.get("toolArgs"),
         })
 
     # Skip empty/noise events
@@ -149,7 +160,7 @@ def main():
     with open(log_file, "a", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
-    # Output valid JSON (required by some tools like Gemini)
+    # Output valid JSON
     print(json.dumps({"status": "logged"}))
 
 
