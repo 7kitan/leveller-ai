@@ -37,16 +37,21 @@ async def run_chandra_on_image(image: Image.Image) -> str:
     ]
     
     logger.info("DEBUG ENGINE: >>> Starting generate_hf inference loop...")
+    import time
+    start_time = time.time()
+    
     # Run inference using Chandra's HuggingFace helper
     # This handles tokenization, generation, and decoding internally
     try:
         with torch.no_grad():
+            logger.info("DEBUG ENGINE: Calling generate_hf...")
             result = generate_hf(batch, hub.chandra_model)[0]
     except Exception as ge:
         logger.error(f"DEBUG ENGINE: Error inside generate_hf: {ge}")
         raise ge
         
-    logger.info("DEBUG ENGINE: <<< generate_hf finished. Parsing results...")
+    end_time = time.time()
+    logger.info(f"DEBUG ENGINE: <<< generate_hf finished in {end_time - start_time:.2f}s. Parsing results...")
     
     # Parse raw output into clean Markdown
     markdown_output = parse_markdown(result.raw)
@@ -94,8 +99,14 @@ async def process_ocr_task(payload: dict):
         
         results = []
         for i, img in enumerate(images_to_process):
-            logger.info(f"Inferencing page {i+1}/{total_pages}...")
+            logger.info(f"DEBUG ENGINE: [Page {i+1}/{total_pages}] Starting inference...")
+            page_start = time.time()
+            
             page_markdown = await run_chandra_on_image(img)
+            
+            page_end = time.time()
+            logger.info(f"DEBUG ENGINE: [Page {i+1}/{total_pages}] Completed in {page_end - page_start:.2f}s")
+            
             # Add page marker for multi-page context preservation
             if total_pages > 1:
                 page_markdown = f"<!-- PAGE {i+1} / {total_pages} -->\n{page_markdown}"

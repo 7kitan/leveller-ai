@@ -9,6 +9,13 @@ import os
 os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
 os.environ["HF_HUB_DISABLE_EXPERIMENTAL_WARNING"] = "1"
 os.environ["HF_HUB_DISABLE_IMPLICIT_TOKEN"] = "1"
+os.environ["SAFETENSORS_AUTO_CONVERSION"] = "0"
+os.environ["HF_HUB_DISABLE_AUTO_CONVERSION"] = "1"
+
+# Silence noisy loggers
+logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
+logging.getLogger("transformers.tokenization_utils_base").setLevel(logging.ERROR)
+logging.getLogger("bert_score").setLevel(logging.ERROR)
 
 # --- Force Local Caching to avoid re-downloading models in ephemeral containers ---
 # If HF_HOME is not set, we use a local directory inside the project
