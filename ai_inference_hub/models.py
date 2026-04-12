@@ -1,7 +1,6 @@
 import torch
 import gc
 import logging
-from transformers import AutoModel, AutoModelForCausalLM, AutoTokenizer, AutoProcessor
 from bert_score import BERTScorer
 import os
 from dotenv import load_dotenv
@@ -16,36 +15,46 @@ class AIModelHub:
         self.chandra_processor = None
         self.bert_scorer = None
         
-        self.chandra_path = os.getenv("CHANDRA_MODEL_PATH", "microsoft/Florence-2-large") # Chandra-1 style
+        # Chandra OCR 2 — Real model from Datalab
+        self.chandra_path = os.getenv("CHANDRA_MODEL_PATH", "datalab-to/chandra-ocr-2")
         self.bert_model_name = os.getenv("BERTSCORE_MODEL_NAME", "microsoft/deberta-base-mnli")
         
     def load_chandra(self):
-        """Load Chandra VLM optimized for 8GB RAM."""
+        """Load Chandra OCR 2 (datalab-to/chandra-ocr-2) with 4-bit quantization for 8GB RAM."""
         if self.chandra_model is None:
-            logger.info(f"Loading Chandra from {self.chandra_path}...")
-            # Using 4-bit quantization if possible, else low memory usage
-            # Monkeypatch dynamic_module_utils' get_imports to completely hide flash_attn from HuggingFace AST parser
-            import transformers.dynamic_module_utils as dyn_utils
-            if not hasattr(dyn_utils, "_original_get_imports"):
-                dyn_utils._original_get_imports = dyn_utils.get_imports
-                
-                def get_imports_bypass(filename):
-                    imports = dyn_utils._original_get_imports(filename)
-                    return [imp for imp in imports if imp != "flash_attn"]
-                    
-                dyn_utils.get_imports = get_imports_bypass
+            logger.info(f"Loading Chandra OCR 2 from {self.chandra_path}...")
+            
+            from transformers import AutoModelForImageTextToText, AutoProcessor, BitsAndBytesConfig
+            
+            # --- 4-bit Quantization để chạy trên 8GB RAM ---
+            # Model 5B params: FP16 ~10GB → 4-bit ~3-4GB
+            quantization_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_compute_dtype=torch.bfloat16,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_use_double_quant=True,  # Double quantization để tiết kiệm thêm RAM
+            )
             
             try:
-                self.chandra_model = AutoModelForCausalLM.from_pretrained(
+                self.chandra_model = AutoModelForImageTextToText.from_pretrained(
+                    self.chandra_path,
+                    quantization_config=quantization_config,
+                    device_map="auto",  # Auto-map CPU/GPU
+                    trust_remote_code=True,
+                ).eval()
+                
+                self.chandra_processor = AutoProcessor.from_pretrained(
                     self.chandra_path,
                     trust_remote_code=True,
-                    torch_dtype=torch.float32, # CPU usually likes float32 or bfloat16
-                    device_map="cpu"
-                ).eval()
-                self.chandra_processor = AutoProcessor.from_pretrained(self.chandra_path, trust_remote_code=True)
-                logger.info("Chandra loaded successfully.")
+                )
+                self.chandra_processor.tokenizer.padding_side = "left"
+                
+                # Chandra's generate_hf() expects model.processor to be set
+                self.chandra_model.processor = self.chandra_processor
+                
+                logger.info("Chandra OCR 2 loaded successfully (4-bit quantized).")
             except Exception as e:
-                logger.error(f"Failed to load Chandra: {e}")
+                logger.error(f"Failed to load Chandra OCR 2: {e}")
                 raise
 
     def load_bertscore(self):

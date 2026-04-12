@@ -31,14 +31,20 @@ async def lifespan(app: FastAPI):
     logger.info("Lifespan: Cleanup complete.")
 
 app = FastAPI(
-    title="AI Inference Hub (Chandra & BERTScore)",
-    description="Serial Queue AI Inference for low-resource environments.",
+    title="AI Inference Hub (Chandra OCR 2 & BERTScore)",
+    description="Serial Queue AI Inference with datalab-to/chandra-ocr-2 for low-resource environments.",
     lifespan=lifespan
 )
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "queue_size": worker.queue.qsize()}
+    return {
+        "status": "ok",
+        "queue_size": worker.queue.qsize(),
+        "ocr_engine": hub.chandra_path,
+        "ocr_loaded": hub.chandra_model is not None,
+        "bertscore_loaded": hub.bert_scorer is not None,
+    }
 
 @app.post("/tasks/ocr", dependencies=[Depends(get_api_key)])
 async def create_ocr_task(payload: dict):

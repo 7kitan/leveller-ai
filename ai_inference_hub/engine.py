@@ -5,37 +5,50 @@ from PIL import Image
 import io
 import base64
 import os
-import tempfile
+import gc
 from pdf2image import convert_from_bytes
 from typing import List
 
 logger = logging.getLogger("ai_engine")
 
+# --- Chandra OCR 2 specific imports ---
+from chandra.model.hf import generate_hf
+from chandra.model.schema import BatchInputItem
+from chandra.output import parse_markdown
+
+
 async def run_chandra_on_image(image: Image.Image) -> str:
-    """Helper command to run VLM inference on a single PIL Image."""
+    """Run Chandra OCR 2 inference on a single PIL Image.
+    Returns structured Markdown preserving layout, headings, tables, etc.
+    """
     # Ensure image is RGB
     if image.mode != "RGB":
         image = image.convert("RGB")
-        
-    # Inference logic (Assuming Florence-2 style API for Chandra-1)
-    prompt = "<OCR>" # Example task - replace with actual Chandra prompt if known
-    inputs = hub.chandra_processor(text=prompt, images=image, return_tensors="pt").to("cpu")
     
-    with torch.no_grad():
-        generated_ids = hub.chandra_model.generate(
-            input_ids=inputs["input_ids"],
-            pixel_values=inputs["pixel_values"],
-            max_new_tokens=1024,
-            num_beams=3
+    # Chandra uses BatchInputItem with prompt_type="ocr_layout" for layout-preserving OCR
+    batch = [
+        BatchInputItem(
+            image=image,
+            prompt_type="ocr_layout"  # Layout-aware OCR: preserves headings, tables, reading order
         )
+    ]
     
-    parsed_answer = hub.chandra_processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
-    return parsed_answer
+    # Run inference using Chandra's HuggingFace helper
+    # This handles tokenization, generation, and decoding internally
+    with torch.no_grad():
+        result = generate_hf(batch, hub.chandra_model)[0]
+    
+    # Parse raw output into clean Markdown
+    markdown_output = parse_markdown(result.raw)
+    
+    return markdown_output
+
 
 async def process_ocr_task(payload: dict):
     """
-    Heavy task: OCR with Chandra VLM.
+    Heavy task: OCR with Chandra OCR 2 (datalab-to/chandra-ocr-2).
     Supports both single images and multi-page PDFs.
+    Output: Structured Markdown preserving layout context.
     """
     # Accept either image_base64 or file_base64 + file_ext
     image_data = payload.get("image_base64")
@@ -54,7 +67,7 @@ async def process_ocr_task(payload: dict):
             images_to_process.append(Image.open(io.BytesIO(image_bytes)))
         elif file_data:
             file_bytes = base64.b64decode(file_data)
-            if file_ext == ".pdf" or file_ext == "pdf":
+            if file_ext in (".pdf", "pdf"):
                 # PDF case: Convert to images
                 logger.info("Converting PDF to images inside Hub...")
                 images_to_process = convert_from_bytes(file_bytes, dpi=200)
@@ -65,14 +78,33 @@ async def process_ocr_task(payload: dict):
         if not images_to_process:
             return {"error": "Failed to extract images from provided data"}
 
-        logger.info(f"Processing {len(images_to_process)} page(s) via Chandra...")
+        total_pages = len(images_to_process)
+        logger.info(f"Processing {total_pages} page(s) via Chandra OCR 2...")
+        
         results = []
         for i, img in enumerate(images_to_process):
-            logger.info(f"Inferencing page {i+1}/{len(images_to_process)}...")
-            page_text = await run_chandra_on_image(img)
-            results.append(page_text)
+            logger.info(f"Inferencing page {i+1}/{total_pages}...")
+            page_markdown = await run_chandra_on_image(img)
+            # Add page marker for multi-page context preservation
+            if total_pages > 1:
+                page_markdown = f"<!-- PAGE {i+1} / {total_pages} -->\n{page_markdown}"
+            results.append(page_markdown)
             
-        return {"text": "\n\n---\n\n".join(results)}
+            # Free image memory after processing each page
+            del img
+            gc.collect()
+            
+        # Join pages with clear separator  
+        full_text = "\n\n---\n\n".join(results)
+        
+        return {
+            "text": full_text,
+            "metadata": {
+                "total_pages": total_pages,
+                "engine": "chandra-ocr-2",
+                "output_format": "markdown"
+            }
+        }
         
     except Exception as e:
         logger.error(f"OCR Error: {e}")

@@ -1,24 +1,26 @@
-# AI Inference Hub (Chandra OCR & BERTScore)
+# AI Inference Hub (Chandra OCR 2 & BERTScore)
 
 A lightweight, high-performance AI inference service designed for resource-constrained environments (e.g., VPS with 4 Cores / 8GB RAM). This hub uses a serial queue architecture to process heavy AI tasks without exhausting system memory.
 
 ## 🚀 Features
-- **Chandra OCR Integration**: High-accuracy document-to-markdown extraction using Vision-Language Models.
+- **Chandra OCR 2**: State-of-the-art document OCR from [Datalab](https://www.datalab.to) (`datalab-to/chandra-ocr-2`). Outputs structured **Markdown** preserving layout, tables, headings, and reading order.
+- **4-bit Quantization**: Uses `bitsandbytes` NF4 quantization to run the 5B-param model in ~3-4GB RAM.
 - **BERTScore Calculation**: Semantic similarity scoring using contextual embeddings.
 - **Async Queue Architecture**: Prevents memory spikes by processing tasks one by one.
-- **CPU Optimized**: Pre-configured to run efficiently on CPU using `torch-cpu`.
+- **90+ Language Support**: Vietnamese, English, and 88+ other languages with high accuracy.
 
 ## 🛠️ Tech Stack
 - **Framework**: FastAPI
+- **OCR Model**: `datalab-to/chandra-ocr-2` (Qwen 3.5 based, 5B params, 4-bit quantized)
 - **Logic**: Asyncio Queue + Background Workers
-- **AI Libraries**: PyTorch (CPU), Transformers, BERTScore
-- **Auth**: API Key via `X-API-KEY` header.
+- **AI Libraries**: PyTorch, Transformers, chandra-ocr, BERTScore
+- **Auth**: API Key via `X-AI-Key` header.
 
 ## 📥 Setup Instructions (Ubuntu 22.04)
 
 ### 1. System Requirements
 - Python 3.10+
-- 4 vCPUs / 8GB RAM
+- 4 vCPUs / 8GB RAM (minimum)
 - `poppler-utils` (for PDF processing)
 
 ### 2. Installation
@@ -41,6 +43,8 @@ Create a `.env` file in this directory:
 ```env
 HUB_API_KEY=your_secret_api_key
 PORT=8080
+CHANDRA_MODEL_PATH=datalab-to/chandra-ocr-2
+BERTSCORE_MODEL_NAME=microsoft/deberta-base-mnli
 ```
 
 ### 4. Running the Service
@@ -78,9 +82,26 @@ pm2 start "uvicorn main:app --host 0.0.0.0 --port 8080" --name ai-hub
   {
     "task_id": "...",
     "status": "completed",
-    "result": { "text": "Extracted markdown for all pages..." }
+    "result": {
+      "text": "# Structured Markdown output...\n## Skills\n- Python\n- React\n...",
+      "metadata": {
+        "total_pages": 2,
+        "engine": "chandra-ocr-2",
+        "output_format": "markdown"
+      }
+    }
   }
   ```
+
+## 📊 Output Format
+Chandra OCR 2 outputs **structured Markdown** that preserves:
+- Heading hierarchy (`#`, `##`, `###`)
+- Tables with proper formatting
+- Bullet lists and numbered lists
+- Reading order across multi-column layouts
+- Page markers (`<!-- PAGE X / Y -->`) for multi-page documents
+
+This structured output is significantly better for downstream LLM parsing compared to raw text.
 
 ## ⚖️ License
 Apache-2.0
