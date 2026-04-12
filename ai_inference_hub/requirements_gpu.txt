@@ -26,3 +26,7 @@ pdf2image==1.17.0
 
 # Chandra OCR 2 (datalab-to/chandra-ocr-2)
 chandra-ocr
+
+# Required for DeBERTa-v3 Tokenizer
+sentencepiece
+tiktoken

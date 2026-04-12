@@ -20,5 +20,9 @@ Pillow==10.2.0
 numpy==1.26.4
 pdf2image==1.17.0
 
+# Required for DeBERTa-v3 Tokenizer
+sentencepiece
+tiktoken
+
 # Chandra OCR 2 (datalab-to/chandra-ocr-2)
 chandra-ocr

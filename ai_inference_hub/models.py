@@ -227,9 +227,13 @@ class AIModelHub:
             
             # SỬA: Chuyển sang roberta-large (Độ chính xác cao hơn base)
             # Không cần ép layer nữa vì RoBERTa đã được thư viện hỗ trợ mặc định rất tốt.
+            # SỬA: Bật rescale_with_baseline=True để giải quyết "Semantic Collapse"
+            # Giúp phân biệt tốt hơn giữa các kỹ năng khác nhau (như Java vs Python)
             self.bert_scorer = BERTScorer(
                 model_type=self.bert_model_name, 
-                device=device
+                device=device,
+                lang="en", # Ưu tiên tiếng Anh để so khớp skill chính xác hơn
+                rescale_with_baseline=True
             )
             
             # --- Fix: Cap model_max_length to prevent 'OverflowError: int too big to convert' ---

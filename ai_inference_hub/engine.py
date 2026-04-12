@@ -198,11 +198,11 @@ async def calculate_bertscore_task(payload: dict):
             
             logger.info(f"DEBUG HUB: Best Index: {best_idx}, Best Score: {best_score}")
             
-            # SỬA: Đồng bộ threshold 0.85 (Strict High-Precision)
+            # SỬA: Điều chỉnh threshold cho Rescaled BERTScore (0.0 là baseline ngẫu nhiên)
             results[skill] = {
                 "best_match": cv_skills[best_idx],
                 "score": round(best_score, 4),
-                "status": "PASS" if best_score >= 0.85 else "PARTIAL" if best_score > 0.70 else "MISSING"
+                "status": "PASS" if best_score >= 0.45 else "PARTIAL" if best_score > 0.25 else "MISSING"
             }
             logger.info(f"DEBUG HUB: Result for '{skill}': Match='{cv_skills[best_idx]}' Score={round(best_score, 4)} Status={results[skill]['status']}")
             
