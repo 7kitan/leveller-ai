@@ -347,11 +347,6 @@ def main():
         for entry in all_entries:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
-    # Append to persistent history (to avoid duplicate scans later)
-    with open(history_file, "a", encoding="utf-8") as f:
-        for entry in all_entries:
-            f.write(entry["session_id"] + "\n")
-
     print(f"\n[antigravity-log] ✅ Logged {len(all_entries)} Antigravity session(s).")
     for entry in all_entries:
         print(f"  • [{entry['session_id'][:8]}...] {entry['prompt'][:80]}")

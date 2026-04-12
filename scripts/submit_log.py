@@ -59,8 +59,21 @@ def main():
         with urllib.request.urlopen(req, timeout=10) as resp:
             if 200 <= resp.status < 300:
                 print(f"[ai-log] Submitted {len(entries)} entries → {resp.status}", file=sys.stderr)
+                
+                # --- Update Antigravity history ---
+                HISTORY_FILE = LOG_FILE.parent / ".antigravity_history"
+                ag_ids = [e.get("session_id") for e in entries if e.get("tool") == "antigravity" and e.get("session_id")]
+                if ag_ids:
+                    try:
+                        with open(HISTORY_FILE, "a", encoding="utf-8") as f:
+                            for sid in ag_ids:
+                                f.write(sid + "\n")
+                        print(f"[ai-log] Updated Antigravity history with {len(ag_ids)} IDs.", file=sys.stderr)
+                    except Exception as e:
+                        print(f"[ai-log] ⚠️ Failed to update history file: {e}", file=sys.stderr)
+
                 # Clear the log file after successful submission
-                with open(LOG_FILE, 'w', encoding='utf-8') as f:
+                with open(LOG_FILE, "w", encoding="utf-8") as f:
                     pass
                 print("[ai-log] Local log cleared.", file=sys.stderr)
             else:
