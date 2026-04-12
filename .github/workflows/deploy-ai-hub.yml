@@ -1,0 +1,54 @@
+name: Deploy AI Inference Hub
+
+on:
+  push:
+    branches: [demo]
+    paths:
+      - 'ai_inference_hub/**'
+
+jobs:
+  deploy:
+    name: Deploy AI Hub to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_AI_HOST }}
+          username: ${{ secrets.VPS_AI_USER }}
+          key: ${{ secrets.VPS_AI_SSH_KEY }}
+          port: ${{ secrets.VPS_AI_PORT || 22 }}
+          script: |
+            set -e
+            echo "========================================="
+            echo "🚀 Deploying AI Inference Hub..."
+            echo "========================================="
+
+            # Navigate to project directory
+            cd ${{ secrets.VPS_AI_PROJECT_DIR }}/ai_inference_hub
+
+            # Pull latest changes
+            echo "📥 Pulling latest code..."
+            git pull origin demo
+
+            # Activate virtual environment
+            source venv/bin/activate
+
+            # Install/update dependencies
+            echo "📦 Installing dependencies..."
+            pip install -r requirements_ai.txt --quiet
+
+            # Restart service via PM2
+            echo "🔄 Restarting AI Hub service..."
+            pm2 restart ai-hub || pm2 start "uvicorn main:app --host 0.0.0.0 --port 8080" --name ai-hub
+
+            # Health check
+            echo "🏥 Running health check..."
+            sleep 5
+            curl -sf http://localhost:8080/health || echo "⚠️ Health check failed, service may still be starting..."
+
+            echo "✅ AI Inference Hub deployed successfully!"
