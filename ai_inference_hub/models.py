@@ -5,6 +5,22 @@ import os
 from dotenv import load_dotenv
 from bert_score import BERTScorer
 
+# --- Monkeypatch for PyTorch < 2.4.0 (for BitsAndBytes compatibility) ---
+if not hasattr(torch.nn.Module, "set_submodule"):
+    def set_submodule(self, target: str, module: torch.nn.Module) -> None:
+        if '.' not in target:
+            setattr(self, target, module)
+        else:
+            atoms = target.split('.')
+            name = atoms.pop(-1)
+            mod = self
+            for item in atoms:
+                if not hasattr(mod, item):
+                    raise AttributeError(f"{mod} has no attribute `{item}`")
+                mod = getattr(mod, item)
+            setattr(mod, name, module)
+    torch.nn.Module.set_submodule = set_submodule
+
 # --- Optimization: Ensure torchvision is initialized before transformers ---
 try:
     import torchvision
