@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 import torch
 from bert_score import BERTScorer
 import logging
@@ -7,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("diagnostic")
 
 def test_bertscore():
-    model_name = "microsoft/deberta-base-mnli"
+    model_name = os.getenv("BERTSCORE_MODEL_NAME", "roberta-large")
     device = "cuda" if torch.cuda.is_available() else "cpu"
     
     logger.info(f"Initializing BERTScorer with {model_name} on {device}...")

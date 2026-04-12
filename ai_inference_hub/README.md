@@ -44,7 +44,7 @@ Create a `.env` file in this directory:
 AI_INFERENCE_API_KEY=your_secret_api_key
 PORT=8080
 CHANDRA_MODEL_PATH=datalab-to/chandra-ocr-2
-BERTSCORE_MODEL_NAME=microsoft/deberta-base-mnli
+BERTSCORE_MODEL_NAME=roberta-large
 
 # Low-RAM (8GB) CPU Optimization
 HF_LOCAL_FILES_ONLY=1  # Prevent re-checking Hugging Face Hub if already downloaded

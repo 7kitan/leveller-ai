@@ -125,7 +125,7 @@ class AIModelHub:
         
         # Chandra OCR 2 — Real model from Datalab
         self.chandra_path = os.getenv("CHANDRA_MODEL_PATH", "datalab-to/chandra-ocr-2")
-        self.bert_model_name = os.getenv("BERTSCORE_MODEL_NAME", "microsoft/deberta-base-mnli")
+        self.bert_model_name = os.getenv("BERTSCORE_MODEL_NAME", "roberta-large")
         
     def load_chandra(self):
         """Load Chandra OCR 2 (datalab-to/chandra-ocr-2).
@@ -224,13 +224,11 @@ class AIModelHub:
             # Detect device: use CUDA if available
             device = "cuda" if torch.cuda.is_available() else "cpu"
             
-            # SỬA: Chỉ định chính xác num_layers=9 cho DeBERTa base để tránh Semantic Collapse
-            # và đặt all_layers=False để tập trung vào layer tối ưu nhất cho similarity.
+            # SỬA: Chuyển sang roberta-large (Độ chính xác cao hơn base)
+            # Không cần ép layer nữa vì RoBERTa đã được thư viện hỗ trợ mặc định rất tốt.
             self.bert_scorer = BERTScorer(
                 model_type=self.bert_model_name, 
-                device=device,
-                num_layers=9,
-                all_layers=False
+                device=device
             )
             
             # --- Fix: Cap model_max_length to prevent 'OverflowError: int too big to convert' ---

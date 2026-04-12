@@ -29,7 +29,7 @@ if [ ! -f .env ]; then
 AI_INFERENCE_API_KEY=your_secure_api_key_here
 PORT=8080
 CHANDRA_MODEL_PATH=datalab-to/chandra-ocr-2
-BERTSCORE_MODEL_NAME=microsoft/deberta-base-mnli
+BERTSCORE_MODEL_NAME=roberta-large
 HF_HOME=./models_cache
 TRANSFORMERS_CACHE=./models_cache
 EOT
