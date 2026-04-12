@@ -39,7 +39,7 @@ class AIModelHub:
                 self.chandra_model = AutoModelForImageTextToText.from_pretrained(
                     self.chandra_path,
                     quantization_config=quantization_config,
-                    device_map="auto",  # Auto-map CPU/GPU
+                    device_map="cpu",  # Explicitly map to CPU to avoid accelerate placement complications on VPS
                     trust_remote_code=True,
                     low_cpu_mem_usage=True,
                 ).eval()

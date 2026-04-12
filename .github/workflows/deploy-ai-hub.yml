@@ -52,7 +52,15 @@ jobs:
 
             # Install/update dependencies
             echo "📦 Installing dependencies..."
-            pip install -r requirements_ai.txt --quiet
+            ./venv/bin/python -m pip install -r requirements_ai.txt --quiet
+
+            # Force reinstall accelerate to prevent PM2 detection issues
+            echo "🧹 Forcing reinstall of accelerate..."
+            ./venv/bin/python -m pip install --force-reinstall --no-cache-dir accelerate transformers --quiet
+
+            # Verify accelerate
+            echo "🔍 Verifying accelerate installation..."
+            ./venv/bin/python -c "import accelerate; print('Accelerate version:', accelerate.__version__)"
 
             # Restart service via PM2 (using explicit venv path to ensure all dependencies are found)
             echo "🔄 Restarting AI Hub service..."
