@@ -11,7 +11,6 @@ import torch
 import gc
 import logging
 import time
-from bert_score import BERTScorer
 
 # --- Tắt cảnh báo tạo thread convert safetensors nền của Transformers ---
 os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
@@ -89,9 +88,19 @@ except Exception as e:
 
 # --- Heavy Imports moved to top to avoid late import issues ---
 try:
-    from transformers import AutoModelForImageTextToText, AutoProcessor, BitsAndBytesConfig
+    from transformers import AutoModelForImageTextToText, AutoProcessor, BitsAndBytesConfig, AutoModel
+    from bert_score import BERTScorer
+    
+    # --- Monkeypatch AutoModel to force safetensors (Bypass PyTorch 2.6 security check for BERTScore) ---
+    _orig_from_pretrained = AutoModel.from_pretrained
+    @classmethod
+    def _safe_from_pretrained(cls, pretrained_model_name_or_path, *model_args, **kwargs):
+        kwargs["use_safetensors"] = True
+        return _orig_from_pretrained.__func__(cls, pretrained_model_name_or_path, *model_args, **kwargs)
+    AutoModel.from_pretrained = _safe_from_pretrained
+    
 except ImportError as e:
-    logging.error(f"Failed to import transformers: {e}")
+    logging.error(f"Failed to import heavy AI libraries: {e}")
     raise
 
 load_dotenv()

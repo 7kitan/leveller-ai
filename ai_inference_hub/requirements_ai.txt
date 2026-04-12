@@ -10,8 +10,8 @@ python-multipart==0.0.9
 
 # ML Stack (CPU + 4-bit Quantization)
 # ML Stack (CPU-only, clean install required to match torchvision ops)
-torch==2.3.1 --index-url https://download.pytorch.org/whl/cpu
-torchvision==0.18.1 --index-url https://download.pytorch.org/whl/cpu
+torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cpu
 transformers>=4.46.0
 bert-score==0.3.13
 accelerate>=0.34.0

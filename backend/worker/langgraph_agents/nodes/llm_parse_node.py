@@ -65,6 +65,8 @@ async def llm_parse_node_func(state: Dict[str, Any]) -> Dict[str, Any]:
     """
 
     try:
+        logger.info(f"\n{'='*50}\n[LLM REQUEST - {LLM_PROVIDER.upper()}]\nSYSTEM INSTRUCTION:\n{system_instruction}\n\nUSER PROMPT:\n{prompt}\n{'='*50}")
+        
         if LLM_PROVIDER == "openai":
             response = client.chat.completions.create(
                 model=LLM_MODEL,
@@ -75,13 +77,19 @@ async def llm_parse_node_func(state: Dict[str, Any]) -> Dict[str, Any]:
                 response_format={"type": "json_object"},
                 temperature=0
             )
-            parsed_data = json.loads(response.choices[0].message.content)
+            raw_response_text = response.choices[0].message.content
+            logger.info(f"\n{'='*50}\n[LLM RAW RESPONSE - OPENAI]\n{raw_response_text}\n{'='*50}")
+            parsed_data = json.loads(raw_response_text)
+            
         elif LLM_PROVIDER == "gemini":
             response = await gemini_model.generate_content_async(
                 system_instruction + "\n" + prompt,
                 generation_config={"response_mime_type": "application/json", "temperature": 0}
             )
-            parsed_data = json.loads(response.text)
+            raw_response_text = response.text
+            logger.info(f"\n{'='*50}\n[LLM RAW RESPONSE - GEMINI]\n{raw_response_text}\n{'='*50}")
+            parsed_data = json.loads(raw_response_text)
+            
         else:
             return {"error": f"Unsupported LLM provider: {LLM_PROVIDER}", "status": "failed"}
 

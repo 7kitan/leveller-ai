@@ -50,7 +50,7 @@ async def run_chandra_on_image(image: Image.Image) -> str:
     try:
         def sync_inference():
             with torch.no_grad():
-                logger.info("DEBUG ENGINE: [Checkpoint 2] Inside thread - Calling generate_hf. Waiting for GPU...")
+                logger.info(f"DEBUG ENGINE: [LLM REQUEST] Dispatching Batch to Chandra. Prompt Type: {batch[0].prompt_type}, Image Size: {batch[0].image.size}")
                 local_start = time.time()
                 res = generate_hf(batch, hub.chandra_model)
                 logger.info(f"DEBUG ENGINE: [Checkpoint 2.1] generate_hf call finished in {time.time() - local_start:.2f}s")
@@ -58,6 +58,7 @@ async def run_chandra_on_image(image: Image.Image) -> str:
 
         result = await asyncio.to_thread(sync_inference)
         logger.info(f"DEBUG ENGINE: [Checkpoint 3] result received in main loop. Raw result type: {type(result)}")
+        logger.info(f"DEBUG ENGINE: [LLM RAW RESPONSE]\n{'='*50}\n{result.raw}\n{'='*50}")
     except Exception as ge:
         logger.error(f"DEBUG ENGINE: [Checkpoint ERROR] Failure inside generate_hf/thread: {ge}")
         raise ge
@@ -68,6 +69,7 @@ async def run_chandra_on_image(image: Image.Image) -> str:
     # Parse raw output into clean Markdown
     markdown_output = parse_markdown(result.raw)
     
+    logger.info(f"DEBUG ENGINE: [LLM PARSED MARKDOWN]\n{'='*50}\n{markdown_output}\n{'='*50}")
     logger.info(f"DEBUG ENGINE: [Checkpoint 5] Parsing complete. Markdown length: {len(markdown_output)}")
     return markdown_output
 
@@ -166,20 +168,35 @@ async def calculate_bertscore_task(payload: dict):
         logger.error(f"DEBUG HUB: Validation Failed. CV: {len(cv_skills)}, JD: {len(jd_skills)}")
         return {"error": "Missing skills for comparison", "received_keys": list(payload.keys())}
 
-    # If single skill provided, wrap it in a list
-    if jd_skill and not jd_skills:
-        jd_skills = [jd_skill]
+    # Ensure all elements are strings to prevent 'int too big to convert' tokenizer crashes
+    # and filter out any empty strings
+    try:
+        cv_skills = [str(s).strip() for s in cv_skills if str(s).strip()]
+        jd_skills = [str(s).strip() for s in jd_skills if str(s).strip()]
+    except Exception as e:
+        logger.error(f"DEBUG HUB: Failed to sanitize input skills mapping: {e}")
+        return {"error": f"Invalid skill data types: {e}"}
+
+    if not cv_skills or not jd_skills:
+        logger.error("DEBUG HUB: Validation Failed AFTER sanitization. Empty skill lists.")
+        return {"error": "Missing valid string skills for comparison"}
 
     try:
         results = {}
-        logger.info(f"DEBUG HUB: Comparing CV Skills: {cv_skills}")
+        logger.info(f"DEBUG HUB: Comparing {len(cv_skills)} CV Skills. First 3: {cv_skills[:3]}")
+        
         for skill in jd_skills:
+            logger.info(f"DEBUG HUB: Scoring JD Skill: '{skill}' against {len(cv_skills)} CV skills")
             # Parallelize over CV skills using BERTScore's vectorization
             P, R, F1 = hub.bert_scorer.score(cv_skills, [skill] * len(cv_skills))
             
+            logger.info(f"DEBUG HUB: BERTScore Tensors Output - F1 Shape: {F1.shape}")
+            
             # Find best match
-            best_idx = F1.argmax().item()
-            best_score = F1[best_idx].item()
+            best_idx = int(F1.argmax().item())
+            best_score = float(F1[best_idx].item())
+            
+            logger.info(f"DEBUG HUB: Best Index: {best_idx}, Best Score: {best_score}")
             
             # SỬA: Đồng bộ threshold 0.85 (Strict High-Precision)
             results[skill] = {
@@ -194,5 +211,7 @@ async def calculate_bertscore_task(payload: dict):
             return results[jd_skill]
         return results
     except Exception as e:
-        logger.error(f"BERTScore Error: {e}")
-        return {"error": str(e)}
+        import traceback
+        tb_str = traceback.format_exc()
+        logger.error(f"BERTScore Error: {e}\n{tb_str}")
+        return {"error": str(e), "traceback": tb_str}

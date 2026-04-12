@@ -11,8 +11,9 @@ python-multipart==0.0.9
 # ML Stack (GPU enabled)
 # Note: On vast.ai PyTorch images, torch/torchvision are usually pre-installed.
 # We install them here to ensure compatibility if using a clean image.
-torch==2.3.1+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
-torchvision==0.18.1+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
+--extra-index-url https://download.pytorch.org/whl/cu118
+torch==2.6.0
+torchvision==0.21.0
 transformers>=4.46.0
 bert-score==0.3.13
 scikit-learn  # Required by bert-score
