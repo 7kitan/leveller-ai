@@ -114,6 +114,19 @@ async def parse_with_llm(text: str) -> Dict[str, Any]:
     3. Calculate 'duration_years' for each role and 'total_years_exp' for the entire career (rounded to 1 decimal).
     4. Determine 'seniority_level' (Intern, Junior, Middle, Senior, Lead) based on job titles and years of experience.
 
+    THINKING PROCESS (Internal):
+    Before generating the JSON, follow these steps:
+    1. List all time intervals found in the text. 
+    2. Identify any overlaps (e.g., Job A and Job B occurring at the same time).
+    3. Sum the unique duration to get 'total_years_exp'.
+    4. For the 'inferred_level_raw' (1-5):
+       - 1: Mentioned only.
+       - 2: Basic use in a project.
+       - 3: Core responsibility in a role.
+       - 4: Expert/Lead usage.
+       - 5: Extensive years or architectural leadership in that skill.
+    5. Verify that every 'raw_name' in the skills section can be traced back to a specific sentence in the CV.
+
     """
 
     prompt = f"""
