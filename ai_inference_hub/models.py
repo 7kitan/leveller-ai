@@ -23,6 +23,19 @@ if not hasattr(torch.nn.Module, "set_submodule"):
 
 # --- Optimization: Ensure torchvision is initialized before transformers ---
 try:
+    # --- Monkeypatch torch.library.register_fake to suppress torchvision::nms missing operator bug ---
+    if hasattr(torch, "library") and hasattr(torch.library, "register_fake"):
+        original_register_fake = torch.library.register_fake
+        def safe_register_fake(name, *args, **kwargs):
+            def decorator(func):
+                try:
+                    return original_register_fake(name, *args, **kwargs)(func)
+                except Exception as e:
+                    logging.warning(f"Ignored register_fake error for {name}: {e}")
+                    return func
+            return decorator
+        torch.library.register_fake = safe_register_fake
+
     import torchvision
     # Trigger operator registration
     if hasattr(torchvision, "ops"):
@@ -30,6 +43,7 @@ try:
     logging.info(f"Torchvision initialized. version={torchvision.__version__}")
 except Exception as e:
     logging.warning(f"Failed to pre-initialize torchvision: {e}")
+
 
 # --- Heavy Imports moved to top to avoid late import issues ---
 try:
