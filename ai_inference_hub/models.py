@@ -107,7 +107,10 @@ class AIModelHub:
             use_cuda = torch.cuda.is_available()
             
             if use_cuda:
-                logger.info("DEBUG MODELS: CUDA detected. Using GPU mode with 4-bit Quantization.")
+                device_name = torch.cuda.get_device_name(0)
+                vram_total = torch.cuda.get_device_properties(0).total_memory / 1024**3
+                logger.info(f"DEBUG MODELS: [CUDA detected] Using {device_name} with {vram_total:.2f}GB VRAM.")
+                logger.info("DEBUG MODELS: Configuring 4-bit Quantization (bitsandbytes).")
                 quantization_config = BitsAndBytesConfig(
                     load_in_4bit=True,
                     bnb_4bit_compute_dtype=torch.bfloat16,
@@ -152,29 +155,33 @@ class AIModelHub:
                 logger.info("DEBUG MODELS: Forcing local_files_only=True")
 
             try:
+                logger.info(f"DEBUG MODELS: [Step 1/5] Loading model weights from {self.chandra_path} (local_files_only={local_only})...")
+                load_start = time.time()
                 self.chandra_model = AutoModelForImageTextToText.from_pretrained(
                     self.chandra_path,
                     trust_remote_code=True,
                     local_files_only=local_only,
                     **model_kwargs
                 ).eval()
+                logger.info(f"DEBUG MODELS: [Step 2/5] Weight loading took {time.time() - load_start:.2f}s. Initializing processor...")
                 
+                proc_start = time.time()
                 self.chandra_processor = AutoProcessor.from_pretrained(
                     self.chandra_path,
                     trust_remote_code=True,
                     local_files_only=local_only,
                 )
-                logger.info(f"DEBUG MODELS: Processor loaded. Tokenizer size: {len(self.chandra_processor.tokenizer)}")
+                logger.info(f"DEBUG MODELS: [Step 3/5] Processor loaded in {time.time() - proc_start:.2f}s. Tokenizer size: {len(self.chandra_processor.tokenizer)}")
                 
                 self.chandra_processor.tokenizer.padding_side = "left"
                 
                 # Chandra's generate_hf() expects model.processor to be set
                 self.chandra_model.processor = self.chandra_processor
                 
-                logger.info(f"DEBUG MODELS: Chandra OCR 2 loaded successfully on {self.chandra_model.device}")
-                logger.info(f"DEBUG MODELS: Model dtype: {self.chandra_model.dtype}, is_quantized: {getattr(self.chandra_model, 'is_quantized', False)}")
+                logger.info(f"DEBUG MODELS: [Step 4/5] Binded processor to model. Device: {self.chandra_model.device}")
+                logger.info(f"DEBUG MODELS: [Step 5/5] Chandra OCR 2 READY. Dtype: {self.chandra_model.dtype}, is_quantized: {getattr(self.chandra_model, 'is_quantized', False)}")
             except Exception as e:
-                logger.error(f"Failed to load Chandra OCR 2: {e}")
+                logger.error(f"DEBUG MODELS: [FATAL] Failed to load Chandra OCR 2: {e}")
                 raise
 
     def load_bertscore(self):

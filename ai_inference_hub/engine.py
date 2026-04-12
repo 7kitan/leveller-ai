@@ -7,6 +7,7 @@ import base64
 import os
 import gc
 import time
+import asyncio
 from pdf2image import convert_from_bytes
 from typing import List
 
@@ -22,11 +23,11 @@ async def run_chandra_on_image(image: Image.Image) -> str:
     """Run Chandra OCR 2 inference on a single PIL Image.
     Returns structured Markdown preserving layout, headings, tables, etc.
     """
-    logger.info(f"DEBUG ENGINE: Prepared image for inference. Size: {image.size}, Mode: {image.mode}")
+    logger.info(f"DEBUG ENGINE: [Checkpoint 0] Prepared image for inference. Size: {image.size}, Mode: {image.mode}")
     
     # Ensure image is RGB
     if image.mode != "RGB":
-        logger.info("DEBUG ENGINE: Converting image mode to RGB")
+        logger.info("DEBUG ENGINE: [Checkpoint 0.1] Converting image mode to RGB")
         image = image.convert("RGB")
     
     # Chandra uses BatchInputItem with prompt_type="ocr_layout" for layout-preserving OCR
@@ -37,26 +38,37 @@ async def run_chandra_on_image(image: Image.Image) -> str:
         )
     ]
     
-    logger.info("DEBUG ENGINE: >>> Starting generate_hf inference loop...")
+    logger.info("DEBUG ENGINE: [Checkpoint 1] Preparation complete. CUDA check: {} | Memory Allocated: {:.2f}GB".format(
+        torch.cuda.is_available(), 
+        torch.cuda.memory_allocated() / 1024**3 if torch.cuda.is_available() else 0.0
+    ))
+    
     start_time = time.time()
     
     # Run inference using Chandra's HuggingFace helper
-    # This handles tokenization, generation, and decoding internally
+    # IMPORTANT: Offload to thread to prevent blocking the async loop on CPU-only nodes
     try:
-        with torch.no_grad():
-            logger.info("DEBUG ENGINE: Calling generate_hf...")
-            result = generate_hf(batch, hub.chandra_model)[0]
+        def sync_inference():
+            with torch.no_grad():
+                logger.info("DEBUG ENGINE: [Checkpoint 2] Inside thread - Calling generate_hf. Waiting for GPU...")
+                local_start = time.time()
+                res = generate_hf(batch, hub.chandra_model)
+                logger.info(f"DEBUG ENGINE: [Checkpoint 2.1] generate_hf call finished in {time.time() - local_start:.2f}s")
+                return res[0]
+
+        result = await asyncio.to_thread(sync_inference)
+        logger.info(f"DEBUG ENGINE: [Checkpoint 3] result received in main loop. Raw result type: {type(result)}")
     except Exception as ge:
-        logger.error(f"DEBUG ENGINE: Error inside generate_hf: {ge}")
+        logger.error(f"DEBUG ENGINE: [Checkpoint ERROR] Failure inside generate_hf/thread: {ge}")
         raise ge
         
     end_time = time.time()
-    logger.info(f"DEBUG ENGINE: <<< generate_hf finished in {end_time - start_time:.2f}s. Parsing results...")
+    logger.info(f"DEBUG ENGINE: [Checkpoint 4] Total Inference took {end_time - start_time:.2f}s. Parsing Markdown...")
     
     # Parse raw output into clean Markdown
     markdown_output = parse_markdown(result.raw)
     
-    logger.info(f"DEBUG ENGINE: Parsing complete. Output length: {len(markdown_output)}")
+    logger.info(f"DEBUG ENGINE: [Checkpoint 5] Parsing complete. Markdown length: {len(markdown_output)}")
     return markdown_output
 
 
@@ -99,13 +111,17 @@ async def process_ocr_task(payload: dict):
         
         results = []
         for i, img in enumerate(images_to_process):
-            logger.info(f"DEBUG ENGINE: [Page {i+1}/{total_pages}] Starting inference...")
+            logger.info(f"DEBUG ENGINE: [TASK-OCR] Starting Page {i+1}/{total_pages}...")
             page_start = time.time()
             
+            # Explicitly log memory before heavy page
+            if torch.cuda.is_available():
+                logger.info(f"DEBUG ENGINE: [TASK-OCR] GPU Mem before Page {i+1}: {torch.cuda.memory_allocated()/1024**2:.1f}MB")
+
             page_markdown = await run_chandra_on_image(img)
             
             page_end = time.time()
-            logger.info(f"DEBUG ENGINE: [Page {i+1}/{total_pages}] Completed in {page_end - page_start:.2f}s")
+            logger.info(f"DEBUG ENGINE: [TASK-OCR] Page {i+1}/{total_pages} Completed in {page_end - page_start:.2f}s")
             
             # Add page marker for multi-page context preservation
             if total_pages > 1:

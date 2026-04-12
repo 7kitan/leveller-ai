@@ -22,7 +22,7 @@ class AIWorker:
             "created_at": datetime.now().isoformat()
         }
         await self.queue.put((task_id, task_type, payload))
-        logger.info(f"Task {task_id} ({task_type}) added to queue. Queue size: {self.queue.qsize()}")
+        logger.info(f"DEBUG WORKER: Task {task_id} ({task_type}) ENQUEUED at {datetime.now().isoformat()}. Queue size: {self.queue.qsize()}")
         return task_id
 
     def get_task_status(self, task_id: str) -> Dict[str, Any]:
@@ -40,7 +40,7 @@ class AIWorker:
             task_id, task_type, payload = await self.queue.get()
             try:
                 self.results[task_id]["status"] = "processing"
-                logger.info(f"Processing task {task_id}...")
+                logger.info(f"DEBUG WORKER: [Task {task_id}] DEQUEUED and STARTING at {datetime.now().isoformat()}...")
                 
                 # Execute the specific processor for this task type
                 processor = processors.get(task_type)
@@ -60,8 +60,11 @@ class AIWorker:
             finally:
                 # CRITICAL: Clean up memory after each task to avoid leaks on 8GB VPS
                 gc.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                    
                 self.queue.task_done()
-                logger.info(f"Task {task_id} finished. Memory cleaned.")
+                logger.info(f"DEBUG WORKER: [Task {task_id}] FINISHED at {datetime.now().isoformat()}. Memory cleaned.")
 
 # Global Worker Instance
 worker = AIWorker()
