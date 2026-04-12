@@ -10,6 +10,7 @@ load_dotenv() # Fallback to CWD
 import torch
 import gc
 import logging
+import time
 from bert_score import BERTScorer
 
 # --- Tắt cảnh báo tạo thread convert safetensors nền của Transformers ---

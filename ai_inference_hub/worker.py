@@ -2,6 +2,7 @@ import asyncio
 import logging
 import uuid
 import gc
+import torch
 from typing import Dict, Any, Callable, Awaitable
 from datetime import datetime
 
