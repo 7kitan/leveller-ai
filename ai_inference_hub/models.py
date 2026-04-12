@@ -224,6 +224,18 @@ class AIModelHub:
             # Detect device: use CUDA if available
             device = "cuda" if torch.cuda.is_available() else "cpu"
             self.bert_scorer = BERTScorer(model_type=self.bert_model_name, device=device)
+            
+            # --- Fix: Cap model_max_length to prevent 'OverflowError: int too big to convert' ---
+            # This happens with certain DeBERTa models in recent transformers versions.
+            try:
+                if hasattr(self.bert_scorer, "_tokenizer"):
+                    base_tokenizer = self.bert_scorer._tokenizer
+                    if hasattr(base_tokenizer, "model_max_length") and base_tokenizer.model_max_length > 1_000_000:
+                        logger.info(f"Capping tokenizer.model_max_length from {base_tokenizer.model_max_length} to 4096")
+                        base_tokenizer.model_max_length = 4096
+            except Exception as e:
+                logger.warning(f"Failed to cap BERTScore tokenizer length: {e}")
+                
             logger.info(f"BERTScore initialized on {device}.")
 
     def unload_models(self):

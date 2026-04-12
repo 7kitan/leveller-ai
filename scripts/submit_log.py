@@ -31,7 +31,7 @@ def main():
         sys.exit(0)
 
     entries = []
-    with open(LOG_FILE, encoding="utf-8") as f:
+    with open(LOG_FILE, encoding="utf-8-sig", errors="replace") as f:
         for line in f:
             line = line.strip()
             if line:

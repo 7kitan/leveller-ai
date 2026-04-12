@@ -96,7 +96,7 @@ def get_logged_conversation_ids(log_file: Path, history_file: Path) -> set[str]:
     
     # 1. Read from main log file (if it exists)
     if log_file.exists():
-        with open(log_file, encoding="utf-8") as f:
+        with open(log_file, encoding="utf-8-sig", errors="replace") as f:
             for line in f:
                 line = line.strip()
                 if not line: continue
@@ -109,7 +109,7 @@ def get_logged_conversation_ids(log_file: Path, history_file: Path) -> set[str]:
     
     # 2. Read from persistent history file
     if history_file.exists():
-        with open(history_file, encoding="utf-8") as f:
+        with open(history_file, encoding="utf-8-sig", errors="replace") as f:
             for line in f:
                 line = line.strip()
                 if line: logged.add(line)
@@ -343,7 +343,7 @@ def main():
         sys.exit(0)
 
     # Append to main log (the queue for submission)
-    with open(log_file, "a", encoding="utf-8") as f:
+    with open(log_file, "a", encoding="utf-8", errors="replace") as f:
         for entry in all_entries:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
