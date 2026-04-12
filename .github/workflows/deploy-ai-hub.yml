@@ -54,9 +54,10 @@ jobs:
             echo "📦 Installing dependencies..."
             pip install -r requirements_ai.txt --quiet
 
-            # Restart service via PM2
+            # Restart service via PM2 (using explicit venv path to ensure all dependencies are found)
             echo "🔄 Restarting AI Hub service..."
-            pm2 restart ai-hub || pm2 start "uvicorn main:app --host 0.0.0.0 --port 8080" --name ai-hub
+            pm2 delete ai-hub || true
+            pm2 start "./venv/bin/uvicorn main:app --host 0.0.0.0 --port 8080" --name ai-hub
 
             # Health check
             echo "🏥 Running health check..."
