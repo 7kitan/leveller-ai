@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 # Load .env from script's directory or project root
 script_dir = os.path.dirname(os.path.abspath(__file__))
