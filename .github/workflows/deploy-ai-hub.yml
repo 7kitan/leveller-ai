@@ -35,7 +35,19 @@ jobs:
             echo "📥 Pulling latest code..."
             git pull origin demo
 
-            # Activate virtual environment
+            # Ensure Python 3.11 is used for the virtual environment
+            echo "🔧 Checking Python 3.11 environment..."
+            if ! command -v python3.11 &> /dev/null; then
+              echo "❌ ERROR: python3.11 is not installed on the VPS."
+              exit 1
+            fi
+
+            if [ ! -d "venv" ] || [[ $(venv/bin/python --version) != *"3.11"* ]]; then
+              echo "⚙️ Creating new virtual environment with Python 3.11..."
+              rm -rf venv
+              python3.11 -m venv venv
+            fi
+
             source venv/bin/activate
 
             # Install/update dependencies
