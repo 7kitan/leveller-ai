@@ -90,24 +90,30 @@ def get_repo_identifiers() -> list[str]:
     return [i for i in identifiers if i]
 
 
-def get_logged_conversation_ids(log_file: Path) -> set[str]:
-    """Read already-logged conversation IDs from session.jsonl."""
+def get_logged_conversation_ids(log_file: Path, history_file: Path) -> set[str]:
+    """Read already-logged conversation IDs from both session.jsonl and history file."""
     logged = set()
-    if not log_file.exists():
-        return logged
-    with open(log_file, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                entry = json.loads(line)
-                if entry.get("tool") == "antigravity":
-                    sid = entry.get("session_id", "")
-                    if sid:
-                        logged.add(sid)
-            except json.JSONDecodeError:
-                pass
+    
+    # 1. Read from main log file (if it exists)
+    if log_file.exists():
+        with open(log_file, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line: continue
+                try:
+                    entry = json.loads(line)
+                    if entry.get("tool") == "antigravity":
+                        sid = entry.get("session_id", "")
+                        if sid: logged.add(sid)
+                except json.JSONDecodeError: pass
+    
+    # 2. Read from persistent history file
+    if history_file.exists():
+        with open(history_file, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line: logged.add(line)
+                
     return logged
 
 
@@ -296,7 +302,9 @@ def main():
 
     log_dir = Path(os.environ.get("AI_LOG_DIR", ".ai-log"))
     log_file = log_dir / "session.jsonl"
-    logged_ids = get_logged_conversation_ids(log_file)
+    history_file = log_dir / ".antigravity_history"
+    
+    logged_ids = get_logged_conversation_ids(log_file, history_file)
     repo_ids = get_repo_identifiers()
 
     cutoff = None
@@ -334,11 +342,19 @@ def main():
         for entry in all_entries: print(f"  • [{entry['session_id'][:8]}...] {entry['prompt'][:80]}")
         sys.exit(0)
 
+    # Append to main log (the queue for submission)
     with open(log_file, "a", encoding="utf-8") as f:
-        for entry in all_entries: f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        for entry in all_entries:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+    # Append to persistent history (to avoid duplicate scans later)
+    with open(history_file, "a", encoding="utf-8") as f:
+        for entry in all_entries:
+            f.write(entry["session_id"] + "\n")
 
     print(f"\n[antigravity-log] ✅ Logged {len(all_entries)} Antigravity session(s).")
-    for entry in all_entries: print(f"  • [{entry['session_id'][:8]}...] {entry['prompt'][:80]}")
+    for entry in all_entries:
+        print(f"  • [{entry['session_id'][:8]}...] {entry['prompt'][:80]}")
 
 
 if __name__ == "__main__":

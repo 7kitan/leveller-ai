@@ -76,27 +76,37 @@ except Exception as e:
     logging.warning(f"Failed to pre-initialize torchvision: {e}")
 
 
-# --- Bypass Transformers security checks and buggy background loops ---
+# --- Bypass Transformers security checks ---
 try:
     import transformers.utils.import_utils
-    transformers.utils.import_utils.check_torch_load_is_safe = lambda: None
-    
-    import transformers.safetensors_conversion
-    transformers.safetensors_conversion.auto_conversion = lambda *args, **kwargs: None
+    # Keep security bypass for PyTorch 2.6+ pickle loading if needed
+    transformers.utils.import_utils.check_torch_load_is_safe = lambda: True
 except Exception as e:
-    logging.warning(f"Failed to apply transformers monkeypatches: {e}")
+    logging.warning(f"Failed to apply transformers security monkeypatch: {e}")
 
 # --- Heavy Imports moved to top to avoid late import issues ---
 try:
     from transformers import AutoModelForImageTextToText, AutoProcessor, BitsAndBytesConfig, AutoModel
     from bert_score import BERTScorer
     
-    # --- Monkeypatch AutoModel to force safetensors (Bypass PyTorch 2.6 security check for BERTScore) ---
+    # --- Monkeypatch AutoModel to prefer safetensors but fallback to pickle ---
     _orig_from_pretrained = AutoModel.from_pretrained
     @classmethod
     def _safe_from_pretrained(cls, pretrained_model_name_or_path, *model_args, **kwargs):
-        kwargs["use_safetensors"] = True
-        return _orig_from_pretrained.__func__(cls, pretrained_model_name_or_path, *model_args, **kwargs)
+        # Default to safetensors to bypass PyTorch 2.6 security check for BERTScore
+        # unless user explicitly requested otherwise.
+        if "use_safetensors" not in kwargs:
+            kwargs["use_safetensors"] = True
+            
+        try:
+            return _orig_from_pretrained.__func__(cls, pretrained_model_name_or_path, *model_args, **kwargs)
+        except Exception as e:
+            if kwargs.get("use_safetensors"):
+                logging.warning(f"Safetensors loading failed for {pretrained_model_name_or_path}, falling back to pickle: {e}")
+                kwargs["use_safetensors"] = False
+                return _orig_from_pretrained.__func__(cls, pretrained_model_name_or_path, *model_args, **kwargs)
+            raise
+            
     AutoModel.from_pretrained = _safe_from_pretrained
     
 except ImportError as e:

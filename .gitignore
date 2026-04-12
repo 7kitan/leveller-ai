@@ -17,6 +17,7 @@ build/
 
 # AI logs — tracked structure, ignored content
 .ai-log/*.jsonl
+.ai-log/.antigravity_history
 
 # Web
 node_modules/
