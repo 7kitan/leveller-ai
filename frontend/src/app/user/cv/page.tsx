@@ -461,64 +461,110 @@ export default function UserCVPage() {
                         <Sparkles className="h-5 w-5 mr-3 text-amber-500" />
                         Ma trận Kỹ năng kĩ thuật
                     </h4>
-                    <div className="flex flex-wrap gap-3">
-                        {cvData?.skills.map((skill, idx) => (
-                            <motion.div 
-                                key={idx}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: idx * 0.03 }}
-                                className={`group/skill relative px-5 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all hover:scale-105 cursor-default flex items-center gap-2
-                                    ${skill.category === 'Backend' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 
-                                    skill.category === 'Frontend' ? 'bg-pink-500/10 border-pink-500/20 text-pink-400' :
-                                    skill.category === 'Cloud & DevOps' ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' :
-                                    'bg-white/5 border-white/10 text-white/50'}`}
-                            >
-                                {skill.name} <span className="opacity-40 font-bold italic">({skill.years_exp}y)</span>
-                                
-                                <button 
-                                    onClick={() => handleDeleteSkill(skill.id)}
-                                    className="opacity-0 group-hover/skill:opacity-100 ml-1 p-1 hover:bg-rose-500/20 text-rose-500 rounded transition-all"
-                                >
-                                    <Trash2 className="w-3 h-3" />
-                                </button>
-                            </motion.div>
-                        ))}
+                    <div className="space-y-8">
+                        {["Backend", "Frontend", "Cloud & DevOps", "Mobile", "Database"].map((cat) => {
+                            const catSkills = cvData?.skills.filter(s => s.category === cat) || [];
+                            if (catSkills.length === 0 && !isAddingSkill) return null;
+                            
+                            return (
+                                <div key={cat} className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-1 h-4 rounded-full ${
+                                            cat === 'Backend' ? 'bg-indigo-500' :
+                                            cat === 'Frontend' ? 'bg-pink-500' :
+                                            cat === 'Cloud & DevOps' ? 'bg-orange-500' :
+                                            cat === 'Mobile' ? 'bg-cyan-500' : 'bg-emerald-500'
+                                        }`} />
+                                        <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{cat}</h5>
+                                    </div>
+                                    <div className="flex flex-wrap gap-3">
+                                        {catSkills.map((skill, idx) => (
+                                            <motion.div 
+                                                key={idx}
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                className={`group/skill relative px-5 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all hover:scale-105 cursor-default flex items-center gap-2
+                                                    ${cat === 'Backend' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 
+                                                    cat === 'Frontend' ? 'bg-pink-500/10 border-pink-500/20 text-pink-400' :
+                                                    cat === 'Cloud & DevOps' ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' :
+                                                    'bg-white/5 border-white/10 text-white/50'}`}
+                                            >
+                                                {skill.name} <span className="opacity-40 font-bold italic">({skill.years_exp}y)</span>
+                                                <button 
+                                                    onClick={() => handleDeleteSkill(skill.id)}
+                                                    className="opacity-0 group-hover/skill:opacity-100 ml-1 p-1 hover:bg-rose-500/20 text-rose-500 rounded transition-all"
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                </button>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })}
 
-                        {isAddingSkill ? (
-                             <motion.div 
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2"
-                             >
-                                <input 
-                                    placeholder="Tên kỹ năng..." 
-                                    value={newSkill.name}
-                                    onChange={e => setNewSkill({...newSkill, name: e.target.value})}
-                                    className="bg-transparent border-none outline-none text-[11px] font-black uppercase w-28 text-white"
-                                />
-                                <input 
-                                    type="number" 
-                                    placeholder="Năm" 
-                                    value={newSkill.years_exp || ""}
-                                    onChange={e => setNewSkill({...newSkill, years_exp: parseFloat(e.target.value) || 0})}
-                                    className="bg-transparent border-none outline-none text-[11px] font-black w-10 text-cyan-400"
-                                />
-                                <button onClick={handleAddSkill} disabled={saving} className="text-emerald-400 hover:text-emerald-300">
-                                    {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                                </button>
-                                <button onClick={() => setIsAddingSkill(false)} className="text-white/40 hover:text-white">
-                                    <X className="w-4 h-4" />
-                                </button>
-                             </motion.div>
-                        ) : (
-                            <button 
-                                onClick={() => setIsAddingSkill(true)}
-                                className="px-5 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider border border-white/5 bg-white/3 text-white/40 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2"
-                            >
-                                <Plus className="w-3 h-3" /> Bổ sung kỹ năng
-                            </button>
+                        {/* Uncategorized or generic */}
+                        {cvData?.skills.filter(s => !["Backend", "Frontend", "Cloud & DevOps", "Mobile", "Database"].includes(s.category)).length > 0 && (
+                             <div className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-1 h-4 rounded-full bg-slate-500" />
+                                    <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Other Specialist Skills</h5>
+                                </div>
+                                <div className="flex flex-wrap gap-3">
+                                    {cvData?.skills.filter(s => !["Backend", "Frontend", "Cloud & DevOps", "Mobile", "Database"].includes(s.category)).map((skill, idx) => (
+                                        <motion.div 
+                                            key={idx}
+                                            className="group/skill relative px-5 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider border border-white/10 bg-white/5 text-white/50 transition-all hover:scale-105 cursor-default flex items-center gap-2"
+                                        >
+                                            {skill.name} <span className="opacity-40 font-bold italic">({skill.years_exp}y)</span>
+                                            <button 
+                                                onClick={() => handleDeleteSkill(skill.id)}
+                                                className="opacity-0 group-hover/skill:opacity-100 ml-1 p-1 hover:bg-rose-500/20 text-rose-500 rounded transition-all"
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                            </button>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                             </div>
                         )}
+
+                        <div className="pt-6 border-t border-white/5">
+                            {isAddingSkill ? (
+                                <motion.div 
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2 w-fit"
+                                >
+                                    <input 
+                                        placeholder="Skill Name..." 
+                                        value={newSkill.name}
+                                        onChange={e => setNewSkill({...newSkill, name: e.target.value})}
+                                        className="bg-transparent border-none outline-none text-[11px] font-black uppercase w-32 text-white"
+                                    />
+                                    <input 
+                                        type="number" 
+                                        placeholder="Yrs" 
+                                        value={newSkill.years_exp || ""}
+                                        onChange={e => setNewSkill({...newSkill, years_exp: parseFloat(e.target.value) || 0})}
+                                        className="bg-transparent border-none outline-none text-[11px] font-black w-10 text-cyan-400"
+                                    />
+                                    <button onClick={handleAddSkill} disabled={saving} className="text-emerald-400 hover:text-emerald-300">
+                                        {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                                    </button>
+                                    <button onClick={() => setIsAddingSkill(false)} className="text-white/40 hover:text-white">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </motion.div>
+                            ) : (
+                                <button 
+                                    onClick={() => setIsAddingSkill(true)}
+                                    className="px-5 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider border border-white/5 bg-white/3 text-white/40 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2"
+                                >
+                                    <Plus className="w-3 h-3" /> Bổ sung kỹ năng
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
                 

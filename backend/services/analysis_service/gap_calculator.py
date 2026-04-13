@@ -56,11 +56,20 @@ class GapCalculator:
     async def calculate_gap_v2(self, user_id: str, cv_id: str, requirements_source: Any):
         logger.info(f"=== Starting Engine V7.0 (Advanced 3-Tier) CV: {cv_id} ===")
         
-        # 1. Lấy danh sách kỹ năng của User từ DB
-        user_skills_query = self.db.query(Skill.name).join(UserSkillProfile).filter(
+        # 1. Lấy danh sách kỹ năng của User từ DB kèm Metadata (Vector, Level, Exp, Recency)
+        user_skills_query = self.db.query(UserSkillProfile, Skill.name).join(Skill).filter(
             UserSkillProfile.cv_id == uuid.UUID(cv_id)
         ).all()
-        user_skills_list = [s_name for (s_name,) in user_skills_query]
+        
+        user_skills_data = []
+        for profile, s_name in user_skills_query:
+            user_skills_data.append({
+                "name": s_name,
+                "vector": profile.vector,
+                "level": profile.level or "Junior",
+                "years_exp": profile.years_exp or 0,
+                "last_used_year": profile.last_used_year
+            })
         
         # 2. Parse JD Requirements
         valid_requirements = []
@@ -75,7 +84,7 @@ class GapCalculator:
             valid_requirements.append(req)
 
         # 3. Gọi Thuật toán Advanced Engine (Tầng 1 & Tầng 2 & Tầng 3)
-        res = await self.advanced_engine.calculate_match(user_skills_list, valid_requirements)
+        res = await self.advanced_engine.calculate_match(user_skills_data, valid_requirements)
         
         # 4. Map kết quả về định dạng cũ để Frontend không break
         results = {
@@ -161,11 +170,12 @@ class GapCalculator:
     def _parse_requirement(self, r_src: Any) -> Dict[str, Any]:
         if hasattr(r_src, "__dict__") and not isinstance(r_src, dict):
             return {
-                "type": "skill", 
+                "type": getattr(r_src, "type", "skill"), 
                 "skill_name": r_src.skill.name if (hasattr(r_src, "skill") and r_src.skill) else "Unknown", 
-                "importance_weight": r_src.importance_weight, 
-                "required_level": r_src.required_level, 
-                "is_mandatory": r_src.is_mandatory
+                "importance_weight": getattr(r_src, "importance_weight", 5), 
+                "required_level": getattr(r_src, "required_level", "intermediate"), 
+                "years_required": getattr(r_src, "min_years_exp", 0),
+                "is_mandatory": getattr(r_src, "is_mandatory", True)
             }
         req = dict(r_src)
         if "skill_name" not in req: req["skill_name"] = req.get("skill") or req.get("group_name") or "Unknown"

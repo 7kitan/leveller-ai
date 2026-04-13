@@ -107,6 +107,8 @@ class JobSkillRequirement(Base):
     
     job = relationship("Job", back_populates="skills_required")
     skill = relationship("Skill", back_populates="requirements")
+    embedding_context = Column(Text)
+    vector = Column(Vector(1536))
 
 class UserSkillProfile(Base):
     __tablename__ = "user_skill_profile"
@@ -116,6 +118,9 @@ class UserSkillProfile(Base):
     skill_id = Column(UUID(as_uuid=True), ForeignKey("skills.id"))
     years_exp = Column(Float, default=0)
     level = Column(String(20))
+    last_used_year = Column(Integer)
+    skill_context = Column(Text)
+    vector = Column(Vector(1536))
     confidence_score = Column(Float, default=1.0)
     source = Column(String(50), default="cv")
     cv_id = Column(UUID(as_uuid=True), ForeignKey("user_cvs.id", ondelete="CASCADE"))

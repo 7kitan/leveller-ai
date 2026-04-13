@@ -20,21 +20,29 @@ def get_embedding(text: str) -> Optional[List[float]]:
     Tạo vector nhúng (embedding) cho một đoạn văn bản.
     Sử dụng model text-embedding-3-small mặc định của OpenAI.
     """
-    if not text or not openai_client:
-        return None
+    res = get_embeddings_batch([text])
+    return res[0] if res else None
+
+def get_embeddings_batch(texts: List[str]) -> List[List[float]]:
+    """
+    Tạo vector nhúng (embedding) cho danh sách các đoạn văn bản (Batch).
+    """
+    if not texts or not openai_client:
+        return []
         
     try:
         # Làm sạch text nhẹ nhàng
-        clean_text = text.replace("\n", " ").strip()
-        
+        clean_texts = [t.replace("\n", " ").strip() for t in texts if t]
+        if not clean_texts: return []
+
         response = openai_client.embeddings.create(
-            input=[clean_text],
+            input=clean_texts,
             model="text-embedding-3-small"
         )
-        return response.data[0].embedding
+        return [d.embedding for d in response.data]
     except Exception as e:
-        logger.error(f"Error generating embedding: {e}")
-        return None
+        logger.error(f"Error generating batch embeddings: {e}")
+        return []
 
 def get_chat_completion(prompt: str, system_prompt: str = "You are a helpful assistant.", json_mode: bool = False) -> Optional[str]:
     """
@@ -56,3 +64,18 @@ def get_chat_completion(prompt: str, system_prompt: str = "You are a helpful ass
     except Exception as e:
         logger.error(f"Error calling LLM: {e}")
         return None
+
+def build_cv_skill_context(skill_name: str, level: str, years: float, last_used: int = None, context: str = "") -> str:
+    parts = [f"Skill: {skill_name}"]
+    if level: parts.append(f"Proficiency: {level}")
+    if years > 0: parts.append(f"Experience: {years} years")
+    if last_used: parts.append(f"Last used: {last_used}")
+    if context: parts.append(f"Context: {context}")
+    return ". ".join(parts)
+
+def build_jd_skill_context(skill_name: str, level: str, years: float, domain: str = "") -> str:
+    parts = [f"Required skill: {skill_name}"]
+    if years > 0: parts.append(f"Experience: {years} years of professional use")
+    if level and level != "Junior": parts.append(f"Seniority: {level} level")
+    if domain: parts.append(f"Domain: {domain}")
+    return ". ".join(parts)

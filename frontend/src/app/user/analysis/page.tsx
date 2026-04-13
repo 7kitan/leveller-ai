@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
+import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { 
   BrainCircuit, Zap, CheckCircle2, AlertCircle, 
@@ -9,8 +10,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { 
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, 
-  ResponsiveContainer, Tooltip 
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  ResponsiveContainer, Tooltip, Legend
 } from "recharts";
 
 interface AnalysisResult {
@@ -26,6 +27,11 @@ interface AnalysisResult {
     total_years: number;
     highlights: string[];
   }[];
+  cross_matrix?: {
+    jd_labels: string[];
+    cv_labels: string[];
+    scores: number[][];
+  };
 }
 
 function AnalysisContent() {
@@ -456,9 +462,9 @@ function AnalysisContent() {
              </div>
           </div>
         ) : (
-          <div className="animate-in fade-in slide-in-from-bottom-20 duration-1000 space-y-12">
-            {/* Action Bar (Top) */}
-            <div className="flex justify-between items-center bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-full px-8 py-3">
+          <div className="animate-in fade-in slide-in-from-bottom-20 duration-1000">
+            {/* Top Action / ID Bar */}
+            <div className="flex justify-between items-center bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-full px-8 py-3 mb-12">
                <div className="flex items-center gap-4">
                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Report ID:</span>
                   <span className="text-[10px] font-black text-indigo-400 italic">#{selectedCvId.substring(0,8).toUpperCase()}</span>
@@ -471,122 +477,67 @@ function AnalysisContent() {
                </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-              {/* Score Card */}
-              <div className="lg:col-span-4 space-y-10">
-                <div className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[3.5rem] p-12 text-center shadow-2xl relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2"></div>
-                  
-                  <h3 className="text-slate-500 font-black italic uppercase tracking-[0.4em] text-[10px] mb-12">Overall Match Quality</h3>
-                  
-                  <div className="relative w-64 h-64 mx-auto mb-10">
-                    <svg className="w-full h-full -rotate-90">
-                       <circle cx="128" cy="128" r="110" className="stroke-white/[0.03] fill-none" strokeWidth="16" />
-                       <circle 
-                         cx="128" cy="128" r="110" 
-                         className="stroke-indigo-500 fill-none transition-all duration-1000" 
-                         strokeWidth="16" 
-                         strokeDasharray={691}
-                         strokeDashoffset={691 - (691 * (data?.overall_match_pct || 0) / 100)}
-                         strokeLinecap="round"
-                       />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                       <span className="text-8xl font-black text-white italic tracking-tighter leading-none">{Math.round(data?.overall_match_pct || 0)}<span className="text-2xl text-indigo-400">%</span></span>
-                       <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mt-2">Score</span>
-                    </div>
+            {/* MASSIVE RADAR HERO SECTION */}
+            <div className="bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[4rem] p-12 lg:p-20 relative overflow-hidden group shadow-2xl mb-12">
+               <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-indigo-600/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
+               <div className="absolute bottom-0 left-0 w-[40rem] h-[40rem] bg-violet-600/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
+               
+               <div className="relative z-10 text-center mb-16">
+                  <h3 className="text-slate-500 font-black italic uppercase tracking-[0.6em] text-[12px] mb-4 uppercase tracking-[0.6em]">Competency Genome Map</h3>
+                  <div className="h-1 w-24 bg-gradient-to-r from-transparent via-indigo-500 to-transparent mx-auto"></div>
+               </div>
+
+               <div className="relative h-[900px] w-full z-10">
+                  {/* Overall Score Overlay */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center z-20 pointer-events-none">
+                     <div className="bg-indigo-600/10 backdrop-blur-xl border border-indigo-500/30 rounded-full w-48 h-48 flex flex-col items-center justify-center shadow-[0_0_80px_rgba(99,102,241,0.2)]">
+                        <span className="text-6xl font-black text-white italic tracking-tighter leading-none">{Math.round(data?.overall_match_pct || 0)}%</span>
+                        <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mt-2">Overall Fit</span>
+                     </div>
                   </div>
 
-                  <p className="text-slate-300 font-bold italic leading-relaxed px-4">
-                    {(data?.overall_match_pct || 0) >= 80 ? "Năng lực xuất sắc, hồ sơ thuộc nhóm 5% ứng viên hàng đầu." :
-                     (data?.overall_match_pct || 0) >= 50 ? "Hồ sơ ổn định, cần bổ sung thâm niên ở các mảng trọng yếu." :
-                     "Cần nâng cấp kỹ năng nền tảng và bổ sung thâm niên thực tế."}
-                  </p>
-                </div>
+                  <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={[
+                         ...(data?.breakdown?.met || []),
+                         ...(data?.breakdown?.partial || []),
+                         ...(data?.breakdown?.gap || [])
+                       ].map(s => ({ 
+                         subject: (s.skill || '').length > 20 ? s.skill.substring(0,18) + '..' : s.skill,
+                         actual: s.score || 0,
+                         target: 100,
+                         full: 100 
+                       }))}>
+                        <PolarGrid stroke="#ffffff15" strokeDasharray="3 3" />
+                        <PolarAngleAxis 
+                          dataKey="subject" 
+                          tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: '900', fontStyle: 'italic' }}
+                          tickLine={false}
+                        />
+                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                        <Radar 
+                          name="Hồ sơ của bạn" 
+                          dataKey="actual" 
+                          stroke="#6366f1" 
+                          fill="#6366f1" 
+                          fillOpacity={0.5} 
+                          dot={{ r: 4, fill: '#6366f1', stroke: '#fff', strokeWidth: 2 }} 
+                        />
+                        <Radar 
+                          name="Yêu cầu JD (Target)" 
+                          dataKey="target" 
+                          stroke="#fb7185" 
+                          fill="#fb7185" 
+                          fillOpacity={0.1} 
+                          strokeDasharray="10 10" 
+                        />
+                        <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', fontSize: '11px', color: '#fff', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }} />
+                        <Legend iconType="circle" wrapperStyle={{ paddingTop: '40px', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }} />
+                      </RadarChart>
+                  </ResponsiveContainer>
+               </div>
+            </div>
 
-                <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-[3.5rem] p-10 h-[450px]">
-                   <h3 className="text-slate-500 font-black italic uppercase tracking-[0.4em] text-[10px] mb-8">Competency Spread</h3>
-                   <div className="w-full h-full pb-10">
-                     <ResponsiveContainer width="100%" height="100%">
-                         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={[
-                            ...(data?.breakdown?.met || []).slice(0, 5),
-                            ...(data?.breakdown?.partial || []).slice(0, 3)
-                          ].map(s => ({ 
-                            subject: (s.skill || '').length > 10 ? s.skill.substring(0,8) + '..' : s.skill,
-                            A: s.score || 0,
-                            full: 100 
-                          }))}>
-                           <PolarGrid stroke="#ffffff10" />
-                           <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold', fontStyle: 'italic' }} />
-                           <Radar name="Candidate" dataKey="A" stroke="#6366f1" fill="#6366f1" fillOpacity={0.4} />
-                           <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }} />
-                         </RadarChart>
-                     </ResponsiveContainer>
-                   </div>
-                </div>
-              </div>
-
-              {/* Main Content (Seniority & Breakdown) */}
-              <div className="lg:col-span-8 space-y-10">
-                {/* SENIORITY EVIDENCE - THE "WOW" SECTION */}
-                <section className="bg-gradient-to-br from-indigo-600/10 to-transparent backdrop-blur-3xl border border-indigo-500/20 rounded-[4rem] p-10 lg:p-14 relative overflow-hidden group">
-                   <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:scale-110 transition-transform duration-1000">
-                      <ShieldCheck size={200} />
-                   </div>
-
-                   <div className="flex items-center gap-5 mb-12 relative z-10">
-                      <div className="p-4 bg-indigo-500 rounded-3xl shadow-[0_15px_35px_rgba(79,70,229,0.3)]">
-                         <History className="text-white" size={32} />
-                      </div>
-                      <div>
-                         <h3 className="text-4xl font-black text-white italic tracking-tighter">BẰNG CHỨNG THÂM NIÊN.</h3>
-                         <p className="text-slate-500 font-bold italic text-sm tracking-wide mt-1">Dẫn chứng thực tế trích xuất từ lịch sử làm việc của bạn</p>
-                      </div>
-                   </div>
-
-                   {data?.seniority_report?.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                        {data.seniority_report.map((report, idx) => (
-                          <div key={idx} className="bg-white/[0.04] border border-white/5 rounded-[2.5rem] p-8 hover:bg-white/[0.06] hover:border-indigo-500/20 transition-all group/item">
-                             <div className="flex justify-between items-start mb-6">
-                                <h4 className="text-xl font-black text-white italic tracking-tight group-hover/item:text-indigo-400 transition-colors uppercase">{report.skill}</h4>
-                                <div className="px-4 py-1.5 bg-indigo-600 text-white text-[10px] font-black rounded-xl italic flex items-center gap-2">
-                                   <Clock size={12} /> {report.total_years} NĂM
-                                </div>
-                             </div>
-                             
-                             <div className="space-y-4">
-                                {(report.highlights || []).map((h, hIdx) => {
-                                   const parts = h.split(':');
-                                   return (
-                                     <div key={hIdx} className="relative pl-6 py-1">
-                                        <div className="absolute left-0 top-3 w-1.5 h-1.5 bg-indigo-500 rounded-full"></div>
-                                        {parts.length > 1 ? (
-                                           <div className="space-y-2">
-                                              <p className="text-slate-100 font-black italic text-xs leading-none">{parts[0].replace(/\*\*/g, '')}</p>
-                                              <p className="text-slate-500 font-medium italic text-[11px] leading-relaxed line-clamp-3">
-                                                 {parts[1].replace(/\"/g, '').replace(/\.\.\./g, '')}
-                                              </p>
-                                           </div>
-                                        ) : (
-                                          <p className="text-slate-400 font-medium italic text-xs leading-relaxed">{h.replace(/\*\*/g, '')}</p>
-                                        )}
-                                     </div>
-                                   );
-                                })}
-                             </div>
-                          </div>
-                        ))}
-                      </div>
-                   ) : (
-                      <div className="py-20 flex flex-col items-center justify-center text-slate-700 bg-white/[0.02] border-2 border-dashed border-white/5 rounded-[3rem]">
-                         <Info size={56} className="mb-6 opacity-20" />
-                         <p className="font-extrabold italic text-lg opacity-40 uppercase tracking-widest">Không có dữ liệu thâm niên khớp</p>
-                         <p className="text-sm font-bold opacity-30 mt-2 px-12 text-center">Chúng tôi không tìm thấy bằng chứng thâm niên rõ ràng cho các kỹ năng yêu cầu trong hồ sơ hiện tại của bạn.</p>
-                      </div>
-                   )}
-                </section>
-
+            <div className="space-y-12">
                 <div className="grid grid-cols-1 gap-12">
                    {/* Met Skills Card */}
                    <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 group overflow-hidden relative">
@@ -657,159 +608,157 @@ function AnalysisContent() {
                       </div>
                    </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Recommendations & Simulation Section */}
-            <section className="mt-10 bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[4rem] p-12 lg:p-16 relative overflow-hidden">
-               <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-600/5 rounded-full blur-[100px] translate-y-1/2 translate-x-1/2"></div>
-               
-               <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 relative z-10">
-                  <div className="flex items-center gap-6">
-                    <div className="p-5 bg-indigo-600 rounded-3xl shadow-[0_15px_40px_rgba(79,70,229,0.3)]">
-                       <BookOpen size={40} className="text-white" />
-                    </div>
-                    <div>
-                       <h3 className="text-4xl font-black text-white italic tracking-tighter uppercase">Skill Bridge.</h3>
-                       <p className="text-slate-500 font-bold italic text-lg mt-1">Lộ trình nâng cấp năng lực được hỗ trợ bởi AI</p>
-                    </div>
-                  </div>
-                  {selectedCourseIds.length > 0 && (
-                      <button 
-                         onClick={handleSimulate}
-                         disabled={isSimulating}
-                         className="px-10 py-5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm italic rounded-2xl transition-all shadow-xl flex items-center gap-3"
-                      >
-                         {isSimulating ? <RefreshCw className="animate-spin" /> : <Zap fill="white" />} 
-                         SIMULATE ROADMAP ({selectedCourseIds.length})
-                      </button>
-                  )}
-               </div>
+                {/* Recommendations & Simulation Section */}
+                <section className="mt-10 bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[4rem] p-12 lg:p-16 relative overflow-hidden">
+                   <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-600/5 rounded-full blur-[100px] translate-y-1/2 translate-x-1/2"></div>
+                   
+                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 relative z-10">
+                      <div className="flex items-center gap-6">
+                        <div className="p-5 bg-indigo-600 rounded-3xl shadow-[0_15px_40px_rgba(79,70,229,0.3)]">
+                           <BookOpen size={40} className="text-white" />
+                        </div>
+                        <div>
+                           <h3 className="text-4xl font-black text-white italic tracking-tighter uppercase">Skill Bridge.</h3>
+                           <p className="text-slate-500 font-bold italic text-lg mt-1">Lộ trình nâng cấp năng lực được hỗ trợ bởi AI</p>
+                        </div>
+                      </div>
+                      {selectedCourseIds.length > 0 && (
+                          <button 
+                             onClick={handleSimulate}
+                             disabled={isSimulating}
+                             className="px-10 py-5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm italic rounded-2xl transition-all shadow-xl flex items-center gap-3"
+                          >
+                             {isSimulating ? <RefreshCw className="animate-spin" /> : <Zap fill="white" />} 
+                             SIMULATE ROADMAP ({selectedCourseIds.length})
+                          </button>
+                      )}
+                   </div>
 
-               {simulationResult && (
-                    <div className="mb-16 p-10 bg-indigo-500/10 border border-indigo-500/30 rounded-[3rem] animate-in fade-in slide-in-from-top-10 duration-700 relative z-10">
-                        <div className="flex flex-col lg:flex-row gap-12 items-center">
-                            <div className="text-center lg:text-left space-y-4">
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Projected Growth</h4>
-                                <div className="text-7xl font-black text-white italic">
-                                    {simulationResult.projected_market_fit_pct}% 
-                                    <span className="text-xs text-emerald-400 ml-4 font-bold">+10% Growth</span>
-                                </div>
-                                <p className="text-slate-400 text-sm italic">Sau khi hoàn thành lộ trình, tỉ lệ khớp thị trường của bạn sẽ tăng mạnh.</p>
-                                <div className="flex gap-4 mt-6">
-                                    <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
-                                        <div className="text-white font-black">{simulationResult.estimated_duration_hours}h</div>
-                                        <div className="text-[8px] text-slate-500 uppercase font-black">Total Hours</div>
+                   {simulationResult && (
+                        <div className="mb-16 p-10 bg-indigo-500/10 border border-indigo-500/30 rounded-[3rem] animate-in fade-in slide-in-from-top-10 duration-700 relative z-10">
+                            <div className="flex flex-col lg:flex-row gap-12 items-center">
+                                <div className="text-center lg:text-left space-y-4">
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Projected Growth</h4>
+                                    <div className="text-7xl font-black text-white italic">
+                                        {simulationResult.projected_market_fit_pct}% 
+                                        <span className="text-xs text-emerald-400 ml-4 font-bold">+10% Growth</span>
                                     </div>
-                                    <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
-                                        <div className="text-white font-black">~{simulationResult.estimated_duration_weeks}w</div>
-                                        <div className="text-[8px] text-slate-500 uppercase font-black">Timeline</div>
+                                    <p className="text-slate-400 text-sm italic">Sau khi hoàn thành lộ trình, tỉ lệ khớp thị trường của bạn sẽ tăng mạnh.</p>
+                                    <div className="flex gap-4 mt-6">
+                                        <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                                            <div className="text-white font-black">{simulationResult.estimated_duration_hours}h</div>
+                                            <div className="text-[8px] text-slate-500 uppercase font-black">Total Hours</div>
+                                        </div>
+                                        <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                                            <div className="text-white font-black">~{simulationResult.estimated_duration_weeks}w</div>
+                                            <div className="text-[8px] text-slate-500 uppercase font-black">Timeline</div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="flex-1 space-y-6">
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-6">Learning Stages</h4>
-                                <div className="space-y-4">
-                                    {simulationResult.roadmap_stages.map((stage: any) => (
-                                        <div key={stage.stage} className="flex gap-6 items-start">
-                                            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-black shrink-0 shadow-lg shadow-indigo-500/30">{stage.stage}</div>
-                                            <div>
-                                                <div className="text-white font-black text-sm uppercase italic tracking-tight">{stage.focus}</div>
-                                                <div className="flex flex-wrap gap-2 mt-2">
-                                                    {stage.skills_acquired.map((s: string) => (
-                                                        <span key={s} className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 text-[9px] text-indigo-300 rounded font-bold">{s}</span>
-                                                    ))}
+                                <div className="flex-1 space-y-6">
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-6">Learning Stages</h4>
+                                    <div className="space-y-4">
+                                        {simulationResult.roadmap_stages.map((stage: any) => (
+                                            <div key={stage.stage} className="flex gap-6 items-start">
+                                                <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-black shrink-0 shadow-lg shadow-indigo-500/30">{stage.stage}</div>
+                                                <div>
+                                                    <div className="text-white font-black text-sm uppercase italic tracking-tight">{stage.focus}</div>
+                                                    <div className="flex flex-wrap gap-2 mt-2">
+                                                        {stage.skills_acquired.map((s: string) => (
+                                                            <span key={s} className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 text-[9px] text-indigo-300 rounded font-bold">{s}</span>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-               )}
+                   )}
 
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 relative z-10">
-                  {recommendedCourses.map((course, idx) => (
-                    <div 
-                        key={idx} 
-                        onClick={() => setSelectedCourseIds(prev => prev.includes(course.id) ? prev.filter(id => id !== course.id) : [...prev, course.id])}
-                        className={`bg-white/[0.02] border rounded-[3rem] p-9 group hover:bg-white/[0.05] transition-all cursor-pointer ${
-                            selectedCourseIds.includes(course.id) ? "border-emerald-500/50 bg-emerald-500/5" : "border-white/5"
-                        }`}
-                    >
-                       <div className="flex justify-between items-center mb-10">
-                          <span className="px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black rounded-xl uppercase tracking-widest italic">
-                             {course.platform || 'Academy'}
-                          </span>
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                              selectedCourseIds.includes(course.id) ? "bg-emerald-500 text-white" : "bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white"
-                          }`}>
-                             {selectedCourseIds.includes(course.id) ? <CheckCircle2 size={20} /> : <ChevronRight size={20} />}
-                          </div>
-                       </div>
-                       <h4 className="text-2xl font-black text-white italic mb-10 leading-tight group-hover:text-indigo-400 transition-colors line-clamp-2">{course.title}</h4>
-                       <div className="flex items-center justify-between pt-8 border-t border-white/5 mt-auto">
-                          <div className="flex items-center gap-2 text-slate-500 text-xs font-bold italic uppercase tracking-tighter">
-                             <Clock size={16} /> ~{course.duration_hours || '12'} Giờ học
-                          </div>
-                          <a 
-                            href={course.url} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-white font-black text-[10px] bg-indigo-600/10 border border-indigo-600/20 hover:bg-indigo-600 px-4 py-2 rounded-xl transition-all uppercase tracking-widest"
-                          >
-                            Explore
-                          </a>
-                       </div>
-                    </div>
-                  ))}
-               </div>
-            </section>
-
-            {/* User Feedback Section */}
-            {!feedbackSubmitted ? (
-                <section className="mt-10 bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[3rem] p-12 text-center relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-500"></div>
-                    <h3 className="text-xl font-black text-white italic mb-4">REPORT ACCURACY FEEDBACK</h3>
-                    <p className="text-slate-500 text-sm font-bold italic mb-8">Đánh giá độ chính xác của AI trong bản báo cáo này</p>
-                    
-                    <div className="flex justify-center gap-4 mb-8">
-                        {[1, 2, 3, 4, 5].map(star => (
-                            <button 
-                                key={star}
-                                onClick={() => setFeedbackRating(star)}
-                                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${feedbackRating >= star ? 'bg-amber-400 text-[#020617] scale-110 shadow-lg shadow-amber-500/20' : 'bg-white/5 text-slate-500 hover:bg-white/10'}`}
-                            >
-                                <Sparkles size={24} fill={feedbackRating >= star ? "currentColor" : "none"} />
-                            </button>
-                        ))}
-                    </div>
-
-                    <textarea 
-                        value={feedbackComment}
-                        onChange={(e) => setFeedbackComment(e.target.value)}
-                        placeholder="Có kỹ năng nào AI bóc tách chưa chuẩn không? Hãy góp ý để chúng tôi cải thiện..."
-                        className="w-full max-w-2xl mx-auto block p-4 bg-white/5 border border-white/10 rounded-2xl text-white text-sm outline-none focus:border-indigo-500 transition-all mb-6 h-28"
-                    />
-
-                    <button 
-                        onClick={submitFeedback}
-                        disabled={feedbackRating === 0}
-                        className="px-12 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-20 text-white font-black text-sm italic rounded-full transition-all shadow-xl"
-                    >
-                        SUBMIT FEEDBACK
-                    </button>
+                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 relative z-10">
+                      {recommendedCourses.map((course, idx) => (
+                        <div 
+                            key={idx} 
+                            onClick={() => setSelectedCourseIds(prev => prev.includes(course.id) ? prev.filter(id => id !== course.id) : [...prev, course.id])}
+                            className={`bg-white/[0.02] border rounded-[3rem] p-9 group hover:bg-white/[0.05] transition-all cursor-pointer ${
+                                selectedCourseIds.includes(course.id) ? "border-emerald-500/50 bg-emerald-500/5" : "border-white/5"
+                            }`}
+                        >
+                           <div className="flex justify-between items-center mb-10">
+                              <span className="px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black rounded-xl uppercase tracking-widest italic">
+                                 {course.platform || 'Academy'}
+                              </span>
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                                  selectedCourseIds.includes(course.id) ? "bg-emerald-500 text-white" : "bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white"
+                              }`}>
+                                 {selectedCourseIds.includes(course.id) ? <CheckCircle2 size={20} /> : <ChevronRight size={20} />}
+                              </div>
+                           </div>
+                           <h4 className="text-2xl font-black text-white italic mb-10 leading-tight group-hover:text-indigo-400 transition-colors line-clamp-2">{course.title}</h4>
+                           <div className="flex items-center justify-between pt-8 border-t border-white/5 mt-auto">
+                              <div className="flex items-center gap-2 text-slate-500 text-xs font-bold italic uppercase tracking-tighter">
+                                 <Clock size={16} /> ~{course.duration_hours || '12'} Giờ học
+                              </div>
+                              <a 
+                                href={course.url} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-white font-black text-[10px] bg-indigo-600/10 border border-indigo-600/20 hover:bg-indigo-600 px-4 py-2 rounded-xl transition-all uppercase tracking-widest"
+                              >
+                                Explore
+                              </a>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
                 </section>
-            ) : (
-                <section className="mt-10 bg-emerald-500/10 border border-emerald-500/20 rounded-[3rem] p-12 text-center animate-in zoom-in duration-500">
-                    <CheckCircle2 size={48} className="text-emerald-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-black text-white italic">CẢM ƠN BẠN ĐÃ ĐÓNG GÓP!</h3>
-                    <p className="text-emerald-400/60 text-sm font-bold italic">Ý kiến của bạn giúp hệ thống AI thông minh hơn mỗi ngày.</p>
-                </section>
-            )}
 
+                {/* User Feedback Section */}
+                {!feedbackSubmitted ? (
+                    <section className="mt-10 bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[3rem] p-12 text-center relative overflow-hidden group">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-500"></div>
+                        <h3 className="text-xl font-black text-white italic mb-4">REPORT ACCURACY FEEDBACK</h3>
+                        <p className="text-slate-500 text-sm font-bold italic mb-8">Đánh giá độ chính xác của AI trong bản báo cáo này</p>
+                        
+                        <div className="flex justify-center gap-4 mb-8">
+                            {[1, 2, 3, 4, 5].map(star => (
+                                <button 
+                                    key={star}
+                                    onClick={() => setFeedbackRating(star)}
+                                    className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${feedbackRating >= star ? 'bg-amber-400 text-[#020617] scale-110 shadow-lg shadow-amber-500/20' : 'bg-white/5 text-slate-500 hover:bg-white/10'}`}
+                                >
+                                    <Sparkles size={24} fill={feedbackRating >= star ? "currentColor" : "none"} />
+                                </button>
+                            ))}
+                        </div>
+
+                        <textarea 
+                            value={feedbackComment}
+                            onChange={(e) => setFeedbackComment(e.target.value)}
+                            placeholder="Có kỹ năng nào AI bóc tách chưa chuẩn không? Hãy góp ý để chúng tôi cải thiện..."
+                            className="w-full max-w-2xl mx-auto block p-4 bg-white/5 border border-white/10 rounded-2xl text-white text-sm outline-none focus:border-indigo-500 transition-all mb-6 h-28"
+                        />
+
+                        <button 
+                            onClick={submitFeedback}
+                            disabled={feedbackRating === 0}
+                            className="px-12 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-20 text-white font-black text-sm italic rounded-full transition-all shadow-xl"
+                        >
+                            SUBMIT FEEDBACK
+                        </button>
+                    </section>
+                ) : (
+                    <section className="mt-10 bg-emerald-500/10 border border-emerald-500/20 rounded-[3rem] p-12 text-center animate-in zoom-in duration-500">
+                        <CheckCircle2 size={48} className="text-emerald-400 mx-auto mb-4" />
+                        <h3 className="text-xl font-black text-white italic">CẢM ƠN BẠN ĐÃ ĐÓNG GÓP!</h3>
+                        <p className="text-emerald-400/60 text-sm font-bold italic">Ý kiến của bạn giúp hệ thống AI thông minh hơn mỗi ngày.</p>
+                    </section>
+                )}
+            </div>
           </div>
         )}
       </div>

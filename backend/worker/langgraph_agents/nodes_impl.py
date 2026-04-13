@@ -131,19 +131,17 @@ async def parse_with_llm(text: str) -> Dict[str, Any]:
     2. Merge overlapping periods to avoid double-counting.
     3. Calculate 'duration_years' for each role and 'total_years_exp' for the entire career (rounded to 1 decimal).
     4. Determine 'seniority_level' (Intern, Junior, Middle, Senior, Lead) based on job titles and years of experience.
+    5. For each skill, identify the most recent year it was used ('last_used_year').
 
     THINKING PROCESS (Internal):
     Before generating the JSON, follow these steps:
     1. List all time intervals found in the text. 
-    2. Identify any overlaps (e.g., Job A and Job B occurring at the same time).
-    3. Sum the unique duration to get 'total_years_exp'.
-    4. For the 'inferred_level_raw' (1-5):
-       - 1: Mentioned only.
-       - 2: Basic use in a project.
-       - 3: Core responsibility in a role.
-       - 4: Expert/Lead usage.
-       - 5: Extensive years or architectural leadership in that skill.
-    5. Verify that every 'raw_name' in the skills section can be traced back to a specific sentence in the CV.
+    2. Identify any overlaps.
+    3. Sum unique duration for 'total_years_exp'.
+    4. For each skill:
+       - Find the 'last_used_year' from associated roles.
+       - Infer 'proficiency_level' (Junior, Mid-level, Senior, Expert) based on complexity of tasks and years.
+       - Extract the 'context' (how it was used).
     """
 
     prompt = f"""
@@ -154,36 +152,38 @@ async def parse_with_llm(text: str) -> Dict[str, Any]:
     EXTRACTION SCHEMA (JSON):
     {{
     "candidate_summary": {{
-        "primary_role": "Standard industry title",
-        "seniority_level": "Level based on context",
-        "total_years_exp": 0.0
+        "full_name": "Candidate's legal name",
+        "primary_role": "Current or target industry title",
+        "seniority_level": "Level based on total years (Intern, Junior, etc.)",
+        "experience_years_total": 0.0,
+        "summary": "Short professional profile"
     }},
     "work_history": [
         {{
         "company": "Company Name",
-        "role": "Job Title",
-        "duration_years": 0.0,
-        "skills_used": ["List of raw skill names mentioned in this role"],
-        "key_achievements": ["Bullet points of main responsibilities"]
+        "position": "Job Title",
+        "years": 0.0,
+        "description": "Short summary of responsibilities",
+        "skills": ["List of raw skill names mentioned in this role"],
+        "key_achievements": ["Main achievements bullet points"]
         }}
     ],
-    "skills": {{
-        "hard_skills": [
-        {{"raw_name": "Python", "context": "3 years of backend dev in Python", "inferred_level_raw": 1-5}}
-        ],
-        "soft_skills": [
-        {{"raw_name": "Team Management", "context": "Led a team of 5", "inferred_level_raw": 1-5}}
-        ],
-        "domain_skills": [
-        {{"raw_name": "Fintech", "context": "Worked on payment gateway", "inferred_level_raw": 1-5}}
-        ]
-    }}
+    "skills": [
+        {{
+            "skill_name": "Python", 
+            "level": "Mid-level", 
+            "years_exp": 3, 
+            "last_used_year": 2024,
+            "context": "3 years of backend dev in Python building REST APIs"
+        }}
+    ]
     }}
     
     IMPORTANT: Return ONLY valid JSON.
     """
     
     logger.debug(f"--- [LLM REQUEST (CV PARSING)] ---")
+    logger.debug(f"PROMPT SENT:\n{prompt}")
     
     try:
         parsed_result = {}
@@ -198,6 +198,7 @@ async def parse_with_llm(text: str) -> Dict[str, Any]:
                 temperature=0
             )
             raw_content = response.choices[0].message.content
+            logger.debug(f"LLM RAW RESPONSE:\n{raw_content}")
             parsed_result = json.loads(raw_content)
         
         elif LLM_PROVIDER == "gemini":
@@ -205,6 +206,7 @@ async def parse_with_llm(text: str) -> Dict[str, Any]:
                 system_instruction + "\n" + prompt,
                 generation_config={"response_mime_type": "application/json", "temperature": 0}
             )
+            logger.debug(f"LLM RAW RESPONSE:\n{response.text}")
             parsed_result = json.loads(response.text)
             
         # 3. Store in Cache

@@ -2,6 +2,7 @@ from worker.celery_app import celery_app
 from worker.langgraph_agents.graph import app_graph
 from shared.database import SessionLocal
 from shared.models import UserCV, UserSkillProfile, Skill, UserWorkExperience
+from shared.llm_utils import get_embeddings_batch, build_cv_skill_context
 import asyncio
 import logging
 import uuid
@@ -42,11 +43,12 @@ def parse_cv(user_id: str, cv_id: str, file_path: str):
                     logging.error(f"CV record {cv_id} not found in database!")
                     return {"status": "error", "error": "CV record not found"}
 
-                # Cập nhật thông tin bóc tách
-                cv_record.full_name = parsed_data.get("full_name")
-                cv_record.summary = parsed_data.get("summary")
+                # Cập nhật thông tin bóc tách (Truy cập qua candidate_summary)
+                summary_data = parsed_data.get("candidate_summary", {})
+                cv_record.full_name = summary_data.get("full_name") or parsed_data.get("full_name")
+                cv_record.summary = summary_data.get("summary") or parsed_data.get("summary")
                 cv_record.raw_text = result.get("raw_text") # Lưu bản thô
-                cv_record.experience_years_total = parsed_data.get("experience_years_total", 0)
+                cv_record.experience_years_total = float(summary_data.get("experience_years_total") or parsed_data.get("experience_years_total") or 0)
                 cv_record.status = "completed"
 
                 # 2. Xử lý Work History
@@ -67,30 +69,61 @@ def parse_cv(user_id: str, cv_id: str, file_path: str):
                 db.query(UserSkillProfile).filter(UserSkillProfile.cv_id == cv_record.id).delete()
                 
                 skills_list = parsed_data.get("skills", [])
-                for skill_name in skills_list:
-                    skill_name_clean = skill_name.strip()
-                    db_skill = db.query(Skill).filter(Skill.name == skill_name_clean).first()
-                    
+                
+                # Pre-fetch skills and build contexts for batch embedding
+                skill_profile_objects = []
+                contexts_to_embed = []
+                
+                for skill_obj in skills_list:
+                    # skill_obj can be a string (legacy) or dict (new)
+                    if isinstance(skill_obj, str):
+                        s_name = skill_obj.strip()
+                        s_level = "Junior"
+                        s_years = 0
+                        s_last_used = None
+                        s_context = ""
+                    else:
+                        s_name = skill_obj.get("skill_name", "Unknown").strip()
+                        s_level = skill_obj.get("level", "Junior")
+                        s_years = float(skill_obj.get("years_exp") or 0)
+                        s_last_used = skill_obj.get("last_used_year")
+                        s_context = skill_obj.get("context", "")
+
+                    db_skill = db.query(Skill).filter(Skill.name == s_name).first()
                     if not db_skill:
-                        category = skill_categories.get(skill_name_clean, "Technology")
-                        db_skill = Skill(name=skill_name_clean, category=category)
+                        category = skill_categories.get(s_name, "Technology")
+                        db_skill = Skill(name=s_name, category=category)
                         db.add(db_skill)
                         db.flush()
                     
-                    # Tìm số năm kinh nghiệm tốt nhất cho skill này từ work_history
-                    inferred_years = 0
-                    for job in work_history:
-                        if any(skill_name_clean.lower() in s.lower() for s in job.get("skills", [])):
-                            inferred_years += job.get("years", 0)
+                    # Nếu model AI không trả về số năm, ta fallback về cách cũ (inferred từ work history)
+                    if s_years == 0:
+                        for job in work_history:
+                            if any(s_name.lower() in s.lower() for s in job.get("skills", [])):
+                                s_years += job.get("years", 0)
+
+                    context_text = build_cv_skill_context(s_name, s_level, s_years, s_last_used, s_context)
+                    contexts_to_embed.append(context_text)
 
                     user_skill = UserSkillProfile(
                         user_id=uuid.UUID(user_id),
                         skill_id=db_skill.id,
                         cv_id=cv_record.id,
                         source="cv",
-                        years_exp=inferred_years if inferred_years > 0 else 0
+                        years_exp=s_years,
+                        level=s_level,
+                        last_used_year=s_last_used,
+                        skill_context=context_text
                     )
+                    skill_profile_objects.append(user_skill)
                     db.add(user_skill)
+
+                # Batch embed contexts
+                if contexts_to_embed:
+                    vectors = get_embeddings_batch(contexts_to_embed)
+                    for i, vec in enumerate(vectors):
+                        if i < len(skill_profile_objects):
+                            skill_profile_objects[i].vector = vec
                 
                 db.commit()
                 # Note: Automatic Gap Analysis is removed to prevent unrequested JD inference.
