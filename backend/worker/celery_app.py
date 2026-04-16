@@ -15,7 +15,13 @@ celery_app = Celery(
     "worker",
     broker=CELERY_BROKER_URL,
     backend=CELERY_RESULT_BACKEND,
-    include=["worker.tasks.parse_cv_task", "worker.tasks.parse_jd_task", "worker.tasks.analysis_tasks"]
+    include=[
+        "worker.tasks.parse_cv_task",  # Legacy CV parsing (khi USE_LLM_GAP_AGENT_V3=false)
+        "worker.tasks.parse_jd_task",  # JD stub (Phase 4)
+        "worker.tasks.analysis_tasks",  # Main analysis entry (v3 khi flag=true, legacy khi flag=false)
+        "worker.langgraph_agents.gap_v3.tasks.cv_parsing_v3_task",  # CV parsing v3 (khi USE_LLM_GAP_AGENT_V3=true)
+        # NOTE: gap_analysis_v3_task.py bị DEPRECATE — dùng analysis_tasks thay thế
+    ],
 )
 
 celery_app.conf.update(

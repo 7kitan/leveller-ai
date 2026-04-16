@@ -1,0 +1,60 @@
+@reference "../../app/globals.css";
+
+.formWrapper {
+  @apply flex min-h-screen items-center justify-center p-4 bg-[#0a0a0c] relative overflow-hidden;
+}
+
+.gradientBg {
+  @apply absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 pointer-events-none;
+}
+
+.panel {
+  @apply glass-panel w-full max-w-md space-y-8 rounded-3xl p-10 shadow-2xl relative z-10;
+}
+
+.header {
+  @apply text-center;
+}
+
+.iconBox {
+  @apply inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-500/10 text-violet-500 mb-6;
+}
+
+.title {
+  @apply text-3xl font-bold tracking-tight text-white neon-text-violet;
+}
+
+.subtitle {
+  @apply mt-3 text-sm text-gray-400;
+}
+
+.form {
+  @apply mt-10 space-y-5;
+}
+
+.inputGroup {
+  @apply space-y-4;
+}
+
+.inputField {
+  @apply w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white transition-all 
+         focus:border-violet-500/50 focus:bg-white/10 focus:outline-none focus:ring-1 focus:ring-violet-500/50;
+}
+
+.errorBox {
+  @apply flex items-center gap-2 text-sm text-red-500 bg-red-500/10 p-4 rounded-xl border border-red-500/20;
+}
+
+.submitBtn {
+  @apply group flex w-full items-center justify-center rounded-2xl bg-violet-600 py-4 font-bold text-white 
+         shadow-xl shadow-violet-500/20 transition-all hover:bg-violet-500 hover:scale-[1.02] 
+         active:scale-95 disabled:opacity-50;
+}
+
+.toggleWrapper {
+  @apply text-center pt-4;
+}
+
+.toggleBtn {
+  @apply text-sm font-medium text-gray-400 transition-colors hover:text-white;
+}

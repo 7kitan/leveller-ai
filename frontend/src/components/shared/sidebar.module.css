@@ -1,0 +1,84 @@
+@reference "tailwindcss";
+
+.sidebar {
+  @apply fixed left-0 top-0 h-screen w-72 bg-bg-deep border-r border-white/5 flex flex-col z-50 transition-all duration-500 overflow-hidden;
+  background: linear-gradient(180deg, rgba(3, 5, 8, 1) 0%, rgba(8, 10, 20, 0.9) 100%);
+  backdrop-filter: blur(20px);
+}
+
+.brand {
+  @apply p-8 flex items-center gap-4 relative;
+}
+
+.brandIcon {
+  @apply h-12 w-12 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center border border-indigo-500/20 shadow-lg shadow-indigo-500/10 transition-all;
+}
+
+.brandName {
+  @apply text-xl font-black text-white tracking-tighter uppercase;
+}
+
+.brandSub {
+  @apply text-[10px] font-black text-indigo-400/50 uppercase tracking-[0.2em];
+}
+
+.navLabel {
+  @apply px-8 mt-10 mb-4 text-[10px] font-black text-white/20 uppercase tracking-[0.4em];
+}
+
+.nav {
+  @apply px-4 space-y-1 flex-1;
+}
+
+.item {
+  @apply flex items-center gap-4 px-4 py-3.5 rounded-2xl text-white/40 font-bold transition-all relative overflow-hidden group;
+}
+
+.item:hover {
+  @apply bg-white/5 text-white;
+}
+
+.active {
+  @apply bg-indigo-600/10 text-indigo-400 border border-indigo-500/10;
+}
+
+.active::after {
+  content: '';
+  @apply absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(139,92,246,0.5)];
+}
+
+.icon {
+  @apply transition-transform group-hover:scale-110 group-hover:rotate-3;
+}
+
+.label {
+  @apply text-sm;
+}
+
+.dot {
+  @apply ml-auto w-1 h-1 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(139,92,246,0.8)];
+}
+
+.footer {
+  @apply p-6 border-t border-white/5 bg-white/2;
+}
+
+.user {
+  @apply flex items-center gap-4 mb-6;
+}
+
+.avatar {
+  @apply h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black shadow-lg shadow-indigo-500/20;
+}
+
+.userEmail {
+  @apply text-xs font-bold text-white truncate max-w-[140px];
+}
+
+.userRole {
+  @apply text-[9px] font-black text-indigo-400 uppercase tracking-widest mt-0.5;
+}
+
+.logout {
+  @apply flex w-full items-center justify-center gap-3 py-3.5 rounded-xl border border-white/5 text-white/30 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/20;
+}

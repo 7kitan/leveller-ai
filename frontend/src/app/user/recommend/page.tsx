@@ -10,6 +10,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import styles from "./user-recommend.module.css";
 
 interface TrendingSkill {
   skill_name: string;
@@ -70,34 +71,34 @@ export default function UserRecommendPage() {
   }
 
   return (
-    <div className="space-y-12 pb-20 animate-in fade-in duration-700">
+    <div className={styles.pageRoot}>
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+      <div className={styles.header}>
         <div className="space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-cyan-500/10 border border-cyan-500/20 rounded-full">
+          <div className={styles.badgeHeader}>
             <Sparkles size={14} className="text-cyan-400" />
             <span className="text-cyan-400 text-[10px] font-black tracking-[0.2em] uppercase">Market Intelligence v2.0</span>
           </div>
-          <h1 className="text-6xl font-black text-white tracking-tighter italic lg:leading-none">
+          <h1 className={styles.title}>
             SMART <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-500">INSIGHTS.</span>
           </h1>
-          <p className="text-white/40 font-medium text-lg max-w-xl">
+          <p className={styles.subtitle}>
             Tối ưu hóa sự nghiệp dựa trên dữ liệu thực tế từ thị trường lao động toàn cầu.
           </p>
         </div>
 
         <Link 
             href="/user" 
-            className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-bold transition-all w-fit"
+            className={styles.dashboardBtn}
         >
           <ArrowLeft className="w-4 h-4" /> Dashboard
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className={styles.gridSystem}>
         {/* Left Column: Trending Skills Heatmap */}
         <div className="lg:col-span-8 space-y-8">
-          <div className="glass-panel p-10 border-white/5 relative overflow-hidden group">
+          <div className={`${styles.panel} ${styles.heatmapPanel}`}>
             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-1000">
                 <TrendingUp size={120} />
             </div>
@@ -127,12 +128,12 @@ export default function UserRecommendPage() {
                                 {skill.job_count} Jobs Available
                             </span>
                         </div>
-                        <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                        <div className={styles.progressBarTrack}>
                             <motion.div 
                                 initial={{ width: 0 }}
                                 animate={{ width: `${Math.min(100, (skill.job_count / (trendingSkills[0]?.job_count || 1)) * 100)}%` }}
                                 transition={{ duration: 1.5, ease: "easeOut" }}
-                                className="h-full bg-gradient-to-r from-cyan-600 to-indigo-600 shadow-[0_0_15px_rgba(6,182,212,0.5)]"
+                                className={styles.progressBarFill}
                             />
                         </div>
                     </motion.div>
@@ -141,7 +142,7 @@ export default function UserRecommendPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-             <div className="glass-panel p-8 border-white/5 bg-gradient-to-br from-indigo-500/5 to-transparent">
+             <div className={`${styles.panel} ${styles.salaryPanel}`}>
                 <div className="flex items-center gap-3 mb-6">
                     <DollarSign className="text-indigo-400" />
                     <h3 className="text-white font-black italic uppercase text-sm tracking-widest">Salary Benchmarks</h3>
@@ -156,24 +157,26 @@ export default function UserRecommendPage() {
                 </div>
              </div>
 
-             <div className="glass-panel p-8 border-white/5 flex flex-col items-center justify-center text-center">
-                <Globe className="text-cyan-500 mb-4 animate-pulse" size={40} />
-                <h3 className="text-white font-black italic uppercase text-sm">Global Reach</h3>
-                <p className="text-white/30 text-xs mt-2 font-medium">Báo cáo dựa trên 50,000+ tin tuyển dụng từ LinkedIn, Indeed và TopCV.</p>
+             <div className={`${styles.panel} ${styles.infoPanel}`}>
+                <div className="flex items-center gap-3 flex-col">
+                  <Globe className="text-cyan-500 mb-4 animate-pulse" size={40} />
+                  <h3 className="text-white font-black italic uppercase text-sm">Global Reach</h3>
+                  <p className="text-white/30 text-xs mt-2 font-medium">Báo cáo dựa trên 50,000+ tin tuyển dụng từ LinkedIn, Indeed và TopCV.</p>
+                </div>
              </div>
           </div>
         </div>
 
         {/* Right Column: Featured Opportunities */}
         <div className="lg:col-span-4 space-y-8">
-          <div className="glass-panel p-8 border-white/5">
+          <div className={`${styles.panel} ${styles.opportunitiesPanel}`}>
             <h3 className="text-white font-black italic uppercase text-sm tracking-[0.2em] mb-8 flex items-center gap-2">
                 <Target className="w-5 h-5 text-rose-500" /> New Opportunities
             </h3>
             <div className="space-y-6">
                 {featuredJobs.map((job) => (
                     <div key={job.id} className="group cursor-pointer">
-                        <Link href={`/user/jobs`} className="block bg-white/3 border border-white/5 p-5 rounded-2xl hover:border-cyan-500/30 hover:bg-white/5 transition-all">
+                        <Link href={`/user/jobs`} className={styles.jobCard}>
                             <h4 className="text-white font-black text-sm uppercase italic line-clamp-1 group-hover:text-cyan-400">{job.title_raw}</h4>
                             <div className="flex items-center gap-2 mt-2 opacity-40">
                                 <Briefcase size={12} />
@@ -197,7 +200,7 @@ export default function UserRecommendPage() {
             </Link>
           </div>
 
-          <div className="glass-panel p-8 border-white/5 bg-gradient-to-t from-emerald-500/5 to-transparent relative overflow-hidden">
+          <div className={`${styles.panel} ${styles.advicePanel}`}>
              <div className="absolute -bottom-4 -right-4 opacity-5">
                 <Star size={100} fill="currentColor" />
              </div>
@@ -213,3 +216,4 @@ export default function UserRecommendPage() {
     </div>
   );
 }
+

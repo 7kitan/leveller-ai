@@ -17,7 +17,8 @@ import {
   ArrowUpRight,
   TrendingUp,
   Sparkles,
-  MousePointer2
+  MousePointer2,
+  CheckCircle2,
 } from "lucide-react";
 
 const StudentDashboard = () => {

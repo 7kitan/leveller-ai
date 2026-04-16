@@ -102,6 +102,58 @@ class GapCalculator:
 
         return results
 
+    async def infer_market_requirements_for_cv(self, cv_id: str) -> list:
+        """
+        Fallback khi không có JD: LLM suy luận market standard requirements
+        dựa trên primary role và skills của CV.
+        """
+        logger.info(f"Inferring market requirements for CV: {cv_id}")
+        try:
+            # Lấy thông tin CV
+            cv = self.db.query(UserCV).filter(UserCV.id == uuid.UUID(cv_id)).first()
+            if not cv:
+                return []
+
+            # Lấy top skills
+            skill_rows = self.db.query(UserSkillProfile, Skill.name)\
+                .join(Skill)\
+                .filter(UserSkillProfile.cv_id == uuid.UUID(cv_id))\
+                .order_by(UserSkillProfile.years_exp.desc())\
+                .limit(10).all()
+
+            top_skills = [name for _, name in skill_rows]
+            primary_role = cv.summary or "Software Developer"
+
+            if not top_skills:
+                return []
+
+            from shared.llm_utils import get_chat_completion
+            prompt = f"""Bạn là chuyên gia tuyển dụng kỹ thuật.
+Một ứng viên có profile sau:
+- Vai trò: {primary_role[:200]}
+- Kỹ năng chính: {', '.join(top_skills)}
+
+Hãy liệt kê 8-12 kỹ năng kỹ thuật mà một JD tiêu chuẩn cho vị trí này thường yêu cầu.
+
+Trả về JSON:
+{{"requirements": [
+  {{"type": "skill", "skill": "Python", "target_level": "Mid-level", "years_required": 2, "is_primary": true, "importance_weight": 8}},
+  ...
+]}}
+
+Chỉ trả về JSON hợp lệ."""
+
+            raw = get_chat_completion(prompt, json_mode=True)
+            if raw:
+                import json
+                data = json.loads(raw)
+                reqs = data.get("requirements", [])
+                logger.info(f"Inferred {len(reqs)} market requirements for CV {cv_id}")
+                return reqs
+        except Exception as e:
+            logger.error(f"infer_market_requirements_for_cv error: {e}")
+        return []
+
     # [COMMENTED OUT OLD V6.0 CALCULATION LOGIC]
     # async def calculate_gap_v2_legacy(self, user_id: str, cv_id: str, requirements_source: Any):
     #     logger.info(f"=== Starting Engine V6.0 (Modular & Seniority-Free) CV: {cv_id} ===")

@@ -79,3 +79,13 @@ def build_jd_skill_context(skill_name: str, level: str, years: float, domain: st
     if level and level != "Junior": parts.append(f"Seniority: {level} level")
     if domain: parts.append(f"Domain: {domain}")
     return ". ".join(parts)
+
+def get_current_date() -> str:
+    from datetime import datetime
+    return datetime.now().strftime("%Y-%m-%d")
+
+def truncate_for_prompt(text: str, max_chars: int = 4000) -> str:
+    """Cắt bớt text để tránh quá giới hạn token của LLM, ưu tiên lấy phần đầu."""
+    if not text: return ""
+    if len(text) <= max_chars: return text
+    return text[:max_chars] + "... [TRUNCATED]"

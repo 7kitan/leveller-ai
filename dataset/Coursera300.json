@@ -1,0 +1,2756 @@
+[
+    {
+        "id": 1,
+        "course_name": "Python for Data Science, AI & Development",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Kickstart your Python journey with this beginner-friendly, self-paced course taught by an expert. Python is one of the most popular programming languages, and the demand for individuals with Python skills continues to grow. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/python-for-applied-data-science-ai"
+    },
+    {
+        "id": 2,
+        "course_name": "Programming for Everybody (Getting Started with Python)",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "This course aims to teach everyone the basics of programming computers using Python. We cover the basics of how one constructs a program from a series of simple instructions in Python.  The course has no pre-requisites and avoids all but the simplest...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/python"
+    },
+    {
+        "id": 3,
+        "course_name": "Crash Course on Python",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "This course is designed to teach you the foundations in order to write simple programs in Python using the most common structures. No previous exposure to programming is needed. By the end of this course, you will understand the benefits of programmi...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/python-crash-course"
+    },
+    {
+        "id": 4,
+        "course_name": "Programming in Python",
+        "level": "Foundations",
+        "duration": "5 weeks",
+        "summary": "In this course, you will be introduced to foundational programming skills with basic Python Syntax. You’ll learn how to use code to solve problems. You’ll dive deep into the Python ecosystem and learn popular modules, libraries and tools for Python. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/programming-in-python"
+    },
+    {
+        "id": 5,
+        "course_name": "Python 3 Programming Specialization",
+        "level": "Foundations",
+        "duration": "3 months",
+        "summary": "This specialization teaches the fundamentals of programming in Python 3. We will begin at the beginning, with variables, conditionals, and loops, and get to some intermediate material like keyword parameters, list comprehensions, lambda expressions, ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/python-3-programming"
+    },
+    {
+        "id": 6,
+        "course_name": "Python for Everybody Specialization",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "This Specialization builds on the success of the Python for Everybody course and will introduce fundamental programming concepts including data structures, networked application program interfaces, and databases, using the Python programming language...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/python"
+    },
+    {
+        "id": 7,
+        "course_name": "Python Programming Fundamentals",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "Description: This course lays the groundwork for your Python programming journey. You'll learn essential Python syntax, data structures, and control flow, while practicing debugging and basic code optimization techniques....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/microsoft-python-programming-fundamentals"
+    },
+    {
+        "id": 8,
+        "course_name": "Introduction to Python Programming",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "This course provides an introduction to programming and the Python language.  Students are introduced to core programming concepts like data structures, conditionals, loops, variables, and functions.  This course includes an overview of the various t...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/python-programming-intro"
+    },
+    {
+        "id": 9,
+        "course_name": "Microsoft Python Development Professional Certificate",
+        "level": "Foundations",
+        "duration": "4 months",
+        "summary": "Launch your Python Developer career with no prior experience needed! This program is perfect for career changers and those looking to break into the tech industry. Learn Python, a top programming language used in web development, data science, and au...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/microsoft-python-developer"
+    },
+    {
+        "id": 10,
+        "course_name": "Python Developer: From Basics to Case Studies Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "The Python Developer Specialization equips learners with the complete skill set needed to code, analyze, and build real-world applications using Python. Starting with foundational programming concepts, learners progress through advanced data structur...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/python-developer-basics-to-case-studies"
+    },
+    {
+        "id": 11,
+        "course_name": "Introduction to Data Analysis Using Python",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "This course is the seventh course in the Google Data Analytics Certificate. The Python programming language is a powerful tool for data analysis. In this course, you’ll learn the basic concepts of Python programming and how data professionals use Pyt...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-to-data-analysis-using-python"
+    },
+    {
+        "id": 12,
+        "course_name": "Certified Entry-Level Python Programmer (PCEP) Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Python® is one of the most widely used languages in software development today, particularly within the fields of data science, machine learning, and web development. Seasoned programmers and new programmers alike can apply Python skills to accomplis...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/certified-entry-level-python-programmer-pcep"
+    },
+    {
+        "id": 13,
+        "course_name": "Linear Algebra for Machine Learning & AI",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Unlock the powerful world of Machine Learning and Artificial Intelligence with our comprehensive, hands-on course on Linear Algebra. This course serves as an essential stepping stone for aspiring data scientists, AI practitioners, software developers...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/bits-linear-algebra-for-machine-learning-and-ai"
+    },
+    {
+        "id": 14,
+        "course_name": "Linear Algebra from Elementary to Advanced Specialization",
+        "level": "Specialist",
+        "duration": "4 weeks",
+        "summary": "This specialization is a three course sequence that will cover the main topics of undergraduate linear algebra. Defined simply, linear algebra is a branch of mathematics that studies vectors, matrices, lines and the areas and spaces they create. Thes...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/linear-algebra-elementary-to-advanced"
+    },
+    {
+        "id": 15,
+        "course_name": "AI for Legal Professionals",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "AI for Legal Professionals is designed for lawyers, paralegals, compliance teams, and legal operations professionals who want to confidently use AI in research, documentation, case analysis, and regulatory compliance. This program bridges the gap bet...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-for-legal-professionals"
+    },
+    {
+        "id": 16,
+        "course_name": "Mathematics for Machine Learning and Data Science Specialization",
+        "level": "Foundations",
+        "duration": "12 weeks",
+        "summary": "Newly updated for 2024! Mathematics for Machine Learning and Data Science is a foundational online program created by DeepLearning.AI and taught by Luis Serrano. In machine learning, you apply math concepts through programming. And so, in this specia...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/mathematics-for-machine-learning-and-data-science"
+    },
+    {
+        "id": 17,
+        "course_name": "Mathematics for Machine Learning: Linear Algebra",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "In this course on Linear Algebra we look at what linear algebra is and how it relates to vectors and matrices. Then we look through what vectors and matrices are and how to work with them, including the knotty problem of eigenvalues and eigenvectors,...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/linear-algebra-machine-learning"
+    },
+    {
+        "id": 18,
+        "course_name": "AI Systems Design: RAG Pipelines and LLM Architecture",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Design and prototype enterprise-grade AI solutions that create real business value. In this course, you’ll learn to distinguish when to use predictive ML versus generative AI, align AI initiatives with business outcomes, and define success criteria t...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-systems-design-rag-pipelines-and-llm-architecture"
+    },
+    {
+        "id": 19,
+        "course_name": "Mathematics for Machine Learning Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "For a lot of higher level courses in Machine Learning and Data Science, you find you need to freshen up on the basics in mathematics - stuff you may have studied before in school or university, but which was taught in another context, or not very int...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/mathematics-machine-learning"
+    },
+    {
+        "id": 20,
+        "course_name": "Generative AI Engineering with LLMs Specialization",
+        "level": "Foundations",
+        "duration": "3 months",
+        "summary": "The Gen AI market is expected to grow 46% .  yearly till 2030 (Source: Statista). Gen AI engineers are high in demand. This program gives aspiring data scientists, machine learning engineers, and AI developers essential skills in Gen AI, large langua...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/generative-ai-engineering-with-llms"
+    },
+    {
+        "id": 21,
+        "course_name": "AI Foundations for Everyone Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Artificial Intelligence (AI) is no longer science fiction. It is rapidly permeating all industries and having a profound impact on virtually every aspect of our existence. Whether you are an executive, a leader, an industry professional, a researcher...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/ai-foundations-for-everyone"
+    },
+    {
+        "id": 22,
+        "course_name": "Prompt Engineering Generative AI & LLM Models Fundamentals",
+        "level": "Foundations",
+        "duration": "6 hours",
+        "summary": "Prompt Engineering, Generative AI & LLM Models Fundamentals course is designed for learners who want to build a strong foundation in Large Language Models (LLMs), Generative AI concepts, and prompt engineering techniques. The course focuses on helpin...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/prompt-engineering-generative-ai--llm-models-fundamentals"
+    },
+    {
+        "id": 23,
+        "course_name": "AI for Mechanical Engineers Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "AI for Mechanical Engineers is designed to help mechanical engineering professionals harness the power of artificial intelligence in their practice. With technological advancements rapidly reshaping industries, this series provides a comprehensive fo...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/ai-for-mechanical-engineers"
+    },
+    {
+        "id": 24,
+        "course_name": "AI for Engineering: An Overview",
+        "level": "Foundations",
+        "duration": "1 h",
+        "summary": "Modern engineering systems generate massive amounts of sensor data, simulations, logs, and performance metrics; far more than teams can manually analyze. AI helps engineers cut through this complexity, uncovering early warnings, hidden patterns, and ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-engineering-overview"
+    },
+    {
+        "id": 25,
+        "course_name": "Calculus for Machine Learning and Data Science",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "Newly updated for 2024! Mathematics for Machine Learning and Data Science is a foundational online program created by DeepLearning.AI and taught by Luis Serrano. In machine learning, you apply math concepts through programming. And so, in this specia...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/machine-learning-calculus"
+    },
+    {
+        "id": 26,
+        "course_name": "Differential Calculus through Data and Modeling Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This specialization provides an introduction to topics in single and multivariable calculus, and focuses on using calculus to address questions in the natural and social sciences. Students will learn to use the tools of calculus to process, analyze, ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/differential-calculus-data-modeling"
+    },
+    {
+        "id": 27,
+        "course_name": "Mathematics for Machine Learning: Multivariate Calculus",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "This course offers a brief introduction to the multivariate calculus required to build many common machine learning techniques. We start at the very beginning with a refresher on the “rise over run” formulation of a slope, before converting this to t...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/multivariate-calculus-machine-learning"
+    },
+    {
+        "id": 28,
+        "course_name": "Geometry and Calculus for Computing",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Mathematics provides the foundation for reasoning, problem-solving, and analysis in computer science. Geometry and Calculus for Computing equips you with essential tools to model shapes, describe motion, and analyse change. Across four modules, you’l...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/geometry-and-calculus-for-computing"
+    },
+    {
+        "id": 29,
+        "course_name": "ML Model Training & Validation Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This Specialization equips learners with end-to-end skills for training, validating, and optimizing machine learning models in production environments. Through hands-on labs and practical exercises, you'll learn to transform raw data into model-ready...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/ml-model-training-and-validation"
+    },
+    {
+        "id": 30,
+        "course_name": "MLOps | Machine Learning Operations Specialization",
+        "level": "Foundations",
+        "duration": "6 months",
+        "summary": "This comprehensive course series is perfect for individuals with programming knowledge such as software developers, data scientists, and researchers. You'll acquire critical MLOps skills, including the use of Python and Rust, utilizing GitHub Copilot...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/mlops-machine-learning-duke"
+    },
+    {
+        "id": 31,
+        "course_name": "Microsoft AI & ML Engineering Professional Certificate",
+        "level": "Foundations",
+        "duration": "6 months",
+        "summary": "This comprehensive program is designed to prepare you for the dynamic field of artificial intelligence and machine learning. Across five courses, you gain a deep understanding of AI & ML fundamentals, practical skills, and hands-on experience....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/microsoft-ai-and-ml-engineering"
+    },
+    {
+        "id": 32,
+        "course_name": "Calculus for Engineers",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "This course offers a streamlined approach to university-level calculus, tailored for engineers and scientists. We begin with a review of precalculus in the first module, followed by derivatives and integrals in the second and third modules. The fourt...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/calculus-for-engineers"
+    },
+    {
+        "id": 33,
+        "course_name": "Hands-On MLOps Fundamentals for ML Engineers Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Transition seamlessly from DevOps to MLOps and master the complete machine learning lifecycle—from data ingestion to production deployment. This hands-on Specialization equips ML engineers with critical skills in data engineering, model deployment, m...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/fundamentals-of-mlops"
+    },
+    {
+        "id": 34,
+        "course_name": "Mathematics for Engineers Specialization",
+        "level": "Foundations",
+        "duration": "3 months",
+        "summary": "This specialization was developed for engineering students to self-study engineering mathematics. We expect students to already be familiar with single variable calculus and computer programming. Students who haven't yet taken calculus, should first ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/mathematics-engineers"
+    },
+    {
+        "id": 35,
+        "course_name": "Probability & Statistics for Machine Learning & Data Science",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "Newly updated for 2024! Mathematics for Machine Learning and Data Science is a foundational online program created by DeepLearning.AI and taught by Luis Serrano. In machine learning, you apply math concepts through programming. And so, in this specia...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/machine-learning-probability-and-statistics"
+    },
+    {
+        "id": 36,
+        "course_name": "Probability Foundations for Data Science and AI",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Understand the foundations of probability and its relationship to statistics and data science.  We’ll learn what it means to calculate a probability, independent and dependent outcomes, and conditional events.  We’ll study discrete and continuous ran...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/probability-theory-foundation-for-data-science"
+    },
+    {
+        "id": 37,
+        "course_name": "Tools for Data Science",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "In order to be successful in Data Science, you need to be skilled with using tools that Data Science professionals employ as part of their jobs. This course teaches you about the popular tools in Data Science and how to use them. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/open-source-tools-for-data-science"
+    },
+    {
+        "id": 38,
+        "course_name": "An Intuitive Introduction to Probability",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "This course will provide you with a basic, intuitive and practical introduction into Probability Theory. You will be able to learn how to apply Probability Theory in different scenarios and you will earn a \"toolbox\" of methods to deal with uncertaint...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introductiontoprobability"
+    },
+    {
+        "id": 39,
+        "course_name": "Discrete Math for Computer Science - Counting & Probability",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "This course develops the mathematical tools needed to count, measure uncertainty, and reason about random processes, which are central to computer science, data analysis, and algorithm design. Building on the logical foundations from the first course...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/discrete-mathematics-for-computer-science-counting-probability"
+    },
+    {
+        "id": 40,
+        "course_name": "Bayesian Statistics Specialization",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "This Specialization is intended for all learners seeking to develop proficiency in statistics, Bayesian statistics, Bayesian inference, R programming, and much more. Through four complete courses (From Concept to Data Analysis; Techniques and Models;...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/bayesian-statistics"
+    },
+    {
+        "id": 41,
+        "course_name": "Data Science: Statistics and Machine Learning Specialization",
+        "level": "Foundations",
+        "duration": "3 months",
+        "summary": "Build models, make inferences, and deliver interactive data products....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/data-science-statistics-machine-learning"
+    },
+    {
+        "id": 42,
+        "course_name": "Data Science: Foundations using R Specialization",
+        "level": "Foundations",
+        "duration": "4 months",
+        "summary": "Ask the right questions, manipulate data sets, and create visualizations to communicate results....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/data-science-foundations-r"
+    },
+    {
+        "id": 43,
+        "course_name": "Statistical Inference & Predictive Modeling Foundations Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This program prepares data analysts and aspiring data scientists to apply statistical inference and predictive modelling tools to solve business problems. You'll learn to identify and mitigate cognitive biases with structured post‑mortems and debiasi...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/statistical-inference-predictive-modeling-foundations"
+    },
+    {
+        "id": 44,
+        "course_name": "Foundations of Probability and Statistics Specialization",
+        "level": "Foundations",
+        "duration": "3 months",
+        "summary": "In this three-course Specialization, you’ll build a strong mathematical foundation in probability, statistics, and basic stochastic processes, with direct applications to data science and artificial intelligence. You’ll begin by mastering the fundame...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/foundations-probability-statistics"
+    },
+    {
+        "id": 45,
+        "course_name": "Modern Statistics for Data-Driven Decision-Making Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This Specialization covers the use of statistical methods in today's business, industrial, and social environments, including several new methods and applications. H.G. Wells foresaw an era when the understanding of basic statistics would be as impor...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/modern-statistics-for-data-driven-decision-making"
+    },
+    {
+        "id": 46,
+        "course_name": "Data Analysis with R Specialization",
+        "level": "Foundations",
+        "duration": "4 months",
+        "summary": "In this Specialization, you will learn to analyze and visualize data in R and create reproducible data analysis reports, demonstrate a conceptual understanding of the unified nature of statistical inference, perform frequentist and Bayesian statistic...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/statistics"
+    },
+    {
+        "id": 47,
+        "course_name": "Statistical Analysis with R for Public Health Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Statistics are everywhere. The probability it will rain today. Trends over time in unemployment rates. The odds that India will win the next cricket world cup. In sports like football, they started out as a bit of fun but have grown into big business...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/statistical-analysis-r-public-health"
+    },
+    {
+        "id": 48,
+        "course_name": "R Programming",
+        "level": "Foundations",
+        "duration": "6 weeks",
+        "summary": "In this course you will learn how to program in R and how to use R for effective data analysis. You will learn how to install and configure software necessary for a statistical programming environment and describe generic programming language concept...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/r-programming"
+    },
+    {
+        "id": 49,
+        "course_name": "Predict and Validate Regression Models in R",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "This course is your entry point into the world of predictive analytics with R. Designed for aspiring data analysts and business professionals, this course empowers you to build and interpret multiple linear regression models from the ground up. You w...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/predict--validate-regression-models-in-r"
+    },
+    {
+        "id": 50,
+        "course_name": "Statistics with Python Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This specialization is designed to teach learners beginning and intermediate concepts of statistical analysis using the Python programming language. Learners will learn where data come from, what types of data can be collected, study data design, dat...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/statistics-with-python"
+    },
+    {
+        "id": 51,
+        "course_name": "Data Analysis with R",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "The R programming language is purpose-built for data analysis. R is the key that opens the door between the problems that you want to solve with data and the answers you need to meet your objectives.  This course starts with a question and then walks...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/data-analysis-with-r"
+    },
+    {
+        "id": 52,
+        "course_name": "Applied Data Science with R Specialization",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "This Specialization is intended for anyone with a passion for learning who is seeking to develop the job-ready skills, tools, and portfolio to have a competitive edge in the job market as an entry-level data scientist. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/applied-data-science-r"
+    },
+    {
+        "id": 53,
+        "course_name": "Statistics and Data Analysis with R",
+        "level": "Foundations",
+        "duration": "5 months",
+        "summary": "This course is the third course in a 3-part specialization entitled \"Statistics and Applied Data Analysis.\"  The course is meant for those familiar with statistics but unfamiliar with the programming language R. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/statistics-and-data-analysis-with-r"
+    },
+    {
+        "id": 54,
+        "course_name": "Introduction to R Programming for Data Science",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "When working in the data science field you will definitely become acquainted with the R language and the role it plays in data analysis. This course introduces you to the basics of the R language such as data types, techniques for manipulation, and h...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introducton-r-programming-data-science"
+    },
+    {
+        "id": 55,
+        "course_name": "Data Visualization & Dashboarding with R Specialization",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "This Specialization is intended for learners seeking to develop the ability to visualize data using R. Through five courses, you will use R to create static and interactive data visualizations and publish them on the web, which will you prepare you t...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/jhu-data-visualization-dashboarding-with-r"
+    },
+    {
+        "id": 56,
+        "course_name": "Data Visualization with R",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "In this course, you will learn the Grammar of Graphics, a system for describing and building graphs, and how the ggplot2 data visualization package for R applies this concept to basic bar charts, histograms, pie charts, scatter plots, line plots, and...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/data-visualization-r"
+    },
+    {
+        "id": 57,
+        "course_name": "Introduction to Probability and Data with R",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "This course introduces you to sampling and exploring data, as well as basic probability theory and Bayes' rule. You will examine various types of sampling methods, and discuss how such methods can impact the scope of inference. A variety of explorato...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/probability-intro"
+    },
+    {
+        "id": 58,
+        "course_name": "SQL for Data Analysis and Business Insights Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Transform into a confident data analyst with this comprehensive program that takes you from first query to advanced SQL mastery. Starting with zero database experience, you'll build practical skills through real-world business scenarios. Master essen...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/sql-data-analysis-business-insights"
+    },
+    {
+        "id": 59,
+        "course_name": "Databases and SQL for Data Science with Python",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Working knowledge of SQL (or Structured Query Language) is a must for data professionals like Data Scientists, Data Analysts and Data Engineers. Much of the world's data resides in databases. SQL is a powerful language used for communicating with and...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/sql-data-science"
+    },
+    {
+        "id": 60,
+        "course_name": "SQL for Data Science",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "As data collection has increased exponentially, so has the need for people skilled at using and interacting with data; to be able to think critically, and provide insights to make better decisions and optimize their businesses. This is a data scienti...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/sql-for-data-science"
+    },
+    {
+        "id": 61,
+        "course_name": "SQL Fundamentals for Data Analysts",
+        "level": "Foundations",
+        "duration": "5 hours",
+        "summary": "Focus on the skills you need to get started with SQL as a data analyst, allowing you to read & transform data and gather insights from a company database....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/sql-fundamentals-for-data-analysts"
+    },
+    {
+        "id": 62,
+        "course_name": "SQL: A Practical Introduction for Querying Databases",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Much of the world's data lives in databases. SQL (or Structured Query Language) is a powerful programming language that is used for communicating with and manipulating data in databases. A working knowledge of databases and SQL is a must for anyone w...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/sql-practical-introduction-for-querying-databases"
+    },
+    {
+        "id": 63,
+        "course_name": "SQL Foundations",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Learn the fundamentals of SQL with Microsoft SQL Server in this introductory course. You'll learn to write basic and intermediate queries to extract and analyze data while understanding relational database concepts. Through hands-on exercises with SQ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/sql-foundations"
+    },
+    {
+        "id": 64,
+        "course_name": "Google Data Analytics Professional Certificate",
+        "level": "Foundations",
+        "duration": "6 months",
+        "summary": "Prepare for a new career in the high-growth field of data analytics, no experience or degree required. Get professional training designed by Google and have the opportunity to connect with top employers. There are over 270,000 open jobs in data analy...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/google-data-analytics"
+    },
+    {
+        "id": 65,
+        "course_name": "Excel Basics for Data Analysis",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "Spreadsheet tools like Excel are an essential tool for working with data - whether for data analytics, business, marketing, or research. This course is designed to give you a basic working knowledge of Excel and how to use it for analyzing data. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/excel-basics-data-analysis-ibm"
+    },
+    {
+        "id": 66,
+        "course_name": "Data Analysis Using SQL",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "In this comprehensive course, you will embark on a transformative journey to master the art of analyzing data through SQL. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/data-analysis-sql"
+    },
+    {
+        "id": 67,
+        "course_name": "Data Analysis with Python",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Analyzing data with Python is a key skill for aspiring Data Scientists and Analysts!...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/data-analysis-with-python"
+    },
+    {
+        "id": 68,
+        "course_name": "Data Analysis with Spreadsheets and SQL",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "This course introduces you to how to use spreadsheets and SQL queries to analyze and extract data. You will learn how to practically apply the OSEMN data analysis framework and spreadsheet functions to clean data, calculate summary statistics, evalua...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/data-analysis-with-spreadsheets-and-sql"
+    },
+    {
+        "id": 69,
+        "course_name": "Master SQL for Data Analysis",
+        "level": "Foundations",
+        "duration": "8 hours",
+        "summary": "This course features Coursera Coach!...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/packt-master-sql-for-data-analysis-creek"
+    },
+    {
+        "id": 70,
+        "course_name": "Pandas for Data Science",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "How can you effectively use Python to clean, sort, and store data? What are the benefits of using the Pandas library for data science? What best practices can data scientists leverage to better work with multiple types of datasets? In the third cours...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/pandas-data-science"
+    },
+    {
+        "id": 71,
+        "course_name": "Python for Real-World Data Analysis Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Transform into a confident data analyst with this comprehensive 10-course Python toolkit that takes you from first code to professional projects. Starting with zero programming experience, you'll build a complete data science skillset through practic...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/python-real-world-data-analysis"
+    },
+    {
+        "id": 72,
+        "course_name": "Google Data Analysis with Python Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "In today's data-driven world, Python is an essential tool for unlocking insights. This Specialization will guide you from a Python beginner to someone who can confidently apply Python to solve complex data problems. You'll gain hands-on experience wi...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/google-data-analysis-with-python"
+    },
+    {
+        "id": 73,
+        "course_name": "Data Analysis with Pandas and Python Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This course begins by setting up Anaconda and Jupyter Lab for Python and Pandas, providing foundational Python knowledge before diving into Pandas for data analysis. You'll learn Series and DataFrame structures for effective data management and manip...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/packt-data-analysis-with-pandas-and-python"
+    },
+    {
+        "id": 74,
+        "course_name": "Introduction to Data Science in Python",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "This course will introduce the learner to the basics of the python programming environment, including fundamental python programming techniques such as lambdas, reading and manipulating csv files, and the numpy library. The course will introduce data...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/python-data-analysis"
+    },
+    {
+        "id": 75,
+        "course_name": "NumPy, Matplotlib & Pandas – Data Science Prerequisites",
+        "level": "Foundations",
+        "duration": "7 hours",
+        "summary": "Updated in May 2025....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/packt-numpy-matplotlib-pandas-data-science-prerequisites-emilz"
+    },
+    {
+        "id": 76,
+        "course_name": "Data Science Fundamentals with Python and SQL Specialization",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "Data Science is one of the hottest professions of the decade, and the demand for data scientists who can analyze data and communicate results to inform data driven decisions has never been greater. This Specialization from IBM will help anyone intere...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/data-science-fundamentals-python-sql"
+    },
+    {
+        "id": 77,
+        "course_name": "Python for Data Analysis: Pandas & NumPy",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "In this hands-on project, we will understand the fundamentals of data analysis in Python and we will leverage the power of two important python libraries known as Numpy and pandas. NumPy and Pandas are two of the most widely used python libraries in ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/projects/python-for-data-analysis-numpy"
+    },
+    {
+        "id": 78,
+        "course_name": "Python for Data Science: Real Projects & Analytics Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This Specialization provides a complete, hands-on pathway to mastering Python for data science. Learners begin by analyzing datasets, visualizing results, and applying statistical methods before progressing into advanced programming, supervised machi...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/python-data-science-real-projects"
+    },
+    {
+        "id": 79,
+        "course_name": "Mastering Python for Data Science",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Data Science has become one of the most sought-after fields in today’s data-driven world, and Python stands at its core. This course empowers learners to master the art of data science using Python—one of the most versatile programming languages for ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/packt-mastering-python-for-data-science"
+    },
+    {
+        "id": 80,
+        "course_name": "Pixels, Waveforms & Words: Engineering Multimodal AI Systems Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Most AI practitioners can train a model on a single data type. Building systems that process images, audio, and text together — and integrating them reliably into production — is a fundamentally different challenge. This program teaches you how to me...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/pixels-waveforms-words-engineering-multimodal-ai-systems"
+    },
+    {
+        "id": 81,
+        "course_name": "Intro to NumPy",
+        "level": "Foundations",
+        "duration": "7 hours",
+        "summary": "This course features Coursera Coach!...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/packt-intro-to-numpy-ftdg2"
+    },
+    {
+        "id": 82,
+        "course_name": "Data Analysis with NumPy and Pandas Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This Specialization equips learners with essential skills in Python-based data analysis using NumPy and Pandas. Starting with foundational numerical operations, learners progress to advanced data manipulation, cleaning, and transformation techniques....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/data-analysis-numpy-pandas"
+    },
+    {
+        "id": 83,
+        "course_name": "Neural Networks and Computer Vision Foundations",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "This course guides you through the foundational principles behind neural networks and computer vision systems, focusing on how forward propagation, backpropagation, optimization, and convolutional architectures enable modern AI applications....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/neural-networks-computer-vision-foundations"
+    },
+    {
+        "id": 84,
+        "course_name": "Supervised Machine Learning: Regression and Classification",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "In the first course of the Machine Learning Specialization, you will:...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/machine-learning"
+    },
+    {
+        "id": 85,
+        "course_name": "Machine Learning Specialization",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "The Machine Learning Specialization is a foundational online program created in collaboration between DeepLearning.AI and Stanford Online. This beginner-friendly program will teach you the fundamentals of machine learning and how to use these techniq...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/machine-learning-introduction"
+    },
+    {
+        "id": 86,
+        "course_name": "Train ML Models",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "This course equips learners with practical, job-ready skills to train and evaluate supervised machine learning models for land-cover classification. Learners progress through an end-to-end analytical workflow, beginning with spectral and texture feat...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/train-ml-models"
+    },
+    {
+        "id": 87,
+        "course_name": "Machine Learning Algorithms: Supervised Learning Tip to Tail",
+        "level": "Foundations",
+        "duration": "9 hours",
+        "summary": "This course takes you from understanding the fundamentals of a machine learning project. Learners will understand and implement supervised learning techniques on real case studies to analyze business case scenarios where decision trees, k-nearest nei...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/machine-learning-classification-algorithms"
+    },
+    {
+        "id": 88,
+        "course_name": "Machine Learning with Python",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Python is a core skill in machine learning, and this course equips you with the tools to apply it effectively. You’ll learn key ML concepts, build models with scikit-learn, and gain hands-on experience using Jupyter Notebooks. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/machine-learning-with-python"
+    },
+    {
+        "id": 89,
+        "course_name": "Supervised Machine Learning: Classification",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "This course introduces you to one of the main types of modeling families of supervised Machine Learning: Classification. You will learn how to train predictive models to classify categorical outcomes and how to use error metrics to compare across dif...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/supervised-machine-learning-classification"
+    },
+    {
+        "id": 90,
+        "course_name": "Supervised Learning Regression Classification Clustering",
+        "level": "Foundations",
+        "duration": "8 hours",
+        "summary": "This comprehensive Supervised and Unsupervised Machine Learning program will equip you with essential skills for data modeling and analysis. You’ll master regression techniques, classification models, and clustering algorithms to address real-world c...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/supervised-learning-regression-classification-clustering"
+    },
+    {
+        "id": 91,
+        "course_name": "Introduction to Machine Learning: Supervised Learning",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Introduction to Machine Learning: Supervised Learning offers a clear, practical introduction to how machines learn from labeled data to make predictions and decisions. You’ll build a strong foundation in regression and classification, starting with l...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-to-machine-learning-supervised-learning"
+    },
+    {
+        "id": 92,
+        "course_name": "Machine Learning Fundamentals",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "This course provides a brief introduction to the theory and practice of supervised machine learning, the discipline of teaching computers to make predictions from labeled data. We begin with a well-known model of linear regression, moving from fundam...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/machine-learning-fundamentals-dartmouth"
+    },
+    {
+        "id": 93,
+        "course_name": "Applied Machine Learning Specialization",
+        "level": "Foundations",
+        "duration": "12 weeks",
+        "summary": "This specialization is intended for post-graduate students seeking to develop practical machine-learning skills applicable across various domains. Through three comprehensive courses, learners will explore core techniques including supervised learnin...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/applied-machine-learning"
+    },
+    {
+        "id": 94,
+        "course_name": "Unsupervised Machine Learning",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "This course introduces you to one of the main types of Machine Learning: Unsupervised Learning. You will learn how to find insights from data sets that do not have a target or labeled variable. You will learn several clustering and dimension reductio...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ibm-unsupervised-machine-learning"
+    },
+    {
+        "id": 95,
+        "course_name": "NVIDIA: Fundamentals of Machine Learning",
+        "level": "Foundations",
+        "duration": "6 hours",
+        "summary": "NVIDIA: Fundamentals of Machine Learning Course is a foundational course designed to introduce learners to key machine learning concepts and techniques. This course is the first part of the Exam Prep (NCA-GENL): NVIDIA-Certified Generative AI LLMs As...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/fundamentals-of-machine-learning"
+    },
+    {
+        "id": 96,
+        "course_name": "Unsupervised Learning, Recommenders, Reinforcement Learning",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "In the third course of the Machine Learning Specialization, you will:...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/unsupervised-learning-recommenders-reinforcement-learning"
+    },
+    {
+        "id": 97,
+        "course_name": "Applied Unsupervised Learning in Python",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "In “Applied Unsupervised Learning in Python,” you will learn how to use algorithms to find interesting structure in datasets. You will practice applying, interpreting, and refining unsupervised machine learning models to solve a diverse set of proble...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/applied-unsupervised-learning-in-python"
+    },
+    {
+        "id": 98,
+        "course_name": "Introduction to Machine Learning: Unsupervised Learning",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Introduction to Machine Learning: Unsupervised Learning explores how machines uncover structure, patterns, and relationships in data without labeled outcomes. In this course, you’ll learn how to analyze and visualize high-dimensional data using Princ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/unsupervised-algorithms-in-machine-learning"
+    },
+    {
+        "id": 99,
+        "course_name": "The Nuts and Bolts of Machine Learning",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "This is the fifth course in the Google Advanced Data Analytics Certificate. In this course, you’ll learn about machine learning, which uses algorithms and statistics to teach computer systems to discover patterns in data. Data professionals use machi...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/the-nuts-and-bolts-of-machine-learning"
+    },
+    {
+        "id": 100,
+        "course_name": "Unsupervised Learning and Its Applications in Marketing",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Welcome to the Unsupervised Learning and Its Applications in Marketing course! In this course, you will delve into the fascinating world of unsupervised machine learning and its relevance to the field of marketing. Unsupervised learning is a powerful...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/unsupervised-learning-and-its-applications-in-marketing"
+    },
+    {
+        "id": 101,
+        "course_name": "Sequence Modeling, Transformers, and Transfer Learning",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "This course features Coursera Coach!...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/packt-sequence-modeling-transformers-and-transfer-learning-s8p1m"
+    },
+    {
+        "id": 102,
+        "course_name": "Trees, SVM and Unsupervised Learning",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "\"Trees, SVM and Unsupervised Learning\" is designed to provide working professionals with a solid foundation in support vector machines, neural networks, decision trees, and XG boost. Through in-depth instruction and practical hands-on experience, you...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/trees-svm-and-unsupervised-learning"
+    },
+    {
+        "id": 103,
+        "course_name": "Deep Learning with Real-World Projects Specialization",
+        "level": "Specialist",
+        "duration": "4 weeks",
+        "summary": "Updated in May 2025....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/packt-deep-learning-with-real-world-projects"
+    },
+    {
+        "id": 104,
+        "course_name": "Linear Algebra for Machine Learning and Data Science",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "Newly updated for 2024! Mathematics for Machine Learning and Data Science is a foundational online program created by DeepLearning.AI and taught by Luis Serrano. In machine learning, you apply math concepts through programming. And so, in this specia...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/machine-learning-linear-algebra"
+    },
+    {
+        "id": 105,
+        "course_name": "Reinforcement Learning Specialization",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "The Reinforcement Learning Specialization consists of 4 courses exploring the power of adaptive learning systems and artificial intelligence (AI)....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/reinforcement-learning"
+    },
+    {
+        "id": 106,
+        "course_name": "Fundamentals of Reinforcement Learning",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Reinforcement Learning is a subfield of Machine Learning, but is also a general purpose formalism for automated decision-making and AI. This course introduces you to statistical learning techniques where an agent explicitly takes actions and interact...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/fundamentals-of-reinforcement-learning"
+    },
+    {
+        "id": 107,
+        "course_name": "Deep Learning and Reinforcement Learning",
+        "level": "Specialist",
+        "duration": "3 weeks",
+        "summary": "This course introduces you to two of the most sought-after disciplines in Machine Learning: Deep Learning and Reinforcement Learning. Deep Learning is a subset of Machine Learning that has applications in both Supervised and Unsupervised Learning, an...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/deep-learning-reinforcement-learning"
+    },
+    {
+        "id": 108,
+        "course_name": "Decision Making and Reinforcement Learning",
+        "level": "Foundations",
+        "duration": "5 weeks",
+        "summary": "This course is an introduction to sequential decision making and reinforcement learning. We start with a discussion of utility theory to learn how preferences can be represented and modeled for decision making. We first model simple decision problems...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/dmrol"
+    },
+    {
+        "id": 109,
+        "course_name": "Reinforcement Learning",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "This course provides an overview of reinforcement learning, a type of machine learning that has the potential to solve control system problems that are too difficult to solve with traditional techniques.  ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/reinforcement-learning-engineers"
+    },
+    {
+        "id": 110,
+        "course_name": "Reinforcement Learning from Human Feedback",
+        "level": "Foundations",
+        "duration": "1 h",
+        "summary": "Large language models (LLMs) are trained on human-generated text, but additional methods are needed to align an LLM with human values and preferences....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/projects/reinforcement-learning-from-human-feedback-project"
+    },
+    {
+        "id": 111,
+        "course_name": "Introduction to Artificial Intelligence (AI)",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "Artificial Intelligence (AI) is all around us, seamlessly integrated into our daily lives and work. Enroll in this course to understand key AI terminologies and applications, launch your AI career, or transform your existing one. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-to-ai"
+    },
+    {
+        "id": 112,
+        "course_name": "Machine Learning and Reinforcement Learning in Finance Specialization",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "The main goal of this specialization is to provide the knowledge and practical skills necessary to develop a strong foundation on core paradigms and algorithms of machine learning (ML), with a particular focus on applications of ML to various practic...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/machine-learning-reinforcement-finance"
+    },
+    {
+        "id": 113,
+        "course_name": "IBM Generative AI Engineering Professional Certificate",
+        "level": "Foundations",
+        "duration": "6 months",
+        "summary": "The generative AI market is expected to grow over 46% CAGR to 2030 (Statista). The demand for tech professionals with gen AI engineering skills is exploding!...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/ibm-generative-ai-engineering"
+    },
+    {
+        "id": 114,
+        "course_name": "Neural Networks and Deep Learning",
+        "level": "Specialist",
+        "duration": "3 weeks",
+        "summary": "In the first course of the Deep Learning Specialization, you will study the foundational concept of neural networks and deep learning. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/neural-networks-deep-learning"
+    },
+    {
+        "id": 115,
+        "course_name": "Introduction to Deep Learning & Neural Networks with Keras",
+        "level": "Specialist",
+        "duration": "10 hours",
+        "summary": "This course introduces deep learning and neural networks with the Keras library. In this course, you’ll be equipped with foundational knowledge and practical skills to build and evaluate deep learning models.  ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-to-deep-learning-with-keras"
+    },
+    {
+        "id": 116,
+        "course_name": "Introduction to Neural Networks and PyTorch",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "PyTorch is one of the top 10 highest paid skills in tech (Indeed). As the use of PyTorch for neural networks rockets, professionals with PyTorch skills are in high demand. This course is ideal for AI engineers looking to gain job-ready skills in PyTo...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/deep-neural-networks-with-pytorch"
+    },
+    {
+        "id": 117,
+        "course_name": "Start Neural Networks Advanced Model Architectures",
+        "level": "Specialist",
+        "duration": "2 hours",
+        "summary": "Neural networks power the intelligent systems transforming industries today—from autonomous vehicles to personalized recommendations. This Short Course was created to help data analysts accomplish the critical transition from traditional machine lear...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/start-neural-networks-advanced-model-architectures"
+    },
+    {
+        "id": 118,
+        "course_name": "Foundations of Neural Networks Specialization",
+        "level": "Foundations",
+        "duration": "12 weeks",
+        "summary": "This Specialization is intended for post-graduate students seeking to develop advanced skills in neural networks and deep learning. Through three courses, you will cover the mathematical theory behind neural networks, including feed-forward, convolut...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/foundations-of-neural-networks"
+    },
+    {
+        "id": 119,
+        "course_name": "Practical Machine Learning: Foundations to Neural Networks Specialization",
+        "level": "Foundations",
+        "duration": "3 months",
+        "summary": "You will develop the ability to rigorously formulate learning tasks using probability and statistics, distinguish Bayesian and frequentist perspectives, build linear models for regression and classification, estimate optimal model parameters via Maxi...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/dartmouth-practical-machine-learning"
+    },
+    {
+        "id": 120,
+        "course_name": "Deep Learning Specialization",
+        "level": "Specialist",
+        "duration": "3 months",
+        "summary": "The Deep Learning Specialization is a foundational program that will help you understand the capabilities, challenges, and consequences of deep learning and prepare you to participate in the development of leading-edge AI technology. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/deep-learning"
+    },
+    {
+        "id": 121,
+        "course_name": "Convolutional Neural Networks",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "In the fourth course of the Deep Learning Specialization, you will understand how computer vision has evolved and become familiar with its exciting applications such as autonomous driving, face recognition, reading radiology images, and more....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/convolutional-neural-networks"
+    },
+    {
+        "id": 122,
+        "course_name": "Introduction to Neural Networks",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "The course \"Introduction to Neural Networks\" provides a comprehensive introduction to the foundational concepts of neural networks, equipping learners with essential skills in deep learning and machine learning. Dive into the mathematics that drive n...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-to-neural-networks"
+    },
+    {
+        "id": 123,
+        "course_name": "Deep Learning: Recurrent Neural Networks with Python Specialization",
+        "level": "Specialist",
+        "duration": "4 weeks",
+        "summary": "With the exponential growth of user-generated data, mastering RNNs is essential for deep learning engineers to perform tasks like classification and prediction. Architectures such as RNNs, GRUs, and LSTMs are top choices, making mastering RNNs a prio...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/packt-deep-learning-recurrent-neural-networks-with-python"
+    },
+    {
+        "id": 124,
+        "course_name": "Apply Neural Networks for Car Price Prediction",
+        "level": "Foundations",
+        "duration": "5 hours",
+        "summary": "By the end of this course, learners will be able to analyze structured datasets, prepare features for machine learning, build and evaluate neural network regression models, and apply regularization techniques to improve predictive performance. They w...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/apply-neural-networks-for-car-price-prediction"
+    },
+    {
+        "id": 125,
+        "course_name": "Deep Learning with Python: CNN, ANN & RNN Specialization",
+        "level": "Specialist",
+        "duration": "4 weeks",
+        "summary": "This Specialization provides a practical, project-driven pathway to mastering deep learning with Python. Learners will explore Convolutional Neural Networks (CNNs), Artificial Neural Networks (ANNs), and Recurrent Neural Networks (RNNs) with LSTM lay...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/deep-learning-python-cnn-ann-rnn"
+    },
+    {
+        "id": 126,
+        "course_name": "Deep Learning for Computer Vision Specialization",
+        "level": "Specialist",
+        "duration": "4 weeks",
+        "summary": "This hands-on specialization dives in quickly, so you can start training models and gain practical deep learning skills. You don’t need to be an expert programmer or have prior deep learning experience to quickly gain valuable career skills for this ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/deep-learning-computer-vision"
+    },
+    {
+        "id": 127,
+        "course_name": "Deep Learn Imagery",
+        "level": "Specialist",
+        "duration": "2 hours",
+        "summary": "This hands-on course proves that deep learning isn't just about pressing \"run\" on a model. It's about turning satellite imagery into actual, useful insights. You'll work with convolutional neural networks for land cover classification, fine-tune a pr...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/deep-learn-imagery"
+    },
+    {
+        "id": 128,
+        "course_name": "Convolutional Neural Networks in TensorFlow",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "If you are a software developer who wants to build scalable AI-powered algorithms, you need to understand how to use the tools to build them. This course is part of the DeepLearning.AI TensorFlow Developer Specialization and will teach you best pract...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/convolutional-neural-networks-tensorflow"
+    },
+    {
+        "id": 129,
+        "course_name": "Deep Learning with PyTorch",
+        "level": "Specialist",
+        "duration": "2 weeks",
+        "summary": "This course advances from fundamental machine learning concepts to more complex models and techniques in deep learning using PyTorch.  ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/advanced-deep-learning-with-pytorch"
+    },
+    {
+        "id": 130,
+        "course_name": "Learning Deep Learning Specialization",
+        "level": "Specialist",
+        "duration": "4 weeks",
+        "summary": "Guided by real-world programming examples in TensorFlow and PyTorch, you’ll master neural network fundamentals, convolutional and recurrent architectures, and cutting-edge topics like transformers, large language models, and multimodal AI. By the end...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/pearson-learning-deep-learning-from-perception-to-large-language-models"
+    },
+    {
+        "id": 131,
+        "course_name": "Deep Learning with TensorFlow Specialization",
+        "level": "Specialist",
+        "duration": "4 weeks",
+        "summary": "This specialization features Coursera Coach!...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/packt-deep-learning-with-tensorflow"
+    },
+    {
+        "id": 132,
+        "course_name": "AI Engineer Professional Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This specialization features Coursera Coach!...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/packt-ai-engineer-professional"
+    },
+    {
+        "id": 133,
+        "course_name": "Introduction to Long Short Term Memory (LSTM) Training",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "This comprehensive course on Long Short-Term Memory (LSTM) equips you with the skills to build advanced sequence models for time series forecasting and natural language processing. Begin by understanding the fundamentals of Recurrent Neural Networks ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-to-long-short-term-memory-lstm-training"
+    },
+    {
+        "id": 134,
+        "course_name": "Sequence Models",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "In the fifth course of the Deep Learning Specialization, you will become familiar with sequence models and their exciting applications such as speech recognition, music synthesis, chatbots, machine translation, natural language processing (NLP), and ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/nlp-sequence-models"
+    },
+    {
+        "id": 135,
+        "course_name": "Sequences, Time Series and Prediction",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "If you are a software developer who wants to build scalable AI-powered algorithms, you need to understand how to use the tools to build them. This Specialization will teach you best practices for using TensorFlow, a popular open-source framework for ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/tensorflow-sequences-time-series-and-prediction"
+    },
+    {
+        "id": 136,
+        "course_name": "Deep Learning RNN & LSTM: Stock Price Prediction",
+        "level": "Specialist",
+        "duration": "5 hours",
+        "summary": "By the end of this course, learners will be able to identify the foundations of deep learning, analyze stock price datasets, apply preprocessing and feature scaling techniques, develop an RNN with LSTM layers, and evaluate predictions using real-worl...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/deep-learning-rnn-lstm-stock-price-prediction"
+    },
+    {
+        "id": 137,
+        "course_name": "Deep Learning for Business",
+        "level": "Specialist",
+        "duration": "8 hours",
+        "summary": "Your smartphone, smartwatch, and automobile (if it is a newer model) have AI (Artificial Intelligence) inside serving you every day. In the near future, more advanced “self-learning” capable DL (Deep Learning) and ML (Machine Learning) technology wil...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/deep-learning-business"
+    },
+    {
+        "id": 138,
+        "course_name": "Natural Language Processing with Sequence Models",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "In Course 3 of the Natural Language Processing Specialization, you will:...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/sequence-models-in-nlp"
+    },
+    {
+        "id": 139,
+        "course_name": "Advanced RNN Concepts and Projects",
+        "level": "Specialist",
+        "duration": "6 hours",
+        "summary": "This advanced course on Recurrent Neural Networks (RNNs) addresses key challenges like the vanishing gradient problem and provides solutions such as Gated Recurrent Units (GRUs) and Long Short Term Memory (LSTM) networks....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/packt-advanced-rnn-concepts-and-projects-9w3ij"
+    },
+    {
+        "id": 140,
+        "course_name": "Generative Adversarial Networks (GANs) Specialization",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "About GANs...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/generative-adversarial-networks-gans"
+    },
+    {
+        "id": 141,
+        "course_name": "Build Basic Generative Adversarial Networks (GANs)",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "In this course, you will:...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/build-basic-generative-adversarial-networks-gans"
+    },
+    {
+        "id": 142,
+        "course_name": "Generative AI with Python",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "This course features Coursera Coach!...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/packt-generative-ai-with-python-dmeqw"
+    },
+    {
+        "id": 143,
+        "course_name": "Keras Deep Learning & Generative Adversarial Networks (GAN) Specialization",
+        "level": "Specialist",
+        "duration": "4 weeks",
+        "summary": "Updated in May 2025. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/packt-keras-deep-learning-and-generative-adversarial-networks-gan"
+    },
+    {
+        "id": 144,
+        "course_name": "Introduction Course to Autoencoders, VAEs, and GANs",
+        "level": "Foundations",
+        "duration": "4 hours",
+        "summary": "This deep learning course provides a comprehensive introduction to Autoencoders, Variational Autoencoders (VAE), and Generative Adversarial Networks (GANs). Begin by exploring how autoencoders compress and reconstruct data, and discover how VAEs add ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-course-to-autoencoders-vaes-and-gans"
+    },
+    {
+        "id": 145,
+        "course_name": "Introduction to Generative AI: Concepts and Techniques",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "This four-module course gives you a clear, practical foundation in Generative AI from what it is and where it’s used, to how modern models work and how to apply them responsibly. You’ll start with the big picture: GenAI capabilities across text, imag...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-to-generative-ai-concepts-and-techniques"
+    },
+    {
+        "id": 146,
+        "course_name": "Generative AI: Introduction and Applications",
+        "level": "Foundations",
+        "duration": "8 hours",
+        "summary": "This course is designed for everyone—professionals, executives, students, and enthusiasts—interested in learning about generative AI and leveraging its capabilities in their work and lives. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/generative-ai-introduction-and-applications"
+    },
+    {
+        "id": 147,
+        "course_name": "Generative AI for Data Scientists Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Generative AI knowledge is now an essential data science skill. According to Gartner, \"By 2026, 20% of top data science teams will have rebranded as Cognitive Science or Science consultancies, increasing diversity in staff skills by 800%.\"...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/generative-ai-for-data-scientists"
+    },
+    {
+        "id": 148,
+        "course_name": "Generative AI: Foundation Models and Platforms",
+        "level": "Foundations",
+        "duration": "7 hours",
+        "summary": "This course is for all enthusiasts and practitioners with a genuine interest in the rapidly developing field of generative AI, which is transforming our world.  ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/generative-ai-foundation-models-and-platforms"
+    },
+    {
+        "id": 149,
+        "course_name": "Open Generative AI: Build with Open Models and Tools Professional Certificate",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "Harness the power of open-source innovation with the Open Generative AI Professional Certificate, a hands-on program designed for developers, engineers, and technical professionals eager to build practical expertise with cutting-edge AI tools. Genera...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/genai-build-open-models-and-tools"
+    },
+    {
+        "id": 150,
+        "course_name": "Generative AI Automation Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Step into the future of automation with our Generative AI Automation Specialization, a unique learning experience designed to make you adept at utilizing ChatGPT and other large language models to perform complex tasks with ease and innovation. Recog...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/generative-ai-automation"
+    },
+    {
+        "id": 151,
+        "course_name": "Generative AI Models and Transformer Networks Certification Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This specialization provides a hands-on pathway to mastering Generative AI techniques from foundational architectures to cutting-edge deployment strategies. Learn to build and train Autoencoders, VAEs, and GANs using TensorFlow to generate synthetic ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/generative-ai-models-and-transformer-networks-certification"
+    },
+    {
+        "id": 152,
+        "course_name": "Attention Mechanisms and Transformer Models Course",
+        "level": "Foundations",
+        "duration": "4 hours",
+        "summary": "This deep learning course provides a comprehensive introduction to attention mechanisms and transformer models the foundation of modern GenAI systems. Begin by exploring the shift from traditional neural networks to attention-based architectures. Und...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/attention-mechanisms-and-transformer-models-course"
+    },
+    {
+        "id": 153,
+        "course_name": "Transformer Models and BERT Model",
+        "level": "Foundations",
+        "duration": "1 h",
+        "summary": "This course introduces you to the Transformer architecture and the Bidirectional Encoder Representations from Transformers (BERT) model. You learn about the main components of the Transformer architecture, such as the self-attention mechanism, and ho...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/transformer-models-and-bert-model"
+    },
+    {
+        "id": 154,
+        "course_name": "Introduction to Transformer Models for NLP Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This course provides practical instruction on transformer architectures such as BERT, GPT, and T5. You will learn about attention mechanisms, transfer learning, and model fine-tuning through coding exercises and case studies. By the end, you will be ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/pearson-introduction-to-transformer-models-for-nlp"
+    },
+    {
+        "id": 155,
+        "course_name": "IBM Deep Learning with PyTorch, Keras and Tensorflow Professional Certificate",
+        "level": "Specialist",
+        "duration": "3 months",
+        "summary": "The global deep learning market is set to grow 23% annually to 2030 (Grand View Research). This IBM Deep Learning with PyTorch, Keras and TensorFlow Professional Certificate builds the job-ready skills and practical experience AI techies need to catc...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/ibm-deep-learning-with-pytorch-keras-tensorflow"
+    },
+    {
+        "id": 156,
+        "course_name": "Transform Audio: Extract Features & Augment Models",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "Did you know that 80% of audio AI models fail in production due to acoustic variability they never encountered during training?  ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/transform-audio-extract-features--augment-models"
+    },
+    {
+        "id": 157,
+        "course_name": "Generative AI Language Modeling with Transformers",
+        "level": "Foundations",
+        "duration": "9 hours",
+        "summary": "This course provides a practical introduction to using transformer-based models for natural language processing (NLP) applications. You will learn to build and train models for text classification using encoder-based architectures like Bidirectional ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/generative-ai-language-modeling-with-transformers"
+    },
+    {
+        "id": 158,
+        "course_name": "Introduction to Transformer Models for NLP: Unit 3",
+        "level": "Foundations",
+        "duration": "5 hours",
+        "summary": "This course covers transformer models and their applications in natural language processing and computer vision. Topics include the T5 model, fine-tuning for tasks such as abstractive summarization, and the Vision Transformer. Students will learn to ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/pearson-introduction-to-transformer-models-for-nlp-using-bert-gpt-and-more-xjemk"
+    },
+    {
+        "id": 159,
+        "course_name": "Automate, Optimize, and Monitor ML Models",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "Machine learning models lose accuracy over time without proper monitoring and optimization. This Short Course was created to help ML and AI professionals build robust, production-ready systems that maintain performance at scale....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/automate-optimize-and-monitor-ml-models"
+    },
+    {
+        "id": 160,
+        "course_name": "Transformers Unleashed: Master the Architecture of Modern AI Professional Certificate",
+        "level": "Foundations",
+        "duration": "16 weeks",
+        "summary": "Transformers Unleashed: Master the Architecture Powering Modern AI prepares you to design, optimize, and deploy transformer-based AI systems used in modern machine learning applications....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/transformers-unleashed-master-the-architecture-powering-modern-ai"
+    },
+    {
+        "id": 161,
+        "course_name": "Advanced Deep Learning Architectures Specialization",
+        "level": "Specialist",
+        "duration": "8 weeks",
+        "summary": "Deep learning architectures are the engine behind every major AI breakthrough, from image recognition systems to large language models. This specialization enables you to deep dive  into the architectures that power modern AI, building neural network...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/advanced-deep-learning-architectures"
+    },
+    {
+        "id": 162,
+        "course_name": "Generative AI with Large Language Models",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "In Generative AI with Large Language Models (LLMs), you’ll learn the fundamentals of how generative AI works, and how to deploy it in real-world applications....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/generative-ai-with-llms"
+    },
+    {
+        "id": 163,
+        "course_name": "Introduction to Large Language Models",
+        "level": "Foundations",
+        "duration": "1 h",
+        "summary": "This is an introductory level micro-learning course that explores what large language models (LLM) are, the use cases where they can be utilized, and how you can use prompt tuning to enhance LLM performance. It also covers Google tools to help you de...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-to-large-language-models"
+    },
+    {
+        "id": 164,
+        "course_name": "Generative AI and Large Language Models",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "Welcome to the world of Generative AI and Large Language Models (LLMs)—where technology mirrors human creativity and intelligence. This course is designed to provide you with a comprehensive understanding of generative models, including their evoluti...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/generative-ai-and-large-language-models"
+    },
+    {
+        "id": 165,
+        "course_name": "Prompt Engineering for ChatGPT",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "ChatGPT and other large language models are going to be more important in your life and business than your smartphone, if you use them right. ChatGPT can tutor your child in math, generate a meal plan and recipes, write software applications for your...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/prompt-engineering"
+    },
+    {
+        "id": 166,
+        "course_name": "Large Language Model Operations (LLMOps) Specialization",
+        "level": "Foundations",
+        "duration": "5 months",
+        "summary": "Master the world of Large Language Models through this comprehensive specialization from Coursera and Duke University, a top Data Science and AI program. Dive into topics ranging from generative AI techniques to open source LLM management across vari...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/large-language-model-operations"
+    },
+    {
+        "id": 167,
+        "course_name": "Finetuning Large Language Models",
+        "level": "Foundations",
+        "duration": "1 h",
+        "summary": "In this short course, you’ll learn essential finetuning concepts and how to train a large language model using your own data. You’ll be equipped to incorporate the latest techniques to optimize your model and produce transformative results....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/projects/finetuning-large-language-models-project"
+    },
+    {
+        "id": 168,
+        "course_name": "Large Language Models Specialization",
+        "level": "Foundations",
+        "duration": "4 hours",
+        "summary": "The Large Language Models Specialization equips learners with a solid foundation and advanced skills in NLP, covering LLM fundamentals, data preparation, fine-tuning, and advanced techniques. Through three progressive levels, learners will gain hands...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/large-language-models-learning-path"
+    },
+    {
+        "id": 169,
+        "course_name": "IBM AI Engineering Professional Certificate",
+        "level": "Foundations",
+        "duration": "4 months",
+        "summary": "AI is expected to grow 36.6% by 2030 (Forbes). This IBM AI Engineering Professional Certificate is ideal for data scientists, machine learning engineers, software engineers, and other technical specialists looking to get job-ready as an AI engineer. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/ai-engineer"
+    },
+    {
+        "id": 170,
+        "course_name": "Quick Start Guide to Large Language Models (LLMs) Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This specialization is a quick start guide to help people use and launch LLMs like GPT, Llama, T5, and BERT at scale. It presents a step-by-step approach to building and deploying LLMs, with real-world case studies to illustrate the concepts, and cov...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/pearson-quick-start-guide-to-large-language-models-llms"
+    },
+    {
+        "id": 171,
+        "course_name": "Natural Language Processing Specialization",
+        "level": "Foundations",
+        "duration": "3 months",
+        "summary": "Natural Language Processing (NLP) is a subfield of linguistics, computer science, and artificial intelligence that uses algorithms to interpret and manipulate human language. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/natural-language-processing"
+    },
+    {
+        "id": 172,
+        "course_name": "Generative AI: Prompt Engineering Basics",
+        "level": "Foundations",
+        "duration": "9 hours",
+        "summary": "As generative AI (GenAI) reshapes workplaces and job roles, using it effectively is now essential. Prompt engineering is the key to directing GenAI models and refining their output for desired results. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/generative-ai-prompt-engineering-for-everyone"
+    },
+    {
+        "id": 173,
+        "course_name": "Prompt Engineering Masterclass - From Beginner to Advanced Specialization",
+        "level": "Specialist",
+        "duration": "4 weeks",
+        "summary": "This specialization features Coursera Coach! A smarter way to learn with interactive, real-time conversations that help you test your knowledge, challenge assumptions, and deepen your understanding as you progress....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/packt-prompt-engineering-masterclass-from-beginner-to-advanced"
+    },
+    {
+        "id": 174,
+        "course_name": "Prompt Engineering Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Learn to augment and amplify your human creativity and critical thinking with Generative AI. By the end of the course, you will be able to use Generative AI as an exoskeleton for your mind. In this hands-on specialization, you will learn how to tap i...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/prompt-engineering"
+    },
+    {
+        "id": 175,
+        "course_name": "Start Writing Prompts like a Pro",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "Need a dependable formula for writing prompts? We’ll share a 5-step prompting framework that you can use across tools and models. And if your prompt doesn’t produce what you need on the first try, don't worry – that's part of the process! You’ll lear...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/google-start-writing-prompts-like-a-pro"
+    },
+    {
+        "id": 176,
+        "course_name": "Essentials of Prompt Engineering",
+        "level": "Foundations",
+        "duration": "1 h",
+        "summary": "In this course, you will be introduced to the fundamentals of crafting effective prompts. You will gain an understanding of how to refine and optimize prompts for a range of use cases. You will also explore techniques like zero-shot, few-shot, and ch...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/essentials-of-prompt-engineering"
+    },
+    {
+        "id": 177,
+        "course_name": "Google Prompting Essentials Specialization",
+        "level": "Foundations",
+        "duration": "4 hours",
+        "summary": "Want to use generative AI tools but not sure where to start? Google Prompting Essentials teaches you how to give clear and specific instructions to generative AI - known as prompting. In 5 easy steps, you'll learn how to prompt effectively and unlock...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/prompting-essentials-google"
+    },
+    {
+        "id": 178,
+        "course_name": "Advanced Prompt Engineering for Everyone",
+        "level": "Specialist",
+        "duration": "9 hours",
+        "summary": "Unlock the full potential of generative AI and become a master of prompt engineering. Dive deeper into how you can use In-context Learning to build better and more reliable prompts. See how Retrieval Augmented Generation (RAG) works and what can go w...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/advanced-prompt-engineering-for-everyone"
+    },
+    {
+        "id": 179,
+        "course_name": "Prompt Engineering for Educators Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Unlock the transformative potential of AI in education with the \"Prompt Engineering for Educators\" specialization, tailored specifically for the teaching profession. This program will guide educators through the process of designing precise and effec...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/prompt-engineering-for-educators"
+    },
+    {
+        "id": 180,
+        "course_name": "ChatGPT Prompt Engineering for Developers",
+        "level": "Foundations",
+        "duration": "1 h",
+        "summary": "Go beyond the chat box. Use API access to leverage LLMs into your own applications, and learn to build a custom chatbot....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/projects/chatgpt-prompt-engineering-for-developers-project"
+    },
+    {
+        "id": 181,
+        "course_name": "AI Agent Developer Specialization",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "In this Specialization, you’ll gain hands-on experience developing AI agents using Python, OpenAI tools, and prompt engineering techniques. You’ll learn to design agent architectures, implement tool use and memory, build custom GPTs, and apply best p...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/ai-agents"
+    },
+    {
+        "id": 182,
+        "course_name": "Tokens to Deployment: NLP, Language Models, & Production API Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This comprehensive program takes you through the complete lifecycle of building and deploying natural language processing and multimodal AI systems. From tokenization fundamentals to production API design, you'll develop the technical depth to build ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/tokens-to-deployment-nlp-language-models-production-apis"
+    },
+    {
+        "id": 183,
+        "course_name": "Create Chatbots & NLP Apps",
+        "level": "Foundations",
+        "duration": "4 hours",
+        "summary": "Ready to transform customer interactions through intelligent conversation? This Short Course was created to help data analysts and professionals accomplish the development of sophisticated chatbot applications with natural language processing capabil...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/create-chatbots--nlp-apps"
+    },
+    {
+        "id": 184,
+        "course_name": "Building Vision and NLP Workflows with TensorFlow pipelines",
+        "level": "Foundations",
+        "duration": "9 hours",
+        "summary": "Building Vision and NLP Workflows with TensorFlow and Transformers focuses on developing machine learning pipelines for computer vision and natural language processing tasks. In this course, you will learn how modern AI applications process images an...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/building-vision-and-nlp-workflows-with-tensorflow-pipelines"
+    },
+    {
+        "id": 185,
+        "course_name": "Mastering NLP: Tokenization, Sentiment Analysis & Neural MT Specialization",
+        "level": "Foundations",
+        "duration": "4 months",
+        "summary": "Harness the power of language-driven AI with this applied  Mastering NLP: Tokenization, Sentiment Analysis & Neural MT Specialization. Whether you're new to AI or expanding your machine learning expertise, this program guides you through essential an...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/mastering-nlp-tokenization-sentiment-analysis-neural-mt"
+    },
+    {
+        "id": 186,
+        "course_name": "Gen AI Foundational Models for NLP & Language Understanding",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "This IBM course will equip you with the skills to implement, train, and evaluate generative AI models for natural language processing (NLP) using PyTorch. You will explore core NLP tasks, such as document classification, language modeling, and langua...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/gen-ai-foundational-models-for-nlp-and-language-understanding"
+    },
+    {
+        "id": 187,
+        "course_name": "Natural Language Processing with Real-World Projects Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This course will teach you how machines can be trained to understand and process human language using various NLP algorithms. You'll explore lexical processing, basic syntactic processing, and mechanisms like those used by Google Translator to grasp ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/packt-natural-language-processing-with-real-world-projects"
+    },
+    {
+        "id": 188,
+        "course_name": "Build & Evaluate NLP Transformer Pipelines",
+        "level": "Foundations",
+        "duration": "3 hours",
+        "summary": "This course is designed to help learners master the core architecture of modern natural language processing by building and evaluating transformer-based pipelines from the ground up. Learners will begin by exploring the essential mechanics of tokeniz...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/build--evaluate-nlp-transformer-pipelines"
+    },
+    {
+        "id": 189,
+        "course_name": "Modern Natural Language Processing Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This specialization features Coursera Coach!...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/packt-modern-natural-language-processing"
+    },
+    {
+        "id": 190,
+        "course_name": "Applied Object Detection & Segmentation Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This specialization prepares you to build, evaluate, and deploy production-ready object detection and image segmentation systems. Across eight hands-on courses, you'll learn to create quality-controlled vision datasets, train and evaluate models usin...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/applied-object-detection-segmentation"
+    },
+    {
+        "id": 191,
+        "course_name": "Deep Learning for Object Detection",
+        "level": "Specialist",
+        "duration": "9 hours",
+        "summary": "Detecting and locating objects is one of the most common uses of deep learning for computer vision. Applications include helping autonomous systems navigate complex environments, locating medical conditions like tumors, and identifying ready-to-harve...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/deep-learning-object-detection"
+    },
+    {
+        "id": 192,
+        "course_name": "MathWorks Computer Vision Engineer Professional Certificate",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "Prepare for a career in the rapidly expanding field of computer vision. The ability to extract meaningful information from visual data is crucial for efficiently developing smart monitoring systems, enhancing medical diagnostics, and powering the nex...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/mathworks-computer-vision-engineer"
+    },
+    {
+        "id": 193,
+        "course_name": "Advanced Computer Vision with TensorFlow",
+        "level": "Specialist",
+        "duration": "2 weeks",
+        "summary": "In this course, you will:...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/advanced-computer-vision-with-tensorflow"
+    },
+    {
+        "id": 194,
+        "course_name": "Computer Vision Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "The Computer Vision specialization takes you from the foundations of computer vision to the cutting edge of multimodal AI. Whether you're just starting out or looking to deepen your expertise, you'll gain the skills to build intelligent systems that ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/computer-vision-cu"
+    },
+    {
+        "id": 195,
+        "course_name": "Computer Vision for Engineering and Science Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Cameras are an integral component in many new technologies. Autonomous systems use cameras to navigate their environment, while doctors use small cameras to help guide minimally invasive surgical techniques. It is essential that engineers use compute...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/computer-vision"
+    },
+    {
+        "id": 196,
+        "course_name": "Object Tracking and Motion Detection with Computer Vision",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "In the third and final course of the Computer Vision for Engineering and Science specialization, you will learn to track objects and detect motion in videos. Tracking objects and detecting motion are difficult tasks but are required for applications ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/object-tracking-and-motion-computer-vision"
+    },
+    {
+        "id": 197,
+        "course_name": "Apply OpenCV for Real-Time Computer Vision Projects Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This Specialization provides a comprehensive, hands-on pathway into computer vision using OpenCV and Python, guiding learners from core image processing fundamentals to advanced real-time applications. Across progressive courses, learners develop a s...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/opencv-real-time-computer-vision-specialization"
+    },
+    {
+        "id": 198,
+        "course_name": "Object Localization with TensorFlow",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "Welcome to this 2 hour long guided project on creating and training an Object Localization model with TensorFlow. In this guided project, we are going to use TensorFlow's Keras API to create a convolutional neural network which will be trained to cla...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/projects/object-localization-tensorflow"
+    },
+    {
+        "id": 199,
+        "course_name": "Computer Vision: YOLO Custom Object Detection with Colab GPU",
+        "level": "Foundations",
+        "duration": "8 hours",
+        "summary": "Updated in May 2025....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/packt-computer-vision-yolo-custom-object-detection-with-colab-gpu-ixaf4"
+    },
+    {
+        "id": 200,
+        "course_name": "Image Segmentation, Filtering, and Region Analysis",
+        "level": "Foundations",
+        "duration": "9 hours",
+        "summary": "In this course, you will build on the skills learned in Introduction to Image Processing to work through common complications such as noise. You’ll use spatial filters to deal with different types of artifacts. You’ll learn new approaches to segmenta...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/image-segmentation"
+    },
+    {
+        "id": 201,
+        "course_name": "Deep Learning with PyTorch : Image Segmentation",
+        "level": "Specialist",
+        "duration": "2 hours",
+        "summary": "In this 2-hour project-based course, you will be able to :...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/projects/deep-learning-with-pytorch-image-segmentation"
+    },
+    {
+        "id": 202,
+        "course_name": "Enhance Images: Quality Fixes Fast",
+        "level": "Foundations",
+        "duration": "1 h",
+        "summary": "Did you know that up to 80% of computer vision model failures can be traced back to poor image quality in training datasets? ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/enhance-images-quality-fixes-fast"
+    },
+    {
+        "id": 203,
+        "course_name": "Aerial Image Segmentation with PyTorch",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "In this 2-hour project-based course, you will be able to :...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/projects/aerial-image-segmentation-with-pytorch"
+    },
+    {
+        "id": 204,
+        "course_name": "Preparing Images for AI Models",
+        "level": "Foundations",
+        "duration": "8 hours",
+        "summary": "The Preparing Images for AI Models course is designed for developers, engineers, and technical product builders who are new to Generative AI but already have intermediate machine learning knowledge, basic Python proficiency, and familiarity with deve...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/preparing-images-for-ai-models"
+    },
+    {
+        "id": 205,
+        "course_name": "Customer Segmentation and Analytics",
+        "level": "Foundations",
+        "duration": "7 hours",
+        "summary": "You will learn to convert raw customer and survey data into actionable segments tied directly to revenue and growth levers. This course introduces sophisticated persona-building, cross-tab and pivot analyses, and RFM (Recency, Frequency, and Monetary...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/customer-segmentation-and-analytics"
+    },
+    {
+        "id": 206,
+        "course_name": "Image and Video Processing: From Mars to Hollywood with a Stop at the Hospital",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "In this course, you will learn the science behind how digital images and video are made, altered, stored, and used. We will look at the vast world of digital imaging, from how computers and digital cameras form images to how digital special effects a...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/image-processing"
+    },
+    {
+        "id": 207,
+        "course_name": "Medical Image Processing",
+        "level": "Foundations",
+        "duration": "4 hours",
+        "summary": "Medical image processing is pivotal in diagnosing diseases, planning treatment, and monitoring patients. Recent advances are revolutionizing how healthcare professionals understand and interact with complex medical conditions. This course is designed...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/medical-image-processing"
+    },
+    {
+        "id": 208,
+        "course_name": "Traitement d'images : segmentation et caractérisation",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Ce MOOC sur le traitement d'images est à l’intersection de plusieurs domaines scientifiques et techniques : les mathématiques, la physique, l’informatique....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/moocimage-segmentation-caracterisation"
+    },
+    {
+        "id": 209,
+        "course_name": "Introduction to Computer Vision and Image Processing",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Unlock the power of computer vision to add intelligence to images and videos! ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-computer-vision-watson-opencv"
+    },
+    {
+        "id": 210,
+        "course_name": "Analyze Video Data Using OpenCV and Python",
+        "level": "Foundations",
+        "duration": "8 hours",
+        "summary": "By the end of this course, learners will be able to analyze video data, apply color models, implement image preprocessing techniques, and build object detection and tracking solutions using OpenCV and Python. They will gain the ability to process rea...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/analyze-video-data-using-opencv-and-python"
+    },
+    {
+        "id": 211,
+        "course_name": "Computer Vision with Embedded Machine Learning",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "Computer vision (CV) is a fascinating field of study that attempts to automate the process of assigning meaning to digital images or videos. In other words, we are helping computers see and understand the world around us! A number of machine learning...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/computer-vision-with-embedded-machine-learning"
+    },
+    {
+        "id": 212,
+        "course_name": "Master OpenCV Fundamentals for Real-Time Computer Vision",
+        "level": "Foundations",
+        "duration": "6 hours",
+        "summary": "Learners will be able to understand core computer vision concepts, implement essential image processing techniques, perform geometric transformations, and build real-time applications such as webcam effects and face recognition systems using OpenCV a...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/master-opencv-fundamentals-for-real-time-computer-vision"
+    },
+    {
+        "id": 213,
+        "course_name": "用Python玩转数据 Data Processing Using Python",
+        "level": "Foundations",
+        "duration": "3 weeks",
+        "summary": "本课程 (Please click https://www.coursera.org/learn/python-data-processing for English version) 主要面向非计算机专业学生，从Python基本语法开始，到Python中如何从本地和网络上进行数据获取，如何解析和表示数据，再到如何利用Python开源生态系统SciPy对数据进行基础和高级的统计分析及可视化，包括数据探索和预处理的具体方法，到最后如何设计一个简单的GUI界面来表示和处理数据，层层推进。...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/hipython"
+    },
+    {
+        "id": 214,
+        "course_name": "Annotate and Analyze Objects for Vision",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "This short course shows you how to build reliable vision datasets and configure detection models with confidence. You’ll learn how to run a quality-controlled annotation process, review bounding boxes, coach annotators, and check dataset consistency ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/annotate-and-analyze-objects-for-vision"
+    },
+    {
+        "id": 215,
+        "course_name": "Learn Python Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "In this specialization, you’ll learn core Python programming syntax, such as variables, loops, and arithmetic operations, before moving on to advanced topics, including lambda functions, dictionaries, and exception handling. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/learn-python"
+    },
+    {
+        "id": 216,
+        "course_name": "Implement Real-Time Face Detection with OpenCV & Python",
+        "level": "Foundations",
+        "duration": "5 hours",
+        "summary": "By completing this course, learners will implement face detection systems, apply real-time computer vision techniques, and integrate facial feature detection using OpenCV and Python. Learners will gain hands-on experience detecting faces, eyes, and s...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/implement-real-time-face-detection-with-opencv-and-python"
+    },
+    {
+        "id": 217,
+        "course_name": "PyTorch for Deep Learning Professional Certificate",
+        "level": "Specialist",
+        "duration": "2 months",
+        "summary": "The PyTorch for Deep Learning Professional Certificate teaches you how to build, train, optimize, and deploy deep learning models using the PyTorch framework. Through three progressively structured courses, you’ll move from the fundamentals of PyTorc...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/pytorch-for-deep-learning"
+    },
+    {
+        "id": 218,
+        "course_name": "PyTorch: Fundamentals",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "This course introduces you to the core principles of deep learning through hands-on coding in PyTorch. You’ll start by learning how PyTorch represents data with tensors and how datasets and data loaders fit into the training process. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/pytorch-fundamentals"
+    },
+    {
+        "id": 219,
+        "course_name": "PyTorch Ultimate 2024 - From Basics to Cutting-Edge Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Updated in May 2025....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/packt-pytorch-ultimate-2024---from-basics-to-cutting-edge"
+    },
+    {
+        "id": 220,
+        "course_name": "Machine Learning with PyTorch and Scikit-Learn",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This course offers a comprehensive exploration of machine learning and deep learning using PyTorch and Scikit-Learn. It provides clear explanations, visualizations, and practical examples to help learners build and deploy machine learning models. Ide...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/packt-machine-learning-with-pytorch-and-scikit-learn"
+    },
+    {
+        "id": 221,
+        "course_name": "Deep Learning and Advanced Techniques",
+        "level": "Specialist",
+        "duration": "9 hours",
+        "summary": "This course features Coursera Coach!...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/packt-deep-learning-and-advanced-techniques-fiw0z"
+    },
+    {
+        "id": 222,
+        "course_name": "Deep Learning: Build & Optimize Neural Networks",
+        "level": "Specialist",
+        "duration": "2 weeks",
+        "summary": "By the end of this course, learners will differentiate core AI concepts, construct deep neural networks, apply image and text models, develop attention-based NLP systems, and design recommender solutions....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/deep-learning-build-optimize-neural-networks"
+    },
+    {
+        "id": 223,
+        "course_name": "DeepLearning.AI TensorFlow Developer Professional Certificate",
+        "level": "Specialist",
+        "duration": "2 months",
+        "summary": "TensorFlow is one of the most in-demand and popular open-source deep learning frameworks available today. The DeepLearning.AI TensorFlow Developer Professional Certificate program teaches you applied machine learning skills with TensorFlow so you can...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/tensorflow-in-practice"
+    },
+    {
+        "id": 224,
+        "course_name": "TensorFlow 2 for Deep Learning Specialization",
+        "level": "Specialist",
+        "duration": "3 months",
+        "summary": "This Specialization is intended for machine learning researchers and practitioners who are seeking to develop practical skills in the popular deep learning framework TensorFlow. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/tensorflow2-deeplearning"
+    },
+    {
+        "id": 225,
+        "course_name": "Build & Optimize TensorFlow ML Workflows",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "This short course helps you build and optimize machine learning workflows using TensorFlow 2.x. You’ll start by structuring an end-to-end pipeline that includes data ingestion with tf.data, model definition with Keras, and custom training with checkp...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/build--optimize-tensorflow-ml-workflows"
+    },
+    {
+        "id": 226,
+        "course_name": "AI Model Development & Deployment Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This Specialization equips you with the skills to design, build, and deploy production-ready machine learning systems from end to end. You'll learn to architect custom neural networks, optimize deep learning models, engineer robust data pipelines, an...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/ai-model-development-and-deployment"
+    },
+    {
+        "id": 227,
+        "course_name": "IBM AI Developer Professional Certificate",
+        "level": "Foundations",
+        "duration": "6 months",
+        "summary": "As Artificial intelligence (AI) and generative AI revolutionize our world, the demand for AI Software Developers with the right cutting-edge skills is soaring. This IBM AI Developer Professional Certificate will equip you with sought-after expertize ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/applied-artifical-intelligence-ibm-watson-ai"
+    },
+    {
+        "id": 228,
+        "course_name": "Analyze and Build Deep Learning Models with TensorFlow",
+        "level": "Specialist",
+        "duration": "5 hours",
+        "summary": "By the end of this course, learners will be able to explain core deep learning concepts, analyze neural network architectures, apply activation and optimization techniques, and implement end-to-end deep learning models using TensorFlow and Keras. Lea...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/analyze-build-deep-learning-models-with-tensorflow"
+    },
+    {
+        "id": 229,
+        "course_name": "TensorFlow: Advanced Techniques Specialization",
+        "level": "Specialist",
+        "duration": "2 months",
+        "summary": "About TensorFlow...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/tensorflow-advanced-techniques"
+    },
+    {
+        "id": 230,
+        "course_name": "TensorFlow: Data and Deployment Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Continue developing your skills in TensorFlow as you learn to navigate through a wide range of deployment scenarios and discover new ways to use data more effectively when training your machine learning models....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/tensorflow-data-and-deployment"
+    },
+    {
+        "id": 231,
+        "course_name": "Machine Learning with Scikit-learn, PyTorch & Hugging Face Professional Certificate",
+        "level": "Foundations",
+        "duration": "5 months",
+        "summary": "Build and deploy real-world machine learning solutions with confidence. The  Machine Learning with Scikit-learn, PyTorch & Hugging Face Professional Certificate is a hands-on program that teaches through practical, project-based learning using indust...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/machine-learning-scikit-learn-pytorch-hugging-face"
+    },
+    {
+        "id": 232,
+        "course_name": "Artificial Intelligence with Python: Foundations to Projects Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This beginner-to-intermediate Specialization takes you from Python setup and numerical computing to building, tuning, and explaining machine learning and deep learning models. Across three courses, you’ll master data wrangling with NumPy, visualizati...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/artificial-intelligence-with-python-foundations-to-projects"
+    },
+    {
+        "id": 233,
+        "course_name": "AI Machine Learning with R & Python Projects Specialization",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "This Specialization equips learners with a strong foundation in machine learning, combining the statistical power of R with the flexibility of Python. Learners will progress from regression and classification to clustering, neural networks, and time ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/ai-machine-learning-r-python-projects"
+    },
+    {
+        "id": 234,
+        "course_name": "AI for Scientific Research Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "In the AI for Scientific Research specialization, we'll learn how to use AI in scientific situations to discover trends and patterns within datasets. Course 1 teaches a little bit about the Python language as it relates to data science. We'll share s...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/artificial-intelligence-scientific-research"
+    },
+    {
+        "id": 235,
+        "course_name": "Python Project for Data Science",
+        "level": "Foundations",
+        "duration": "7 hours",
+        "summary": "This mini-course is intended to for you to demonstrate foundational Python skills for working with data. This course primarily involves completing a project in which you will assume the role of a Data Scientist or a Data Analyst and be provided with ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/python-project-for-data-science"
+    },
+    {
+        "id": 236,
+        "course_name": "Automate ML Pipelines for Peak Performance",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "This course teaches you how to build a fully automated machine learning pipeline using scikit-learn. You will learn to scale numeric features, encode categorical variables, train a logistic model, and optimize it using GridSearchCV. The course then g...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/automate-ml-pipelines-for-peak-performance"
+    },
+    {
+        "id": 237,
+        "course_name": "Keras Deep Learning Projects with TensorFlow Specialization",
+        "level": "Specialist",
+        "duration": "4 weeks",
+        "summary": "This Specialization provides an end-to-end, hands-on learning experience in building and deploying deep learning models using Keras and TensorFlow. Learners will work on real-world projects in chatbot development, sentiment analysis, image classifica...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/keras-deep-learning-projects-with-tensorflow"
+    },
+    {
+        "id": 238,
+        "course_name": "Python - Complete Python, Django, Data Science and ML Guide Specialization",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "This course features Coursera Coach! ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/packt-python-complete-python-django-data-science-and-ml-guide"
+    },
+    {
+        "id": 239,
+        "course_name": "AI Deep Learning Projects with TensorFlow Specialization",
+        "level": "Specialist",
+        "duration": "4 weeks",
+        "summary": "This Specialization equips learners with the practical skills to design, train, and deploy deep learning applications using TensorFlow. Across three project-based courses, learners will explore neural networks, image captioning systems, and real-time...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/ai-deep-learning-projects-tensorflow"
+    },
+    {
+        "id": 240,
+        "course_name": "Machine Learning in Production",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "In this Machine Learning in Production course, you will build intuition about designing a production ML system end-to-end: project scoping, data needs, modeling strategies, and deployment patterns and technologies. You will learn strategies for addre...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-to-machine-learning-in-production"
+    },
+    {
+        "id": 241,
+        "course_name": "Machine Learning Operations (MLOps): Getting Started",
+        "level": "Foundations",
+        "duration": "4 hours",
+        "summary": "This course introduces participants to MLOps tools and best practices for deploying, evaluating, monitoring and operating production ML systems on Google Cloud. MLOps is a discipline focused on the deployment, testing, monitoring, and automation of M...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/mlops-fundamentals"
+    },
+    {
+        "id": 242,
+        "course_name": "DevOps, DataOps, MLOps",
+        "level": "Foundations",
+        "duration": "5 weeks",
+        "summary": "Learn how to apply Machine Learning Operations (MLOps) to solve real-world problems. The course covers end-to-end solutions with Artificial Intelligence (AI) pair programming using technologies like GitHub Copilot to build solutions for machine learn...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/devops-dataops-mlops-duke"
+    },
+    {
+        "id": 243,
+        "course_name": "AI Agents and MLOps for Production-Ready AI",
+        "level": "Foundations",
+        "duration": "5 hours",
+        "summary": "This course features Coursera Coach!...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/packt-ai-agents-and-mlops-for-production-ready-ai-s8p1m"
+    },
+    {
+        "id": 244,
+        "course_name": "Developing Machine Learning Solutions",
+        "level": "Foundations",
+        "duration": "1 h",
+        "summary": "In this machine learning course, you will learn about the machine learning lifecycle, and how to use AWS services at every stage. Additionally, you will discover the diverse sources for machine learning models and learn techniques to evaluate their p...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/developing-machine-learning-solutions"
+    },
+    {
+        "id": 245,
+        "course_name": "Production Governance and MLOps on Databricks",
+        "level": "Foundations",
+        "duration": "7 hours",
+        "summary": "This intermediate course provides a practical, hands-on exploration of Databricks Governance, focusing on the essential tools and workflows for managing and securing your data lakehouse. You will learn to navigate and control access to your data asse...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/production-governance-and-mlops-on-databricks"
+    },
+    {
+        "id": 246,
+        "course_name": "Python Essentials for MLOps",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Python Essentials for MLOps (Machine Learning Operations) is a course designed to provide learners with the fundamental Python skills needed to succeed in an MLOps role. This course covers the basics of the Python programming language, including data...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/python-mlops-duke"
+    },
+    {
+        "id": 247,
+        "course_name": "Gradient to Production: MLOps & Model Serving Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Most machine learning practitioners know how to build models. Far fewer know how to ship them reliably, maintain them over time, and operate the systems that surround them. This program closes that gap....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/gradient-to-production-mlops-model-serving"
+    },
+    {
+        "id": 248,
+        "course_name": "End-to-End Multimodal AI: Fine-Tuning, Fusion, and MLOps",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "Build production-ready multimodal AI systems that combine vision, language, and audio into unified intelligent applications. This course takes you through the full lifecycle of multimodal model development — from constructing and fine-tuning transfor...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/end-to-end-multimodal-ai-fine-tuning-fusion-and-mlops"
+    },
+    {
+        "id": 249,
+        "course_name": "Ethical AI: AI essentials for everyone",
+        "level": "Foundations",
+        "duration": "5 hours",
+        "summary": "Artificial Intelligence (AI) has become an integral part of our daily lives. However, its omnipresence brings forth complex ethical issues revolving around safety, intellectual property, privacy, and responsible use. This introductory course aims to ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ethical-ai-ai-essentials-for-everyone"
+    },
+    {
+        "id": 250,
+        "course_name": "Generative AI: Impact, Considerations, and Ethical Issues",
+        "level": "Foundations",
+        "duration": "6 hours",
+        "summary": "In this course, you will explore the impact of generative artificial intelligence (AI) on society, the workforce, organizations, and the environment. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/generative-ai-ethical-considerations-and-implications"
+    },
+    {
+        "id": 251,
+        "course_name": "AI Ethics, Responsible Use, and Creativity",
+        "level": "Foundations",
+        "duration": "5 hours",
+        "summary": "“AI Ethics, Responsible Use, & Creativity” explores ethics and responsible use of generative AI tools for creative work.  After completing this course, you will learn how to engage with generative AI tools with an eye toward intentionality, sustainab...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-ethics-responsible-use-and-creativity"
+    },
+    {
+        "id": 252,
+        "course_name": "Introduction to Responsible AI",
+        "level": "Foundations",
+        "duration": "1 h",
+        "summary": "This is an introductory-level microlearning course aimed at explaining what responsible AI is, why it's important, and how Google implements responsible AI in their products. It also introduces Google's 7 AI principles....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-to-responsible-ai"
+    },
+    {
+        "id": 253,
+        "course_name": "Artificial Intelligence: Ethics & Societal Challenges",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "Artificial Intelligence: Ethics & Societal Challenges is a four-week course that explores ethical and societal aspects of the increasing use of artificial intelligent technologies (AI). The aim of the course is to raise awareness of ethical and socie...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-ethics"
+    },
+    {
+        "id": 254,
+        "course_name": "AI, Empathy & Ethics",
+        "level": "Foundations",
+        "duration": "4 hours",
+        "summary": "This nontechnical course provides an overview of artificial intelligence advancements and the ethical challenges we now face as we navigate the development, implementation, and ubiquitous global use of AI....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-empathy-ethics"
+    },
+    {
+        "id": 255,
+        "course_name": "Ethics of Artificial Intelligence",
+        "level": "Foundations",
+        "duration": "4 hours",
+        "summary": "The MOOC deals with  the ethical issues created, aggravated or transformed by AI. It is intended to give students a chance to reflect on the impact of AI on ethical, social and cultural aspects by focusing on the issues faced by and brought about by ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ethics-of-artificial-intelligence"
+    },
+    {
+        "id": 256,
+        "course_name": "AI Ethics",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "In today’s rapidly changing digital world, understanding business ethics and AI ethics is essential for anyone working in business, technology, or leadership. This comprehensive course teaches you how to make ethical decisions, lead with integrity, a...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-business-ethics"
+    },
+    {
+        "id": 257,
+        "course_name": "Empathic AI Communication, Trust & Ethical Use Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This program prepares you to use AI responsibly while developing empathic communication skills. Across seven courses you’ll act as an ethical mediator between chatbots and users: you’ll use prompt templates and a tone‑accuracy‑risk checklist to vet r...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/empathic-ai-communication-trust-ethical-use"
+    },
+    {
+        "id": 258,
+        "course_name": "AI Governance",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "As AI systems become more powerful and embedded across industries, the need for effective governance is no longer optional – it’s essential. This course explores how organisations can ensure that AI tools are not only effective but also safe, fair, a...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-governance"
+    },
+    {
+        "id": 259,
+        "course_name": "Align AI: Ethics, Strategy & Excellence",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "Did you know that over 60% of organizations adopting AI struggle not with technology, but with aligning ethical practices and strategic goals across teams? Responsible AI success depends on more than just model performance—it depends on governance, p...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/align-ai-ethics-strategy--excellence"
+    },
+    {
+        "id": 260,
+        "course_name": "Trustworthy AI: Managing Bias, Ethics, and Accountability",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "The course \"Responsible AI and Ethics\" explores the ethical, social, and technical aspects of artificial intelligence (AI) and machine learning (ML). It focuses on understanding bias in both human and machine systems and provides strategies for mitig...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/responsible-ai-and-ethics"
+    },
+    {
+        "id": 261,
+        "course_name": "AI in Healthcare Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Artificial intelligence (AI) has transformed industries around the world, and has the potential to radically alter the field of healthcare. Imagine being able to analyze data on patient visits to the clinic, medications prescribed, lab tests, and pro...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/ai-healthcare"
+    },
+    {
+        "id": 262,
+        "course_name": "AI for Healthcare Systems Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "AI for Healthcare Systems is a comprehensive exploration AI-relevant tools, applications and systems for mid-career healthcare and other professionals interested in this topic. This specialization benefits learners beginning to explore a career in AI...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/ai-for-healthcare-systems"
+    },
+    {
+        "id": 263,
+        "course_name": "Evaluations of AI Applications in Healthcare",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "With artificial intelligence applications proliferating throughout the healthcare system, stakeholders are faced with both opportunities and challenges of these evolving technologies. This course explores the principles of AI deployment in healthcare...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/evaluations-ai-applications-healthcare"
+    },
+    {
+        "id": 264,
+        "course_name": "AI in Healthcare Capstone",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "This capstone project takes you on a guided tour exploring all the concepts we have covered in the different classes up till now. We have organized this experience around the journey of a patient who develops some respiratory symptoms and given the c...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-in-healthcare-capstone"
+    },
+    {
+        "id": 265,
+        "course_name": "Introduction to Generative AI in Healthcare",
+        "level": "Foundations",
+        "duration": "5 hours",
+        "summary": "This course \"Introduction to Generative AI in Healthcare\" offers a comprehensive introduction to Generative AI in Healthcare, designed specifically for individuals who are curious about the intersection of cutting-edge technology and the medical fiel...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-to-generative-ai-in-healthcare"
+    },
+    {
+        "id": 266,
+        "course_name": "Microsoft Azure AI in Healthcare Professional Certificate",
+        "level": "Foundations",
+        "duration": "4 months",
+        "summary": "This certification helps you to learn how to design, deploy, and maintain AI-powered solutions that enhance clinical workflows, strengthen patient safety, and support better decision-making. You’ll build practical skills in healthcare-focused AI impl...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/microsoft-azure-ai-in-healthcare"
+    },
+    {
+        "id": 267,
+        "course_name": "Foundations of AI in Healthcare",
+        "level": "Foundations",
+        "duration": "8 hours",
+        "summary": "Artificial intelligence is transforming healthcare by improving diagnosis, enhancing patient care, and streamlining clinical workflows. If you’re a technologist aiming to apply your skills to healthcare challenges, or a healthcare professional eager ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/foundations-of-ai-in-healthcare"
+    },
+    {
+        "id": 268,
+        "course_name": "Generative AI for Healthcare",
+        "level": "Foundations",
+        "duration": "3 hours",
+        "summary": "Specifically designed for healthcare professionals, this course demystifies...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/generative-ai-for-healthcare"
+    },
+    {
+        "id": 269,
+        "course_name": "Foundation and Potential of AI in Healthcare",
+        "level": "Foundations",
+        "duration": "8 hours",
+        "summary": "This course introduces how AI shapes modern health systems, exploring key applications, adoption trends, and its role in digital transformation. Learners will assess AI’s potential to enhance healthcare capabilities, improve efficiency, and address m...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/foundation-and-potential-of-ai-in-healthcare"
+    },
+    {
+        "id": 270,
+        "course_name": "AI Integration in Healthcare Patient Data",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "This course delves into the integration of artificial intelligence (AI) within healthcare, focusing on patient data management. Learners will explore the ethical and policy considerations surrounding AI applications in clinical and public health sett...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-integration-in-healthcare-patient-data"
+    },
+    {
+        "id": 271,
+        "course_name": "AI for Medical Diagnosis",
+        "level": "Foundations",
+        "duration": "2 weeks",
+        "summary": "AI is transforming the practice of medicine. It’s helping doctors diagnose patients more accurately, make predictions about patients’ future health, and recommend better treatments. As an AI practitioner, you have the opportunity to join in this tran...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-for-medical-diagnosis"
+    },
+    {
+        "id": 272,
+        "course_name": "AI in Finance",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "AI for Finance is designed for finance professionals, analysts, and emerging leaders who want to apply artificial intelligence to financial decision-making, modeling, and strategy. This program focuses on real-world, high-impact use cases - credit sc...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-in-finance"
+    },
+    {
+        "id": 273,
+        "course_name": "AI-Powered Finance: Forecasting, Planning & Reporting Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Transform your finance career with cutting-edge Generative AI skills that top financial institutions are already using. This comprehensive program equips you with practical AI tools to automate financial reporting, optimize portfolio management, and ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/ai-powered-finance-forecasting-planning-and-reporting"
+    },
+    {
+        "id": 274,
+        "course_name": "Financial Analyst: AI, Excel, and Power BI Skills Professional Certificate",
+        "level": "Foundations",
+        "duration": "3 months",
+        "summary": "Become a job-ready Financial Analyst with hands-on training in AI, Excel, Power BI, and financial modeling. This Entry-Level Professional Certificate prepares you for entry-level financial analyst roles—even if you have no degree or prior experience....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/financial-analyst-ai-excel-and-power-bi-skills"
+    },
+    {
+        "id": 275,
+        "course_name": "Master Financial Analysis: AI-Driven Modeling & Forecasting Specialization",
+        "level": "Foundations",
+        "duration": "12 weeks",
+        "summary": "Finance is transforming from historical reporting to predictive, AI-driven decision systems. This specialization equips learners with deep financial modeling expertise and the ability to apply machine learning, automation, and intelligent dashboards ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/financialanalyst-w-ai-skills"
+    },
+    {
+        "id": 276,
+        "course_name": "Introduction to Generative AI in Finance",
+        "level": "Foundations",
+        "duration": "4 hours",
+        "summary": "Are you aware that generative AI is rapidly reshaping the financial services landscape? This groundbreaking technology is transforming how we analyze markets, manage risks, and tailor financial products, opening up unprecedented avenues for efficienc...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-to-generative-ai-in-finance"
+    },
+    {
+        "id": 277,
+        "course_name": "AI Applications in Marketing and Finance",
+        "level": "Foundations",
+        "duration": "9 hours",
+        "summary": "In this course, you will learn about AI-powered applications that can enhance the customer journey and extend the customer lifecycle. You will learn how this AI-powered data can enable you to analyze consumer habits and maximize their potential to ta...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/wharton-ai-applications-marketing-finance"
+    },
+    {
+        "id": 278,
+        "course_name": "AI Fundamentals in Financial Services",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "Artificial Intelligence (AI) is rapidly reshaping the financial services landscape. From fraud detection and algorithmic trading to customer service chatbots and credit scoring, AI is at the heart of a new era in finance. This course is designed to g...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-financial-services"
+    },
+    {
+        "id": 279,
+        "course_name": "Generative AI for Finance and Accounting Specialization",
+        "level": "Foundations",
+        "duration": "8 weeks",
+        "summary": "Generative AI for Finance and Accounting is an industry-aligned specialization that helps finance and accounting professionals design, implement, and manage AI-powered financial systems that are accurate, efficient, and strategically impactful....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/generative-ai-for-finance-and-accounting"
+    },
+    {
+        "id": 280,
+        "course_name": "AI in Financial Services: Foundations through future trends Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "The financial sector is being reshaped by Artificial Intelligence, Open Finance, and the rise of data-driven innovation. In this three-course specialisation, you’ll explore how AI technologies like machine learning and natural language processing are...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/ai-financial-services-foundations-future-trends"
+    },
+    {
+        "id": 281,
+        "course_name": "AI for Finance Specialization",
+        "level": "Foundations",
+        "duration": "8 weeks",
+        "summary": "This specialization consists of three progressive courses designed to equip finance professionals with AI literacy, practical training, hands-on skills, and the ability to create AI-powered apps, agentic workflows and agents. The program follows a st...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/ai-for-finance"
+    },
+    {
+        "id": 282,
+        "course_name": "Decentralized Finance (DeFi): The Future of Finance Specialization",
+        "level": "Foundations",
+        "duration": "16 weeks",
+        "summary": "DeFi and the Future of Finance is a four course learning experience. DeFi or Decentralized Finance is a new technology whereby users interact as peers with algorithms or smart contracts rather than through traditional intermediaries such as banks, br...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/decentralized-finance-duke"
+    },
+    {
+        "id": 283,
+        "course_name": "Generative AI in Finance",
+        "level": "Foundations",
+        "duration": "5 hours",
+        "summary": "The Generative AI in Finance course offers a practical, in-depth introduction to how generative AI is reshaping the financial sector. Designed for finance professionals, analysts, risk officers, AI engineers, and business leaders, this course helps y...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/generative-ai-in-finance"
+    },
+    {
+        "id": 284,
+        "course_name": "Data Engineering Foundations Specialization",
+        "level": "Foundations",
+        "duration": "3 months",
+        "summary": "Data engineering is one of the fastest-growing tech occupations, where the demand for skilled data engineers far outweighs the supply. The goal of data engineering is to make quality data available for fact-finding and data-driven decision making. Th...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/data-engineering-foundations"
+    },
+    {
+        "id": 285,
+        "course_name": "Enterprise AI and Data Engineering with Databricks Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This five-course specialization takes you from lakehouse fundamentals to production-grade AI systems on the Databricks platform. You begin by building data pipelines with Apache Spark and Delta Lake, learning medallion architecture (bronze, silver, g...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/enterprise-ai-data-engineering-databricks"
+    },
+    {
+        "id": 286,
+        "course_name": "Introduction to Data Engineering",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "Start your journey in one of the fastest growing professions today with this beginner-friendly Data Engineering course! You will be introduced to the core concepts, processes, and tools you need to know in order to get a foundational knowledge of dat...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-to-data-engineering"
+    },
+    {
+        "id": 287,
+        "course_name": "Git, Docker & CI/CD: DevOps Foundations for Data Engineers Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Manual deployments break. Unmanaged environments drift. Unresolved merge conflicts cost teams hours. For data engineers, these are not occasional inconveniences — they are production risks. This program gives you the tools and workflows to eliminate ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/git-docker-cicd-devops-foundations-data-engineers"
+    },
+    {
+        "id": 288,
+        "course_name": "Data Modeling & Warehousing Fundamentals in Data Engineering",
+        "level": "Foundations",
+        "duration": "9 hours",
+        "summary": "You'll learn the essential skills needed to design, build, and maintain robust data warehouses that power business intelligence and analytics. Through hands-on practice, you'll learn to create star schema data models that enable self-service reportin...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/data-modeling-and-warehousing-fundamentals-for-data-engineering"
+    },
+    {
+        "id": 289,
+        "course_name": "DeepLearning.AI Data Engineering Professional Certificate",
+        "level": "Specialist",
+        "duration": "3 months",
+        "summary": "The DeepLearning.AI Data Engineering Professional Certificate is a comprehensive online program for data engineers and practitioners looking to start or grow their careers....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/data-engineering"
+    },
+    {
+        "id": 290,
+        "course_name": "Advanced Data Engineering",
+        "level": "Specialist",
+        "duration": "2 weeks",
+        "summary": "In this advanced course, you will gain practical expertise in scaling data engineering systems using cutting-edge tools and techniques. This course is designed for data scientists, data engineers, and anyone with a foundational understanding of data ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/advanced-data-engineering"
+    },
+    {
+        "id": 291,
+        "course_name": "Introduction to Data Engineering on Google Cloud",
+        "level": "Foundations",
+        "duration": "9 hours",
+        "summary": "In this course, you learn about data engineering on Google Cloud, the roles and responsibilities of data engineers, and how those map to offerings provided by Google Cloud. You also learn about ways to address data engineering challenges....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/introduction-to-data-engineering-on-google-cloud"
+    },
+    {
+        "id": 292,
+        "course_name": "Data Engineering Career Guide and Interview Preparation",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "This course is designed to prepare you to enter the job market as a data engineer. It provides guidance about the regular functions and tasks of data engineers and their place in the data ecosystem, as well as the opportunities of the profession and ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/data-engineering-career-guide-and-interview-preparation"
+    },
+    {
+        "id": 293,
+        "course_name": "Cloud Data Engineering",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Welcome to the third course in the Building Cloud Computing Solutions at Scale Specialization! In this course, you will learn how to apply Data Engineering to real-world projects using the Cloud computing concepts introduced in the first two courses ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/cloud-data-engineering-duke"
+    },
+    {
+        "id": 294,
+        "course_name": "Data Engineering on AWS - Foundations",
+        "level": "Foundations",
+        "duration": "1 h",
+        "summary": "In this course, you will learn essential data engineering concepts such as what does a data engineer do, how to perform data discovery, and which AWS data services are available for running, automating, and securing your data solutions and projects. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/data-engineering-on-aws-foundations"
+    },
+    {
+        "id": 295,
+        "course_name": "Pipeline Architects: Data Engineering to Lakehouse Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Raw data sitting in disconnected silos is not a data platform — it is a liability. Building systems that ingest, transform, reconcile, version, & serve data reliably at enterprise scale is what separates engineers who prototype from architects who bu...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/pipeline-architects-data-engineering-to-lakehouse"
+    },
+    {
+        "id": 296,
+        "course_name": "Google Cloud AI Infrastructure Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This learning path, designed for intermediate to advanced technical learners, offers on-demand courses to specialize in AI Infrastructure on Google Cloud. You'll gain the knowledge and skills to design and deploy high-performance AI/ML solutions usin...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/google-cloud-ai-infrastructure"
+    },
+    {
+        "id": 297,
+        "course_name": "Oracle Cloud and AI Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This Specialization offers a comprehensive learning path across Oracle Cloud Infrastructure (OCI), Oracle Cloud Applications, and cutting-edge AI technologies. You will begin by exploring Oracle’s complete cloud solution, including key OCI components...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/oracle-cloud-and-ai"
+    },
+    {
+        "id": 298,
+        "course_name": "AI Infrastructure : Cloud GPU",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "Le matériel puissant qui se cache derrière l'IA vous intrigue ? Ce module décortique les ordinateurs à intelligence artificielle optimisés pour les performances et vous montre pourquoi ils sont si importants. Nous allons voir comment les CPU, les GPU...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-infrastructure-cloud-gpus-fr"
+    },
+    {
+        "id": 299,
+        "course_name": "Blueprint to Bytecode: Architecting Scalable AI Systems Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Transform your AI expertise into production-ready systems that scale. This comprehensive program teaches you to architect, deploy, and optimize enterprise AI solutions using modern cloud infrastructure and MLOps best practices....",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/blueprint-bytecode-architecting-scalable-ai-systems"
+    },
+    {
+        "id": 300,
+        "course_name": "Building Cloud Computing Solutions at Scale Specialization",
+        "level": "Foundations",
+        "duration": "6 months",
+        "summary": "With more companies leveraging software that runs on the Cloud, there is a growing need to find and hire individuals with the skills needed to build solutions on a variety of Cloud platforms. Employers agree: Cloud talent is hard to find. This Specia...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/building-cloud-computing-solutions-at-scale"
+    },
+    {
+        "id": 301,
+        "course_name": "Deploy and Optimize Cloud AI Architectures",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "This short course helps you deploy and optimize scalable machine learning workloads in the cloud using managed AI services. You’ll start by learning how distributed training jobs work on platforms like Amazon SageMaker. Then you’ll configure training...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/deploy-and-optimize-cloud-ai-architectures"
+    },
+    {
+        "id": 302,
+        "course_name": "Architecting Scalable Cloud AI Infrastructure",
+        "level": "Foundations",
+        "duration": "10 hours",
+        "summary": "Enterprise AI systems require cloud infrastructure that scales globally while controlling cost and reliability. This course equips you with architecture skills to design multi-cloud AI platforms, build resilient microservices, automate governance, an...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/architecting-scalable-cloud-ai-infrastructure"
+    },
+    {
+        "id": 303,
+        "course_name": "AI Infrastructure：AI Hypercomputer 简介",
+        "level": "Foundations",
+        "duration": "2 hours",
+        "summary": "准备好探索 AI Hypercomputer 了吗？这门课程将带您轻松入门！我们将介绍相关基础知识，并阐释它们如何助力 AI 处理 AI 工作负载。您将了解超级计算机内部的各个组件，如 GPU、TPU 和 CPU，并知晓如何根据您的需求选择合适的部署方法。...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/learn/ai-infrastructure-introduction-to-ai-hypercomputer-zhcn"
+    },
+    {
+        "id": 304,
+        "course_name": "AWS Generative AI Applications Professional Certificate",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "Revitalize your career with must-have AI skills in one of technology's fastest-growing fields. This comprehensive program, designed for business professionals and aspiring technologists, teaches you how to leverage AWS AI services to enhance producti...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/professional-certificates/aws-generative-ai-applications"
+    },
+    {
+        "id": 305,
+        "course_name": "Digital Transformation Using AI/ML with Google Cloud Specialization",
+        "level": "Foundations",
+        "duration": "4 weeks",
+        "summary": "This series of courses begins by introducing fundamental Google Cloud concepts to lay the foundation for how businesses use data, machine learning (ML), and artificial intelligence (AI) to transform their business models. ...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/digital-transformation-using-ai-ml-with-google-cloud"
+    },
+    {
+        "id": 306,
+        "course_name": "Building AI Cloud Apps with Microsoft Azure Specialization",
+        "level": "Foundations",
+        "duration": "2 months",
+        "summary": "This Building AI Cloud Apps with Microsoft Azure program offers a comprehensive nine-course program that covers a wide range of topics on developing cloud and AI solutions with Microsoft Azure, including Azure Functions, Azure Service Bus,  Azure Sto...",
+        "certificate": "Yes",
+        "link": "https://www.coursera.org/specializations/building-ai-cloud-apps-microsoft-azure"
+    }
+]

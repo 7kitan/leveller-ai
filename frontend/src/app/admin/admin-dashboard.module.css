@@ -1,0 +1,53 @@
+@reference "tailwindcss";
+
+.pageRoot {
+  @apply space-y-12 animate-in fade-in duration-1000;
+}
+
+.headerWrapper {
+  @apply flex flex-col md:flex-row md:items-center justify-between gap-6;
+}
+
+.headerTitle {
+  @apply text-5xl font-black text-white tracking-tighter flex items-center gap-4;
+}
+
+.headerSubtitle {
+  @apply text-white/40 font-medium text-lg leading-relaxed;
+}
+
+.statusIndicator {
+  @apply flex items-center gap-4 bg-white/5 border border-white/10 px-6 py-3 rounded-2xl backdrop-blur-xl shrink-0;
+}
+
+.statsGrid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6;
+}
+
+.statCard {
+  @apply glass-panel p-8 group hover:bg-white/5 transition-all relative overflow-hidden;
+}
+
+.statIcon {
+  @apply w-8 h-8 mb-6 transform transition-transform group-hover:scale-110 relative z-10;
+}
+
+.statValue {
+  @apply text-5xl font-black text-white mb-2 tracking-tighter relative z-10;
+}
+
+.moduleGrid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-8;
+}
+
+.moduleCard {
+  @apply group overflow-hidden border border-white/10 rounded-[40px] p-12 block transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-black active:scale-[0.98] relative;
+}
+
+.moduleIconBox {
+  @apply w-16 h-16 rounded-[24px] bg-white/10 border border-white/20 flex items-center justify-center text-white transition-all group-hover:bg-white/20 group-hover:rotate-6;
+}
+
+.insightSection {
+  @apply glass-panel p-16 bg-gradient-to-r from-violet-900/20 to-transparent border-violet-500/20 relative overflow-hidden group;
+}

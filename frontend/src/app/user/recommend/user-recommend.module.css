@@ -1,0 +1,66 @@
+@reference "tailwindcss";
+
+.pageRoot {
+  @apply space-y-12 pb-20 animate-in fade-in duration-700;
+}
+
+.header {
+  @apply flex flex-col lg:flex-row lg:items-end justify-between gap-8;
+}
+
+.badgeHeader {
+  @apply inline-flex items-center gap-2 px-4 py-1.5 bg-cyan-500/10 border border-cyan-500/20 rounded-full;
+}
+
+.title {
+  @apply text-6xl font-black text-white tracking-tighter italic lg:leading-none;
+}
+
+.subtitle {
+  @apply text-white/40 font-medium text-lg max-w-xl;
+}
+
+.dashboardBtn {
+  @apply flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-bold transition-all w-fit;
+}
+
+.gridSystem {
+  @apply grid grid-cols-1 lg:grid-cols-12 gap-8;
+}
+
+/* Glass Panel helper */
+.panel {
+  @apply bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-2xl;
+}
+
+.heatmapPanel {
+  @apply p-10 relative overflow-hidden group;
+}
+
+.salaryPanel {
+  @apply p-8 bg-gradient-to-br from-indigo-500/5 to-transparent;
+}
+
+.infoPanel {
+  @apply p-8 flex flex-col items-center justify-center text-center;
+}
+
+.opportunitiesPanel {
+  @apply p-8;
+}
+
+.advicePanel {
+  @apply p-8 bg-gradient-to-t from-emerald-500/5 to-transparent relative overflow-hidden;
+}
+
+.progressBarTrack {
+  @apply h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5;
+}
+
+.progressBarFill {
+  @apply h-full bg-gradient-to-r from-cyan-600 to-indigo-600 shadow-[0_0_15px_rgba(6,182,212,0.5)];
+}
+
+.jobCard {
+  @apply block bg-white/3 border border-white/5 p-5 rounded-2xl hover:border-cyan-500/30 hover:bg-white/5 transition-all;
+}

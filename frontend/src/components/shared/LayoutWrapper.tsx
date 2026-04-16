@@ -4,42 +4,36 @@ import React from "react";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+
+import styles from "./layout.module.css";
 
 const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
-  const { user, loading } = useAuth();
-  
-  // Routes where sidebar/navbar should be hidden
-  const isAuthPage = pathname.startsWith("/auth");
+
+  // Determine chrome visibility based on route
+  const isAuthPage  = pathname.startsWith("/auth");
   const isAdminPage = pathname.startsWith("/admin");
-  const isLandingPage = pathname === "/" && !user;
-  const showChrome = !isAuthPage && !isAdminPage && !isLandingPage && user;
+  const showChrome = !isAuthPage && !isAdminPage && pathname !== "/";
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden bg-[#030508] text-white">
-      {/* Dynamic Ambient Glows */}
-      <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-violet-600/10 blur-[150px] rounded-full pointer-events-none"></div>
-      <div className="fixed bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-cyan-500/10 blur-[150px] rounded-full pointer-events-none"></div>
-      
+    <div className={styles.pageWrapper}>
+      {/* Ambient glow decorations — dark mode only (hidden via CSS in light mode) */}
+      <div className={styles.ambientGlow1} />
+      <div className={styles.ambientGlow2} />
+
       {showChrome && <Sidebar />}
 
-      <div 
-        className={`main-content transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-          showChrome ? "pl-[280px]" : "pl-0"
-        }`}
-      >
+      <div className={showChrome ? styles.contentWithSidebar : ""}>
         {showChrome && <Navbar />}
 
-        <main className={`relative z-10 ${showChrome ? "p-8 max-w-7xl mx-auto" : ""}`}>
+        <main className={showChrome ? styles.pageContainer : ""}>
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             {children}
           </div>
         </main>
-        
-        {/* Futuristic subtle footer for dashboards */}
+
         {showChrome && (
-          <footer className="mt-20 border-t border-white/5 py-8 text-center text-white/20 text-xs tracking-widest uppercase">
+          <footer className={styles.footer}>
             &copy; 2026 Lumix AI &bull; Career Nexus Architecture &bull; V6.0
           </footer>
         )}

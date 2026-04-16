@@ -14,25 +14,109 @@ import {
   ResponsiveContainer, Tooltip, Legend
 } from "recharts";
 
+interface GapMatrixItem {
+  jd_skill: string;
+  cv_skill: string | null;
+  status: "MET" | "PARTIAL" | "GAP";
+  score: number;
+  note: string;
+}
+
+interface SkillGap {
+  skill: string;
+  severity: "HIGH" | "MEDIUM" | "LOW";
+  priority: number;
+  reason: string;
+  learning_path: string;
+}
+
+interface CourseRecommendation {
+  skill_gap: string;
+  severity?: "HIGH" | "MEDIUM" | "LOW";
+  priority: number;
+  reason: string;
+  learning_path: string;
+  courses: any[];
+}
+
 interface AnalysisResult {
   overall_match_pct: number;
+  overall_assessment?: string;
+  strengths?: string[];
+  weaknesses?: string[];
   breakdown: {
     met: any[];
     gap: any[];
     partial: any[];
   };
+  gap_matrix?: GapMatrixItem[];
+  skill_gaps?: SkillGap[];
+  course_recommendations?: CourseRecommendation[];
   recommendations: any[];
-  seniority_report: {
+  seniority_report?: {
+"use client";
+
+import React, { useState, useEffect, Suspense } from "react";
+import { motion } from "framer-motion";
+import { useSearchParams } from "next/navigation";
+import { 
+  BrainCircuit, Zap, CheckCircle2, AlertCircle, 
+  BookOpen, Clock, ChevronRight, 
+  Info, Sparkles, History, ShieldCheck, RefreshCw, BarChart3, Target
+} from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { 
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  ResponsiveContainer, Tooltip, Legend
+} from "recharts";
+
+interface GapMatrixItem {
+  jd_skill: string;
+  cv_skill: string | null;
+  status: "MET" | "PARTIAL" | "GAP";
+  score: number;
+  note: string;
+}
+
+interface SkillGap {
+  skill: string;
+  severity: "HIGH" | "MEDIUM" | "LOW";
+  priority: number;
+  reason: string;
+  learning_path: string;
+}
+
+interface CourseRecommendation {
+  skill_gap: string;
+  severity?: "HIGH" | "MEDIUM" | "LOW";
+  priority: number;
+  reason: string;
+  learning_path: string;
+  courses: any[];
+}
+
+interface AnalysisResult {
+  overall_match_pct: number;
+  overall_assessment?: string;
+  strengths?: string[];
+  weaknesses?: string[];
+  breakdown: {
+    met: any[];
+    gap: any[];
+    partial: any[];
+  };
+  gap_matrix?: GapMatrixItem[];
+  skill_gaps?: SkillGap[];
+  course_recommendations?: CourseRecommendation[];
+  recommendations: any[];
+  seniority_report?: {
     skill: string;
     total_years: number;
     highlights: string[];
   }[];
-  cross_matrix?: {
-    jd_labels: string[];
-    cv_labels: string[];
-    scores: number[][];
-  };
 }
+
+import styles from "./user-analysis.module.css";
 
 function AnalysisContent() {
   const { user, token } = useAuth();
@@ -93,15 +177,12 @@ function AnalysisContent() {
 
   const fetchAnalysis = async (cvId: string) => {
     try {
-        const response = await fetch(`/api/analysis/user/cv/${cvId}`, {
+        const response = await fetch(`/api/analysis/latest?cv_id=${cvId}`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.ok) {
             const resData = await response.json();
             setData(resData);
-            if (resData.recommendations) {
-                fetchRealCourses(resData.recommendations);
-            }
         } else {
             setData(null);
         }
@@ -109,29 +190,6 @@ function AnalysisContent() {
         console.error("Fetch analysis error:", err);
     }
   };
-
-  const fetchRealCourses = async (gaps: any[]) => {
-      try {
-          const res = await fetch("/api/recommend/courses", {
-              method: "POST",
-              headers: { 
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${token}`
-              },
-              body: JSON.stringify({ gap_skills: gaps.map(g => ({
-                  skill_name: g.skill,
-                  target_level: g.target_level || "Mid-level",
-                  gap_type: g.type
-              }))})
-          });
-          if (res.ok) {
-              setRecommendedCourses(await res.json());
-          }
-      } catch (err) {
-          console.error("Fetch real courses error:", err);
-      }
-  };
-
 
   const handleStartAnalysis = async () => {
     if (!selectedCvId) return;
@@ -193,9 +251,6 @@ function AnalysisContent() {
                             setAnalyzing(false);
                         } else {
                             setData(s.result);
-                            if (s.result.recommendations) {
-                                fetchRealCourses(s.result.recommendations);
-                            }
                             setAnalyzing(false);
                         }
                         return;
@@ -260,7 +315,7 @@ function AnalysisContent() {
                   "Authorization": `Bearer ${token}`
               },
               body: JSON.stringify({
-                  analysis_id: selectedCvId, // Hoặc ID của report nếu có
+                  analysis_id: selectedCvId, 
                   rating: feedbackRating,
                   is_accurate: feedbackRating >= 4,
                   comment: feedbackComment
@@ -286,26 +341,26 @@ function AnalysisContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 selection:bg-indigo-500/30">
+    <div className={styles.pageRoot}>
       {/* Dynamic Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <div className={styles.dynamicBg}>
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/10 blur-[150px] rounded-full animate-pulse"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-violet-600/10 blur-[150px] rounded-full animate-pulse delay-1000"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03]"></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 lg:py-20">
+      <div className={styles.contentWrapper}>
         {/* Header Section */}
-        <header className="mb-20 text-center lg:text-left flex flex-col lg:flex-row lg:items-end lg:justify-between gap-10">
+        <header className={styles.header}>
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
               <Sparkles size={14} className="text-indigo-400" />
               <span className="text-indigo-400 text-[10px] font-black tracking-[0.2em] uppercase">Enterprise AI Analysis v2.0</span>
             </div>
-            <h1 className="text-6xl lg:text-8xl font-black text-white tracking-tighter italic leading-none">
+            <h1 className={styles.headerTitle}>
               CAREER <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-500 italic">GENOME.</span>
             </h1>
-            <p className="text-slate-400 text-lg font-medium max-w-2xl italic leading-relaxed">
+            <p className={styles.headerSubtitle}>
               Phân tích đa chiều về năng lực thực chiến, đo lường thâm niên qua ngữ cảnh và đề xuất lộ trình nâng cấp sự nghiệp cá nhân hóa.
             </p>
           </div>
@@ -313,7 +368,7 @@ function AnalysisContent() {
           {!analyzing && data && (
             <button 
               onClick={() => setData(null)}
-              className="px-8 py-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl text-white font-black text-sm italic hover:bg-indigo-600 hover:border-indigo-500 transition-all flex items-center gap-2 shadow-xl"
+              className={styles.newAnalysisBtn}
             >
               <RefreshCw size={18} /> PHÂN TÍCH MỚI
             </button>
@@ -321,10 +376,10 @@ function AnalysisContent() {
         </header>
 
         {analyzing ? (
-          <div className="flex flex-col items-center justify-center min-h-[50vh] bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[4rem] p-16 text-center animate-in fade-in zoom-in duration-700 shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
+          <div className={styles.analyzingPanel}>
             <div className="relative w-56 h-56 mb-16">
                 <div className="absolute inset-0 border-[16px] border-white/5 rounded-full"></div>
-                <div className="absolute inset-0 border-[16px] border-indigo-50 rounded-full border-t-transparent animate-spin shadow-[0_0_50px_rgba(99,102,241,0.4)]"></div>
+                <div className={styles.spinRing}></div>
                 <div className="absolute inset-0 flex items-center justify-center">
                     <BrainCircuit className="text-white animate-pulse" size={72} />
                 </div>
@@ -332,12 +387,12 @@ function AnalysisContent() {
                    Processing
                 </div>
             </div>
-            <h2 className="text-5xl font-black text-white italic tracking-tighter mb-4 uppercase animate-pulse">{pollingStage}</h2>
+            <h2 className={styles.analyzingTitle}>{pollingStage}</h2>
             <p className="text-slate-500 font-bold italic tracking-wide">Thuật toán đang bóc tách thâm niên thực tế của bạn...</p>
           </div>
         ) : !data ? (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-             <div className="lg:col-span-8 bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[3.5rem] p-10 lg:p-14 shadow-2xl relative overflow-hidden group">
+          <div className={styles.configGrid}>
+             <div className={styles.configPanel}>
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
                 
                 <div className="relative z-10 space-y-10">
@@ -347,7 +402,7 @@ function AnalysisContent() {
                   </div>
 
                   <div className="grid gap-10">
-                    <div className="space-y-4">
+                    <div className={styles.inputWrapper}>
                       <label className="flex justify-between items-end px-2">
                         <span className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">1. Hồ sơ năng lực (CV)</span>
                         <span className="text-indigo-400/50 text-[10px] font-bold italic">Required</span>
@@ -356,7 +411,7 @@ function AnalysisContent() {
                         <select 
                           value={selectedCvId}
                           onChange={(e) => setSelectedCvId(e.target.value)}
-                          className="w-full p-6 bg-white/[0.03] border-2 border-white/10 rounded-[2rem] text-white focus:border-indigo-500/50 outline-none font-bold text-lg tracking-tight appearance-none transition-all hover:bg-white/[0.05]"
+                          className={styles.inputField}
                         >
                           {cvList.length === 0 && <option value="" className="bg-slate-900">Chưa có hồ sơ nào</option>}
                           {cvList.map(cv => (
@@ -371,100 +426,28 @@ function AnalysisContent() {
                       </div>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className={styles.inputWrapper}>
                       <div className="flex justify-between items-center px-2">
                         <label className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">2. Mục tiêu sự nghiệp (JD)</label>
                         <div className="flex p-1 bg-white/5 rounded-xl border border-white/10">
                             <button 
                               onClick={() => setUseCustomJd(false)}
                               className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!useCustomJd ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-                            >
-                              SYSTEM
+                              >
+                                SYSTEM
                             </button>
                             <button 
                               onClick={() => setUseCustomJd(true)}
                               className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${useCustomJd ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-                            >
-                              CUSTOM
+                              >
+                                CUSTOM
                             </button>
                         </div>
                       </div>
-
-                      {useCustomJd ? (
-                        <textarea 
-                          value={jdText}
-                          onChange={(e) => setJdText(e.target.value)}
-                          placeholder="Dán nội dung mô tả công việc (JD) vào đây để AI bóc tách yêu cầu..."
-                          className="w-full h-56 p-7 bg-white/[0.03] border-2 border-white/10 rounded-[2.5rem] text-white focus:border-indigo-500/50 outline-none font-medium text-lg leading-relaxed transition-all placeholder:text-slate-700"
-                        />
-                      ) : (
-                        <div className="relative">
-                          <select 
-                            value={selectedJobId}
-                            onChange={(e) => setSelectedJobId(e.target.value)}
-                            className="w-full p-6 bg-white/[0.03] border-2 border-white/10 rounded-[2rem] text-white focus:border-indigo-500/50 outline-none font-bold text-lg appearance-none transition-all hover:bg-white/[0.05]"
-                          >
-                            <option value="" className="bg-slate-900">-- Phân tích theo bộ kỹ năng thị trường --</option>
-                            {jobs.map(j => (
-                              <option key={j.id} value={j.id} className="bg-slate-900">{j.title_raw} @ {j.company_name || 'N/A'}</option>
-                            ))}
-                          </select>
-                          <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                             <ChevronRight className="rotate-90" size={20} />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="pt-6 relative">
-                    <button 
-                      onClick={handleStartAnalysis}
-                      disabled={!selectedCvId || (useCustomJd && !jdText.trim())}
-                      className="group relative w-full py-7 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-[2rem] font-black text-2xl tracking-tighter overflow-hidden hover:scale-[1.02] active:scale-95 transition-all shadow-[0_25px_60px_-15px_rgba(79,70,229,0.5)] disabled:opacity-20 disabled:grayscale disabled:hover:scale-100"
-                    >
-                      <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
-                      <div className="relative z-10 flex items-center justify-center gap-4">
-                        <Zap size={28} fill="currentColor" className="text-white" />
-                        RUN DEEP ANALYSIS
-                      </div>
-                    </button>
-                    {error && <p className="mt-6 text-rose-500 font-bold text-center italic text-sm animate-bounce">⚠️ {error}</p>}
-                  </div>
-                </div>
-             </div>
-
-             <div className="lg:col-span-4 space-y-10">
-                <div className="bg-indigo-600/10 border border-indigo-500/20 rounded-[3rem] p-10 relative overflow-hidden group">
-                  <div className="absolute -bottom-8 -right-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <History size={200} />
-                  </div>
-                  <h4 className="text-white font-black italic text-2xl mb-4 tracking-tight uppercase">Thâm niên 2.0</h4>
-                  <p className="text-indigo-200/60 font-medium italic text-sm leading-relaxed mb-6">
-                    Chúng tôi không chỉ đếm năm. Thuật toán của AI bóc tách thâm niên thực chiến bằng cách đối soát các dự án và mô tả công việc cũ của bạn.
-                  </p>
-                  <ul className="space-y-3">
-                    {['Xác thực qua ngữ cảnh', 'Đối soát Skill Graph', 'Định lượng số năm thực tế'].map((item, i) => (
-                      <li key={i} className="flex items-center gap-3 text-indigo-300 font-black italic text-xs uppercase tracking-wider">
-                         <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div> {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="bg-white/[0.03] border border-white/10 rounded-[3rem] p-10 flex flex-col justify-center items-center text-center">
-                   <Target className="text-indigo-500 mb-6" size={48} />
-                   <h4 className="text-white font-black italic text-xl mb-2">ĐỘ CHÍNH XÁC GRAPH.</h4>
-                   <p className="text-slate-500 font-bold italic text-xs leading-relaxed">
-                     Sử dụng mạng lưới tri thức 1.5M kết nối để so khớp kỹ năng đa ngôn ngữ và nền tảng.
-                   </p>
-                </div>
-             </div>
-          </div>
         ) : (
-          <div className="animate-in fade-in slide-in-from-bottom-20 duration-1000">
+          <div className={styles.resultsRoot}>
             {/* Top Action / ID Bar */}
-            <div className="flex justify-between items-center bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-full px-8 py-3 mb-12">
+            <div className={styles.reportIdBar}>
                <div className="flex items-center gap-4">
                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Report ID:</span>
                   <span className="text-[10px] font-black text-indigo-400 italic">#{selectedCvId.substring(0,8).toUpperCase()}</span>
@@ -478,7 +461,7 @@ function AnalysisContent() {
             </div>
 
             {/* MASSIVE RADAR HERO SECTION */}
-            <div className="bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[4rem] p-12 lg:p-20 relative overflow-hidden group shadow-2xl mb-12">
+            <div className={styles.radarHero}>
                <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-indigo-600/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
                <div className="absolute bottom-0 left-0 w-[40rem] h-[40rem] bg-violet-600/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
                
@@ -490,7 +473,7 @@ function AnalysisContent() {
                <div className="relative h-[900px] w-full z-10">
                   {/* Overall Score Overlay */}
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center z-20 pointer-events-none">
-                     <div className="bg-indigo-600/10 backdrop-blur-xl border border-indigo-500/30 rounded-full w-48 h-48 flex flex-col items-center justify-center shadow-[0_0_80px_rgba(99,102,241,0.2)]">
+                     <div className={styles.radarScoreBadge}>
                         <span className="text-6xl font-black text-white italic tracking-tighter leading-none">{Math.round(data?.overall_match_pct || 0)}%</span>
                         <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mt-2">Overall Fit</span>
                      </div>
@@ -538,7 +521,116 @@ function AnalysisContent() {
             </div>
 
             <div className="space-y-12">
-                <div className="grid grid-cols-1 gap-12">
+                   {/* Strengths & Weaknesses */}
+                   <div className={styles.assessmentGrid}>
+                      {/* Overall Assessment overlay if present */}
+                      {data?.overall_assessment && (
+                        <div className="lg:col-span-2 bg-indigo-600/10 border border-indigo-500/30 rounded-[2.5rem] p-8 mb-4">
+                           <div className="flex items-start gap-4">
+                              <BrainCircuit className="text-indigo-400 mt-1 shrink-0" size={24} />
+                              <div>
+                                 <h4 className="text-indigo-400 font-black italic text-sm uppercase tracking-widest mb-2">AI Expert Insights</h4>
+                                 <p className="text-slate-300 font-medium italic leading-relaxed text-sm">"{data.overall_assessment}"</p>
+                              </div>
+                           </div>
+                        </div>
+                      )}
+
+                      {/* Strengths */}
+                      <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-[2.5rem] p-8 relative overflow-hidden group">
+                         <div className="absolute top-0 right-0 p-8 opacity-5">
+                            <ShieldCheck size={120} className="text-emerald-500" />
+                         </div>
+                         <h3 className="text-[10px] font-black text-emerald-400 italic mb-6 flex items-center gap-3 uppercase tracking-[0.4em]">
+                           <ShieldCheck size={16} /> Key Strengths
+                         </h3>
+                         <ul className="space-y-4">
+                            {data?.strengths?.map((s, i) => (
+                               <li key={i} className="flex items-start gap-3">
+                                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5 shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                                  <span className="text-slate-200 font-bold italic text-sm leading-relaxed">{s}</span>
+                               </li>
+                            )) || <li className="text-slate-600 italic text-xs">Phân tích đang được xử lý...</li>}
+                         </ul>
+                      </div>
+
+                      {/* Weaknesses */}
+                      <div className="bg-rose-500/5 border border-rose-500/10 rounded-[2.5rem] p-8 relative overflow-hidden group">
+                         <div className="absolute top-0 right-0 p-8 opacity-5">
+                            <AlertCircle size={120} className="text-rose-500" />
+                         </div>
+                         <h3 className="text-[10px] font-black text-rose-400 italic mb-6 flex items-center gap-3 uppercase tracking-[0.4em]">
+                           <AlertCircle size={16} /> Strategic Gaps
+                         </h3>
+                         <ul className="space-y-4">
+                            {data?.weaknesses?.map((w, i) => (
+                               <li key={i} className="flex items-start gap-3">
+                                  <div className="w-1.5 h-1.5 bg-rose-500 rounded-full mt-1.5 shrink-0 shadow-[0_0_10px_rgba(244,63,94,0.5)]"></div>
+                                  <span className="text-slate-200 font-bold italic text-sm leading-relaxed">{w}</span>
+                               </li>
+                            )) || <li className="text-slate-600 italic text-xs">Phân tích đang được xử lý...</li>}
+                         </ul>
+                      </div>
+                   </div>
+
+                   {/* GAP MATRIX SECTION */}
+                   {data?.gap_matrix && (
+                     <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-[3rem] p-10">
+                        <div className="flex justify-between items-end mb-10">
+                           <div>
+                              <h3 className="text-white font-black italic text-3xl tracking-tighter uppercase mb-2">Skill Gap Matrix</h3>
+                              <p className="text-slate-500 font-bold text-xs uppercase tracking-widest italic">Bản đồ đối soát kỹ năng CV vs Yêu cầu JD</p>
+                           </div>
+                           <div className="flex gap-4">
+                              {[
+                                { label: 'MET', color: 'bg-emerald-500' },
+                                { label: 'PARTIAL', color: 'bg-indigo-500' },
+                                { label: 'GAP', color: 'bg-rose-500' }
+                              ].map(l => (
+                                <div key={l.label} className="flex items-center gap-2">
+                                   <div className={`w-2 h-2 rounded-full ${l.color}`}></div>
+                                   <span className="text-[8px] font-black text-slate-500 uppercase">{l.label}</span>
+                                </div>
+                              ))}
+                           </div>
+                        </div>
+
+                        <div className={styles.matrixGrid}>
+                           {(data?.gap_matrix ?? []).map((item, idx) => (
+                             <div key={idx} className={`${styles.matrixCard} ${
+                                item.status === 'MET' ? 'border-emerald-500/20' : 
+                                item.status === 'PARTIAL' ? 'border-indigo-500/20' : 'border-rose-500/20'
+                               }`}><div className="flex justify-between items-start mb-4">
+                                    <div>
+                                       <h4 className="text-white font-black italic text-md leading-none mb-1 uppercase tracking-tight">{item.jd_skill}</h4>
+                                       <span className={`text-[10px] font-black italic px-2 py-0.5 rounded-full ${
+                                         item.status === 'MET' ? 'bg-emerald-500/20 text-emerald-400' : 
+                                         item.status === 'PARTIAL' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-rose-500/20 text-rose-400'
+                                        }`}>{item.status}
+                                      </span>
+                                   </div>
+                                   <div className="text-right">
+                                      <span className={`text-xl font-black italic ${
+                                        item.status === 'MET' ? 'text-emerald-400' : 
+                                        item.status === 'PARTIAL' ? 'text-indigo-400' : 'text-rose-400'
+                                      }`}>{item.score}%</span>
+                                   </div>
+                                </div>
+                                <div className="space-y-3">
+                                   <div className="flex items-center gap-2 text-slate-500 text-[10px] font-bold">
+                                      <span className="uppercase">Match from:</span>
+                                      <span className="text-slate-300">{item.cv_skill || 'N/A (Missing)'}</span>
+                                   </div>
+                                   <p className="text-slate-400 text-[11px] font-medium italic leading-relaxed bg-white/5 p-3 rounded-xl border border-white/5">
+                                      {item.note}
+                                   </p>
+                                </div>
+                             </div>
+                           ))}
+                        </div>
+                     </div>
+                   )}
+
                    {/* Met Skills Card */}
                    <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 group overflow-hidden relative">
                       <div className="absolute -bottom-6 -right-6 text-emerald-500/5 group-hover:scale-110 transition-transform duration-700">
@@ -547,9 +639,9 @@ function AnalysisContent() {
                       <h3 className="text-[9px] font-black text-emerald-400 italic mb-6 flex items-center gap-3 uppercase tracking-[0.4em] relative z-10">
                         <CheckCircle2 size={14} /> Skills Owned
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
-                        {(data?.breakdown?.met?.length || 0) > 0 ? data.breakdown.met.map((s, i) => (
-                           <div key={i} className="flex justify-between items-center p-4 bg-white/[0.04] border border-white/5 rounded-2xl group/skill hover:bg-emerald-500/10 transition-colors">
+                      <div className={styles.skillBadgeGrid}>
+                        {(data?.breakdown?.met?.length || 0) > 0 ? (data?.breakdown?.met ?? []).map((s, i) => (
+                           <div key={i} className={`${styles.skillItem} hover:bg-emerald-500/10`}>
                               <div>
                                  <span className="block text-white font-black italic text-xs tracking-tight leading-none mb-1">{s.skill}</span>
                                  <span className="text-[8px] font-bold text-slate-600 uppercase italic">Validated Match</span>
@@ -570,9 +662,9 @@ function AnalysisContent() {
                       <h3 className="text-[9px] font-black text-indigo-400 italic mb-6 flex items-center gap-3 uppercase tracking-[0.4em] relative z-10">
                         <RefreshCw size={14} /> Growth Points
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
-                        {(data?.breakdown?.partial?.length || 0) > 0 ? data.breakdown.partial.map((s, i) => (
-                           <div key={i} className="flex justify-between items-center p-4 bg-white/[0.04] border border-indigo-500/10 rounded-2xl group/skill hover:bg-indigo-500/20 transition-colors">
+                      <div className={styles.skillBadgeGrid}>
+                        {(data?.breakdown?.partial?.length || 0) > 0 ? (data?.breakdown?.partial ?? []).map((s, i) => (
+                           <div key={i} className={`${styles.skillItem} border-indigo-500/10 hover:bg-indigo-500/20`}>
                               <div>
                                  <span className="block text-white font-black italic text-xs tracking-tight leading-none mb-1">{s.skill}</span>
                                  <span className="text-[8px] font-bold text-indigo-400 uppercase italic">Needs Seniority</span>
@@ -593,9 +685,9 @@ function AnalysisContent() {
                       <h3 className="text-[9px] font-black text-amber-400 italic mb-6 flex items-center gap-3 uppercase tracking-[0.4em] relative z-10">
                         <AlertCircle size={14} /> Critical Gaps
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
-                        {(data?.breakdown?.gap?.length || 0) > 0 ? data.breakdown.gap.map((s, i) => (
-                           <div key={i} className="flex justify-between items-center p-4 bg-white/[0.04] border border-white/5 rounded-2xl group/skill hover:bg-amber-500/10 transition-colors">
+                      <div className={styles.skillBadgeGrid}>
+                        {(data?.breakdown?.gap?.length || 0) > 0 ? (data?.breakdown?.gap ?? []).map((s, i) => (
+                           <div key={i} className={`${styles.skillItem} hover:bg-amber-500/10`}>
                               <div>
                                  <span className="block text-white font-black italic text-xs tracking-tight leading-none mb-1">{s.skill}</span>
                                  <span className="text-[8px] font-bold text-slate-600 uppercase italic">{s.is_mandatory ? 'Mandatory' : 'Optional'}</span>
@@ -610,7 +702,7 @@ function AnalysisContent() {
                 </div>
 
                 {/* Recommendations & Simulation Section */}
-                <section className="mt-10 bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[4rem] p-12 lg:p-16 relative overflow-hidden">
+                <section className={styles.bridgeSection}>
                    <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-600/5 rounded-full blur-[100px] translate-y-1/2 translate-x-1/2"></div>
                    
                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 relative z-10">
@@ -636,7 +728,7 @@ function AnalysisContent() {
                    </div>
 
                    {simulationResult && (
-                        <div className="mb-16 p-10 bg-indigo-500/10 border border-indigo-500/30 rounded-[3rem] animate-in fade-in slide-in-from-top-10 duration-700 relative z-10">
+                        <div className={styles.simulationPanel}>
                             <div className="flex flex-col lg:flex-row gap-12 items-center">
                                 <div className="text-center lg:text-left space-y-4">
                                     <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Projected Growth</h4>
@@ -678,48 +770,93 @@ function AnalysisContent() {
                         </div>
                    )}
 
-                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 relative z-10">
-                      {recommendedCourses.map((course, idx) => (
-                        <div 
-                            key={idx} 
-                            onClick={() => setSelectedCourseIds(prev => prev.includes(course.id) ? prev.filter(id => id !== course.id) : [...prev, course.id])}
-                            className={`bg-white/[0.02] border rounded-[3rem] p-9 group hover:bg-white/[0.05] transition-all cursor-pointer ${
-                                selectedCourseIds.includes(course.id) ? "border-emerald-500/50 bg-emerald-500/5" : "border-white/5"
-                            }`}
-                        >
-                           <div className="flex justify-between items-center mb-10">
-                              <span className="px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black rounded-xl uppercase tracking-widest italic">
-                                 {course.platform || 'Academy'}
-                              </span>
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                                  selectedCourseIds.includes(course.id) ? "bg-emerald-500 text-white" : "bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white"
-                              }`}>
-                                 {selectedCourseIds.includes(course.id) ? <CheckCircle2 size={20} /> : <ChevronRight size={20} />}
+                   <div className="space-y-16 relative z-10">
+                      {(data?.course_recommendations || []).length > 0 ? (data?.course_recommendations ?? []).map((rec, groupIdx) => (
+                        <div key={groupIdx} className="space-y-8 animate-in fade-in slide-in-from-bottom-10 duration-700" style={{ animationDelay: `${groupIdx * 200}ms` }}>
+                          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/5">
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-3">
+                                <div className={`px-4 py-1 rounded-full text-[10px] font-black italic tracking-widest uppercase ${
+                                  rec.severity === 'HIGH' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 
+                                  rec.severity === 'MEDIUM' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 
+                                  'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+                                 }`}>{rec.severity || 'Gap Detected'}
+                                 </div>
+                                <h4 className="text-3xl font-black text-white italic tracking-tighter uppercase">{rec.skill_gap}</h4>
                               </div>
-                           </div>
-                           <h4 className="text-2xl font-black text-white italic mb-10 leading-tight group-hover:text-indigo-400 transition-colors line-clamp-2">{course.title}</h4>
-                           <div className="flex items-center justify-between pt-8 border-t border-white/5 mt-auto">
-                              <div className="flex items-center gap-2 text-slate-500 text-xs font-bold italic uppercase tracking-tighter">
-                                 <Clock size={16} /> ~{course.duration_hours || '12'} Giờ học
+                              <p className="text-slate-400 font-bold italic text-sm max-w-2xl">{rec.reason}</p>
+                              {rec.learning_path && (
+                                <div className="flex items-center gap-2 text-[10px] font-black text-indigo-400 uppercase tracking-widest">
+                                  <ChevronRight size={14} /> Path: {rec.learning_path}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-slate-500 font-black italic text-[10px] uppercase tracking-widest bg-white/5 px-4 py-2 rounded-xl border border-white/10">
+                              Priority: {rec.priority || (groupIdx + 1)}
+                            </div>
+                          </div>
+
+                          <div className={styles.courseGrid}>
+                            {rec.courses.map((course, idx) => (
+                              <div 
+                                  key={idx} 
+                                  onClick={() => setSelectedCourseIds(prev => prev.includes(course.id) ? prev.filter(id => id !== course.id) : [...prev, course.id])}
+                                  className={`${styles.courseCard} ${
+                                    selectedCourseIds.includes(course.id) ? "border-emerald-500/50 bg-emerald-500/5 ring-1 ring-emerald-500/50" : "border-white/5"
+                                   }`}
+                                >
+                                {selectedCourseIds.includes(course.id) && (
+                                  <div className="absolute top-0 right-0 p-4">
+                                    <div className="bg-emerald-500 text-white rounded-full p-1 shadow-lg">
+                                      <CheckCircle2 size={16} />
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                <div className="flex justify-between items-center mb-8">
+                                   <span className="px-3 py-1 bg-white/5 border border-white/10 text-slate-400 text-[10px] font-black rounded-lg uppercase tracking-widest italic group-hover:text-indigo-400 transition-colors">
+                                      {course.platform || 'Academy'}
+                                   </span>
+                                   <div className="text-[10px] font-black text-slate-600 italic uppercase">#{course.level || 'Expert'}</div>
+                                </div>
+
+                                <h4 className="text-xl font-black text-white italic mb-8 leading-tight group-hover:text-indigo-400 transition-colors line-clamp-2 h-14">{course.title}</h4>
+                                
+                                <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                                   <div className="flex items-center gap-2 text-slate-500 text-[10px] font-bold italic uppercase tracking-tighter">
+                                      <Clock size={14} className="text-indigo-500" /> ~{course.duration_hours || '12'} Hrs
+                                   </div>
+                                   <a 
+                                     href={course.url} 
+                                     target="_blank" 
+                                     rel="noreferrer"
+                                     onClick={(e) => e.stopPropagation()}
+                                     className="text-white font-black text-[9px] bg-indigo-600/20 border border-indigo-600/30 hover:bg-indigo-600 px-4 py-2 rounded-xl transition-all uppercase tracking-widest shadow-lg shadow-indigo-600/20"
+                                   >
+                                     Explore
+                                   </a>
+                                </div>
                               </div>
-                              <a 
-                                href={course.url} 
-                                target="_blank" 
-                                rel="noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-white font-black text-[10px] bg-indigo-600/10 border border-indigo-600/20 hover:bg-indigo-600 px-4 py-2 rounded-xl transition-all uppercase tracking-widest"
-                              >
-                                Explore
-                              </a>
-                           </div>
+                            ))}
+                            {rec.courses.length === 0 && (
+                              <div className="lg:col-span-3 py-10 bg-white/5 border border-dashed border-white/10 rounded-[2rem] text-center">
+                                 <p className="text-slate-600 font-black italic text-xs uppercase">No matching courses found in database for this gap</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      ))}
+                      )) : (
+                        <div className="text-center py-20 bg-white/[0.02] border border-dashed border-white/10 rounded-[3rem]">
+                           <Info className="mx-auto text-slate-700 mb-4" size={48} />
+                           <p className="text-slate-500 font-black italic text-sm uppercase tracking-widest">Không tìm thấy gợi ý lộ trình phù hợp.</p>
+                        </div>
+                      )}
                    </div>
                 </section>
 
                 {/* User Feedback Section */}
                 {!feedbackSubmitted ? (
-                    <section className="mt-10 bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[3rem] p-12 text-center relative overflow-hidden group">
+                    <section className={styles.feedbackSection}>
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-500"></div>
                         <h3 className="text-xl font-black text-white italic mb-4">REPORT ACCURACY FEEDBACK</h3>
                         <p className="text-slate-500 text-sm font-bold italic mb-8">Đánh giá độ chính xác của AI trong bản báo cáo này</p>
@@ -730,37 +867,7 @@ function AnalysisContent() {
                                     key={star}
                                     onClick={() => setFeedbackRating(star)}
                                     className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${feedbackRating >= star ? 'bg-amber-400 text-[#020617] scale-110 shadow-lg shadow-amber-500/20' : 'bg-white/5 text-slate-500 hover:bg-white/10'}`}
-                                >
-                                    <Sparkles size={24} fill={feedbackRating >= star ? "currentColor" : "none"} />
-                                </button>
-                            ))}
-                        </div>
-
-                        <textarea 
-                            value={feedbackComment}
-                            onChange={(e) => setFeedbackComment(e.target.value)}
-                            placeholder="Có kỹ năng nào AI bóc tách chưa chuẩn không? Hãy góp ý để chúng tôi cải thiện..."
-                            className="w-full max-w-2xl mx-auto block p-4 bg-white/5 border border-white/10 rounded-2xl text-white text-sm outline-none focus:border-indigo-500 transition-all mb-6 h-28"
-                        />
-
-                        <button 
-                            onClick={submitFeedback}
-                            disabled={feedbackRating === 0}
-                            className="px-12 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-20 text-white font-black text-sm italic rounded-full transition-all shadow-xl"
-                        >
-                            SUBMIT FEEDBACK
-                        </button>
-                    </section>
-                ) : (
-                    <section className="mt-10 bg-emerald-500/10 border border-emerald-500/20 rounded-[3rem] p-12 text-center animate-in zoom-in duration-500">
-                        <CheckCircle2 size={48} className="text-emerald-400 mx-auto mb-4" />
-                        <h3 className="text-xl font-black text-white italic">CẢM ƠN BẠN ĐÃ ĐÓNG GÓP!</h3>
-                        <p className="text-emerald-400/60 text-sm font-bold italic">Ý kiến của bạn giúp hệ thống AI thông minh hơn mỗi ngày.</p>
-                    </section>
-                )}
-            </div>
-          </div>
-        )}
+                                    >
       </div>
     </div>
   );

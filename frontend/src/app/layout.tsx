@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
+import "../light-mode.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import AuthGuard from "@/components/auth/AuthGuard";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const inter = Outfit({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
@@ -20,15 +22,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${outfit.variable} antialiased`}>
-        <AuthProvider>
-          <LayoutWrapper>
-            <AuthGuard>
-              {children}
-            </AuthGuard>
-          </LayoutWrapper>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <LayoutWrapper>
+              <AuthGuard>
+                {children}
+              </AuthGuard>
+            </LayoutWrapper>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

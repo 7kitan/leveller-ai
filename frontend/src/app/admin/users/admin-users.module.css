@@ -1,0 +1,85 @@
+@reference "tailwindcss";
+
+.pageRoot {
+  @apply space-y-8 animate-in fade-in duration-500;
+}
+
+.header {
+  @apply flex flex-col md:flex-row md:items-center justify-between gap-6;
+}
+
+.title {
+  @apply text-3xl font-bold tracking-tight text-white mb-2 flex items-center gap-3;
+}
+
+.subtitle {
+  @apply text-slate-400;
+}
+
+.controlBar {
+  @apply admin-control-bar;
+}
+
+.searchWrapper {
+  @apply relative flex-1;
+}
+
+.searchIcon {
+  @apply absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500;
+}
+
+.searchInput {
+  @apply w-full bg-slate-950 border border-slate-800 rounded-xl pl-12 pr-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none;
+}
+
+.refreshBtn {
+  @apply p-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 transition-colors flex items-center justify-center;
+}
+
+.tableContainer {
+  @apply admin-table-container;
+}
+
+.table {
+  @apply w-full text-left border-collapse;
+}
+
+.tableHeader {
+  @apply bg-slate-900/80 border-b border-slate-800 text-slate-500 text-[10px] uppercase font-bold tracking-widest;
+}
+
+.tableRow {
+  @apply hover:bg-indigo-500/5 transition-all group;
+}
+
+.userCell {
+  @apply flex items-center gap-4;
+}
+
+.avatar {
+  @apply h-10 w-10 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold;
+}
+
+.userName {
+  @apply font-bold text-white group-hover:text-indigo-400 transition-colors;
+}
+
+.userEmail {
+  @apply text-xs text-slate-500;
+}
+
+.roleBadge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border;
+}
+
+.roleAdmin {
+  @apply bg-indigo-500/10 text-indigo-400 border-indigo-500/20;
+}
+
+.roleUser {
+  @apply bg-slate-800 text-slate-400 border-slate-700;
+}
+
+.actionBtn {
+  @apply p-2 text-slate-500 hover:text-rose-500 transition-colors;
+}

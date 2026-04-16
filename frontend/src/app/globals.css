@@ -97,6 +97,35 @@
     border: 1px solid rgba(139, 92, 246, 0.3);
     box-shadow: 0 0 15px rgba(139, 92, 246, 0.1);
   }
+
+  /* Admin System Shared */
+  .admin-card {
+    @apply bg-white/3 border border-white/5 rounded-3xl p-6 backdrop-blur-xl transition-all;
+  }
+
+  .admin-control-bar {
+    @apply flex flex-col md:flex-row gap-4 items-center justify-between bg-white/3 border border-white/5 p-4 rounded-[2rem] backdrop-blur-xl transition-all;
+  }
+
+  .admin-table-container {
+    @apply bg-white/3 border border-white/5 rounded-[2.5rem] overflow-hidden backdrop-blur-xl relative;
+  }
+
+  .admin-status-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg border;
+  }
+
+  .admin-badge-ready {
+    @apply bg-emerald-500/10 border-emerald-500/20 text-emerald-400;
+  }
+
+  .admin-badge-analyzing {
+    @apply bg-amber-500/10 border-amber-500/20 text-amber-500 animate-pulse;
+  }
+
+  .admin-badge-error {
+    @apply bg-red-500/10 border-red-500/20 text-red-400;
+  }
 }
 
 @layer utilities {

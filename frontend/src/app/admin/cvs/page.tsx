@@ -11,14 +11,13 @@ import {
   ExternalLink,
   Trash2,
   RefreshCcw,
-  BarChart3,
-  Mail,
-  Filter
+  Mail
 } from "lucide-react";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import styles from "./admin-cvs.module.css";
 
 interface AdminCV {
   id: string;
@@ -78,7 +77,6 @@ const AdminCVPage = () => {
       }
 
       toast.success("Đã xóa hồ sơ thành công");
-      // Cập nhật state local
       setCvs(prev => prev.filter(cv => cv.id !== cvId));
     } catch (err: any) {
       console.error(err);
@@ -99,32 +97,32 @@ const AdminCVPage = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-        return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-lg"><CheckCircle2 size={12}/> Ready</span>;
+        return <span className="admin-status-badge admin-badge-ready"><CheckCircle2 size={12}/> Ready</span>;
       case "processing":
-        return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-widest rounded-lg animate-pulse"><Clock size={12}/> Analyzing</span>;
+        return <span className="admin-status-badge admin-badge-analyzing"><Clock size={12}/> Analyzing</span>;
       case "failed":
-        return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest rounded-lg"><AlertCircle size={12}/> Error</span>;
+        return <span className="admin-status-badge admin-badge-error"><AlertCircle size={12}/> Error</span>;
       default:
-        return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 text-white/40 text-[10px] font-black uppercase tracking-widest rounded-lg">{status}</span>;
+        return <span className="admin-status-badge">{status}</span>;
     }
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className={styles.pageRoot}>
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className={styles.headerContainer}>
         <div className="space-y-1">
-          <div className="flex items-center gap-3 text-indigo-400 font-black text-xs uppercase tracking-[0.3em] mb-2">
+          <div className={styles.headerMeta}>
             <FileText size={14} /> Data Repository
           </div>
-          <h1 className="text-4xl font-black text-white tracking-tighter">CV Repository</h1>
-          <p className="text-white/40 font-medium tracking-tight">Giám sát và quản lý dữ liệu hồ sơ toàn hệ thống.</p>
+          <h1 className={styles.headerTitle}>CV Repository</h1>
+          <p className={styles.headerSubtitle}>Giám sát và quản lý dữ liệu hồ sơ toàn hệ thống.</p>
         </div>
         
         <div className="flex items-center gap-3">
           <button 
             onClick={fetchCVs}
-            className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-sm font-bold text-white transition-all flex items-center gap-2"
+            className={styles.syncBtn}
           >
             <RefreshCcw size={18} className={loading ? "animate-spin" : ""} /> Sync Data
           </button>
@@ -132,45 +130,45 @@ const AdminCVPage = () => {
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white/3 border border-white/5 rounded-3xl p-6 backdrop-blur-xl">
+      <div className={styles.statsGrid}>
+        <div className="admin-card">
           <div className="text-white/30 text-xs font-black uppercase tracking-widest mb-4">Tổng hồ sơ</div>
           <div className="text-3xl font-black text-white">{cvs.length}</div>
         </div>
-        <div className="bg-white/3 border border-white/5 rounded-3xl p-6 backdrop-blur-xl">
+        <div className="admin-card">
           <div className="text-white/30 text-xs font-black uppercase tracking-widest mb-4">Đã bóc tách</div>
           <div className="text-3xl font-black text-emerald-400">{cvs.filter(c => c.status === "completed").length}</div>
         </div>
-        <div className="bg-white/3 border border-white/5 rounded-3xl p-6 backdrop-blur-xl">
+        <div className="admin-card">
           <div className="text-white/30 text-xs font-black uppercase tracking-widest mb-4">Đang xử lý</div>
           <div className="text-3xl font-black text-amber-400">{cvs.filter(c => c.status === "processing").length}</div>
         </div>
-        <div className="bg-white/3 border border-white/5 rounded-3xl p-6 backdrop-blur-xl">
+        <div className="admin-card">
           <div className="text-white/30 text-xs font-black uppercase tracking-widest mb-4">Lỗi AI</div>
           <div className="text-3xl font-black text-red-500">{cvs.filter(c => c.status === "failed").length}</div>
         </div>
       </div>
 
       {/* Control Bar */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white/3 border border-white/5 p-4 rounded-[2rem] backdrop-blur-xl transition-all">
-        <div className="relative w-full md:w-96 group">
+      <div className="admin-control-bar">
+        <div className={styles.searchWrapper}>
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-indigo-500 transition-colors" size={18} />
           <input 
             type="text"
             placeholder="Tìm kiếm theo email, tên ứng viên..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all"
+            className={styles.searchInput}
           />
         </div>
         <div className="flex items-center gap-3">
-           <div className="flex bg-white/5 rounded-2xl p-1 border border-white/10">
+           <div className={styles.statusFilter}>
               {["all", "completed", "processing", "failed"].map((s) => (
                 <button
                   key={s}
                   onClick={() => setStatusFilter(s)}
-                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                    statusFilter === s ? "bg-indigo-600 text-white shadow-lg" : "text-white/30 hover:text-white/60"
+                  className={`${styles.filterBtn} ${
+                    statusFilter === s ? styles.filterBtnActive : styles.filterBtnInactive
                   }`}
                 >
                   {s}
@@ -181,17 +179,17 @@ const AdminCVPage = () => {
       </div>
 
       {/* CVs Table */}
-      <div className="bg-white/3 border border-white/5 rounded-[2.5rem] overflow-hidden backdrop-blur-xl relative">
+      <div className="admin-table-container">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-white/5">
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Candidate</th>
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Email Owner</th>
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Status</th>
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">System ID</th>
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Uploaded</th>
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-right">Actions</th>
+              <tr>
+                <th className={styles.tableTh}>Candidate</th>
+                <th className={styles.tableTh}>Email Owner</th>
+                <th className={styles.tableTh}>Status</th>
+                <th className={styles.tableTh}>System ID</th>
+                <th className={styles.tableTh}>Uploaded</th>
+                <th className={`${styles.tableTh} text-right`}>Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -212,49 +210,49 @@ const AdminCVPage = () => {
                 </tr>
               ) : (
                 filteredCVs.map((cv) => (
-                  <tr key={cv.id} className="group hover:bg-white/[0.02] transition-colors">
-                    <td className="px-8 py-6">
-                       <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <tr key={cv.id} className={styles.tableTr}>
+                    <td className={styles.tableTd}>
+                       <div className={styles.candidateInfo}>
+                          <div className={styles.candidateAvatar}>
                              <User size={18} />
                           </div>
-                          <div className="text-white font-bold group-hover:text-indigo-400 transition-colors">
+                          <div className={styles.candidateName}>
                              {cv.full_name || "Untitled CV"}
                           </div>
                        </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className={styles.tableTd}>
                        <div className="flex items-center gap-2 text-white/50 text-xs">
                           <Mail size={14} className="opacity-30" />
                           {cv.user_email}
                        </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className={styles.tableTd}>
                        {getStatusBadge(cv.status)}
                     </td>
-                    <td className="px-8 py-6">
+                    <td className={styles.tableTd}>
                       <code className="text-[10px] font-mono text-white/30 bg-black/20 px-2 py-1 rounded">
                         {cv.id.substring(0, 8)}...
                       </code>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className={styles.tableTd}>
                       <div className="flex items-center gap-2 text-white/50 text-xs font-medium">
                         <Clock size={14} className="opacity-50" />
                         {format(new Date(cv.created_at), "MMM dd, HH:mm")}
                       </div>
                     </td>
-                    <td className="px-8 py-6 text-right">
-                       <div className="flex items-center justify-end gap-2">
+                    <td className={`${styles.tableTd} text-right`}>
+                       <div className={styles.actionGroup}>
                           <Link 
                             href={`/user/cv/${cv.id}`}
-                            className="p-2 hover:bg-white/10 rounded-lg text-white/20 hover:text-white transition-all"
+                            className={styles.actionBtn}
                             title="View Analysis"
                           >
                             <ExternalLink size={18} />
                           </Link>
                           <button 
                             onClick={() => handleDeleteCV(cv.id)}
-                            className="p-2 hover:bg-red-500/10 rounded-lg text-white/20 hover:text-red-400 transition-all"
+                            className={styles.deleteBtn}
                             title="Delete CV"
                           >
                              <Trash2 size={18} />

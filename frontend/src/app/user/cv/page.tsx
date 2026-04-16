@@ -39,6 +39,8 @@ interface CVListItem {
   created_at: string;
 }
 
+import styles from "./user-cv.module.css";
+
 export default function UserCVPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -227,18 +229,18 @@ export default function UserCVPage() {
   };
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
+    <div className={styles.pageRoot}>
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/5">
+      <div className={styles.header}>
         <div>
-          <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
+          <h1 className={styles.title}>
              <FileText className="text-cyan-400 w-8 h-8" /> Portfolio & CVs
           </h1>
-          <p className="text-white/40 font-medium mt-1">Quản lý các bản hồ sơ và dữ liệu kỹ năng đã được AI chuẩn hóa.</p>
+          <p className={styles.subtitle}>Quản lý các bản hồ sơ và dữ liệu kỹ năng đã được AI chuẩn hóa.</p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+        <div className={styles.secureBadge}>
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Dữ liệu được bảo mật</span>
+            <span className={styles.secureText}>Dữ liệu được bảo mật</span>
         </div>
       </div>
 
@@ -249,17 +251,16 @@ export default function UserCVPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+            className={styles.uploadGrid}
           >
             {/* Left: Upload Zone */}
-            <div className="lg:col-span-2 space-y-6">
-              <div className="glass-panel p-10 border-white/5 hover:border-cyan-500/30 transition-all group relative overflow-hidden">
-                <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-cyan-500/5 blur-[80px] rounded-full pointer-events-none group-hover:bg-cyan-500/10"></div>
+            <div className={styles.uploadZone}>
+              <div className={styles.uploadPanel}>
+                <div className={styles.uploadGlow}></div>
                 
                 <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-6">
                   <div 
-                    className={`w-full group relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed transition-all p-16 
-                      ${file ? 'border-cyan-500/50 bg-cyan-500/5' : 'border-white/10 hover:border-cyan-500/30 hover:bg-white/5'}`}
+                    className={`${styles.dropZone} ${file ? styles.dropZoneActive : styles.dropZoneIdle}`}
                   >
                     <input 
                       type="file" 
@@ -267,7 +268,7 @@ export default function UserCVPage() {
                       className="absolute inset-0 cursor-pointer opacity-0"
                       onChange={handleFileChange}
                     />
-                    <div className={`p-5 rounded-2xl mb-4 transition-transform group-hover:scale-110 group-hover:rotate-6 ${file ? 'bg-cyan-500/20 text-cyan-400' : 'bg-white/5 text-slate-500'}`}>
+                    <div className={`${styles.uploadIcon} ${file ? styles.uploadIconActive : ''}`}>
                       <Upload className="h-10 w-10" />
                     </div>
                     <h3 className="text-xl font-bold text-white">
@@ -277,7 +278,7 @@ export default function UserCVPage() {
                   </div>
 
                   {error && (
-                    <div className="flex items-center text-rose-400 text-xs font-bold bg-rose-500/10 p-4 rounded-xl border border-rose-500/20 w-full">
+                    <div className={styles.errorBox}>
                       <AlertCircle className="h-4 w-4 mr-2" /> {error}
                     </div>
                   )}
@@ -285,7 +286,7 @@ export default function UserCVPage() {
                   <button
                     onClick={handleUpload}
                     disabled={!file || status === "uploading"}
-                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-cyan-600 py-5 font-black text-xs uppercase tracking-[0.2em] text-white transition-all hover:bg-cyan-500 disabled:opacity-50 shadow-xl shadow-cyan-900/20"
+                    className={styles.uploadBtn}
                   >
                     {status === "uploading" ? <Loader2 className="h-5 v-5 animate-spin" /> : <Sparkles className="h-5 v-5" />}
                     {status === "uploading" ? "Đang xử lý..." : "Bắt đầu Phân tích CV qua AI"}
@@ -295,16 +296,16 @@ export default function UserCVPage() {
             </div>
 
             {/* Right: History Sidebar Style */}
-            <div className="space-y-6">
-              <h3 className="text-sm font-black uppercase tracking-widest text-white/30 flex items-center gap-2">
+            <div className={styles.historySection}>
+              <h3 className={styles.historyTitle}>
                 <History className="w-4 h-4" /> Lịch sử hồ sơ
               </h3>
-              <div className="space-y-3">
+              <div className={styles.historyList}>
                 {cvList.length > 0 ? (
                   cvList.map((item) => (
                     <div 
                       key={item.id}
-                      className="glass-panel p-4 flex items-center justify-between border-white/5 hover:bg-white/5 transition-all cursor-pointer group"
+                      className={styles.historyItem}
                       onClick={() => {
                         setCvId(item.id);
                         if (item.status === 'completed') fetchCVDetail(item.id);
@@ -312,8 +313,7 @@ export default function UserCVPage() {
                       }}
                     >
                       <div className="flex items-center gap-3 truncate">
-                        <div className={`h-10 w-10 min-w-[40px] rounded-xl flex items-center justify-center text-xs
-                          ${item.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                        <div className={`${styles.historyIcon} ${item.status === 'completed' ? styles.historyIconCompleted : styles.historyIconProcessing}`}>
                            {item.status === 'completed' ? <CheckCircle2 className="w-5 h-5" /> : <Loader2 className="w-5 h-5 animate-spin" />}
                         </div>
                         <div className="truncate">
@@ -339,12 +339,12 @@ export default function UserCVPage() {
             key="processing-view"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="glass-panel p-20 text-center space-y-8 border-white/5 bg-white/3"
+            className={styles.processingPanel}
           >
             <div className="relative mx-auto w-32 h-32">
               <div className="absolute inset-0 rounded-full border-4 border-cyan-500/10 border-t-cyan-500 animate-spin" />
               <div className="absolute inset-6 rounded-full bg-cyan-500/5 flex items-center justify-center">
-                <Sparkles className="h-10 w-10 text-cyan-400 animate-pulse" />
+                <Sparkles className={styles.pulseIcon} />
               </div>
             </div>
             <div className="max-w-md mx-auto">
@@ -378,16 +378,16 @@ export default function UserCVPage() {
             className="space-y-8"
           >
             {/* Result Header */}
-            <div className="glass-panel p-10 border-white/10 bg-gradient-to-br from-white/5 to-transparent relative overflow-hidden">
+            <div className={styles.resultHeader}>
                <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[100%] bg-emerald-500/5 blur-[100px] pointer-events-none"></div>
                
                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
                  <div className="flex items-center gap-6">
-                    <div className="h-24 w-24 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                    <div className={styles.avatar}>
                         <User className="h-12 w-12" />
                     </div>
                     <div>
-                        <h2 className="text-4xl font-black text-white tracking-tighter uppercase">{cvData?.full_name || "PROFILE MỚI"}</h2>
+                        <h2 className={styles.userName}>{cvData?.full_name || "PROFILE MỚI"}</h2>
                         <div className="flex items-center mt-2 gap-4">
                             {isEditing ? (
                                 <div className="flex items-center gap-2">
@@ -396,7 +396,7 @@ export default function UserCVPage() {
                                         step="0.1"
                                         value={editTotalExp}
                                         onChange={(e) => setEditTotalExp(parseFloat(e.target.value))}
-                                        className="bg-white/5 border border-white/10 rounded-lg px-3 py-1 text-emerald-400 font-black w-20 outline-none focus:border-emerald-500/50"
+                                        className={styles.editInput}
                                     />
                                     <span className="text-emerald-400 text-xs font-black uppercase tracking-widest">NĂM KINH NGHIỆM</span>
                                     <button 
@@ -414,7 +414,7 @@ export default function UserCVPage() {
                                     </button>
                                 </div>
                             ) : (
-                                <span className="flex items-center gap-2 text-emerald-400 text-xs font-black uppercase tracking-widest">
+                                <span className={styles.userExpBadge}>
                                     <Briefcase className="w-4 h-4" /> {cvData?.experience_years_total.toFixed(1)} NĂM KINH NGHIỆM
                                     <button 
                                         onClick={() => {
@@ -446,18 +446,18 @@ export default function UserCVPage() {
                  </div>
                </div>
 
-               <div className="mt-10 pt-10 border-t border-white/5">
-                 <h4 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-4">Mô tả tóm tắt sự nghiệp (AI Generated)</h4>
-                 <p className="text-white/60 leading-relaxed text-lg font-medium italic">
+               <div className={styles.summarySection}>
+                 <h4 className={styles.summaryTitle}>Mô tả tóm tắt sự nghiệp (AI Generated)</h4>
+                 <p className={styles.summaryText}>
                    "{cvData?.summary || "Dữ liệu đang được tổng hợp..."}"
                  </p>
                </div>
             </div>
 
             {/* Skills Matrix Map */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 glass-panel p-8 border-white/5">
-                    <h4 className="flex items-center text-sm font-black uppercase tracking-widest text-white mb-8">
+            <div className={styles.matrixGrid}>
+                <div className={styles.matrixPanel}>
+                    <h4 className={styles.matrixTitle}>
                         <Sparkles className="h-5 w-5 mr-3 text-amber-500" />
                         Ma trận Kỹ năng kĩ thuật
                     </h4>
@@ -467,7 +467,7 @@ export default function UserCVPage() {
                             if (catSkills.length === 0 && !isAddingSkill) return null;
                             
                             return (
-                                <div key={cat} className="space-y-4">
+                                <div key={cat} className={styles.catGroup}>
                                     <div className="flex items-center gap-3">
                                         <div className={`w-1 h-4 rounded-full ${
                                             cat === 'Backend' ? 'bg-indigo-500' :
@@ -475,7 +475,7 @@ export default function UserCVPage() {
                                             cat === 'Cloud & DevOps' ? 'bg-orange-500' :
                                             cat === 'Mobile' ? 'bg-cyan-500' : 'bg-emerald-500'
                                         }`} />
-                                        <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{cat}</h5>
+                                        <h5 className={styles.catLabel}>{cat}</h5>
                                     </div>
                                     <div className="flex flex-wrap gap-3">
                                         {catSkills.map((skill, idx) => (
@@ -483,7 +483,7 @@ export default function UserCVPage() {
                                                 key={idx}
                                                 initial={{ opacity: 0, scale: 0.8 }}
                                                 animate={{ opacity: 1, scale: 1 }}
-                                                className={`group/skill relative px-5 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all hover:scale-105 cursor-default flex items-center gap-2
+                                                className={`${styles.skillItem}
                                                     ${cat === 'Backend' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 
                                                     cat === 'Frontend' ? 'bg-pink-500/10 border-pink-500/20 text-pink-400' :
                                                     cat === 'Cloud & DevOps' ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' :
@@ -504,17 +504,17 @@ export default function UserCVPage() {
                         })}
 
                         {/* Uncategorized or generic */}
-                        {cvData?.skills.filter(s => !["Backend", "Frontend", "Cloud & DevOps", "Mobile", "Database"].includes(s.category)).length > 0 && (
-                             <div className="space-y-4">
+                        {(cvData?.skills ?? []).filter(s => !["Backend", "Frontend", "Cloud & DevOps", "Mobile", "Database"].includes(s.category)).length > 0 && (
+                             <div className={styles.catGroup}>
                                 <div className="flex items-center gap-3">
                                     <div className="w-1 h-4 rounded-full bg-slate-500" />
-                                    <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Other Specialist Skills</h5>
+                                    <h5 className={styles.catLabel}>Other Specialist Skills</h5>
                                 </div>
                                 <div className="flex flex-wrap gap-3">
                                     {cvData?.skills.filter(s => !["Backend", "Frontend", "Cloud & DevOps", "Mobile", "Database"].includes(s.category)).map((skill, idx) => (
                                         <motion.div 
                                             key={idx}
-                                            className="group/skill relative px-5 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider border border-white/10 bg-white/5 text-white/50 transition-all hover:scale-105 cursor-default flex items-center gap-2"
+                                            className={`${styles.skillItem} border-white/10 bg-white/5 text-white/50`}
                                         >
                                             {skill.name} <span className="opacity-40 font-bold italic">({skill.years_exp}y)</span>
                                             <button 
@@ -540,14 +540,14 @@ export default function UserCVPage() {
                                         placeholder="Skill Name..." 
                                         value={newSkill.name}
                                         onChange={e => setNewSkill({...newSkill, name: e.target.value})}
-                                        className="bg-transparent border-none outline-none text-[11px] font-black uppercase w-32 text-white"
+                                        className={styles.addSkillInput}
                                     />
                                     <input 
                                         type="number" 
                                         placeholder="Yrs" 
                                         value={newSkill.years_exp || ""}
                                         onChange={e => setNewSkill({...newSkill, years_exp: parseFloat(e.target.value) || 0})}
-                                        className="bg-transparent border-none outline-none text-[11px] font-black w-10 text-cyan-400"
+                                        className={styles.addExpInput}
                                     />
                                     <button onClick={handleAddSkill} disabled={saving} className="text-emerald-400 hover:text-emerald-300">
                                         {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
@@ -559,7 +559,7 @@ export default function UserCVPage() {
                             ) : (
                                 <button 
                                     onClick={() => setIsAddingSkill(true)}
-                                    className="px-5 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider border border-white/5 bg-white/3 text-white/40 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2"
+                                    className={styles.addSkillBtn}
                                 >
                                     <Plus className="w-3 h-3" /> Bổ sung kỹ năng
                                 </button>
@@ -568,7 +568,7 @@ export default function UserCVPage() {
                     </div>
                 </div>
                 
-                <div className="glass-panel p-10 border-white/5 bg-gradient-to-t from-cyan-500/5 to-transparent flex flex-col items-center justify-center text-center space-y-6">
+                <div className={styles.verifyPanel}>
                     <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 border border-cyan-500/20">
                         <CheckCircle2 className="w-8 h-8" />
                     </div>

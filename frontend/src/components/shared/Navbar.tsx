@@ -3,71 +3,104 @@
 import React from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { 
-  LogOut, 
-  User as UserIcon, 
-  Bell, 
-  Search,
-  Zap,
-  LayoutDashboard
-} from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
+import { LogOut, Bell } from "lucide-react";
+
+import styles from "./navbar.module.css";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { theme, toggle } = useTheme();
 
   if (!user) return null;
 
-  // Derive base dashboard based on role
-  const dashboardPath = user.role === 'admin' ? '/admin' : 
-                         user.role === 'student' ? '/student' : '/user';
+  const dashboardPath =
+    user.role === "admin"
+      ? "/admin"
+      : user.role === "student"
+      ? "/student"
+      : "/user";
 
   return (
-    <nav className="glass-panel sticky top-4 z-[100] mx-6 mt-4 border-white/5 px-6 py-3 bg-white/2 backdrop-blur-[24px]">
-      <div className="mx-auto flex max-w-7xl items-center justify-between">
-        <div className="flex items-center space-x-8">
-          <Link href={dashboardPath} className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-violet-600/20 flex items-center justify-center text-violet-400 border border-violet-500/20 group-hover:shadow-[0_0_15px_rgba(139,92,246,0.3)] transition-all">
-                <Zap className="w-5 h-5" />
+    <nav className={styles.navbar}>
+      <div className={styles.container}>
+
+        {/* Left: logo + search */}
+        <div className={styles.left}>
+          <Link href={dashboardPath} className={styles.brandLink}>
+            <div className={styles.brandIcon}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
             </div>
-            <span className="text-xl font-bold tracking-tighter text-white">LUMIX<span className="text-violet-500">AI</span></span>
+            <span className={styles.brandText}>
+              LUMIX<span className={styles.brandAccent}>AI</span>
+            </span>
           </Link>
-          
-          <div className="hidden lg:flex items-center space-x-6">
-            <div className="h-4 w-[1px] bg-white/10"></div>
-            <div className="flex items-center bg-white/5 border border-white/5 rounded-full px-4 py-1.5 focus-within:border-violet-500/40 transition-all group">
-                <Search className="w-4 h-4 text-white/20 group-focus-within:text-violet-400 mr-2" />
-                <input 
-                    type="text" 
-                    placeholder="Quick search..." 
-                    className="bg-transparent border-none outline-none text-xs text-white/60 placeholder:text-white/20 w-48 font-medium" 
-                />
+
+          <div className={styles.searchWrapper}>
+            <div className={styles.divider} />
+            <div className={styles.inputWrapper}>
+              <svg className={styles.inputIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input type="text" placeholder="Quick search..." className={styles.input} />
             </div>
           </div>
         </div>
 
-        <div className="flex items-center space-x-6">
-          <button className="relative w-10 h-10 flex items-center justify-center text-white/40 hover:text-white transition-colors group">
-             <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
-             <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-[#030508]"></span>
-          </button>
-          
-          <div className="h-8 w-[1px] bg-white/10"></div>
+        {/* Right: theme toggle + notifications + user */}
+        <div className={styles.right}>
 
-          <div className="flex items-center space-x-4">
-            <div className="flex flex-col items-end">
-                <span className="text-xs font-black text-white/80 leading-none">{user.email.split('@')[0]}</span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#60efff]">{user.role}</span>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-600 to-cyan-500 p-[1px]">
-                <div className="w-full h-full rounded-full bg-[#030508] flex items-center justify-center text-white">
-                    <UserIcon className="h-4 w-4" />
-                </div>
-            </div>
-            <button 
-                onClick={logout}
-                className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 hover:bg-rose-500/20 hover:text-rose-500 transition-all border border-white/5 hover:border-rose-500/20"
+          <div className={styles.actions}>
+            {/* Theme toggle */}
+            <button
+              onClick={toggle}
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              className={styles.iconBtn}
             >
-                <LogOut className="h-4 w-4" />
+              {theme === "dark" ? (
+                /* Sun icon */
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                </svg>
+              ) : (
+                /* Moon icon */
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+              )}
+            </button>
+
+            {/* Notifications */}
+            <button className={styles.iconBtn}>
+              <Bell width="18" height="18" />
+              <span className={styles.iconBadge} />
+            </button>
+          </div>
+
+          <div className={styles.userProfile}>
+            <div className={styles.userInfo}>
+              <span className={styles.userName}>
+                {user.email.split("@")[0]}
+              </span>
+              <span className={styles.userRole}>
+                {user.role}
+              </span>
+            </div>
+
+            <div className={styles.avatar}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+
+            <button
+              onClick={logout}
+              className={styles.logoutBtn}
+              title="Logout"
+            >
+              <LogOut width="16" height="16" />
             </button>
           </div>
         </div>

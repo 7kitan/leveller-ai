@@ -1,0 +1,95 @@
+@reference "tailwindcss";
+
+.pageRoot {
+  @apply space-y-12;
+}
+
+.headerSection {
+  @apply flex flex-col lg:flex-row gap-8 items-start justify-between;
+}
+
+.headerTitle {
+  @apply text-4xl md:text-5xl font-black tracking-tighter;
+}
+
+.headerSubtitle {
+  @apply font-medium text-lg max-w-lg text-[hsl(var(--text-secondary))];
+}
+
+.uploadCard {
+  @apply w-full lg:max-w-md card p-8 group relative overflow-hidden border-[hsl(var(--accent-2)_/_0.15)];
+}
+
+.uploadIcon {
+  @apply w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500 bg-[hsl(var(--accent-2)_/_0.15)] text-[hsl(var(--accent-2))] group-hover:scale-110 group-hover:rotate-6;
+}
+
+.statsGrid {
+  @apply stats-grid;
+}
+
+.statCard {
+  @apply stat-card;
+}
+
+.statValue {
+  @apply stat-value;
+}
+
+.statLabel {
+  @apply stat-label;
+}
+
+.statIconWrapper {
+  @apply flex items-center justify-between mb-6;
+}
+
+/* Job Section */
+.jobListHeader {
+  @apply flex items-center justify-between;
+}
+
+.jobListTitle {
+  @apply text-2xl font-black flex items-center gap-3;
+}
+
+.viewAllLink {
+  @apply text-xs font-black uppercase tracking-widest text-[hsl(var(--accent-2))] hover:text-[hsl(var(--text))] transition-colors;
+}
+
+.jobGrid {
+  @apply grid grid-cols-1 gap-4;
+}
+
+.jobCard {
+  @apply job-card;
+}
+
+/* CTA Section */
+.ctaCard {
+  @apply card p-12 relative overflow-hidden;
+}
+
+.ctaGlow {
+  @apply absolute top-[-30%] left-[-10%] w-[40%] h-[150%] bg-[hsl(var(--accent)_/_0.08)] blur-[100px] skew-x-12 rotate-[-45deg] animate-pulse pointer-events-none;
+}
+
+.radarDecoration {
+  @apply absolute right-[-10%] top-[-10%] w-[500px] h-[500px] pointer-events-none opacity-20;
+}
+
+.radarContainer {
+  @apply radar-container;
+}
+
+.radarRing {
+  @apply radar-ring;
+}
+
+.radarPoint {
+  @apply radar-point;
+}
+
+.radarStatus {
+  @apply radar-status;
+}

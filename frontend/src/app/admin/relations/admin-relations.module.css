@@ -1,0 +1,166 @@
+@reference "tailwindcss";
+
+.pageRoot {
+  @apply space-y-8 animate-in fade-in duration-500;
+}
+
+.header {
+  @apply flex flex-col md:flex-row md:items-center justify-between gap-6;
+}
+
+.title {
+  @apply text-3xl font-bold tracking-tight text-white mb-2 flex items-center gap-3;
+}
+
+.subtitle {
+  @apply text-slate-400;
+}
+
+.addBtn {
+  @apply flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 px-6 py-3 rounded-xl font-black shadow-lg shadow-amber-500/20 transition-all active:scale-95;
+}
+
+.controlBar {
+  @apply flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900/50 p-6 rounded-2xl border border-slate-800 backdrop-blur-sm gap-4;
+}
+
+.controlTitle {
+  @apply text-lg font-bold text-white mb-1;
+}
+
+.controlSub {
+  @apply text-sm text-slate-500;
+}
+
+.toggleContainer {
+  @apply flex items-center gap-2 p-1 bg-slate-950 rounded-xl border border-slate-800;
+}
+
+.toggleBtn {
+  @apply px-4 py-2 rounded-lg text-xs font-bold transition-all;
+}
+
+.toggleBtnActive {
+  @apply bg-slate-800 text-white shadow-lg;
+}
+
+.toggleBtnAmber {
+  @apply bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20;
+}
+
+.toggleBtnInactive {
+  @apply text-slate-500 hover:text-slate-300;
+}
+
+.refreshBtn {
+  @apply p-2 text-slate-500 hover:text-white transition-colors;
+}
+
+.grid {
+  @apply grid grid-cols-1 gap-4;
+}
+
+.groupCard {
+  @apply overflow-hidden bg-slate-900/40 rounded-2xl border border-slate-800 transition-all hover:border-slate-700;
+}
+
+.groupHeader {
+  @apply flex items-center justify-between p-5 cursor-pointer hover:bg-white/5 transition-colors select-none;
+}
+
+.groupIconWrapper {
+  @apply p-2.5 rounded-xl border transition-colors;
+}
+
+.iconPosition {
+  @apply bg-amber-500/10 border-amber-500/30 text-amber-500;
+}
+
+.iconDefault {
+  @apply bg-indigo-600/20 border-indigo-500/30 text-indigo-400;
+}
+
+.groupTitle {
+  @apply text-lg font-bold text-white tracking-tight;
+}
+
+.groupSub {
+  @apply text-xs text-slate-500 mt-0.5;
+}
+
+.badge {
+  @apply text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border;
+}
+
+.childrenWrapper {
+  @apply px-5 pb-5 border-t border-slate-800/50 pt-4 animate-in slide-in-from-top-2 duration-300;
+}
+
+.childrenGrid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3;
+}
+
+.childCard {
+  @apply flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800 group/child;
+}
+
+.childDot {
+  @apply w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)];
+}
+
+.childName {
+  @apply text-sm font-semibold text-slate-200;
+}
+
+.childType {
+  @apply text-[9px] text-slate-600 italic;
+}
+
+.removeChildBtn {
+  @apply text-slate-700 hover:text-rose-500 transition-colors p-1;
+}
+
+.addChildBtn {
+  @apply flex items-center justify-center p-3 rounded-xl border-2 border-dashed border-slate-800 text-slate-500 hover:text-indigo-400 hover:border-indigo-500/30 transition-all text-xs font-bold gap-2;
+}
+
+.emptyState {
+  @apply p-20 text-center border-2 border-dashed border-slate-800 rounded-3xl opacity-50;
+}
+
+/* Modals */
+.modalRoot {
+  @apply fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-lg p-6 animate-in fade-in;
+}
+
+.modalContent {
+  @apply w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden;
+}
+
+.modalHeader {
+  @apply p-8 border-b border-slate-800 bg-amber-500/5;
+}
+
+.modalBody {
+  @apply p-8 space-y-6;
+}
+
+.modalFooter {
+  @apply p-8 bg-slate-800/20 flex justify-end gap-4;
+}
+
+.inputField {
+  @apply w-full bg-slate-950 border border-slate-800 rounded-xl px-5 py-4 text-white font-bold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-inner;
+}
+
+.notification {
+  @apply fixed bottom-10 right-10 flex items-center gap-4 px-8 py-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border backdrop-blur-xl animate-in slide-in-from-right-full duration-500 z-[100];
+}
+
+.notifSuccess {
+  @apply bg-emerald-500/10 border-emerald-500/20 text-emerald-400;
+}
+
+.notifError {
+  @apply bg-rose-500/10 border-rose-500/20 text-rose-400;
+}

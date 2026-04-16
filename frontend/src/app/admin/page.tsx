@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import styles from "./admin-dashboard.module.css";
 
 const AdminDashboard = () => {
   const { token } = useAuth();
@@ -73,30 +74,30 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-1000">
+    <div className={styles.pageRoot}>
       {/* Welcome Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className={styles.headerWrapper}>
         <div className="space-y-1">
-          <h1 className="text-5xl font-black text-white tracking-tighter flex items-center gap-4">
+          <h1 className={styles.headerTitle}>
             Command Center
           </h1>
-          <p className="text-white/40 font-medium text-lg leading-relaxed">Chào mừng trở lại. Hệ thống đang vận hành tối ưu.</p>
+          <p className={styles.headerSubtitle}>Chào mừng trở lại. Hệ thống đang vận hành tối ưu.</p>
         </div>
-        <div className="flex items-center gap-4 bg-white/5 border border-white/10 px-6 py-3 rounded-2xl backdrop-blur-xl shrink-0">
+        <div className={styles.statusIndicator}>
           <Activity className="w-5 h-5 text-emerald-500 animate-pulse" />
           <span className="text-xs font-black uppercase tracking-widest text-white/60">AI Intelligence Online</span>
         </div>
       </div>
 
       {/* Real-time Status Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className={styles.statsGrid}>
         {stats.map((stat) => (
-          <div key={stat.label} className="glass-panel p-8 group hover:bg-white/5 transition-all relative overflow-hidden">
+          <div key={stat.label} className={styles.statCard}>
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
               <stat.icon size={64} />
             </div>
-            <stat.icon className={`w-8 h-8 ${stat.color} mb-6 transform transition-transform group-hover:scale-110 relative z-10`} />
-            <div className="text-5xl font-black text-white mb-2 tracking-tighter relative z-10">
+            <stat.icon className={`${stat.color} ${styles.statIcon}`} />
+            <div className={styles.statValue}>
                {stat.value}
             </div>
             <div className="flex items-center justify-between relative z-10">
@@ -112,11 +113,15 @@ const AdminDashboard = () => {
       </div>
 
       {/* Module Navigation Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className={styles.moduleGrid}>
         {managementModules.map((module) => (
-          <Link key={module.title} href={module.path} className={`group overflow-hidden bg-gradient-to-br ${module.color} border border-white/10 rounded-[40px] p-12 block transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-black active:scale-[0.98] relative`}>
+          <Link 
+            key={module.title} 
+            href={module.path} 
+            className={`bg-gradient-to-br ${module.color} ${styles.moduleCard}`}
+          >
             <div className="flex items-start justify-between mb-10">
-               <div className="w-16 h-16 rounded-[24px] bg-white/10 border border-white/20 flex items-center justify-center text-white transition-all group-hover:bg-white/20 group-hover:rotate-6">
+               <div className={styles.moduleIconBox}>
                   <module.icon className="w-8 h-8" />
                </div>
                <div className="p-3 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 transition-all">
@@ -134,7 +139,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Graph Intelligence / System Health */}
-      <div className="glass-panel p-16 bg-gradient-to-r from-violet-900/20 to-transparent border-violet-500/20 relative overflow-hidden group">
+      <div className={styles.insightSection}>
         <TrendingUp className="absolute top-[-20%] right-[-5%] w-96 h-96 text-violet-500/5 rotate-12" />
         <div className="max-w-2xl relative z-10">
           <h3 className="text-3xl font-black text-white mb-6 flex items-center gap-4">
