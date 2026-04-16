@@ -1,0 +1,597 @@
+@reference "tailwindcss";
+@reference "../../globals.css";
+
+.pageRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 5rem;
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.welcomeSection {
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 4rem;
+  padding: 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.03);
+  transition: background-color 0.5s ease, border-color 0.5s ease;
+}
+
+@media (min-width: 1280px) {
+  .welcomeSection {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.headerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.careerBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background-color: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.1);
+  border-radius: 1.25rem;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #d97706;
+  width: fit-content;
+}
+
+[data-theme="dark"] .careerBadge {
+    color: #fbbf24;
+}
+
+.headerTitle {
+  font-size: 5rem;
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  color: var(--color-text-main);
+  font-style: italic;
+}
+
+.nexusText {
+  background: linear-gradient(to right, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.headerSubtitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  max-width: 32rem;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+.quickStats {
+  display: flex;
+  gap: 4rem;
+  background-color: var(--color-panel-bg);
+  padding: 3rem 4rem;
+  border-radius: 3rem;
+  border: 1px solid var(--color-border-subtle);
+  backdrop-filter: blur(40px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.statValue {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.statValueAmber {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #f59e0b;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  text-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+}
+
+.statLabel {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.mainContentArea {
+    grid-column: span 1 / span 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+@media (min-width: 1024px) {
+  .mainContentArea {
+    grid-column: span 2 / span 2;
+  }
+}
+
+.mainGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+}
+
+@media (min-width: 1024px) {
+  .mainGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  text-transform: uppercase;
+  font-style: italic;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.sectionSubtitle {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0.5;
+}
+
+.skillGrid {
+  display: grid;
+  grid-template-cols: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .skillGrid {
+    grid-template-cols: repeat(2, 1fr);
+  }
+}
+
+.skillCard {
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 3rem;
+  padding: 3rem;
+  cursor: pointer;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+}
+
+.skillCardActive {
+  background-color: white;
+  border-color: #f59e0b;
+  transform: scale(1.02);
+  box-shadow: 0 20px 50px rgba(245, 158, 11, 0.1);
+}
+
+.cardIconWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.iconBox {
+  width: 4rem;
+  height: 4rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .iconBox {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.skillCardActive .iconBox {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.levelBadge {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-text-muted);
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+}
+
+[data-theme="dark"] .levelBadge {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.skillTitle {
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  font-style: italic;
+  letter-spacing: -0.02em;
+}
+
+.progressContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.progressBarTrack {
+  height: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .progressBarTrack {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.progressBarFill {
+  height: 100%;
+  background: linear-gradient(to right, #fbbf24, #f59e0b);
+  border-radius: 9999px;
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.summaryArea {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.summaryItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+}
+
+.drillDownPanel {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  animation: slideDown 0.4s ease-out forwards;
+}
+
+.drillDownTitle {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-text-muted);
+  margin-bottom: 1.25rem;
+  opacity: 0.6;
+}
+
+.roleBadgeGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.roleBadge {
+  padding: 0.5rem 1.25rem;
+  background-color: rgba(245, 158, 11, 0.05);
+  color: #b45309;
+  border-radius: 1rem;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+[data-theme="dark"] .roleBadge {
+    color: #fbbf24;
+    background-color: rgba(251, 191, 36, 0.1);
+}
+
+.courseItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .courseItem {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.courseItem:hover {
+  background-color: white;
+  border-color: #f59e0b;
+}
+
+.courseCardSmall {
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 2.5rem;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.courseCardSmall:hover {
+  transform: translateY(-8px);
+  border-color: #06b6d4;
+  box-shadow: 0 20px 40px rgba(6, 182, 212, 0.1);
+}
+
+.courseHeaderSmall {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.complexityBadge {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #0891b2;
+  background-color: rgba(6, 182, 212, 0.05);
+  padding: 0.4rem 0.8rem; border-radius: 0.75rem;
+}
+
+.courseTitleSmall {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  line-height: 1.2;
+}
+
+.enrollBtn {
+  padding: 0.75rem 1.5rem;
+  background-color: rgba(6, 182, 212, 0.05);
+  color: #0891b2;
+  border-radius: 1.25rem;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.enrollBtn:hover {
+  background-color: #06b6d4;
+  color: white;
+}
+
+.sphereWidget {
+  background-color: var(--color-panel-bg);
+  border-radius: 3rem;
+  padding: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+}
+
+@media (min-width: 1024px) {
+  .sphereWidget {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.sphereContainer {
+  width: 15rem;
+  height: 15rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.outerRing {
+  position: absolute;
+  inset: 0;
+  border: 1px dashed var(--color-border-subtle);
+  border-radius: 9999px;
+  animation: spin 30s linear infinite;
+}
+
+.innerRing {
+  position: absolute;
+  inset: 2rem;
+  border: 1px dashed var(--color-border-subtle);
+  border-radius: 9999px;
+  animation: spin 20s linear infinite reverse;
+}
+
+.sphereCore {
+  width: 6rem;
+  height: 6rem;
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.05) 0%, transparent 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme="dark"] .sphereCore {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+}
+
+.point {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  position: absolute;
+}
+
+.contextLabel {
+  position: absolute;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  opacity: 0.3;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.badgeDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+}
+
+.badgeLabel {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.roadmapPanel {
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 3rem;
+  padding: 4rem;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+}
+
+.roadmapLine {
+  position: absolute;
+  top: 5rem;
+  bottom: 5rem;
+  left: 5.5rem;
+  width: 1px;
+  background: linear-gradient(to bottom, #4f46e5, var(--color-border-subtle));
+}
+
+.stepItem {
+  display: flex;
+  gap: 2.5rem;
+  align-items: flex-start;
+}
+
+.stepIconBox {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.milestoneCard {
+  margin-top: 4rem;
+  background-color: rgba(0, 0, 0, 0.01);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 2.5rem;
+  padding: 2.5rem;
+}
+
+[data-theme="dark"] .milestoneCard {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

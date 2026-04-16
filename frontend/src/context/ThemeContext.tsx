@@ -23,12 +23,12 @@ export function useTheme() {
 const STORAGE_KEY = "lumix-theme";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
+  const [theme, setThemeState] = useState<Theme>("light");
 
   // Restore from localStorage and apply data-theme attribute
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    const initial: Theme = stored ?? "dark";
+    const initial: Theme = stored ?? "light";
     setThemeState(initial);
     document.documentElement.setAttribute("data-theme", initial);
   }, []);

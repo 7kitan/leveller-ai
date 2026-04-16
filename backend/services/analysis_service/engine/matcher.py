@@ -165,7 +165,8 @@ class SkillMatcher:
         # Default missing result
         result = {
             "skill": s_name_raw, "score": 0, "match_found": False, "gap_type": "MISSING", 
-            "is_primary": req.get("is_primary", neo4j_client.is_primary_tech(s_name_raw)),
+            "is_primary": req.get("is_primary", True), # Default to primary if neo4j is disabled
+            # "is_primary": req.get("is_primary", neo4j_client.is_primary_tech(s_name_raw)),
             "details": {"required_level": req_level, "required_years": req_years, "reason": "Kỹ năng này hiện chưa tìm thấy trong CV của bạn."}
         }
 
@@ -174,10 +175,11 @@ class SkillMatcher:
             match_res = None
             if layer == "exact":
                 match_res = self._execute_exact_match(req_level_score, req_level, req_years, s_name_raw, s_name_norm, user_skill_map)
-            elif layer == "graph":
-                match_res = self._execute_graph_match(req_level_score, req_level, req_years, s_name_raw, user_skill_map, user_skills_list)
+            # elif layer == "graph":
+            #     match_res = self._execute_graph_match(req_level_score, req_level, req_years, s_name_raw, user_skill_map, user_skills_list)
             elif layer == "semantic":
                 match_res = await self._execute_semantic_match(req_level, req_years, s_name_raw, user_skills_list)
+
             
             if match_res and match_res["match_found"]:
                 result.update(match_res)

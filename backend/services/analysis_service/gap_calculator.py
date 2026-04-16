@@ -31,27 +31,29 @@ class GapCalculator:
         return self.matcher._normalize_name(name)
 
     def _detect_user_role(self, cv_id: str) -> Optional[str]:
-        """Xác định vai trò chuyên môn của ứng viên từ Graph (Neo4j)."""
-        try:
-            cv = self.db.query(UserCV).filter(UserCV.id == uuid.UUID(cv_id)).first()
-            if not cv or not cv.summary: return None
-            
-            summary = cv.summary.lower()
-            pos_list = neo4j_client.get_positions()
-            
-            for pos_name in pos_list:
-                if pos_name.lower() in summary: return pos_name
-            
-            user_pos_skill = self.db.query(Skill.name).join(UserSkillProfile).filter(
-                UserSkillProfile.cv_id == uuid.UUID(cv_id), Skill.name.in_(pos_list)
-            ).first()
-            
-            if user_pos_skill: return user_pos_skill.name
-            return None
-        except Exception as e:
-            self.db.rollback()
-            logger.error(f"Error detecting user role: {e}")
-            return None
+        """Xác định vai trò chuyên môn của ứng viên (Neo4j Disabled)."""
+        # try:
+        #     cv = self.db.query(UserCV).filter(UserCV.id == uuid.UUID(cv_id)).first()
+        #     if not cv or not cv.summary: return None
+        #     
+        #     summary = cv.summary.lower()
+        #     pos_list = neo4j_client.get_positions()
+        #     
+        #     for pos_name in pos_list:
+        #         if pos_name.lower() in summary: return pos_name
+        #     
+        #     user_pos_skill = self.db.query(Skill.name).join(UserSkillProfile).filter(
+        #         UserSkillProfile.cv_id == uuid.UUID(cv_id), Skill.name.in_(pos_list)
+        #     ).first()
+        #     
+        #     if user_pos_skill: return user_pos_skill.name
+        #     return None
+        # except Exception as e:
+        #     self.db.rollback()
+        #     logger.error(f"Error detecting user role: {e}")
+        #     return None
+        return None
+
 
     async def calculate_gap_v2(self, user_id: str, cv_id: str, requirements_source: Any):
         logger.info(f"=== Starting Engine V7.0 (Advanced 3-Tier) CV: {cv_id} ===")

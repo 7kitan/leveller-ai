@@ -6,67 +6,54 @@ import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { 
   Plus, 
+  Trash2, 
   Search, 
-  Edit2, 
-  Tag, 
   RefreshCcw,
   CheckCircle2,
   AlertCircle,
-  BookOpen,
-  ArrowRight
+  Database,
+  Edit2,
+  Tags,
+  BookOpen
 } from "lucide-react";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { cn } from "@/lib/utils";
+import styles from "./admin-taxonomy.module.css";
+import { motion, AnimatePresence } from "framer-motion";
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-interface SkillNode {
-  name: string;
-  category: string;
-  type: string;
+interface TaxonomyEntity {
+  id: string;
+  reference_name: string;
   aliases: string[];
-}
-
-interface GroupedRelationship {
-  parent: string;
-  children: { name: string; type: string }[];
 }
 
 const API_BASE = "/api/analysis/admin/taxonomy";
 
-import styles from "./admin-taxonomy.module.css";
-
 const TaxonomyAdminPage = () => {
   const { token } = useAuth();
-  
-  // Dictionary States
-  const [skills, setSkills] = useState<SkillNode[]>([]);
-  const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
-  const [currentSkill, setCurrentSkill] = useState<Partial<SkillNode>>({ name: "", category: "Technology", aliases: [] });
+  const [entities, setEntities] = useState<TaxonomyEntity[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formData, setFormData] = useState({ reference_name: "", aliases: "" });
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
-  const fetchSkills = async () => {
-    setLoading(true);
+  const fetchTaxonomy = async () => {
+    setIsLoading(true);
     try {
-      const resp = await axios.get(`${API_BASE}/skills`, {
+      const resp = await axios.get(`${API_BASE}/entities`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setSkills(resp.data);
+      setEntities(resp.data);
     } catch (err) {
-      showNotification("Không thể tải danh sách kỹ năng", "error");
+      showNotification("Không thể tải danh sách thực thể", "error");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (token) {
-      fetchSkills();
-    }
+    if (token) fetchTaxonomy();
   }, [token]);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
@@ -74,22 +61,56 @@ const TaxonomyAdminPage = () => {
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const handleSaveSkill = async () => {
+  const handleSave = async () => {
     try {
-      await axios.post(`${API_BASE}/skills`, currentSkill, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      showNotification(`Đã cập nhật ánh xạ cho: ${currentSkill.name}`);
-      setIsSkillModalOpen(false);
-      fetchSkills();
+      const payload = {
+        reference_name: formData.reference_name,
+        aliases: formData.aliases.split(',').map(s => s.trim()).filter(Boolean)
+      };
+
+      if (editingId) {
+        await axios.put(`${API_BASE}/entities/${editingId}`, payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        showNotification("Đã cập nhật thực thể");
+      } else {
+        await axios.post(`${API_BASE}/entities`, payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        showNotification("Đã thêm thực thể mới");
+      }
+      setIsModalOpen(false);
+      fetchTaxonomy();
     } catch (err) {
-      showNotification("Lỗi khi cập nhật từ điển", "error");
+      showNotification("Lỗi khi lưu thực thể", "error");
     }
   };
 
-  const filteredSkills = skills.filter(s => 
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    s.aliases?.some(a => a.toLowerCase().includes(searchTerm.toLowerCase()))
+  const handleDelete = async (id: string) => {
+    if (!confirm("Xóa thực thể này? Các aliases linked cũng sẽ bị mất.")) return;
+    try {
+      await axios.delete(`${API_BASE}/entities/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      showNotification("Đã xóa thực thể");
+      fetchTaxonomy();
+    } catch (err) {
+      showNotification("Lỗi khi xóa thực thể", "error");
+    }
+  };
+
+  const openEdit = (entity: TaxonomyEntity) => {
+    setEditingId(entity.id);
+    setFormData({
+      reference_name: entity.reference_name,
+      aliases: entity.aliases.join(", ")
+    });
+    setIsModalOpen(true);
+  };
+
+  const filtered = entities.filter(e => 
+    e.reference_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.aliases.some(a => a.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -99,88 +120,94 @@ const TaxonomyAdminPage = () => {
         <div className={styles.header}>
           <div>
             <h1 className={styles.title}>
-              <BookOpen className="text-indigo-500 w-8 h-8" /> Từ điển Thực thể Kỹ thuật
+              <Database size={40} style={{ color: "#818cf8" }} /> 
+              <span>Cognitive Reference Hub</span>
             </h1>
-            <p className={styles.subtitle}>Quản lý cách AI chuẩn hóa các thuật ngữ, kỹ năng và vị trí chuyên môn.</p>
+            <p className={styles.subtitle}>Chuẩn hóa và quản lý danh mục kĩ năng, công nghệ trong Knowledge Graph.</p>
           </div>
           <button 
-            onClick={() => { setCurrentSkill({ name: "", category: "Technology", aliases: [] }); setIsSkillModalOpen(true); }}
+            onClick={() => {
+              setEditingId(null);
+              setFormData({ reference_name: "", aliases: "" });
+              setIsModalOpen(true);
+            }} 
             className={styles.addBtn}
           >
-            <Plus className="w-4 h-4" /> Thêm ánh xạ mới
+            <Plus size={18} /> 
+            Thêm thực thể
           </button>
         </div>
 
-        <div className="space-y-6">
+        <div className={styles.verticalStack8}>
+          {/* Controls */}
           <div className={styles.controlBar}>
-            <div className={styles.searchWrapper}>
+            <div className={styles.searchContainer}>
               <Search className={styles.searchIcon} />
               <input 
                 type="text" 
-                placeholder="Tìm từ đồng nghĩa hoặc thuật ngữ chính..." 
+                placeholder="Tìm thực thể hoặc alias..." 
                 className={styles.searchInput}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button onClick={fetchSkills} className={styles.refreshBtn}>
-              <RefreshCcw className={cn("w-5 h-5", loading && "animate-spin")} />
+            <button onClick={fetchTaxonomy} className={styles.refreshBtn}>
+              <RefreshCcw size={18} className={cn(isLoading && "animate-spin")} />
             </button>
           </div>
 
+          {/* List Table */}
           <div className={styles.tableContainer}>
             <table className={styles.table}>
               <thead>
                 <tr className={styles.tableHeader}>
-                  <th className="px-8 py-5">Cách diễn đạt / Từ đồng nghĩa (Aliases)</th>
-                  <th className="px-8 py-5 text-center w-20"></th>
-                  <th className="px-8 py-5">Thực thể chính (Reference Entity)</th>
-                  <th className="px-8 py-5 text-right w-24">Sửa</th>
+                  <th className={cn(styles.th, styles.thWidth1_3)}>Thực thể chính (Reference Entity)</th>
+                  <th className={styles.th}>Cách diễn đạt / Từ đồng nghĩa (Aliases)</th>
+                  <th className={cn(styles.th, styles.thWidthW20)} style={{ textAlign: "center" }}></th>
+                  <th className={cn(styles.th, styles.thWidthW24)} style={{ textAlign: "right" }}>Sửa</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/40 text-slate-300">
-                {filteredSkills.map((s) => (
-                  <tr key={s.name} className={styles.tableRow}>
-                    <td className="px-8 py-6">
-                      <div className={styles.aliasWrapper}>
-                        {s.aliases?.length > 0 ? (
-                          s.aliases.map(a => (
-                            <span key={a} className={styles.aliasBadge}>
-                              <Tag className={styles.aliasIcon} /> {a}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-slate-600 italic text-sm">Chưa có alias</span>
-                        )}
+              <tbody>
+                {filtered.map((entity) => (
+                  <tr key={entity.id} className={styles.tr}>
+                    <td className={styles.td}>
+                      <div className={styles.flexCenterGap3}>
+                         <BookOpen size={14} style={{ color: "#818cf8" }} />
+                         <span className={styles.entityName}>{entity.reference_name}</span>
                       </div>
                     </td>
-                    <td className="px-8 py-6 text-center text-slate-700 group-hover:text-indigo-500">
-                      <ArrowRight className={styles.arrowIcon} />
-                    </td>
-                    <td className="px-8 py-6">
-                      <span className={styles.entityName}>{s.name}</span>
-                      <div className={styles.entityMeta}>
-                        <span className={styles.categoryLabel}>{s.category}</span>
-                        <span className="w-1 h-1 rounded-full bg-slate-700"></span>
-                        <span className={styles.metaBadge}>ENTITY</span>
+                    <td className={styles.td}>
+                      <div className={styles.aliasGroup}>
+                        {entity.aliases.map((a, i) => (
+                          <span key={i} className={styles.aliasBadge}>
+                            {a}
+                          </span>
+                        ))}
+                        {entity.aliases.length === 0 && <span className={styles.emptyAlias}>Chưa có alias</span>}
                       </div>
                     </td>
-                    <td className="px-8 py-6 text-right">
-                      <button 
-                        onClick={() => { setCurrentSkill(s); setIsSkillModalOpen(true); }} 
-                        className={styles.actionBtn}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
+                    <td className={styles.td}>
+                        <div className={styles.separatorDot}></div>
+                    </td>
+                    <td className={styles.td}>
+                      <div className={styles.flexCenterEndGap3}>
+                        <button onClick={() => openEdit(entity)} className={styles.actionBtn}>
+                          <Edit2 size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(entity.id)} className={cn(styles.actionBtn, styles.actionBtnDelete)}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
-                
-                {filteredSkills.length === 0 && !loading && (
+                {filtered.length === 0 && !isLoading && (
                   <tr>
-                    <td colSpan={4} className="px-8 py-20 text-center text-slate-500 italic">
-                      <Search className="w-12 h-12 mx-auto mb-4 opacity-10" />
-                      Không tìm thấy thực thể kỹ thuật nào khớp với từ khóa.
+                    <td colSpan={4}>
+                      <div className={styles.emptyState}>
+                        <Tags size={48} />
+                        <p style={{ fontSize: "0.875rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.2em", fontStyle: "italic" }}>Không tìm thấy thực thể nào</p>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -189,58 +216,84 @@ const TaxonomyAdminPage = () => {
           </div>
         </div>
 
-        {/* NOTIFICATION TOAST */}
-        {notification && (
-          <div className={cn(
-            styles.notification,
-            notification.type === 'success' ? styles.notifSuccess : styles.notifError
-          )}>
-            <div className={cn("p-2 rounded-lg", notification.type === 'success' ? "bg-emerald-500/20" : "bg-rose-500/20")}>
-              {notification.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+        {/* Modal */}
+        <AnimatePresence>
+          {isModalOpen && (
+            <div className={styles.modalOverlay}>
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className={styles.modalContent}
+              >
+                <div className={styles.modalHeader}>
+                    <h3 className={styles.modalTitle}>
+                        <Database size={24} style={{ color: "#818cf8" }} /> 
+                        <span>Cấu hình Thực thể</span>
+                    </h3>
+                </div>
+                <div className={styles.modalBody}>
+                  <div className={styles.verticalStack4}>
+                    <div className={styles.verticalStack1}>
+                      <label className={styles.inputLabel}>Tên chuẩn (English / ID)</label>
+                      <input 
+                        type="text" 
+                        className={styles.modalInput}
+                        placeholder="e.g. JavaScript"
+                        value={formData.reference_name}
+                        onChange={(e) => setFormData({...formData, reference_name: e.target.value})}
+                      />
+                    </div>
+                    <div className={styles.verticalStack1}>
+                      <label className={styles.inputLabel}>Bí danh (Aliases)</label>
+                      <textarea 
+                        className={styles.modalInput}
+                        style={{ minHeight: "8rem", paddingTop: "1rem" }}
+                        placeholder="e.g. JS, ES6, VanillaJS..."
+                        value={formData.aliases}
+                        onChange={(e) => setFormData({...formData, aliases: e.target.value})}
+                      />
+                      <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.2)", fontStyle: "italic", padding: "0.5rem" }}>
+                        Tự động chuẩn hóa về tên chính trong quá trình phân tích.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.modalFooter}>
+                  <button 
+                    onClick={() => setIsModalOpen(false)} 
+                    style={{ fontSize: "10px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(255,255,255,0.3)" }}
+                  >
+                    Hủy
+                  </button>
+                  <button onClick={handleSave} className={styles.submitBtn}>
+                    {editingId ? "Cập nhật" : "Tạo thực thể"}
+                  </button>
+                </div>
+              </motion.div>
             </div>
-            <span className="font-bold tracking-tight">{notification.message}</span>
-          </div>
-        )}
+          )}
+        </AnimatePresence>
 
-        {/* MODAL */}
-        {isSkillModalOpen && (
-          <div className={styles.modalRoot}>
-            <div className={styles.modalContent}>
-              <div className={styles.modalHeader}>
-                <h3 className="text-2xl font-bold text-white tracking-tight">Cấu hình Ánh xạ Thực thể</h3>
+        {/* Notif */}
+        <AnimatePresence>
+          {notification && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className={cn(
+                styles.notification,
+                notification.type === 'success' ? styles.notifSuccess : styles.notifError
+              )}
+            >
+              <div style={{ padding: "0.5rem", borderRadius: "1rem", backgroundColor: notification.type === 'success' ? "rgba(16, 185, 129, 0.2)" : "rgba(244, 63, 94, 0.2)", color: notification.type === 'success' ? "#10b981" : "#f43f5e" }}>
+                {notification.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
               </div>
-              <div className={styles.modalBody}>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Tên chuẩn (English / AI ID)</label>
-                  <input 
-                    type="text" 
-                    className={styles.inputField}
-                    placeholder="e.g. React.js"
-                    value={currentSkill.name}
-                    onChange={(e) => setCurrentSkill({...currentSkill, name: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Bí danh (Aliases - Cách nhau bằng dấu phẩy)</label>
-                  <textarea 
-                    className={styles.textareaField}
-                    placeholder="e.g. Lập trình React, UI Development, ReactJS"
-                    value={currentSkill.aliases?.join(", ")}
-                    onChange={(e) => setCurrentSkill({...currentSkill, aliases: e.target.value.split(",").map(a => a.trim()).filter(a => a !== "")})}
-                  />
-                  <p className="text-[10px] text-slate-600 px-1 mt-1">Các chuỗi này khi xuất hiện trong CV/Job desc sẽ được AI map về tên chuẩn ở trên.</p>
-                </div>
-              </div>
-              <div className={styles.modalFooter}>
-                <button onClick={() => setIsSkillModalOpen(false)} className="px-6 py-3 text-slate-500 hover:text-white font-bold transition-colors">Hủy</button>
-                <button 
-                  onClick={handleSaveSkill} 
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-2xl font-black transition-all shadow-xl shadow-indigo-600/20 transform active:scale-95"
-                >Lưu ánh xạ</button>
-              </div>
-            </div>
-          </div>
-        )}
+              <span style={{ fontWeight: 700 }}>{notification.message}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </AuthGuard>
   );

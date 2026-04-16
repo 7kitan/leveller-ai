@@ -12,8 +12,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   // Determine chrome visibility based on route
   const isAuthPage  = pathname.startsWith("/auth");
-  const isAdminPage = pathname.startsWith("/admin");
-  const showChrome = !isAuthPage && !isAdminPage && pathname !== "/";
+  const showChrome = !isAuthPage && pathname !== "/";
 
   return (
     <div className={styles.pageWrapper}>
@@ -27,7 +26,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         {showChrome && <Navbar />}
 
         <main className={showChrome ? styles.pageContainer : ""}>
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className={styles.animateIn}>
             {children}
           </div>
         </main>

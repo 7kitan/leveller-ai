@@ -17,26 +17,19 @@ import styles from "./landing.module.css";
 export default function LandingPage() {
   return (
     <div className={styles.pageRoot}>
-      {/* Background Neon Elements */}
-      <div className={styles.backgroundNeon1}></div>
-      <div className={styles.backgroundNeon2}></div>
+      {/* Premium Background Accents */}
+      <div className={styles.backgroundAccent1}></div>
+      <div className={styles.backgroundAccent2}></div>
       
-      {/* Floating AI Sphere (CSS Animation) */}
-      <div className={styles.floatingSphere}>
-        <div className={styles.sphereGlow}></div>
-        <div className={styles.sphereCore}>
-          <Command className={styles.sphereIcon} />
-        </div>
-      </div>
-
       {/* Hero Content */}
       <div className={styles.heroContent}>
         <div className={styles.heroBadge}>
-          <Sparkles className="w-3 h-3" /> Career Evolution V6.0
+          <Sparkles className={styles.badgeIcon} /> 
+          <span>Career Evolution V6.0</span>
         </div>
         
         <h1 className={styles.heroTitle}>
-          <span className="block text-white">RECODE YOUR</span>
+          <span className={styles.heroTitleSub}>RECODE YOUR</span>
           <span className={styles.heroTitleGradient}>FUTURE PATH.</span>
         </h1>
 
@@ -50,8 +43,8 @@ export default function LandingPage() {
             href="/auth/register"
             className={styles.primaryBtn}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-            Giải mã ngay <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+            <span>Giải mã ngay</span>
+            <ArrowRight className={styles.btnIcon} />
           </Link>
           <Link 
             href="/auth/login"
@@ -65,14 +58,31 @@ export default function LandingPage() {
       {/* Role Previews */}
       <div className={styles.roleGrid}>
         {[
-          { title: "Professionals", desc: "Quản trị từ điển tri thức chuyên sâu và kiến trúc Graph.", icon: ShieldCheck, color: "text-violet-400" },
-          { title: "Applicants", desc: "Phân tích Gap kỹ năng và săn tìm cơ hội vàng.", icon: Target, color: "text-cyan-400" },
-          { title: "Students", desc: "Học tập cá nhân hóa và định hướng sự nghiệp vươn tầm.", icon: GraduationCap, color: "text-amber-400" }
+          { 
+            title: "Professionals", 
+            desc: "Quản trị từ điển tri thức chuyên sâu và kiến trúc Graph.", 
+            icon: ShieldCheck, 
+            iconClass: styles.iconProfessionals 
+          },
+          { 
+            title: "Applicants", 
+            desc: "Phân tích Gap kỹ năng và săn tìm cơ hội vàng.", 
+            icon: Target, 
+            iconClass: styles.iconApplicants 
+          },
+          { 
+            title: "Students", 
+            desc: "Học tập cá nhân hóa và định hướng sự nghiệp vươn tầm.", 
+            icon: GraduationCap, 
+            iconClass: styles.iconStudents 
+          }
         ].map((role) => (
           <div key={role.title} className={styles.roleCard}>
-            <role.icon className={`w-12 h-12 ${role.color} mb-6 transform transition-transform group-hover:rotate-12`} />
-            <h3 className="text-2xl font-bold text-white mb-4">{role.title}</h3>
-            <p className="text-white/40 leading-relaxed font-medium">{role.desc}</p>
+            <div className={`${styles.roleIconWrapper} ${role.iconClass}`}>
+              <role.icon className={styles.roleIcon} />
+            </div>
+            <h3 className={styles.roleCardTitle}>{role.title}</h3>
+            <p className={styles.roleCardDesc}>{role.desc}</p>
           </div>
         ))}
       </div>

@@ -1,66 +1,377 @@
 @reference "tailwindcss";
+@reference "../../globals.css";
 
 .pageRoot {
-  @apply space-y-12 pb-20 animate-in fade-in duration-700;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.loadingWrapper {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.spinner {
+  width: 4rem;
+  height: 4rem;
+  border: 4px solid rgba(6, 182, 212, 0.2);
+  border-top-color: #06b6d4;
+  border-radius: 9999px;
+  animation: spin 1s linear infinite;
+}
+
+.loadingText {
+  color: #06b6d4;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2rem;
+  font-size: 11px;
+  animation: pulse 2s infinite;
 }
 
 .header {
-  @apply flex flex-col lg:flex-row lg:items-end justify-between gap-8;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
-.badgeHeader {
-  @apply inline-flex items-center gap-2 px-4 py-1.5 bg-cyan-500/10 border border-cyan-500/20 rounded-full;
+@media (min-width: 1024px) {
+  .header {
+    flex-direction: row;
+    align-items: center;
+  }
 }
 
 .title {
-  @apply text-6xl font-black text-white tracking-tighter italic lg:leading-none;
+  display: flex;
+  flex-direction: column;
 }
 
-.subtitle {
-  @apply text-white/40 font-medium text-lg max-w-xl;
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 1rem;
+  background-color: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  border-radius: 9999px;
+  width: fit-content;
+  margin-bottom: 1rem;
 }
 
-.dashboardBtn {
-  @apply flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-bold transition-all w-fit;
+.badgeLabel {
+  font-size: 10px;
+  font-weight: 900;
+  color: #06b6d4;
+  text-transform: uppercase;
+  letter-spacing: 0.2rem;
 }
 
-.gridSystem {
-  @apply grid grid-cols-1 lg:grid-cols-12 gap-8;
+.titleMain {
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -0.05rem;
+  color: white;
 }
 
-/* Glass Panel helper */
-.panel {
-  @apply bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-2xl;
+.gradientText {
+  background: linear-gradient(to right, #06b6d4, #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-style: italic;
 }
 
-.heatmapPanel {
-  @apply p-10 relative overflow-hidden group;
+.headerSubtitle {
+    color: rgba(255, 255, 255, 0.3);
+    font-weight: 500;
+    font-style: italic;
+    margin-top: 0.5rem;
 }
 
-.salaryPanel {
-  @apply p-8 bg-gradient-to-br from-indigo-500/5 to-transparent;
+.controlBar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
 }
 
-.infoPanel {
-  @apply p-8 flex flex-col items-center justify-center text-center;
+.refreshBtn {
+  padding: 1.25rem 2.5rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.25rem;
+  color: white;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.opportunitiesPanel {
-  @apply p-8;
+.refreshBtn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
 }
 
-.advicePanel {
-  @apply p-8 bg-gradient-to-t from-emerald-500/5 to-transparent relative overflow-hidden;
+.mainGrid {
+  display: grid;
+  grid-template-cols: 1fr;
+  gap: 3rem;
 }
 
-.progressBarTrack {
-  @apply h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5;
+@media (min-width: 1024px) {
+  .mainGrid {
+    grid-template-cols: repeat(12, 1fr);
+  }
 }
 
-.progressBarFill {
-  @apply h-full bg-gradient-to-r from-cyan-600 to-indigo-600 shadow-[0_0_15px_rgba(6,182,212,0.5)];
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
-.jobCard {
-  @apply block bg-white/3 border border-white/5 p-5 rounded-2xl hover:border-cyan-500/30 hover:bg-white/5 transition-all;
+@media (min-width: 1024px) {
+  .sidebar {
+    grid-column: span 4;
+  }
+}
+
+.contentArea {
+  display: grid;
+  grid-template-cols: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .contentArea {
+    grid-template-cols: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .contentArea {
+    grid-column: span 8;
+  }
+}
+
+.insightCard {
+  background-color: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 2.5rem;
+  padding: 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.insightIcon {
+    width: 3rem;
+    height: 3rem;
+    background-color: rgba(6, 182, 212, 0.1);
+    color: #06b6d4;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.insightTitle {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: white;
+    font-style: italic;
+    letter-spacing: tight;
+    margin-bottom: 0.75rem;
+}
+
+.insightValue {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: white;
+    font-style: italic;
+    letter-spacing: -0.05rem;
+    line-height: 1;
+}
+
+.insightSubtext {
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 12px;
+    margin-top: 1rem;
+}
+
+.recommendationCard {
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 2.5rem;
+  padding: 3rem;
+  transition: all 0.5s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.recommendationCard:hover {
+  transform: translateY(-0.5rem);
+  background-color: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.jobTitle {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: white;
+  font-style: italic;
+  letter-spacing: -0.025rem;
+  margin-bottom: 1.5rem;
+}
+
+.matchBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 1rem;
+  font-size: 10px;
+  font-weight: 900;
+  color: #10b981;
+  text-transform: uppercase;
+  letter-spacing: 0.1rem;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.demandBadge {
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 10px;
+    font-weight: 900;
+}
+
+.skillGroup {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.skillLabel {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2rem;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.skillList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.skillBadge {
+  padding: 0.5rem 1rem;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 0.75rem;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.actionBtn {
+  margin-top: 2.5rem;
+  width: 100%;
+  padding: 1.25rem;
+  background-color: white;
+  color: #0f172a;
+  border-radius: 1.25rem;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.actionBtn:hover {
+  background-color: #f1f5f9;
+  transform: scale(0.98);
+}
+
+.footer {
+  margin-top: 3rem;
+  padding: 3rem;
+  background-color: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 3rem;
+}
+
+.footerTitle {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: white;
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
+.footerText {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.footerIcon {
+    color: #06b6d4;
+    margin-right: 0.75rem;
+    display: inline;
+}
+
+.footerContent {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.footerNote {
+    font-style: italic;
+    font-size: 12px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

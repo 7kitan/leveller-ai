@@ -1,0 +1,342 @@
+
+> frontend@0.1.0 build
+> next build
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/nguyenvanbach/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * /Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/package-lock.json
+
+▲ Next.js 16.2.3 (Turbopack)
+
+  Creating an optimized production build ...
+Error: `@utility` cannot be nested.
+    [2m[at /Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/tailwindcss/dist/lib.js:32:3317][0m
+    [2m[at _r (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/tailwindcss/dist/lib.js:3:1733)][0m
+    [2m[at I (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/tailwindcss/dist/lib.js:3:1377)][0m
+    [2m[at mn (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/tailwindcss/dist/lib.js:32:2712)][0m
+    [2m[at async gn (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/tailwindcss/dist/lib.js:38:631)][0m
+    [2m[at async Xr (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/node/dist/index.js:10:3416)][0m
+    [2m[at async N (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/postcss/dist/index.js:10:3979)][0m
+    [2m[at async Object.Once (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/postcss/dist/index.js:10:4251)][0m
+    [2mat async LazyResult.runAsync (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/lazy-result.js:293:11) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:6215:21][0m
+    [2mat async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36][0m
+Error: Cannot apply unknown utility class `fade-in`
+    [2m[at onInvalidCandidate (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/tailwindcss/dist/lib.js:21:1511)][0m
+    [2m[at Ee (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/tailwindcss/dist/lib.js:16:36740)][0m
+    [2m[at /Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/tailwindcss/dist/lib.js:21:355][0m
+    [2m[at _r (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/tailwindcss/dist/lib.js:3:1733)][0m
+    [2m[at I (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/tailwindcss/dist/lib.js:3:1377)][0m
+    [2m[at Te (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/tailwindcss/dist/lib.js:21:172)][0m
+    [2m[at mn (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/tailwindcss/dist/lib.js:38:294)][0m
+    [2m[at async gn (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/tailwindcss/dist/lib.js:38:631)][0m
+    [2m[at async Xr (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/node/dist/index.js:10:3416)][0m
+    [2m[at async N (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/postcss/dist/index.js:10:3979)][0m
+Turbopack build encountered 2 warnings:
+[next]/internal/font/google/outfit_8778cd42.module.css
+Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/outfit_8778cd42.module.css
+    [next]/internal/font/google/outfit_8778cd42.js
+    ./Project/Team078/A20-App-078/frontend/src/app/layout.tsx
+
+
+[next]/internal/font/google/outfit_bb8efd03.module.css
+Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/outfit_bb8efd03.module.css
+    [next]/internal/font/google/outfit_bb8efd03.js
+    ./Project/Team078/A20-App-078/frontend/src/app/layout.tsx
+
+
+
+> Build error occurred
+Error: Turbopack build failed with 13 errors:
+./Project/Team078/A20-App-078/frontend/src/app/admin/admin-dashboard.module.css
+Error evaluating Node.js code
+CssSyntaxError: tailwindcss: /Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/src/app/admin/admin-dashboard.module.css:1:1: `@utility` cannot be nested.
+    at Input.error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/input.js:135:16) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:4652:22]
+    at error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/node.js:146:32) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:928:38]
+    [at Object.Once (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/postcss/dist/index.js:10:6913)]
+    at async LazyResult.runAsync (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/lazy-result.js:293:11) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:6215:21]
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36]
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31]
+
+Import traces:
+  Client Component Browser:
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/admin-dashboard.module.css [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/page.tsx [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/admin-dashboard.module.css [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/page.tsx [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/page.tsx [Server Component]
+
+
+./Project/Team078/A20-App-078/frontend/src/app/admin/cvs/admin-cvs.module.css
+Error evaluating Node.js code
+CssSyntaxError: tailwindcss: /Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/src/app/admin/cvs/admin-cvs.module.css:1:1: `@utility` cannot be nested.
+    at Input.error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/input.js:135:16) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:4652:22]
+    at error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/node.js:146:32) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:928:38]
+    [at Object.Once (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/postcss/dist/index.js:10:6913)]
+    at async LazyResult.runAsync (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/lazy-result.js:293:11) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:6215:21]
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36]
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31]
+
+Import traces:
+  Client Component Browser:
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/cvs/admin-cvs.module.css [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/cvs/page.tsx [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/cvs/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/cvs/admin-cvs.module.css [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/cvs/page.tsx [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/cvs/page.tsx [Server Component]
+
+
+./Project/Team078/A20-App-078/frontend/src/app/admin/relations/admin-relations.module.css
+Error evaluating Node.js code
+CssSyntaxError: tailwindcss: /Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/src/app/admin/relations/admin-relations.module.css:1:1: `@utility` cannot be nested.
+    at Input.error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/input.js:135:16) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:4652:22]
+    at error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/node.js:146:32) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:928:38]
+    [at Object.Once (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/postcss/dist/index.js:10:6913)]
+    at async LazyResult.runAsync (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/lazy-result.js:293:11) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:6215:21]
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36]
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31]
+
+Import traces:
+  Client Component Browser:
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/relations/admin-relations.module.css [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/relations/page.tsx [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/relations/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/relations/admin-relations.module.css [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/relations/page.tsx [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/relations/page.tsx [Server Component]
+
+
+./Project/Team078/A20-App-078/frontend/src/app/admin/taxonomy/admin-taxonomy.module.css
+Error evaluating Node.js code
+CssSyntaxError: tailwindcss: /Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/src/app/admin/taxonomy/admin-taxonomy.module.css:1:1: `@utility` cannot be nested.
+    at Input.error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/input.js:135:16) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:4652:22]
+    at error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/node.js:146:32) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:928:38]
+    [at Object.Once (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/postcss/dist/index.js:10:6913)]
+    at async LazyResult.runAsync (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/lazy-result.js:293:11) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:6215:21]
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36]
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31]
+
+Import traces:
+  Client Component Browser:
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/taxonomy/admin-taxonomy.module.css [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/taxonomy/page.tsx [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/taxonomy/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/taxonomy/admin-taxonomy.module.css [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/taxonomy/page.tsx [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/taxonomy/page.tsx [Server Component]
+
+
+./Project/Team078/A20-App-078/frontend/src/app/admin/users/admin-users.module.css
+Error evaluating Node.js code
+CssSyntaxError: tailwindcss: /Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/src/app/admin/users/admin-users.module.css:1:1: `@utility` cannot be nested.
+    at Input.error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/input.js:135:16) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:4652:22]
+    at error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/node.js:146:32) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:928:38]
+    [at Object.Once (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/postcss/dist/index.js:10:6913)]
+    at async LazyResult.runAsync (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/lazy-result.js:293:11) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:6215:21]
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36]
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31]
+
+Import traces:
+  Client Component Browser:
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/users/admin-users.module.css [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/users/page.tsx [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/users/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/users/admin-users.module.css [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/users/page.tsx [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/admin/users/page.tsx [Server Component]
+
+
+./Project/Team078/A20-App-078/frontend/src/app/globals.css
+Error evaluating Node.js code
+CssSyntaxError: tailwindcss: /Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/src/app/globals.css:1:1: `@utility` cannot be nested.
+    at Input.error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/input.js:135:16) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:4652:22]
+    at error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/node.js:146:32) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:928:38]
+    [at Object.Once (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/postcss/dist/index.js:10:6913)]
+    at async LazyResult.runAsync (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/lazy-result.js:293:11) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:6215:21]
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36]
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31]
+
+Import trace:
+  Client Component Browser:
+    ./Project/Team078/A20-App-078/frontend/src/app/globals.css [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/layout.tsx [Server Component]
+
+
+./Project/Team078/A20-App-078/frontend/src/app/landing.module.css
+Error evaluating Node.js code
+CssSyntaxError: tailwindcss: /Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/src/app/landing.module.css:1:1: `@utility` cannot be nested.
+    at Input.error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/input.js:135:16) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:4652:22]
+    at error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/node.js:146:32) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:928:38]
+    [at Object.Once (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/postcss/dist/index.js:10:6913)]
+    at async LazyResult.runAsync (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/lazy-result.js:293:11) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:6215:21]
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36]
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31]
+
+Import traces:
+  Client Component Browser:
+    ./Project/Team078/A20-App-078/frontend/src/app/landing.module.css [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/page.tsx [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./Project/Team078/A20-App-078/frontend/src/app/landing.module.css [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/page.tsx [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/page.tsx [Server Component]
+
+
+./Project/Team078/A20-App-078/frontend/src/app/user/analysis/user-analysis.module.css
+Error evaluating Node.js code
+CssSyntaxError: tailwindcss: /Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/src/app/user/analysis/user-analysis.module.css:1:1: `@utility` cannot be nested.
+    at Input.error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/input.js:135:16) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:4652:22]
+    at error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/node.js:146:32) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:928:38]
+    [at Object.Once (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/postcss/dist/index.js:10:6913)]
+    at async LazyResult.runAsync (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/lazy-result.js:293:11) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:6215:21]
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36]
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31]
+
+Import traces:
+  Client Component Browser:
+    ./Project/Team078/A20-App-078/frontend/src/app/user/analysis/user-analysis.module.css [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/analysis/page.tsx [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/analysis/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./Project/Team078/A20-App-078/frontend/src/app/user/analysis/user-analysis.module.css [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/analysis/page.tsx [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/analysis/page.tsx [Server Component]
+
+
+./Project/Team078/A20-App-078/frontend/src/app/user/cv/user-cv.module.css
+Error evaluating Node.js code
+CssSyntaxError: tailwindcss: /Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/src/app/user/cv/user-cv.module.css:1:1: `@utility` cannot be nested.
+    at Input.error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/input.js:135:16) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:4652:22]
+    at error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/node.js:146:32) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:928:38]
+    [at Object.Once (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/postcss/dist/index.js:10:6913)]
+    at async LazyResult.runAsync (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/lazy-result.js:293:11) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:6215:21]
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36]
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31]
+
+Import traces:
+  Client Component Browser:
+    ./Project/Team078/A20-App-078/frontend/src/app/user/cv/user-cv.module.css [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/cv/page.tsx [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/cv/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./Project/Team078/A20-App-078/frontend/src/app/user/cv/user-cv.module.css [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/cv/page.tsx [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/cv/page.tsx [Server Component]
+
+
+./Project/Team078/A20-App-078/frontend/src/app/user/recommend/user-recommend.module.css
+Error evaluating Node.js code
+CssSyntaxError: tailwindcss: /Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/src/app/user/recommend/user-recommend.module.css:1:1: Cannot apply unknown utility class `fade-in`
+    at Input.error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/input.js:135:16) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:4652:22]
+    at error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/node.js:146:32) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:928:38]
+    [at Object.Once (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/postcss/dist/index.js:10:6913)]
+    at async LazyResult.runAsync (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/lazy-result.js:293:11) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:6215:21]
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36]
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31]
+
+Import traces:
+  Client Component Browser:
+    ./Project/Team078/A20-App-078/frontend/src/app/user/recommend/user-recommend.module.css [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/recommend/page.tsx [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/recommend/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./Project/Team078/A20-App-078/frontend/src/app/user/recommend/user-recommend.module.css [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/recommend/page.tsx [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/recommend/page.tsx [Server Component]
+
+
+./Project/Team078/A20-App-078/frontend/src/app/user/user-dashboard.module.css
+Error evaluating Node.js code
+CssSyntaxError: tailwindcss: /Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/src/app/user/user-dashboard.module.css:1:1: `@utility` cannot be nested.
+    at Input.error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/input.js:135:16) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:4652:22]
+    at error (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/node.js:146:32) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:928:38]
+    [at Object.Once (/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/node_modules/@tailwindcss/postcss/dist/index.js:10:6913)]
+    at async LazyResult.runAsync (Project/Team078/A20-App-078/frontend/node_modules/postcss/lib/lazy-result.js:293:11) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/0lqe_0ipyhjp._.js:6215:21]
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36]
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31]
+
+Import traces:
+  Client Component Browser:
+    ./Project/Team078/A20-App-078/frontend/src/app/user/user-dashboard.module.css [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/page.tsx [Client Component Browser]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./Project/Team078/A20-App-078/frontend/src/app/user/user-dashboard.module.css [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/page.tsx [Client Component SSR]
+    ./Project/Team078/A20-App-078/frontend/src/app/user/page.tsx [Server Component]
+
+
+[next]/internal/font/google/outfit_8778cd42.module.css
+next/font: error:
+Failed to fetch `Outfit` from Google Fonts.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/outfit_8778cd42.module.css
+    [next]/internal/font/google/outfit_8778cd42.js
+    ./Project/Team078/A20-App-078/frontend/src/app/layout.tsx
+
+
+[next]/internal/font/google/outfit_bb8efd03.module.css
+next/font: error:
+Failed to fetch `Outfit` from Google Fonts.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/outfit_bb8efd03.module.css
+    [next]/internal/font/google/outfit_bb8efd03.js
+    ./Project/Team078/A20-App-078/frontend/src/app/layout.tsx
+
+
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36])
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31])
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36])
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31])
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36])
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31])
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36])
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31])
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36])
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31])
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36])
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31])
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36])
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31])
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36])
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31])
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36])
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31])
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36])
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31])
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0huox26._.js:146:36])
+    at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/Users/nguyenvanbach/Project/Team078/A20-App-078/frontend/.next/build/chunks/[root-of-the-server]__0jv6q73._.js:443:31])

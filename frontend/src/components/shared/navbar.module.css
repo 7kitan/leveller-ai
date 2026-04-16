@@ -1,8 +1,14 @@
 @reference "tailwindcss";
 
 .navbar {
-  @apply fixed top-0 right-0 h-20 bg-bg-deep/80 backdrop-blur-xl border-b border-white/5 z-40 transition-all;
+  @apply fixed top-0 right-0 h-20 backdrop-blur-xl z-40 transition-all;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid var(--color-border-subtle);
   left: 18rem; /* Should match sidebar width */
+}
+
+[data-theme="dark"] .navbar {
+  background-color: rgba(2, 6, 23, 0.8);
 }
 
 .container {
@@ -14,23 +20,37 @@
 }
 
 .brandLink {
-  @apply flex items-center gap-3 group;
+  @apply flex items-center gap-3;
 }
 
 .brandIcon {
-  @apply h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center border border-indigo-500/20 shadow-lg shadow-indigo-500/10 transition-all group-hover:scale-110 group-hover:rotate-3;
+  @apply h-10 w-10 rounded-xl flex items-center justify-center border transition-all;
+  background-color: rgba(79, 70, 229, 0.05);
+  color: var(--color-accent-primary);
+  border-color: rgba(79, 70, 229, 0.1);
+}
+
+.brandLink:hover .brandIcon {
+  @apply scale-110 rotate-3;
+}
+
+[data-theme="dark"] .brandIcon {
+  background-color: rgba(79, 70, 229, 0.1);
+  border-color: rgba(79, 70, 229, 0.2);
 }
 
 .brandText {
-  @apply text-xl font-black tracking-tighter text-white;
+  @apply text-xl font-bold tracking-tight;
+  color: var(--color-text-main);
 }
 
 .brandAccent {
-  @apply text-indigo-500;
+  color: var(--color-accent-primary);
 }
 
 .divider {
-  @apply h-6 w-px bg-white/10 hidden lg:block;
+  @apply h-6 w-px hidden lg:block;
+  background-color: var(--color-border-subtle);
 }
 
 .searchWrapper {
@@ -38,15 +58,37 @@
 }
 
 .inputWrapper {
-  @apply relative w-64 group;
+  @apply relative w-64;
 }
 
 .inputIcon {
-  @apply absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 transition-colors group-focus-within:text-indigo-500;
+  @apply absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors;
+  color: var(--color-text-muted);
+}
+
+.input:focus ~ .inputIcon,
+.inputWrapper:focus-within .inputIcon {
+  color: var(--color-accent-primary);
 }
 
 .input {
-  @apply w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-2.5 text-xs font-bold text-white outline-none transition-all focus:border-indigo-500/50 focus:bg-white/10;
+  @apply w-full rounded-2xl pl-12 pr-4 py-2.5 text-xs font-semibold outline-none transition-all;
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-main);
+}
+
+[data-theme="dark"] .input {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.input:focus {
+  border-color: rgba(79, 70, 229, 0.5);
+  background-color: #fff;
+}
+
+[data-theme="dark"] .input:focus {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .right {
@@ -58,15 +100,30 @@
 }
 
 .iconBtn {
-  @apply p-2.5 rounded-xl border border-white/5 bg-white/3 text-white/40 transition-all hover:bg-white/10 hover:text-white hover:scale-105 active:scale-95 relative;
+  @apply p-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 relative;
+  background-color: #fff;
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-main);
+  opacity: 0.6;
+}
+
+[data-theme="dark"] .iconBtn {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.iconBtn:hover {
+  opacity: 1;
+  color: var(--color-accent-primary);
+  background-color: rgba(79, 70, 229, 0.05);
 }
 
 .iconBadge {
-  @apply absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)];
+  @apply absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-rose-500;
 }
 
 .userProfile {
-  @apply flex items-center gap-4 pl-4 border-l border-white/10;
+  @apply flex items-center gap-4 pl-4;
+  border-left: 1px solid var(--color-border-subtle);
 }
 
 .userInfo {
@@ -74,17 +131,33 @@
 }
 
 .userName {
-  @apply text-xs font-black leading-none text-white uppercase tracking-tight;
+  @apply text-xs font-bold leading-none uppercase tracking-tight;
+  color: var(--color-text-main);
 }
 
 .userRole {
-  @apply text-[9px] font-black text-indigo-400 uppercase tracking-widest mt-1;
+  @apply text-[9px] font-bold uppercase tracking-widest mt-1;
+  color: var(--color-accent-primary);
 }
 
 .avatar {
-  @apply h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20;
+  @apply h-9 w-9 rounded-xl flex items-center justify-center text-white font-bold;
+  background-color: var(--color-accent-primary);
 }
 
 .logoutBtn {
-  @apply p-2.5 rounded-xl border border-white/5 bg-white/3 text-white/40 transition-all hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/20 active:scale-95;
+  @apply p-2.5 rounded-xl transition-all active:scale-95;
+  background-color: #fff;
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+}
+
+[data-theme="dark"] .logoutBtn {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.logoutBtn:hover {
+  background-color: rgba(244, 63, 94, 0.1);
+  color: #f43f5e;
+  border-color: rgba(244, 63, 94, 0.2);
 }

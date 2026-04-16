@@ -1,90 +1,277 @@
 @reference "tailwindcss";
+@reference "../../globals.css";
 
 .pageRoot {
-  @apply space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  animation: fadeIn 0.5s ease-out forwards;
 }
 
-.headerContainer {
-  @apply flex flex-col md:flex-row md:items-end justify-between gap-6;
+.header {
+  background-color: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 3rem;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
-.headerMeta {
-  @apply flex items-center gap-3 text-indigo-400 font-black text-xs uppercase tracking-[0.3em] mb-2;
+@media (min-width: 1024px) {
+  .header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
-.headerTitle {
-  @apply text-4xl font-black text-white tracking-tighter;
+.title {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: white;
+  font-style: italic;
+  letter-spacing: -0.05em;
 }
 
-.headerSubtitle {
-  @apply text-white/40 font-medium tracking-tight;
-}
-
-.syncBtn {
-  @apply px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-sm font-bold text-white transition-all flex items-center gap-2;
+.subtitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 0.5rem;
 }
 
 .statsGrid {
-  @apply grid grid-cols-1 md:grid-cols-4 gap-6;
+    display: grid;
+    grid-template-cols: repeat(2, 1fr);
+    gap: 1.5rem;
 }
 
-.searchWrapper {
-  @apply relative w-full md:w-96 group;
+@media (min-width: 1024px) {
+  .statsGrid {
+    grid-template-cols: repeat(4, 1fr);
+  }
 }
 
-.searchInput {
-  @apply w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm text-white transition-all 
-         focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50;
+.statCard {
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 2rem;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
-.statusFilter {
-  @apply flex bg-white/5 rounded-2xl p-1 border border-white/10;
+.statLabel {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.2rem;
+    color: rgba(255, 255, 255, 0.3);
+    margin-bottom: 1rem;
 }
 
-.filterBtn {
-  @apply px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all;
+.statValue {
+    font-size: 2.25rem;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: -0.05em;
+    line-height: 1;
 }
 
-.filterBtnActive {
-  @apply bg-indigo-600 text-white shadow-lg;
+.statValueSuccess { color: #10b981; }
+.statValueWarning { color: #f59e0b; }
+.statValueDanger { color: #f43f5e; }
+
+.verticalStack8 {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
 }
 
-.filterBtnInactive {
-  @apply text-white/30 hover:text-white/60;
-}
-
-.tableTh {
-  @apply px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30;
-}
-
-.tableTr {
-  @apply group hover:bg-white/[0.02] transition-colors border-b border-white/5;
-}
-
-.tableTd {
-  @apply px-8 py-6;
-}
-
-.candidateInfo {
-  @apply flex items-center gap-4;
-}
-
-.candidateAvatar {
-  @apply w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400;
-}
-
-.candidateName {
-  @apply text-white font-bold group-hover:text-indigo-400 transition-colors;
+.flexRowGap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .actionGroup {
-  @apply flex items-center justify-end gap-2;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.controlBar {
+  padding: 1.5rem 2rem;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.searchContainer {
+    position: relative;
+    flex: 1;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.2);
+    transition: color 0.3s ease;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 1rem 1.5rem 1rem 4rem;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 1.25rem;
+    color: white;
+    font-weight: 700;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.searchInput:focus {
+    border-color: #818cf8;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.refreshBtn {
+  padding: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  color: rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.refreshBtn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.tableContainer {
+  background-color: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 3rem;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHeader {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.th {
+  padding: 1.5rem 2rem;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background-color 0.3s ease;
+}
+
+.tr:hover {
+  background-color: rgba(255, 255, 255, 0.01);
+}
+
+.td {
+  padding: 1.5rem 2rem;
+}
+
+.userCell {
+    display: flex;
+    flex-direction: column;
+}
+
+.userName { font-weight: 900; color: white; }
+.userEmail { font-size: 0.75rem; color: rgba(255, 255, 255, 0.3); }
+
+.statusBadge {
+    display: inline-flex;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.75rem;
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid transparent;
+}
+
+.statusCompleted { background-color: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
+.statusProcessing { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2); }
+.statusFailed { background-color: rgba(244, 63, 94, 0.1); color: #f43f5e; border-color: rgba(244, 63, 94, 0.2); }
+.statusPending { background-color: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.3); border-color: rgba(255, 255, 255, 0.1); }
+
+.idBadge {
+    padding: 0.25rem 0.5rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 0.5rem;
+    font-family: monospace;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.2);
 }
 
 .actionBtn {
-  @apply p-2 hover:bg-white/10 rounded-lg text-white/20 hover:text-white transition-all;
+  padding: 0.625rem;
+  border-radius: 1rem;
+  color: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
 }
 
-.deleteBtn {
-  @apply p-2 hover:bg-red-500/10 rounded-lg text-white/20 hover:text-red-400 transition-all;
+.actionBtn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 8rem 0;
+    opacity: 0.2;
+}
+
+.spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 4px solid rgba(129, 140, 248, 0.1);
+    border-top-color: #818cf8;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

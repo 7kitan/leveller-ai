@@ -59,7 +59,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
             animate={{ scale: 1 }}
             className={styles.iconBox}
           >
-            {isLogin ? <LogIn className="h-8 w-8" /> : <UserPlus className="h-8 w-8" />}
+            {isLogin ? <LogIn size={32} /> : <UserPlus size={32} />}
           </motion.div>
           <h2 className={styles.title}>
             {isLogin ? "Chào mừng trở lại" : "Tạo tài khoản mới"}
@@ -71,7 +71,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.inputGroup}>
-            <div className="relative group">
+            <div className={styles.inputWrapper}>
               <input
                 type="email"
                 required
@@ -81,7 +81,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            <div className="relative group">
+            <div className={styles.inputWrapper}>
               <input
                 type="password"
                 required
@@ -99,20 +99,20 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
               animate={{ opacity: 1, x: 0 }}
               className={styles.errorBox}
             >
-              <AlertCircle className="h-4 w-4" /> {error}
+              <AlertCircle size={16} /> {error}
             </motion.div>
           )}
 
-          <div className="pt-2">
+          <div className={styles.submitWrapper}>
             <button
               type="submit"
               disabled={loading}
               className={styles.submitBtn}
             >
               {loading ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
+                <Loader2 size={24} className={styles.animateSpin} />
               ) : (
-                <span className="flex items-center">
+                <span>
                   {isLogin ? "Đăng Nhập" : "Đăng Ký"}
                 </span>
               )}

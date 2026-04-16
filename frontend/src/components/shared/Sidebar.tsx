@@ -90,7 +90,7 @@ export default function Sidebar() {
           <div className={styles.avatar}>
             {user?.email[0] ?? "?"}
           </div>
-          <div className="overflow-hidden">
+          <div className={styles.userDetails}>
             <div className={styles.userEmail}>{user?.email}</div>
             <div className={styles.userRole}>{user?.role}</div>
           </div>

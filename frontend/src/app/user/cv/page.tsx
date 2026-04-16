@@ -1,588 +1,423 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import AuthGuard from "@/components/auth/AuthGuard";
 import axios from "axios";
-import { 
-  Upload, FileText, CheckCircle2, Loader2, AlertCircle, 
-  User, Briefcase, Sparkles, ArrowRight, RefreshCcw,
-  Clock, History, Eye, Trash2, ShieldCheck, ChevronRight,
-  Edit2, Plus, Save, X, Trash
-} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import Link from "next/link";
-
-interface Skill {
-  id: string;
-  skill_id: string;
-  name: string;
-  category: string;
-  years_exp: number;
-  level: string;
-}
-
-interface CVData {
-  id: string;
-  full_name: string;
-  summary: string;
-  experience_years_total: number;
-  status: string;
-  error_message: string | null;
-  skills: Skill[];
-}
-
-interface CVListItem {
-  id: string;
-  full_name: string | null;
-  status: string;
-  error_message: string | null;
-  created_at: string;
-}
-
+import { 
+  UploadCloud, 
+  FileText, 
+  CheckCircle2, 
+  AlertCircle, 
+  Loader2, 
+  Clock, 
+  ArrowRight,
+  ShieldCheck,
+  Zap,
+  Cpu,
+  Sparkles,
+  Award,
+  ChevronRight,
+  Save,
+  Plus,
+  Trash2
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import styles from "./user-cv.module.css";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default function UserCVPage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [cvId, setCvId] = useState<string | null>(null);
-  const [cvData, setCvData] = useState<CVData | null>(null);
-  const [cvList, setCvList] = useState<CVListItem[]>([]);
-  const [status, setStatus] = useState<"idle" | "uploading" | "processing" | "completed" | "error">("idle");
-  const [error, setError] = useState("");
-  
-  // Edit states
-  const [isEditing, setIsEditing] = useState(false);
-  const [editTotalExp, setEditTotalExp] = useState<number>(0);
-  const [newSkill, setNewSkill] = useState({ name: "", years_exp: 0, level: "Mid-level" });
-  const [isAddingSkill, setIsAddingSkill] = useState(false);
-  const [saving, setSaving] = useState(false);
-  
+interface CVHistory {
+  id: string;
+  status: 'processing' | 'completed' | 'failed';
+  created_at: string;
+  file_name: string;
+}
+
+interface ParsedCV {
+  id: string;
+  skills: { name: string; category: string; experience_years: number }[];
+  summary: string;
+  user_info: {
+    full_name: string;
+    total_exp_years: number;
+  };
+}
+
+const UserCVPage = () => {
   const { token } = useAuth();
-  const API_BASE = "/api/cv";
+  const [file, setFile] = useState<File | null>(null);
+  const [history, setHistory] = useState<CVHistory[]>([]);
+  const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'viewing'>('idle');
+  const [parsedData, setParsedData] = useState<ParsedCV | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const fetchHistory = async () => {
+    try {
+      const resp = await axios.get("/api/analysis/cv/history", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setHistory(resp.data);
+    } catch (err) {
+      console.error("Fetch history error:", err);
+    }
+  };
 
   useEffect(() => {
-    if (token) {
-      fetchCVList();
-    }
+    if (token) fetchHistory();
   }, [token]);
-
-  const fetchCVList = async () => {
-    try {
-      const res = await axios.get(`${API_BASE}/list`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      setCvList(res.data);
-    } catch (err) {
-      console.error("Lỗi lấy danh sách CV:", err);
-    }
-  };
-
-  const handleUpdateTotalExp = async () => {
-    if (!cvData) return;
-    setSaving(true);
-    try {
-      await axios.patch(`${API_BASE}/${cvData.id}`, {
-        experience_years_total: editTotalExp
-      }, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      await fetchCVDetail(cvData.id);
-      setIsEditing(false);
-    } catch (err) {
-      console.error("Lỗi cập nhật kinh nghiệm:", err);
-      alert("Không thể cập nhật kinh nghiệm.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleAddSkill = async () => {
-    if (!cvData || !newSkill.name) return;
-    setSaving(true);
-    try {
-      await axios.post(`${API_BASE}/${cvData.id}/skills`, {
-        skill_name: newSkill.name,
-        years_exp: newSkill.years_exp,
-        level: newSkill.level
-      }, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      await fetchCVDetail(cvData.id);
-      setNewSkill({ name: "", years_exp: 0, level: "Mid-level" });
-      setIsAddingSkill(false);
-    } catch (err) {
-      console.error("Lỗi thêm kỹ năng:", err);
-      alert("Không thể thêm kỹ năng.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDeleteSkill = async (profileId: string) => {
-    if (!cvData || !confirm("Bạn có chắc chắn muốn xóa kỹ năng này?")) return;
-    setSaving(true);
-    try {
-      await axios.delete(`${API_BASE}/${cvData.id}/skills/${profileId}`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      await fetchCVDetail(cvData.id);
-    } catch (err) {
-      console.error("Lỗi xóa kỹ năng:", err);
-      alert("Không thể xóa kỹ năng.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-      setError("");
-      setStatus("idle");
-    }
-  };
 
   const handleUpload = async () => {
     if (!file) return;
-    setUploading(true);
     setStatus("uploading");
-    setError("");
-
+    setError(null);
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const res = await axios.post(`${API_BASE}/upload`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${token}`
+      const resp = await axios.post("/api/analysis/cv/upload", formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data" 
         }
       });
-      
-      const { cv_id, status: serverStatus } = res.data;
-      setCvId(cv_id);
-      
-      if (serverStatus === "completed") {
-        setStatus("completed");
-        fetchCVDetail(cv_id);
-        fetchCVList();
-      } else {
-        setStatus("processing");
-      }
+      const parserId = resp.data.parser_id;
+      pollStatus(parserId);
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Lỗi upload CV. Vui lòng thử lại.");
-      setStatus("error");
-    } finally {
-      setUploading(false);
+      setError(err.response?.data?.detail || "Lỗi khi tải file. Vui lòng thử lại.");
+      setStatus("idle");
     }
   };
 
-  const fetchCVDetail = async (id: string) => {
-    try {
-      const res = await axios.get(`${API_BASE}/${id}`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      if (res.data.status === "completed") {
-        setCvData(res.data);
-        setStatus("completed");
-        fetchCVList();
-      } else if (res.data.status === "failed") {
-        setCvData(res.data);
-        setStatus("idle");
-        setError(res.data.error_message || "Xử lý CV thất bại.");
-        fetchCVList();
-      }
-      return res.data;
-    } catch (err) {
-      console.error("Lỗi lấy chi tiết CV:", err);
-    }
-  };
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (status === "processing" && cvId) {
-      interval = setInterval(async () => {
-        const data = await fetchCVDetail(cvId);
-        if (data && data.status === "completed") {
+  const pollStatus = async (parserId: string) => {
+    setStatus("processing");
+    const interval = setInterval(async () => {
+      try {
+        const resp = await axios.get(`/api/analysis/cv/status/${parserId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (resp.data.status === "completed") {
           clearInterval(interval);
+          setParsedData(resp.data.result);
+          setStatus("viewing");
+          fetchHistory();
+        } else if (resp.data.status === "failed") {
+          clearInterval(interval);
+          setError("AI gặp sự cố khi bóc tách hồ sơ này.");
+          setStatus("idle");
         }
-      }, 3000);
-    }
-    return () => { if (interval) clearInterval(interval); };
-  }, [status, cvId]);
-
-  const reset = () => {
-    setFile(null);
-    setCvId(null);
-    setCvData(null);
-    setStatus("idle");
-    setError("");
-    setIsEditing(false);
+      } catch (err) {
+        clearInterval(interval);
+        setStatus("idle");
+      }
+    }, 3000);
   };
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('vi-VN', { 
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
+  const handleManualAddSkill = () => {
+      if (!parsedData) return;
+      const newSkill = { name: "New Skill", category: "Technology", experience_years: 1 };
+      setParsedData({
+          ...parsedData,
+          skills: [...parsedData.skills, newSkill]
+      });
   };
 
-  return (
-    <div className={styles.pageRoot}>
-      {/* Page Header */}
-      <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>
-             <FileText className="text-cyan-400 w-8 h-8" /> Portfolio & CVs
-          </h1>
-          <p className={styles.subtitle}>Quản lý các bản hồ sơ và dữ liệu kỹ năng đã được AI chuẩn hóa.</p>
+  const handleUpdateExperience = (idx: number, years: number) => {
+      if (!parsedData) return;
+      const nextSkills = [...parsedData.skills];
+      nextSkills[idx].experience_years = years;
+      setParsedData({ ...parsedData, skills: nextSkills });
+  };
+
+  const handleDeleteSkill = (idx: number) => {
+      if (!parsedData) return;
+      setParsedData({
+          ...parsedData,
+          skills: parsedData.skills.filter((_, i) => i !== idx)
+      });
+  };
+
+  const handleSaveMatrix = async () => {
+      setSaving(true);
+      try {
+          await axios.post("/api/analysis/cv/finalize", parsedData, {
+              headers: { Authorization: `Bearer ${token}` }
+          });
+          alert("Portfolio đã được cập nhật thành công!");
+      } catch (err) {
+          alert("Lỗi khi lưu Portfolio.");
+      } finally {
+          setSaving(false);
+      }
+  };
+
+  if (status === "processing") {
+    return (
+      <div className={styles.processingPanel}>
+        <div className={styles.spinnerWrapper}>
+          <div className={styles.spinnerRing}></div>
+          <Cpu size={48} className={styles.pulseIcon} />
         </div>
-        <div className={styles.secureBadge}>
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span className={styles.secureText}>Dữ liệu được bảo mật</span>
+        <div>
+          <h2 style={{ fontSize: "2rem", fontWeight: 900, color: "white", fontStyle: "italic", marginBottom: "1rem" }}>ENGINEERING KNOWLEDGE...</h2>
+          <p style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>AI đang ánh xạ hồ sơ của bạn vào Global Taxonomy Graph.</p>
         </div>
       </div>
+    );
+  }
 
-      <AnimatePresence mode="wait">
-        {status === "idle" || status === "uploading" || status === "error" ? (
-          <motion.div 
-            key="upload-view"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className={styles.uploadGrid}
-          >
-            {/* Left: Upload Zone */}
-            <div className={styles.uploadZone}>
-              <div className={styles.uploadPanel}>
-                <div className={styles.uploadGlow}></div>
+  if (status === "viewing" && parsedData) {
+    const groupedSkills = parsedData.skills.reduce((acc: any, skill) => {
+      const cat = skill.category || "Uncategorized";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(skill);
+      return acc;
+    }, {});
+
+    return (
+      <div className={styles.stackSection}>
+        {/* Result Header */}
+        <div className={styles.resultHeader}>
+             <div className={styles.resultHeaderGroup}>
+                <div className={styles.userBasicInfo}>
+                    <div className={styles.avatar}>
+                        <FileText size={40} />
+                    </div>
+                    <div>
+                        <h1 className={styles.userName}>{parsedData.user_info.full_name || "Parsed Candidate"}</h1>
+                        <div className={styles.metaRow}>
+                           <div className={styles.userExpBadge}>
+                              <Clock size={14} />
+                              {parsedData.user_info.total_exp_years} Years Experience
+                           </div>
+                           <div className={styles.secureBadge} style={{ background: "rgba(129, 140, 248, 0.1)", borderColor: "rgba(129, 140, 248, 0.2)" }}>
+                              <ShieldCheck size={14} style={{ color: "#818cf8" }} />
+                              <span style={{ fontSize: "10px", fontWeight: 900, color: "#818cf8", textTransform: "uppercase" }}>AI Verified Portfolio</span>
+                           </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className={styles.ctaRow}>
+                    <button 
+                        onClick={() => setStatus("idle")} 
+                        style={{ fontSize: "10px", fontWeight: 900, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.2em" }}
+                    >
+                        Tải lại CV
+                    </button>
+                    <button 
+                        onClick={handleSaveMatrix}
+                        disabled={saving}
+                        className={styles.uploadBtn}
+                        style={{ marginTop: 0, padding: "1rem 2.5rem" }}
+                    >
+                        {saving ? <Loader2 size={18} className={styles.animateSpin} /> : <Save size={18} />}
+                        LƯU VÀO HỆ THỐNG
+                    </button>
+                </div>
+             </div>
+
+             <div className={styles.summarySection}>
+                <h4 className={styles.summaryTitle}>Executive Insight</h4>
+                <p className={styles.summaryText}>&ldquo;{parsedData.summary}&rdquo;</p>
+             </div>
+        </div>
+
+        {/* Matrix Grid */}
+        <div className={styles.matrixGrid}>
+           {/* Main Skills Matrix */}
+           <div className={styles.matrixPanel}>
+              <h2 className={styles.matrixTitle}>
+                 <Sparkles size={24} style={{ color: "#818cf8", marginRight: "1rem" }} />
+                 COMPETENCY MATRIX
+              </h2>
+
+              {Object.keys(groupedSkills).map((cat) => (
+                <div key={cat} className={styles.catGroup}>
+                   <h5 className={styles.catLabel}>{cat}</h5>
+                   <div className={styles.flexWrapGap}>
+                      {groupedSkills[cat].map((skill: any, idx: number) => {
+                         const globalIdx = parsedData.skills.findIndex(s => s.name === skill.name);
+                         return (
+                            <div key={idx} className={styles.skillItem}>
+                               <span style={{ marginRight: "0.75rem" }}>{skill.name}</span>
+                               <input 
+                                  type="number" 
+                                  value={skill.experience_years} 
+                                  onChange={(e) => handleUpdateExperience(globalIdx, parseInt(e.target.value))}
+                                  className={styles.editInput}
+                                  min={0}
+                                />
+                                <span style={{ marginLeft: "0.5rem", fontSize: "10px", opacity: 0.3 }}>YRS</span>
+                                <button 
+                                    onClick={() => handleDeleteSkill(globalIdx)}
+                                    style={{ marginLeft: "1rem", color: "rgba(244, 63, 94, 0.4)" }}
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+                            </div>
+                         );
+                      })}
+                   </div>
+                </div>
+              ))}
+
+              <button onClick={handleManualAddSkill} className={styles.addSkillBtn}>
+                 <Plus size={16} /> Bổ sung kĩ năng thủ công
+              </button>
+           </div>
+
+           {/* Sidebar Tools */}
+           <div className={styles.verifyPanel}>
+              <h4 style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.2em", color: "#06b6d4" }}>Portfolio Scoring</h4>
+              <div className={styles.stackTight}>
+                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                    <span style={{ fontSize: "10px", fontWeight: 700, opacity: 0.4 }}>Taxonomy Fit</span>
+                    <span style={{ fontSize: "2rem", fontWeight: 900, fontStyle: "italic", color: "white" }}>92.4%</span>
+                 </div>
+                 <div style={{ width: "100%", height: "2px", background: "rgba(255,255,255,0.05)" }}>
+                    <div style={{ width: "92.4%", height: "100%", background: "#06b6d4" }} />
+                 </div>
+              </div>
+
+              <div style={{ marginTop: "2rem", padding: "1.5rem", background: "rgba(255,255,255,0.02)", borderRadius: "1.5rem", border: "1px solid rgba(255,255,255,0.05)" }}>
+                 <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", lineHeight: "1.6" }}>
+                    Các kĩ năng được bóc tách sẽ được sử dụng để chạy Gap Analysis trên 5,000+ vị trí công việc.
+                 </p>
+                 <button 
+                   onClick={handleSaveMatrix}
+                   className={styles.uploadBtn} 
+                   style={{ width: "100%", marginTop: "1.5rem", padding: "1rem" }}
+                 >
+                    {saving ? <Loader2 size={16} className={styles.animateSpin} /> : <CheckCircle2 size={24} />}
+                 </button>
+              </div>
+           </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <AuthGuard requireRole="user">
+      <div className={styles.pageRoot}>
+        {/* Header Section */}
+        <div className={styles.header}>
+          <div>
+            <h1 className={styles.title}>
+              <Zap size={40} style={{ color: "#818cf8" }} />
+              KHO HỒ SƠ CÁ NHÂN.
+            </h1>
+            <p className={styles.subtitle}>Tải lên CV (PDF/Images) để AI tự động trích xuất và tối ưu lộ trình kĩ năng.</p>
+          </div>
+          <div className={styles.secureBadge}>
+            <ShieldCheck size={18} style={{ color: "#10b981" }} />
+            <span className={styles.secureText}>ISO 27001 SECURE ENCRYPTION</span>
+          </div>
+        </div>
+
+        <div className={styles.uploadGrid}>
+          {/* Left: Upload Area */}
+          <div className={styles.uploadZone}>
+            <div className={styles.uploadPanel}>
+              <div className={styles.uploadGlow} />
+              
+              <div 
+                className={cn(
+                    styles.dropZone,
+                    isDragging ? styles.dropZoneActive : styles.dropZoneIdle
+                )}
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  if (e.dataTransfer.files?.[0]) setFile(e.dataTransfer.files[0]);
+                }}
+              >
+                <div className={cn(styles.uploadIcon, (file || isDragging) && styles.uploadIconActive)}>
+                  <UploadCloud size={48} />
+                </div>
                 
-                <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-6">
-                  <div 
-                    className={`${styles.dropZone} ${file ? styles.dropZoneActive : styles.dropZoneIdle}`}
-                  >
-                    <input 
-                      type="file" 
-                      accept=".pdf,.png,.jpg,.jpeg,.webp,.bmp" 
-                      className="absolute inset-0 cursor-pointer opacity-0"
-                      onChange={handleFileChange}
-                    />
-                    <div className={`${styles.uploadIcon} ${file ? styles.uploadIconActive : ''}`}>
-                      <Upload className="h-10 w-10" />
-                    </div>
-                    <h3 className="text-xl font-bold text-white">
-                      {file ? file.name : "Tải lên hồ sơ nghề nghiệp"}
-                    </h3>
-                    <p className="text-sm text-white/30 font-medium mt-2">PDF hoặc Ảnh (PNG, JPG, ...). Tối đa 10MB.</p>
-                  </div>
+                <div style={{ textAlign: "center" }}>
+                   <h3 style={{ fontSize: "1.5rem", fontWeight: 900, color: "white", marginBottom: "0.5rem" }}>
+                     {file ? file.name : "Kéo thả hồ sơ vào đây"}
+                   </h3>
+                   <p style={{ color: "rgba(255,255,255,0.3)", fontWeight: 500 }}>Chấp nhận định dạng .pdf, .png, .jpg (Tối đa 10MB)</p>
+                </div>
 
-                  {error && (
-                    <div className={styles.errorBox}>
-                      <AlertCircle className="h-4 w-4 mr-2" /> {error}
-                    </div>
-                  )}
-
-                  <button
-                    onClick={handleUpload}
-                    disabled={!file || status === "uploading"}
-                    className={styles.uploadBtn}
-                  >
-                    {status === "uploading" ? <Loader2 className="h-5 v-5 animate-spin" /> : <Sparkles className="h-5 v-5" />}
-                    {status === "uploading" ? "Đang xử lý..." : "Bắt đầu Phân tích CV qua AI"}
-                  </button>
+                <div className={styles.loaderWrapper}>
+                  <input
+                    type="file"
+                    className="hidden"
+                    id="cv-upload"
+                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                    accept=".pdf,image/*"
+                  />
+                  <label htmlFor="cv-upload" style={{ cursor: "pointer", color: "#818cf8", fontWeight: 900, textTransform: "uppercase", fontSize: "10px", letterSpacing: "0.15em", textDecoration: "underline" }}>
+                    Hoặc duyệt từ máy tính
+                  </label>
                 </div>
               </div>
-            </div>
 
-            {/* Right: History Sidebar Style */}
-            <div className={styles.historySection}>
-              <h3 className={styles.historyTitle}>
-                <History className="w-4 h-4" /> Lịch sử hồ sơ
-              </h3>
-              <div className={styles.historyList}>
-                {cvList.length > 0 ? (
-                  cvList.map((item) => (
-                    <div 
-                      key={item.id}
-                      className={styles.historyItem}
-                      onClick={() => {
-                        setCvId(item.id);
-                        if (item.status === 'completed') fetchCVDetail(item.id);
-                        else setStatus('processing');
-                      }}
-                    >
-                      <div className="flex items-center gap-3 truncate">
-                        <div className={`${styles.historyIcon} ${item.status === 'completed' ? styles.historyIconCompleted : styles.historyIconProcessing}`}>
-                           {item.status === 'completed' ? <CheckCircle2 className="w-5 h-5" /> : <Loader2 className="w-5 h-5 animate-spin" />}
+              {error && (
+                <div className={styles.errorBox}>
+                  <AlertCircle size={18} style={{ marginRight: "0.75rem" }} />
+                  {error}
+                </div>
+              )}
+
+              <button 
+                onClick={handleUpload}
+                disabled={!file || status === "uploading"}
+                className={styles.uploadBtn}
+              >
+                {status === "uploading" ? <Loader2 size={20} className={styles.animateSpin} /> : <Sparkles size={20} />}
+                {status === "uploading" ? "AI ĐANG PHÂN TÍCH..." : "BẮT ĐẦU TRÍCH XUẤT AI"}
+              </button>
+            </div>
+          </div>
+
+          {/* Right: History */}
+          <div className={styles.historySection}>
+             <div className={styles.historyTitle}>
+                HISTORY LOGS
+                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.05)" }} />
+             </div>
+
+             <div className={styles.historyList}>
+                {history.map((item) => (
+                   <div key={item.id} className={styles.historyItem}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+                        <div className={cn(
+                            styles.historyIcon,
+                            item.status === 'completed' ? styles.historyIconCompleted : styles.historyIconProcessing
+                        )}>
+                           {item.status === 'completed' ? <CheckCircle2 size={24} /> : <Loader2 size={24} className={styles.animateSpin} />}
                         </div>
-                        <div className="truncate">
-                          <p className="font-bold text-sm text-white truncate group-hover:text-cyan-400 transition-colors uppercase tracking-tight">
-                            {item.full_name || "DỮ LIỆU ĐANG QUÉT..."}
-                          </p>
-                          <p className="text-[10px] text-white/30 font-bold">{formatDate(item.created_at)}</p>
+                        <div>
+                           <h4 style={{ fontWeight: 900, color: "white" }}>{item.file_name}</h4>
+                           <p style={{ fontSize: "10px", fontWeight: 900, color: "rgba(255,255,255,0.2)", textTransform: "uppercase", marginTop: "0.25rem" }}>
+                             Processed on {new Date(item.created_at).toLocaleDateString()}
+                           </p>
                         </div>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white transition-all transform group-hover:translate-x-1" />
+                      <ChevronRight size={18} style={{ color: "rgba(255,255,255,0.1)" }} />
+                   </div>
+                ))}
+                {history.length === 0 && (
+                    <div style={{ padding: "4rem 0", textAlign: "center", opacity: 0.1 }}>
+                        <Clock size={48} style={{ margin: "0 auto 1.5rem" }} />
+                        <p style={{ fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.2em" }}>Chưa có lịch sử</p>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-12 border border-dashed border-white/5 rounded-2xl opacity-30">
-                     <p className="text-[10px] font-black uppercase tracking-widest">Trống</p>
-                  </div>
                 )}
-              </div>
-            </div>
-          </motion.div>
-        ) : status === "processing" ? (
-          <motion.div 
-            key="processing-view"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className={styles.processingPanel}
-          >
-            <div className="relative mx-auto w-32 h-32">
-              <div className="absolute inset-0 rounded-full border-4 border-cyan-500/10 border-t-cyan-500 animate-spin" />
-              <div className="absolute inset-6 rounded-full bg-cyan-500/5 flex items-center justify-center">
-                <Sparkles className={styles.pulseIcon} />
-              </div>
-            </div>
-            <div className="max-w-md mx-auto">
-              <h3 className="text-2xl font-black text-white tracking-tight">AI đang bóc tách kĩ năng...</h3>
-              <p className="text-white/40 mt-4 text-sm font-medium leading-relaxed">
-                Lumix AI đang chuẩn hóa hồ sơ của bạn vào Knowledge Graph để tìm ra các vị trí phù hợp nhất trên thị trường.
-              </p>
-            </div>
-            {cvData?.error_message && (
-              <div className="max-w-md mx-auto p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-sm font-bold">
-                <AlertCircle className="w-4 h-4 inline mr-2" />
-                Lỗi: {cvData.error_message}
-              </div>
-            )}
-            <div className="flex justify-center space-x-3">
-               {[0, 1, 2].map(i => (
-                 <motion.div 
-                  key={i} 
-                  animate={{ opacity: [0.2, 1, 0.2] }} 
-                  transition={{ repeat: Infinity, duration: 1.5, delay: i * 0.3 }}
-                  className="w-2 h-2 rounded-full bg-cyan-500" 
-                 />
-               ))}
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div 
-            key="result-view"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="space-y-8"
-          >
-            {/* Result Header */}
-            <div className={styles.resultHeader}>
-               <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[100%] bg-emerald-500/5 blur-[100px] pointer-events-none"></div>
-               
-               <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
-                 <div className="flex items-center gap-6">
-                    <div className={styles.avatar}>
-                        <User className="h-12 w-12" />
-                    </div>
-                    <div>
-                        <h2 className={styles.userName}>{cvData?.full_name || "PROFILE MỚI"}</h2>
-                        <div className="flex items-center mt-2 gap-4">
-                            {isEditing ? (
-                                <div className="flex items-center gap-2">
-                                    <input 
-                                        type="number" 
-                                        step="0.1"
-                                        value={editTotalExp}
-                                        onChange={(e) => setEditTotalExp(parseFloat(e.target.value))}
-                                        className={styles.editInput}
-                                    />
-                                    <span className="text-emerald-400 text-xs font-black uppercase tracking-widest">NĂM KINH NGHIỆM</span>
-                                    <button 
-                                        onClick={handleUpdateTotalExp}
-                                        disabled={saving}
-                                        className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition-all"
-                                    >
-                                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                    </button>
-                                    <button 
-                                        onClick={() => setIsEditing(false)}
-                                        className="p-1.5 bg-white/5 text-white/40 rounded-lg hover:bg-white/10 transition-all"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            ) : (
-                                <span className={styles.userExpBadge}>
-                                    <Briefcase className="w-4 h-4" /> {cvData?.experience_years_total.toFixed(1)} NĂM KINH NGHIỆM
-                                    <button 
-                                        onClick={() => {
-                                            setEditTotalExp(cvData?.experience_years_total || 0);
-                                            setIsEditing(true);
-                                        }}
-                                        className="ml-2 p-1 hover:bg-white/5 rounded-md transition-all text-white/20 hover:text-white"
-                                    >
-                                        <Edit2 className="w-3 h-3" />
-                                    </button>
-                                </span>
-                            )}
-                            <div className="w-1 h-1 rounded-full bg-white/20"></div>
-                            <span className="text-white/40 text-xs font-bold uppercase tracking-widest">Đã chuẩn hóa qua Graph</span>
-                        </div>
-                    </div>
-                 </div>
-                 
-                 <div className="flex flex-wrap gap-4">
-                    <button onClick={reset} className="p-4 rounded-2xl border border-white/5 bg-white/3 text-white/40 hover:text-white transition-all">
-                        <RefreshCcw className="h-5 w-5" />
-                    </button>
-                    <Link 
-                        href={`/user/analysis?cv_id=${cvData?.id}`}
-                        className="flex items-center gap-3 rounded-2xl bg-emerald-600 px-10 py-4 font-black text-xs uppercase tracking-widest text-white transition-all hover:bg-emerald-500 shadow-2xl shadow-emerald-900/40"
-                    >
-                        PHÂN TÍCH GAP NGAY <ArrowRight className="h-4 h-4" />
-                    </Link>
-                 </div>
-               </div>
-
-               <div className={styles.summarySection}>
-                 <h4 className={styles.summaryTitle}>Mô tả tóm tắt sự nghiệp (AI Generated)</h4>
-                 <p className={styles.summaryText}>
-                   "{cvData?.summary || "Dữ liệu đang được tổng hợp..."}"
-                 </p>
-               </div>
-            </div>
-
-            {/* Skills Matrix Map */}
-            <div className={styles.matrixGrid}>
-                <div className={styles.matrixPanel}>
-                    <h4 className={styles.matrixTitle}>
-                        <Sparkles className="h-5 w-5 mr-3 text-amber-500" />
-                        Ma trận Kỹ năng kĩ thuật
-                    </h4>
-                    <div className="space-y-8">
-                        {["Backend", "Frontend", "Cloud & DevOps", "Mobile", "Database"].map((cat) => {
-                            const catSkills = cvData?.skills.filter(s => s.category === cat) || [];
-                            if (catSkills.length === 0 && !isAddingSkill) return null;
-                            
-                            return (
-                                <div key={cat} className={styles.catGroup}>
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-1 h-4 rounded-full ${
-                                            cat === 'Backend' ? 'bg-indigo-500' :
-                                            cat === 'Frontend' ? 'bg-pink-500' :
-                                            cat === 'Cloud & DevOps' ? 'bg-orange-500' :
-                                            cat === 'Mobile' ? 'bg-cyan-500' : 'bg-emerald-500'
-                                        }`} />
-                                        <h5 className={styles.catLabel}>{cat}</h5>
-                                    </div>
-                                    <div className="flex flex-wrap gap-3">
-                                        {catSkills.map((skill, idx) => (
-                                            <motion.div 
-                                                key={idx}
-                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                className={`${styles.skillItem}
-                                                    ${cat === 'Backend' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 
-                                                    cat === 'Frontend' ? 'bg-pink-500/10 border-pink-500/20 text-pink-400' :
-                                                    cat === 'Cloud & DevOps' ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' :
-                                                    'bg-white/5 border-white/10 text-white/50'}`}
-                                            >
-                                                {skill.name} <span className="opacity-40 font-bold italic">({skill.years_exp}y)</span>
-                                                <button 
-                                                    onClick={() => handleDeleteSkill(skill.id)}
-                                                    className="opacity-0 group-hover/skill:opacity-100 ml-1 p-1 hover:bg-rose-500/20 text-rose-500 rounded transition-all"
-                                                >
-                                                    <Trash2 className="w-3 h-3" />
-                                                </button>
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })}
-
-                        {/* Uncategorized or generic */}
-                        {(cvData?.skills ?? []).filter(s => !["Backend", "Frontend", "Cloud & DevOps", "Mobile", "Database"].includes(s.category)).length > 0 && (
-                             <div className={styles.catGroup}>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-1 h-4 rounded-full bg-slate-500" />
-                                    <h5 className={styles.catLabel}>Other Specialist Skills</h5>
-                                </div>
-                                <div className="flex flex-wrap gap-3">
-                                    {cvData?.skills.filter(s => !["Backend", "Frontend", "Cloud & DevOps", "Mobile", "Database"].includes(s.category)).map((skill, idx) => (
-                                        <motion.div 
-                                            key={idx}
-                                            className={`${styles.skillItem} border-white/10 bg-white/5 text-white/50`}
-                                        >
-                                            {skill.name} <span className="opacity-40 font-bold italic">({skill.years_exp}y)</span>
-                                            <button 
-                                                onClick={() => handleDeleteSkill(skill.id)}
-                                                className="opacity-0 group-hover/skill:opacity-100 ml-1 p-1 hover:bg-rose-500/20 text-rose-500 rounded transition-all"
-                                            >
-                                                <Trash2 className="w-3 h-3" />
-                                            </button>
-                                        </motion.div>
-                                    ))}
-                                </div>
-                             </div>
-                        )}
-
-                        <div className="pt-6 border-t border-white/5">
-                            {isAddingSkill ? (
-                                <motion.div 
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2 w-fit"
-                                >
-                                    <input 
-                                        placeholder="Skill Name..." 
-                                        value={newSkill.name}
-                                        onChange={e => setNewSkill({...newSkill, name: e.target.value})}
-                                        className={styles.addSkillInput}
-                                    />
-                                    <input 
-                                        type="number" 
-                                        placeholder="Yrs" 
-                                        value={newSkill.years_exp || ""}
-                                        onChange={e => setNewSkill({...newSkill, years_exp: parseFloat(e.target.value) || 0})}
-                                        className={styles.addExpInput}
-                                    />
-                                    <button onClick={handleAddSkill} disabled={saving} className="text-emerald-400 hover:text-emerald-300">
-                                        {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                                    </button>
-                                    <button onClick={() => setIsAddingSkill(false)} className="text-white/40 hover:text-white">
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </motion.div>
-                            ) : (
-                                <button 
-                                    onClick={() => setIsAddingSkill(true)}
-                                    className={styles.addSkillBtn}
-                                >
-                                    <Plus className="w-3 h-3" /> Bổ sung kỹ năng
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-                
-                <div className={styles.verifyPanel}>
-                    <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 border border-cyan-500/20">
-                        <CheckCircle2 className="w-8 h-8" />
-                    </div>
-                    <div>
-                        <h4 className="text-lg font-black text-white uppercase tracking-tighter">Graph Verified</h4>
-                        <p className="text-white/30 text-xs font-bold leading-relaxed mt-2 uppercase tracking-wide">
-                            Bộ kỹ năng đã được liên kết với Metadata Graph để tối ưu hóa việc gợi ý lộ trình học tập.
-                        </p>
-                    </div>
-                </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+             </div>
+          </div>
+        </div>
+      </div>
+    </AuthGuard>
   );
-}
+};
+
+export default UserCVPage;

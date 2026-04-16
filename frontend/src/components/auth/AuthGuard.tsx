@@ -3,6 +3,8 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
+import styles from "./auth-guard.module.css";
+import { cn } from "@/lib/utils";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -57,10 +59,10 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin, requireRo
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-[#030508] flex items-center justify-center">
-        <div className="relative w-24 h-24">
-          <div className="absolute inset-0 rounded-full border-4 border-violet-500/20 border-t-violet-500 animate-spin"></div>
-          <div className="absolute inset-4 rounded-full border-4 border-cyan-500/20 border-b-cyan-500 animate-spin [animation-duration:1.5s]"></div>
+      <div className={styles.loadingOverlay}>
+        <div className={styles.spinnerContainer}>
+          <div className={cn(styles.spinner, styles.outerSpinner)}></div>
+          <div className={cn(styles.spinner, styles.innerSpinner)}></div>
         </div>
       </div>
     );

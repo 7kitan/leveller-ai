@@ -11,53 +11,54 @@
 
 /* ── 1. CSS VARIABLES (Light overrides) ────────────────────────────────── */
 [data-theme="light"] {
-  /* Background */
-  --bg:            0 0% 100%;    /* #FFFFFF pure white */
-  --bg-elevated:  0 0%  99%;    /* #FDFDFD slightly off-white */
-  --bg-hover:      220 14% 96%; /* #F1F5F9 hover state */
+  /* Background - Soft Off-white */
+  --bg:            210 20% 98%; 
+  --bg-elevated:  0 0% 100%;    
+  --bg-hover:      210 20% 95%; 
 
   /* Surface */
-  --glass-bg:     transparent;    /* no blur in light mode */
+  --glass-bg:     transparent;
   --glass-blur:    0px;
-  --glass-border:  rgba(0, 0, 0, 0.06);
+  --glass-border:  rgba(0, 0, 0, 0.05);
 
-  /* Accents */
-  --accent:        245 65% 50%;   /* Indigo-600 — primary CTA */
-  --accent-2:      199 89% 48%;   /* Sky-500 — secondary */
-  --accent-3:      262 83% 58%;   /* Violet-500 — decorative */
-  --success:       158 65% 38%;   /* Emerald-600 */
-  --warning:       35  92% 50%;   /* Amber-500 */
-  --danger:        0   72% 52%;   /* Red-500 */
+  /* Accents - Premium Indigo & Cerulean */
+  --accent:        250 84% 54%;   /* Premium Indigo */
+  --accent-2:      199 89% 48%;   /* Cerulean */
+  --accent-3:      270 91% 65%;   /* Soft Violet */
+  --success:       142 71% 45%;   
+  --warning:       38  92% 50%;   
+  --danger:        0   84% 60%;   
 
-  /* Text */
-  --text:          222 47% 11%;   /* slate-900 #0f172a */
-  --text-secondary:215 16% 32%;   /* slate-700 #334155 */
-  --text-muted:    215 20% 55%;   /* slate-500 #64748b */
-  --text-disabled: 215 16% 75%;   /* slate-400 #94a3b8 */
+  /* Text - Deep Obsidian */
+  --text:          224 71% 4%;    
+  --text-secondary:215 25% 27%;   
+  --text-muted:    215 16% 47%;   
+  --text-disabled: 215 13% 70%;   
 
-  /* Borders */
-  --border:        217 33% 90%;   /* slate-200 #e2e8f0 */
-  --border-hover:  217 33% 80%;   /* slate-300 #cbd5e1 */
-  --border-focus:  245 65% 50%;   /* indigo-600 */
+  /* Borders - Subtle */
+  --border:        214 32% 91%;   
+  --border-hover:  214 32% 85%;   
+  --border-focus:  250 84% 54%;   
 
-  /* Shadows */
-  --shadow-sm:   0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md:   0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
-  --shadow-lg:   0 10px 24px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.05);
-  --shadow-xl:   0 20px 40px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.05);
-  --shadow-glow: 0 0 0 3px rgba(99, 102, 241, 0.15); /* focus ring */
-  --shadow-glow-strong: 0 4px 20px rgba(99, 102, 241, 0.25);
+  /* Shadows - Depth & Sophistication */
+  --shadow-sm:   0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md:   0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg:   0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.06);
+  --shadow-xl:   0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 0 0 3px rgba(79, 70, 229, 0.1); 
+  --shadow-glow-strong: 0 4px 20px rgba(79, 70, 229, 0.15);
 
   /* Scrollbar */
-  --scrollbar-track: hsl(220 14% 96%);
-  --scrollbar-thumb: hsl(220 13% 85%);
-  --scrollbar-hover: hsl(220 13% 70%);
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: hsl(214 32% 91%);
+  --scrollbar-hover: hsl(214 32% 85%);
 }
 
 /* ── 2. BASE ───────────────────────────────────────────────────────────── */
 [data-theme="light"] body {
   background-color: hsl(var(--bg));
   color: hsl(var(--text));
+  letter-spacing: -0.01em;
 }
 
 [data-theme="light"] h1,
@@ -67,21 +68,21 @@
 [data-theme="light"] h5,
 [data-theme="light"] h6 {
   color: hsl(var(--text));
+  letter-spacing: -0.03em;
 }
 
 /* ── 3. SCROLLBAR ──────────────────────────────────────────────────────── */
-[data-theme="light"] ::-webkit-scrollbar { width: 6px; height: 6px; }
+[data-theme="light"] ::-webkit-scrollbar { width: 5px; height: 5px; }
 [data-theme="light"] ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
 [data-theme="light"] ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
-  border-radius: 3px;
+  border-radius: 10px;
 }
 [data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
 
 /* ── 4. LAYOUT ─────────────────────────────────────────────────────────── */
 [data-theme="light"] .page-wrapper {
   background-color: hsl(var(--bg));
-  color: hsl(var(--text));
 }
 
 /* ── 5. TYPOGRAPHY ─────────────────────────────────────────────────────── */
@@ -95,23 +96,20 @@
 /* ── 6. CARDS ──────────────────────────────────────────────────────────── */
 [data-theme="light"] .card {
   background: hsl(var(--bg-elevated));
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
+  border: 1px solid hsl(var(--border));
+  border-radius: 20px;
   box-shadow: var(--shadow-md);
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 [data-theme="light"] .card:hover {
   box-shadow: var(--shadow-lg);
-  border-color: var(--border-hover);
+  border-color: hsl(var(--border-hover));
   transform: translateY(-2px);
-  background: hsl(var(--bg));
 }
 
 [data-theme="light"] .card-elevated {
-  background: hsl(var(--bg));
-  border: 1px solid var(--border);
+  background: hsl(var(--bg-elevated));
+  border: 1px solid hsl(var(--border));
   box-shadow: var(--shadow-lg);
 }
 

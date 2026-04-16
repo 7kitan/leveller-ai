@@ -1,273 +1,219 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import AuthGuard from "@/components/auth/AuthGuard";
+import axios from "axios";
+import { useAuth } from "@/context/AuthContext";
 import { 
   FileText, 
-  User, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle,
-  Search,
-  ExternalLink,
-  Trash2,
+  Search, 
   RefreshCcw,
-  Mail
+  Clock,
+  ExternalLink,
+  Trash2
 } from "lucide-react";
-import { format } from "date-fns";
-import toast from "react-hot-toast";
-import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import { cn } from "@/lib/utils";
 import styles from "./admin-cvs.module.css";
+import { format } from "date-fns";
 
 interface AdminCV {
   id: string;
   user_email: string;
-  full_name: string | null;
+  full_name: string;
   status: string;
   created_at: string;
+  file_url: string;
 }
 
-const AdminCVPage = () => {
+const AdminCVsPage = () => {
   const { token } = useAuth();
   const [cvs, setCvs] = useState<AdminCV[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
 
   const fetchCVs = async () => {
-    if (!token) return;
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await fetch("/api/cv/admin/all", {
-        headers: { 
-          "X-Is-Admin": "true",
-          "Authorization": `Bearer ${token}`
-        }
+      const resp = await axios.get("/api/analysis/admin/cvs", {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      if (!res.ok) throw new Error("Failed to fetch CVs");
-      const data = await res.json();
-      setCvs(Array.isArray(data) ? data : []);
+      setCvs(resp.data);
     } catch (err) {
-      console.error(err);
-      toast.error("Không thể tải danh sách CV hệ thống");
+      console.error("Fetch CVS error:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCVs();
-  }, []);
+    if (token) fetchCVs();
+  }, [token]);
 
-  const handleDeleteCV = async (cvId: string) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa hồ sơ này? Hành động này không thể hoàn tác.")) return;
-
+  const handleDelete = async (id: string) => {
+    if (!confirm("Xóa hồ sơ này? Hành động này không thể hoàn tác.")) return;
     try {
-      const res = await fetch(`/api/cv/${cvId}`, {
-        method: "DELETE",
-        headers: {
-          "X-Is-Admin": "true",
-          "Authorization": `Bearer ${token}`
-        }
+      await axios.delete(`/api/analysis/admin/cvs/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || "Failed to delete CV");
-      }
-
-      toast.success("Đã xóa hồ sơ thành công");
-      setCvs(prev => prev.filter(cv => cv.id !== cvId));
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Lỗi khi xóa hồ sơ");
+      fetchCVs();
+    } catch (err) {
+      console.error("Delete CV error:", err);
     }
   };
 
-  const filteredCVs = cvs.filter(cv => {
-    const matchesSearch = 
-      cv.user_email.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      (cv.full_name?.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesStatus = statusFilter === "all" || cv.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  const filtered = cvs.filter(c => 
+    c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.user_email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const getStatusBadge = (status: string) => {
+  const getStatusClass = (status: string) => {
     switch (status) {
-      case "completed":
-        return <span className="admin-status-badge admin-badge-ready"><CheckCircle2 size={12}/> Ready</span>;
-      case "processing":
-        return <span className="admin-status-badge admin-badge-analyzing"><Clock size={12}/> Analyzing</span>;
-      case "failed":
-        return <span className="admin-status-badge admin-badge-error"><AlertCircle size={12}/> Error</span>;
-      default:
-        return <span className="admin-status-badge">{status}</span>;
+      case "completed": return styles.statusCompleted;
+      case "processing": return styles.statusProcessing;
+      case "failed": return styles.statusFailed;
+      default: return styles.statusPending;
     }
   };
 
   return (
-    <div className={styles.pageRoot}>
-      {/* Header */}
-      <div className={styles.headerContainer}>
-        <div className="space-y-1">
-          <div className={styles.headerMeta}>
-            <FileText size={14} /> Data Repository
+    <AuthGuard requireAdmin>
+      <div className={styles.pageRoot}>
+        {/* Header */}
+        <div className={styles.header}>
+          <div>
+            <h1 className={styles.title}>
+              <FileText size={40} style={{ color: "#818cf8" }} /> 
+              <span>Giám sát Kho hồ sơ</span>
+            </h1>
+            <p className={styles.subtitle}>Quản lý trạng thái bóc tách CV và liên kết thực thể người dùng.</p>
           </div>
-          <h1 className={styles.headerTitle}>CV Repository</h1>
-          <p className={styles.headerSubtitle}>Giám sát và quản lý dữ liệu hồ sơ toàn hệ thống.</p>
+          <div className={styles.statsGrid}>
+             <div className={styles.statCard}>
+                <div className={styles.statLabel}>Tổng hồ sơ</div>
+                <div className={styles.statValue}>{cvs.length}</div>
+             </div>
+             <div className={styles.statCard}>
+                <div className={styles.statLabel}>Đã bóc tách</div>
+                <div className={styles.statValue} className={cn(styles.statValue, styles.statValueSuccess)}>{cvs.filter(c => c.status === "completed").length}</div>
+             </div>
+             <div className={styles.statCard}>
+                <div className={styles.statLabel}>Đang xử lý</div>
+                <div className={styles.statValue} className={cn(styles.statValue, styles.statValueWarning)}>{cvs.filter(c => c.status === "processing").length}</div>
+             </div>
+             <div className={styles.statCard}>
+                <div className={styles.statLabel}>Lỗi AI</div>
+                <div className={styles.statValue} className={cn(styles.statValue, styles.statValueDanger)}>{cvs.filter(c => c.status === "failed").length}</div>
+             </div>
+          </div>
         </div>
-        
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={fetchCVs}
-            className={styles.syncBtn}
-          >
-            <RefreshCcw size={18} className={loading ? "animate-spin" : ""} /> Sync Data
-          </button>
-        </div>
-      </div>
 
-      {/* Stats Summary */}
-      <div className={styles.statsGrid}>
-        <div className="admin-card">
-          <div className="text-white/30 text-xs font-black uppercase tracking-widest mb-4">Tổng hồ sơ</div>
-          <div className="text-3xl font-black text-white">{cvs.length}</div>
-        </div>
-        <div className="admin-card">
-          <div className="text-white/30 text-xs font-black uppercase tracking-widest mb-4">Đã bóc tách</div>
-          <div className="text-3xl font-black text-emerald-400">{cvs.filter(c => c.status === "completed").length}</div>
-        </div>
-        <div className="admin-card">
-          <div className="text-white/30 text-xs font-black uppercase tracking-widest mb-4">Đang xử lý</div>
-          <div className="text-3xl font-black text-amber-400">{cvs.filter(c => c.status === "processing").length}</div>
-        </div>
-        <div className="admin-card">
-          <div className="text-white/30 text-xs font-black uppercase tracking-widest mb-4">Lỗi AI</div>
-          <div className="text-3xl font-black text-red-500">{cvs.filter(c => c.status === "failed").length}</div>
-        </div>
-      </div>
+        <div className={styles.verticalStack8}>
+           {/* Controls */}
+           <div className={styles.controlBar}>
+              <div className={styles.searchContainer}>
+                 <Search className={styles.searchIcon} />
+                 <input 
+                    type="text" 
+                    placeholder="Tìm theo tên hoặc email..." 
+                    className={styles.searchInput}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                 />
+              </div>
+              <button onClick={fetchCVs} className={styles.refreshBtn}>
+                 <RefreshCcw size={18} className={cn(loading && "animate-spin")} />
+              </button>
+           </div>
 
-      {/* Control Bar */}
-      <div className="admin-control-bar">
-        <div className={styles.searchWrapper}>
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-indigo-500 transition-colors" size={18} />
-          <input 
-            type="text"
-            placeholder="Tìm kiếm theo email, tên ứng viên..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchInput}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-           <div className={styles.statusFilter}>
-              {["all", "completed", "processing", "failed"].map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setStatusFilter(s)}
-                  className={`${styles.filterBtn} ${
-                    statusFilter === s ? styles.filterBtnActive : styles.filterBtnInactive
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
+           {/* Table */}
+           <div className={styles.tableContainer}>
+              <table className={styles.table}>
+                 <thead>
+                    <tr className={styles.tableHeader}>
+                       <th className={styles.th}>Chủ sở hữu</th>
+                       <th className={styles.th}>Trạng thái</th>
+                       <th className={styles.th}>Ngày tải lên</th>
+                       <th className={styles.th}>ID Parser</th>
+                       <th className={cn(styles.th)} style={{ textAlign: "right" }}>Thao tác</th>
+                    </tr>
+                 </thead>
+                 <tbody>
+                    {loading ? (
+                       <tr>
+                          <td colSpan={5}>
+                             <div className={styles.emptyState}>
+                                <div className={styles.spinner}></div>
+                                <span style={{ fontSize: "10px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(255,255,255,0.2)" }}>Fetching repository...</span>
+                             </div>
+                          </td>
+                       </tr>
+                    ) : filtered.length === 0 ? (
+                       <tr>
+                          <td colSpan={5}>
+                             <div className={styles.emptyState}>
+                                <FileText size={48} />
+                                <span style={{ fontSize: "0.875rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.2em", fontStyle: "italic" }}>Không tìm thấy hồ sơ phù hợp.</span>
+                             </div>
+                          </td>
+                       </tr>
+                    ) : (
+                       filtered.map((cv) => (
+                          <tr key={cv.id} className={styles.tr}>
+                             <td className={styles.td}>
+                                <div className={styles.userCell}>
+                                   <span className={styles.userName}>{cv.full_name || "Unknown User"}</span>
+                                   <span className={styles.userEmail}>{cv.user_email}</span>
+                                </div>
+                             </td>
+                             <td className={styles.td}>
+                                <span className={cn(styles.statusBadge, getStatusClass(cv.status))}>
+                                   {cv.status}
+                                </span>
+                             </td>
+                             <td className={styles.td}>
+                                <div className={styles.flexRowGap} style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px", fontWeight: 700 }}>
+                                   <Clock size={14} />
+                                   {format(new Date(cv.created_at), "dd/MM/yyyy")}
+                                </div>
+                             </td>
+                             <td className={styles.td}>
+                                <code className={styles.idBadge}>
+                                   {cv.id.substring(0, 10)}...
+                                </code>
+                             </td>
+                             <td className={styles.td}>
+                                <div className={styles.actionGroup}>
+                                   {cv.file_url && (
+                                      <a 
+                                         href={cv.file_url} 
+                                         target="_blank" 
+                                         rel="noopener noreferrer"
+                                         className={styles.actionBtn}
+                                      >
+                                         <ExternalLink size={18} />
+                                      </a>
+                                   )}
+                                   <button 
+                                      onClick={() => handleDelete(cv.id)}
+                                      className={styles.actionBtn}
+                                      style={{ transition: "all 0.3s ease" }}
+                                      onMouseEnter={(e) => e.currentTarget.style.color = "#f43f5e"}
+                                      onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.2)"}
+                                   >
+                                      <Trash2 size={18} />
+                                   </button>
+                                </div>
+                             </td>
+                          </tr>
+                       ))
+                    )}
+                 </tbody>
+              </table>
            </div>
         </div>
       </div>
-
-      {/* CVs Table */}
-      <div className="admin-table-container">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr>
-                <th className={styles.tableTh}>Candidate</th>
-                <th className={styles.tableTh}>Email Owner</th>
-                <th className={styles.tableTh}>Status</th>
-                <th className={styles.tableTh}>System ID</th>
-                <th className={styles.tableTh}>Uploaded</th>
-                <th className={`${styles.tableTh} text-right`}>Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="px-8 py-20 text-center">
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="w-10 h-10 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
-                      <span className="text-white/20 font-black uppercase tracking-widest text-xs">Fetching repository...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredCVs.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-8 py-20 text-center text-white/20 font-bold italic">
-                    Không tìm thấy hồ sơ phù hợp.
-                  </td>
-                </tr>
-              ) : (
-                filteredCVs.map((cv) => (
-                  <tr key={cv.id} className={styles.tableTr}>
-                    <td className={styles.tableTd}>
-                       <div className={styles.candidateInfo}>
-                          <div className={styles.candidateAvatar}>
-                             <User size={18} />
-                          </div>
-                          <div className={styles.candidateName}>
-                             {cv.full_name || "Untitled CV"}
-                          </div>
-                       </div>
-                    </td>
-                    <td className={styles.tableTd}>
-                       <div className="flex items-center gap-2 text-white/50 text-xs">
-                          <Mail size={14} className="opacity-30" />
-                          {cv.user_email}
-                       </div>
-                    </td>
-                    <td className={styles.tableTd}>
-                       {getStatusBadge(cv.status)}
-                    </td>
-                    <td className={styles.tableTd}>
-                      <code className="text-[10px] font-mono text-white/30 bg-black/20 px-2 py-1 rounded">
-                        {cv.id.substring(0, 8)}...
-                      </code>
-                    </td>
-                    <td className={styles.tableTd}>
-                      <div className="flex items-center gap-2 text-white/50 text-xs font-medium">
-                        <Clock size={14} className="opacity-50" />
-                        {format(new Date(cv.created_at), "MMM dd, HH:mm")}
-                      </div>
-                    </td>
-                    <td className={`${styles.tableTd} text-right`}>
-                       <div className={styles.actionGroup}>
-                          <Link 
-                            href={`/user/cv/${cv.id}`}
-                            className={styles.actionBtn}
-                            title="View Analysis"
-                          >
-                            <ExternalLink size={18} />
-                          </Link>
-                          <button 
-                            onClick={() => handleDeleteCV(cv.id)}
-                            className={styles.deleteBtn}
-                            title="Delete CV"
-                          >
-                             <Trash2 size={18} />
-                          </button>
-                       </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    </AuthGuard>
   );
 };
 
-export default AdminCVPage;
+export default AdminCVsPage;

@@ -18,6 +18,9 @@ import {
   ChevronRight as ChevronRightIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import styles from "./user-dashboard.module.css";
+import { motion } from "framer-motion";
 
 // ─── Stat icon helper ─────────────────────────────────────────────────────────
 const Target = ({ className }: { className?: string }) => (
@@ -25,9 +28,6 @@ const Target = ({ className }: { className?: string }) => (
     <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
   </svg>
 );
-
-// ─── Page ──────────────────────────────────────────────────────────────────────
-import styles from "./user-dashboard.module.css";
 
 const UserDashboard = () => {
   const { token } = useAuth();
@@ -58,7 +58,7 @@ const UserDashboard = () => {
   ];
 
   const stats = [
-    { label: "Jobs Matched",      value: loadingMarket ? "..." : (marketData?.matched_jobs    || "0"),    icon: Target,     badge: "accent-2" },
+    { label: "Jobs Matched",      value: loadingMarket ? "..." : (marketData?.matched_jobs    || "0"),    icon: Target,     badge: "accent2" },
     { label: "Market Fit Ratio",  value: loadingMarket ? "..." : `${marketData?.market_fit_pct || 0}%`,  icon: TrendingUp, badge: "success" },
     { label: "Database Coverage", value: loadingMarket ? "..." : (marketData?.total_jobs     || "0"),   icon: Award,     badge: "danger"  },
   ];
@@ -69,23 +69,21 @@ const UserDashboard = () => {
 
         {/* ── Header + CV Upload ────────────────────────────────────────── */}
         <div className={styles.headerSection}>
-          <div className="space-y-2">
+          <div>
             <h1 className={styles.headerTitle}>User Hub.</h1>
             <p className={styles.headerSubtitle}>
-              Giải mã khoảng trống kỹ năng và kết nối với cơ hội tương xứng.
+              Giải mã khoảng trống kỹ năng và kết nối với cơ hội tương xứng trên quy mô toàn cầu.
             </p>
           </div>
 
           <div className={styles.uploadCard}>
-            <div className="flex flex-col items-center justify-center space-y-4 relative z-10">
+            <div className={styles.centeredContent}>
               <div className={styles.uploadIcon}>
-                <UploadCloud className="w-8 h-8" />
+                <UploadCloud size={32} />
               </div>
-              <div className="text-center">
-                <h3 className="text-lg font-bold mb-1">Cập nhật CV mới nhất</h3>
-                <p className="text-xs font-medium text-[hsl(var(--text-muted))]">Kéo thả hoặc bấm để upload file (PDF hoặc Ảnh)</p>
-              </div>
-              <Link href="/user/cv" className="btn btn-primary btn-full">
+              <h3 className={styles.uploadTitle}>Cập nhật CV mới nhất</h3>
+              <p className={styles.uploadSub}>Kéo thả hoặc bấm để upload file (PDF hoặc Ảnh)</p>
+              <Link href="/user/cv" className={styles.uploadBtn}>
                 TẢI LÊN CV &amp; PHÂN TÍCH
               </Link>
             </div>
@@ -97,10 +95,10 @@ const UserDashboard = () => {
           {stats.map((stat) => (
             <div key={stat.label} className={styles.statCard}>
               <div className={styles.statIconWrapper}>
-                <div className={`stat-icon stat-icon-${stat.badge}`}>
-                  <stat.icon className="w-6 h-6" />
+                <div className={cn(styles.statIconBox, styles[`statIconBox_${stat.badge}`])}>
+                  <stat.icon size={24} />
                 </div>
-                <BarChart3 className="w-4 h-4 text-[hsl(var(--text-muted))]" />
+                <BarChart3 size={16} className={styles.statDecorativeIcon} />
               </div>
               <div className={styles.statValue}>{stat.value}</div>
               <div className={styles.statLabel}>{stat.label}</div>
@@ -109,10 +107,10 @@ const UserDashboard = () => {
         </div>
 
         {/* ── Hot Job Matches ─────────────────────────────────────────── */}
-        <div className="space-y-6">
+        <div className={styles.verticalStack8}>
           <div className={styles.jobListHeader}>
             <h2 className={styles.jobListTitle}>
-              <Flame className="w-6 h-6 text-[hsl(var(--danger))]" />
+              <Flame size={24} className={styles.iconRose} />
               Hot Job Matches
             </h2>
             <Link href="/user/jobs" className={styles.viewAllLink}>
@@ -123,33 +121,35 @@ const UserDashboard = () => {
           <div className={styles.jobGrid}>
             {matchedJobs.map((job) => (
               <div key={job.id} className={styles.jobCard}>
-                <div className="job-match-badge">
-                  <div className="job-match-value">{job.match}</div>
-                  <div className="job-match-label">MATCH</div>
+                <div className={styles.matchOverlay}>
+                    <div className={styles.matchValue}>{job.match}</div>
+                    <div className={styles.matchLabel}>Match</div>
                 </div>
 
-                <div className="job-body">
-                  <h3 className="job-title">{job.title}</h3>
-                  <div className="job-meta">
-                    <span className="job-meta-item">
-                      <Briefcase className="w-4 h-4" />{job.company}
-                    </span>
-                    <span className="job-meta-item">
-                      <MapPin className="w-4 h-4" />{job.location}
-                    </span>
-                  </div>
-                  <div className="job-tags">
-                    {job.skills.map((s) => (
-                      <span key={s} className="skill-tag">{s}</span>
-                    ))}
-                  </div>
+                <div>
+                   <h3 className={styles.jobTitle}>{job.title}</h3>
+                   <div className={styles.jobMeta}>
+                     <span className={styles.metaItem}>
+                       <Briefcase size={10} className={styles.iconIndigo} />
+                       {job.company}
+                     </span>
+                     <span className={styles.metaItem}>
+                       <MapPin size={10} className={styles.iconIndigo} />
+                       {job.location}
+                     </span>
+                   </div>
+                </div>
+                
+                <div className={styles.skillList}>
+                  {job.skills.map((s) => (
+                    <span key={s} className={styles.skillBadge}>{s}</span>
+                  ))}
                 </div>
 
-                <div className="p-6 md:pr-10 flex items-center">
-                  <Link href="/user/analysis" className="btn btn-secondary">
-                    GAP ANALYSIS <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
+                <Link href="/user/analysis" className={styles.jobActionBtn}>
+                  <span>GAP ANALYSIS</span>
+                  <ArrowRight size={14} className={styles.iconIndigo} />
+                </Link>
               </div>
             ))}
           </div>
@@ -157,55 +157,51 @@ const UserDashboard = () => {
 
         {/* ── Gap Analysis CTA ─────────────────────────────────────────── */}
         <div className={styles.ctaCard}>
-          {/* Ambient glow */}
           <div className={styles.ctaGlow} />
 
-          {/* Radar decoration */}
-          <div className={styles.radarDecoration}>
-            <div className="absolute inset-0 border border-[hsl(var(--accent)_/_0.3)] rounded-full animate-ping [animation-duration:4s]" />
-            <div className="absolute inset-[20%] border border-[hsl(var(--accent-2)_/_0.2)] rounded-full animate-ping [animation-duration:6s]" />
-            <div className="absolute inset-[40%] border border-[hsl(var(--accent)_/_0.1)] rounded-full animate-ping [animation-duration:8s]" />
+          <div className={styles.pingDecoration}>
+            <div className={styles.pingCircle} />
+            <div className={styles.pingCircle} style={{ animationDelay: "1s" }} />
           </div>
 
-          <div className="flex flex-col lg:flex-row items-center gap-12 relative z-10">
-            <div className="flex-1 space-y-6">
-              <div className="section-label section-label-accent">
-                <Sparkles className="w-4 h-4" /> AI Powered Gap Engine
-              </div>
-              <h2 className="text-3xl md:text-4xl font-black tracking-tight">
-                Thấu hiểu điểm mạnh, làm chủ lộ trình.
-              </h2>
-              <p className="font-medium leading-relaxed max-w-xl text-[hsl(var(--text-secondary))]">
-                Công cụ Gap Analysis của Lumix AI so sánh hàng nghìn tham số giữa hồ sơ của bạn và yêu cầu thực tế từ thị trường để gợi ý các kỹ năng "chốt hạ" giúp bạn nhận việc.
-                {marketData?.top_matching_roles?.length > 0 && (
-                  <span className="block mt-4 text-sm font-bold italic text-[hsl(var(--success))]">
-                    Vai trò phù hợp nhất: {marketData.top_matching_roles.join(", ")}
-                  </span>
-                )}
-              </p>
-              <Link href="/user/analysis" className="btn btn-primary">
-                Thử phân tích ngay <ChevronRightIcon className="w-5 h-5" />
-              </Link>
+          <div className={styles.ctaContent}>
+            <div className={styles.ctaBadge}>
+              <Sparkles size={14} /> AI Powered Gap Engine
+            </div>
+            <h2 className={styles.ctaTitle}>
+              Thấu hiểu điểm mạnh,<br/>làm chủ lộ trình.
+            </h2>
+            <div className={styles.ctaDesc}>
+              Công cụ Gap Analysis so sánh hàng nghìn tham số giữa hồ sơ của bạn và yêu cầu thực tế từ thị trường để gợi ý các kỹ năng "chốt hạ".
+              {marketData?.top_matching_roles?.length > 0 && (
+                <span className={styles.ctaRoleMatch}>
+                  Vai trò phù hợp nhất: {marketData.top_matching_roles.join(", ")}
+                </span>
+              )}
+            </div>
+            <Link href="/user/analysis" className={styles.ctaMainBtn}>
+              Thử phân tích ngay <ChevronRightIcon size={20} />
+            </Link>
+          </div>
+
+          <div className={styles.radarContainer}>
+            <div className={styles.radarScan} />
+            <div className={styles.radarRing} style={{ inset: "10%" }} />
+            <div className={styles.radarRing} style={{ inset: "25%" }} />
+            <div className={styles.radarRing} style={{ inset: "40%" }} />
+            <div className={cn(styles.radarPoint, styles.iconEmerald)} style={{ top: "20%", left: "30%" }} />
+            <div className={cn(styles.radarPoint, styles.iconIndigo)} style={{ top: "40%", right: "25%" }} />
+            <div className={cn(styles.radarPoint, styles.iconAmber)} style={{ bottom: "30%", left: "40%" }} />
+            
+            <div className={styles.radarCenter}>
+                <LineChart size={80} />
             </div>
 
-            {/* Radar visual */}
-            <div className={styles.radarContainer}>
-              <div className="radar-bg" />
-              <div className={styles.radarRing} style={{ inset: "12%" }} />
-              <div className={styles.radarRing} style={{ inset: "28%" }} />
-              <div className={styles.radarRing} style={{ inset: "44%" }} />
-              <div className="absolute inset-0 rounded-full animate-spin [animation-duration:4s] border-r-2 border-[hsl(var(--accent)_/_0.4)] bg-gradient-to-r from-transparent via-transparent to-[hsl(var(--accent)_/_0.05)]" />
-              <div className={styles.radarPoint} style={{ top: "20%", left: "30%", background: "hsl(var(--accent-2))", boxShadow: "0 0 10px hsl(var(--accent-2))" }} />
-              <div className={styles.radarPoint} style={{ top: "40%", right: "25%", background: "hsl(var(--accent))", boxShadow: "0 0 10px hsl(var(--accent))", animationDelay: "1s" }} />
-              <div className={styles.radarPoint} style={{ bottom: "30%", left: "40%", background: "hsl(var(--success))", boxShadow: "0 0 10px hsl(var(--success))", animationDelay: "2s" }} />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-[hsl(var(--accent)_/_0.2)] blur-2xl rounded-full" />
-                  <LineChart className="w-20 h-20 text-[hsl(var(--text))] relative z-10" />
-                </div>
-              </div>
-              <div className={styles.radarStatus} style={{ top: "2%", right: "5%" }}>Scanning...</div>
-              <div className={styles.radarStatus} style={{ bottom: "2%", left: "5%" }}>Matched 92%</div>
+            <div className={styles.radarStatus} style={{ top: "5%", right: "10%" }}>
+              <span className={styles.radarStatusPulse}>Scanning...</span>
+            </div>
+            <div className={styles.radarStatus} style={{ bottom: "5%", left: "10%" }}>
+              Matched 92%
             </div>
           </div>
         </div>
