@@ -2,15 +2,54 @@
 
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
-import { LogOut, Bell } from "lucide-react";
+import {
+  LogOut, Bell,
+  LayoutDashboard, BookOpen, Search, FileText,
+  LineChart, Zap, UserCircle, TrendingUp, GraduationCap, Settings, Network,
+} from "lucide-react";
 
 import styles from "./navbar.module.css";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default function Navbar() {
+// MENU_ITEMS removed - unified in Sidebar.tsx
+
+export default function Navbar({
+  toggleSidebar, toggleMobileMenu, isCollapsed, isMobileOpen, setIsMobileOpen,
+}: {
+  toggleSidebar: () => void;
+  toggleMobileMenu: () => void;
+  isCollapsed: boolean;
+  isMobileOpen: boolean;
+  setIsMobileOpen: (v: boolean) => void;
+}) {
   const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
+  const pathname = usePathname();
+  const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
+  const userMenuRef = React.useRef<HTMLDivElement>(null);
+
+  // Close user menu on click outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    if (isUserMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isUserMenuOpen]);
+
+  // Close menus on route change
+  React.useEffect(() => {
+    setIsUserMenuOpen(false);
+    setIsMobileOpen(false);
+  }, [pathname, setIsMobileOpen]);
 
   if (!user) return null;
 
@@ -25,21 +64,35 @@ export default function Navbar() {
     <nav className={styles.navbar}>
       <div className={styles.container}>
 
-        {/* Left: logo + search */}
+        {/* Left: Mobile Toggle + Desktop Collapse + Search */}
         <div className={styles.left}>
-          <Link href={dashboardPath} className={styles.brandLink}>
+          {/* Mobile hamburger */}
+          <button className={styles.mobileHamburger} onClick={toggleMobileMenu}>
+             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>
+             </svg>
+          </button>
+
+          {/* Desktop Collapse Toggle */}
+          <button className={styles.collapseToggle} onClick={toggleSidebar}>
+             <svg 
+              className={cn(isCollapsed && styles.rotateIcon)} 
+              width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+             >
+                <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="9" y1="3" y2="21"/>
+             </svg>
+          </button>
+
+          <Link href={dashboardPath} className={cn(styles.brandLink, styles.hideOnDesktop)}>
             <div className={styles.brandIcon}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
               </svg>
             </div>
-            <span className={styles.brandText}>
-              LUMIX<span className={styles.brandAccent}>AI</span>
-            </span>
+            <span className={styles.brandText}>LUMIX</span>
           </Link>
 
           <div className={styles.searchWrapper}>
-            <div className={styles.divider} />
             <div className={styles.inputWrapper}>
               <svg className={styles.inputIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
@@ -51,57 +104,83 @@ export default function Navbar() {
 
         {/* Right: theme toggle + notifications + user */}
         <div className={styles.right}>
-
           <div className={styles.actions}>
-            {/* Theme toggle */}
-            <button
-              onClick={toggle}
-              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-              className={styles.iconBtn}
-            >
+            <button onClick={toggle} className={styles.iconBtn}>
               {theme === "dark" ? (
-                /* Sun icon */
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
                 </svg>
               ) : (
-                /* Moon icon */
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
                 </svg>
               )}
             </button>
-
-            {/* Notifications */}
             <button className={styles.iconBtn}>
               <Bell width="18" height="18" />
               <span className={styles.iconBadge} />
             </button>
           </div>
 
-          <div className={styles.userProfile}>
-            <div className={styles.userInfo}>
-              <span className={styles.userName}>
-                {user.email.split("@")[0]}
-              </span>
-              <span className={styles.userRole}>
-                {user.role}
-              </span>
-            </div>
-
-            <div className={styles.avatar}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-              </svg>
-            </div>
-
-            <button
-              onClick={logout}
-              className={styles.logoutBtn}
-              title="Logout"
+          <div className={styles.userProfile} ref={userMenuRef}>
+            <div 
+              className={styles.userTrigger} 
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
             >
-              <LogOut width="16" height="16" />
-            </button>
+              <div className={styles.userInfo}>
+                <span className={styles.userName}>{user.full_name || user.email.split("@")[0]}</span>
+                <span className={styles.userRole}>{user.role}</span>
+              </div>
+              <div className={cn(styles.avatar, isUserMenuOpen && styles.avatarActive)}>
+                 {(user.full_name?.[0] || user.email[0]).toUpperCase()}
+              </div>
+            </div>
+
+            {/* Profile Dropdown */}
+            <AnimatePresence>
+              {isUserMenuOpen && (
+                <motion.div 
+                  className={styles.userDropdown}
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                >
+                  <div className={styles.dropdownHeader}>
+                    <div className={styles.dropdownAvatar}>
+                      {(user.full_name?.[0] || user.email[0]).toUpperCase()}
+                    </div>
+                    <div className={styles.dropdownInfo}>
+                      {user.full_name && (
+                        <div className={styles.dropdownName}>{user.full_name}</div>
+                      )}
+                      <div className={styles.dropdownEmail}>{user.email}</div>
+                      <div className={styles.dropdownRole}>{user.role}</div>
+                    </div>
+                  </div>
+                  
+                  <div className={styles.dropdownDivider} />
+                  
+                  <div className={styles.dropdownBody}>
+                    <Link href="/user/profile" className={styles.dropdownItem}>
+                      <UserCircle width={18} height={18} />
+                      <span>Thông tin cá nhân</span>
+                    </Link>
+                    <Link href="/user/settings" className={styles.dropdownItem}>
+                      <Settings width={18} height={18} />
+                      <span>Cài đặt bảo mật</span>
+                    </Link>
+                  </div>
+
+                  <div className={styles.dropdownDivider} />
+                  
+                  <button onClick={logout} className={cn(styles.dropdownItem, styles.logoutAction)}>
+                    <LogOut width={18} height={18} />
+                    <span>Đăng xuất</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

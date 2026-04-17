@@ -31,6 +31,10 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     cvs = relationship("UserCV", back_populates="user")
+    last_analysis_id = Column(
+        UUID(as_uuid=True), ForeignKey("user_analysis.id", ondelete="SET NULL"), nullable=True
+    )
+    last_analysis = relationship("UserAnalysis", foreign_keys=[last_analysis_id])
 
 
 class UserCV(Base):
@@ -116,6 +120,7 @@ class Skill(Base):
     vector = Column(Vector(1536))
 
     requirements = relationship("JobSkillRequirement", back_populates="skill")
+    user_profiles = relationship("UserSkillProfile", back_populates="skill")
 
 
 class JobSkillRequirement(Base):
@@ -211,7 +216,7 @@ class UserAnalysis(Base):
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User")
+    user = relationship("User", foreign_keys=[user_id])
     cv = relationship("UserCV")
     job = relationship("Job", back_populates="analysis_reports")
 

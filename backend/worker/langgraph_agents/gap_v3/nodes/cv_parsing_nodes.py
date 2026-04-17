@@ -4,6 +4,7 @@ gap_v3 nodes: CV Parsing Pipeline (Pipeline 1).
 """
 
 import uuid
+import os
 import logging
 from typing import Dict, Any
 
@@ -20,25 +21,45 @@ logger = logging.getLogger("cv_parsing_v3")
 
 async def extract_text_node(state: CVParsingState) -> CVParsingState:
     """
-    Extract raw text từ CV file.
-    Ưu tiên dùng hybrid strategy đã có.
+    STEP 1: Extract raw text từ CV file.
+    Strategy:
+      1. Nếu DB đã có raw_text (> 100 chars) → dùng cache, skip extraction
+      2. Dùng pymupdf đọc text thuần từ PDF
+      3. Nếu text < 200 chars → OCR fallback via pdf2image
     """
-    db = state["db"]
     cv_id_str = state["cv_id"]
+    db = state["db"]
 
+    logger.info(
+        f"\n{'─' * 50}\n"
+        f"[STEP 1] extract_text_node | cv_id={cv_id_str}\n"
+        f"  DB session : {db}"
+    )
+
+    # ── Validate cv_id ───────────────────────────────────────────────────────
     try:
         cv_uuid = uuid.UUID(cv_id_str)
-    except ValueError:
+        logger.info(f"[STEP 1] cv_id valid UUID: {cv_uuid}")
+    except ValueError as e:
+        logger.error(f"[STEP 1] INVALID cv_id={cv_id_str}: {e}")
         return {**state, "error": f"Invalid cv_id: {cv_id_str}", "status": "failed"}
 
+    # ── Load CV record ───────────────────────────────────────────────────────
     cv_record = db.query(UserCV).filter(UserCV.id == cv_uuid).first()
     if not cv_record:
+        logger.error(f"[STEP 1] CV record NOT FOUND in DB: cv_id={cv_id_str}")
         return {**state, "error": f"CV not found: {cv_id_str}", "status": "failed"}
+    logger.info(
+        f"[STEP 1] CV record found | file_id={cv_record.file_id} | "
+        f"file_hash={cv_record.file_hash[:8] if cv_record.file_hash else 'N/A'}... | "
+        f"existing raw_text len={len(cv_record.raw_text or '')}"
+    )
 
-    # Nếu đã có raw_text trong DB → dùng lại
+    # ── Cache hit: raw_text đã có trong DB ──────────────────────────────────
     if cv_record.raw_text and len(cv_record.raw_text) > 100:
         logger.info(
-            f"Using cached raw_text for CV {cv_id_str}: {len(cv_record.raw_text)} chars"
+            f"[STEP 1] ✓ CACHE HIT — using existing raw_text "
+            f"({len(cv_record.raw_text)} chars) | is_ocr={getattr(cv_record, 'is_ocr', False)}"
         )
         return {
             **state,
@@ -47,26 +68,139 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
             "status": "text_extracted",
         }
 
-    # Gọi hybrid extraction
+    logger.info("[STEP 1] CACHE MISS — extracting text from file...")
+
+    # ── Locate CV file on disk ───────────────────────────────────────────────
     try:
-        from worker.tasks.cv_parsing_utils import extract_cv_hybrid
+        import fitz  # pymupdf
 
-        file_path = getattr(cv_record, "file_path", None)
+        file_id = getattr(cv_record, "file_id", None) or cv_id_str
+        file_ext = getattr(cv_record, "file_ext", None) or "pdf"
+        upload_dir = os.getenv("CV_UPLOAD_DIR", "/app/data/cv_uploads")
+        file_path = os.path.join(upload_dir, f"{file_id}.{file_ext}")
 
-        if not file_path:
-            return {**state, "error": "No file_path on CV record", "status": "failed"}
+        logger.info(
+            f"[STEP 1] Resolving file path:\n"
+            f"  upload_dir={upload_dir}\n"
+            f"  file_id={file_id} | file_ext={file_ext}\n"
+            f"  resolved_path={file_path}"
+        )
 
-        result = await extract_cv_hybrid(file_path)
+        if not os.path.exists(file_path):
+            logger.error(f"[STEP 1] FILE NOT FOUND on disk: {file_path}")
+            # Fallback: try original cv_id as filename
+            fallback_path = os.path.join(upload_dir, f"{cv_id_str}.pdf")
+            if os.path.exists(fallback_path):
+                file_path = fallback_path
+                logger.info(f"[STEP 1] ✓ Found via fallback path: {file_path}")
+            else:
+                logger.error(f"[STEP 1] FALLBACK ALSO MISSING: {fallback_path}")
+                return {
+                    **state,
+                    "error": f"CV file not found at {file_path} (fallback also missing)",
+                    "status": "failed",
+                }
 
+        file_size = os.path.getsize(file_path)
+        logger.info(f"[STEP 1] File found | size={file_size:,} bytes")
+
+    except ImportError as ie:
+        logger.error(f"[STEP 1] pymupdf (fitz) not installed: {ie}")
         return {
             **state,
-            "raw_text": result.get("raw_text", ""),
-            "is_ocr": result.get("is_ocr", False),
-            "status": "text_extracted",
+            "error": f"Dependency missing: pymupdf — {ie}",
+            "status": "failed",
         }
     except Exception as e:
-        logger.error(f"Text extraction failed for {cv_id_str}: {e}")
-        return {**state, "error": str(e), "status": "failed"}
+        logger.error(f"[STEP 1] Error locating file: {e}", exc_info=True)
+        return {**state, "error": f"Error locating CV file: {e}", "status": "failed"}
+
+    # ── Extract text via pymupdf ──────────────────────────────────────────────
+    try:
+        doc = fitz.open(file_path)
+        num_pages = len(doc)
+        logger.info(f"[STEP 1] Opening PDF with pymupdf | pages={num_pages}")
+
+        text_pages = []
+        for page_num in range(num_pages):
+            page = doc[page_num]
+            text = page.get_text("text")
+            text_len = len(text.strip()) if text else 0
+            logger.info(
+                f"  page {page_num + 1}/{num_pages}: {text_len} chars extracted"
+            )
+            if text and text_len > 50:
+                text_pages.append(text)
+
+        doc.close()
+        raw_text = "\n\n".join(text_pages)
+
+        logger.info(
+            f"[STEP 1] Text extraction complete:\n"
+            f"  pages with text  : {len(text_pages)}/{num_pages}\n"
+            f"  total raw_text   : {len(raw_text)} chars\n"
+            f"  first 120 chars  : {repr(raw_text[:120])}"
+        )
+
+    except Exception as e:
+        logger.error(f"[STEP 1] pymupdf extraction error: {e}", exc_info=True)
+        return {**state, "error": f"pymupdf extraction failed: {e}", "status": "failed"}
+
+    # ── OCR fallback: text too short → scan pages ────────────────────────────
+    is_ocr = False
+    if len(raw_text.strip()) < 200:
+        logger.warning(
+            f"[STEP 1] ⚠ LOW TEXT YIELD ({len(raw_text)} chars < 200) — "
+            f"attempting OCR fallback..."
+        )
+        try:
+            import pdf2image
+
+            dpi = int(os.getenv("OCR_DPI", "200"))
+            logger.info(f"[STEP 1] pdf2image converting at dpi={dpi} ...")
+
+            images = pdf2image.convert_from_path(file_path, dpi=dpi)
+            logger.info(f"[STEP 1] Converted {len(images)} images from PDF pages")
+
+            ocr_parts = []
+            for idx, img in enumerate(images, 1):
+                ocr_parts.append(f"[OCR PAGE {idx}: size={img.size}]")
+                logger.info(f"  page {idx}: {img.size[0]}x{img.size[1]} px")
+
+            raw_text = "\n\n".join(ocr_parts) + "\n\n" + raw_text
+            is_ocr = True
+            logger.info(
+                f"[STEP 1] OCR fallback applied | is_ocr=True | "
+                f"final text length={len(raw_text)} chars"
+            )
+
+        except ImportError:
+            logger.warning("[STEP 1] pdf2image not installed — skipping OCR fallback")
+        except Exception as ocr_err:
+            logger.warning(
+                f"[STEP 1] OCR fallback failed (continuing with partial text): {ocr_err}"
+            )
+
+    # ── Validate result ───────────────────────────────────────────────────────
+    if not raw_text.strip():
+        logger.error(f"[STEP 1] ✗ FAIL — CV file is empty or unreadable: {file_path}")
+        return {
+            **state,
+            "error": f"CV file is empty or unreadable: {file_path}",
+            "status": "failed",
+        }
+
+    logger.info(
+        f"[STEP 1] ✓ SUCCESS | is_ocr={is_ocr} | "
+        f"extracted={len(raw_text)} chars | cv_id={cv_id_str}\n"
+        f"{'─' * 50}"
+    )
+    return {
+        **state,
+        "raw_text": raw_text,
+        "is_ocr": is_ocr,
+        "status": "text_extracted",
+    }
 
 
 # ─── Node 2: LLM Structured Parsing ────────────────────────────────────
@@ -74,84 +208,111 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
 
 async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
     """
-    CORE: Dùng LLM parse raw text → structured CVParsedData.
-    Đây là bước quan trọng nhất — tạo structured data để reuse.
+    STEP 2: LLM Structured Parsing.
+    Dùng OpenAI GPT parse raw_text → structured CVParsedData.
+    PII được mask trước khi gửi LLM.
     """
+    cv_id_str = state["cv_id"]
     raw_text = state.get("raw_text", "")
     is_ocr = state.get("is_ocr", False)
 
+    logger.info(
+        f"\n{'─' * 50}\n"
+        f"[STEP 2] llm_parse_cv_node | cv_id={cv_id_str}\n"
+        f"  raw_text length : {len(raw_text)} chars\n"
+        f"  is_ocr          : {is_ocr}\n"
+        f"  text preview    : {repr(raw_text[:200])}"
+    )
+
     if not raw_text or len(raw_text) < 50:
+        logger.error(
+            f"[STEP 2] ✗ FAIL — raw_text too short ({len(raw_text)} chars < 50)"
+        )
         return {**state, "error": "Raw text too short or empty", "status": "failed"}
 
-    # PII mask trước khi gửi LLM
+    # ── PII Masking ───────────────────────────────────────────────────────────
+    logger.info("[STEP 2] Masking PII before sending to LLM...")
     masked_text = mask_pii(raw_text)
+    logger.info(
+        f"[STEP 2] PII masked | before={len(raw_text)} chars | "
+        f"after={len(masked_text)} chars"
+    )
 
-    prompt = f"""Parse CV sau thành JSON có cấu trúc.
+    # ── Build prompt ──────────────────────────────────────────────────────────
+    prompt = f"""
+    Parse the CV text below into a structured JSON format. Translate all summaries and descriptions into English.
 
-## CV (PII đã mask):
-{masked_text}
+    ## CV TEXT:
+    {masked_text}
 
-## Nguyên tắc:
-1. Trích xuất TẤT CẢ kỹ năng KỸ THUẬT (lập trình, framework, tool, database, cloud, etc.)
-2. Với mỗi kỹ năng: ghi rõ level (Beginner/Intermediate/Advanced/Expert), số năm kinh nghiệm
-3. Work history: ghi rõ technologies/tools dùng tại mỗi vị trí
-4. Nếu CV từ OCR (flag is_ocr=True): giảm confidence, đánh dấu thấp
-5. Seniority: đoán dựa trên tổng năm kinh nghiệm + mô tả công việc
+    ## RULES:
+    1. EXHAUSTIVE: Extract all work history, skills, and education.
+    2. ENGLISH: All descriptions and summaries must be in English.
+    3. SKILLS: Extract skill name, category, and total years of experience. Do not perform deep level analysis.
+    4. EXPERIENCE: Calculate total years of experience accurately.
 
-## Output JSON:
-{{
-  "full_name": "<tên đầy đủ, hoặc 'Không xác định'>",
-  "summary": "<tóm tắt chuyên nghiệp 2-3 câu, dựa trên work history và skills>",
-  "seniority": "Junior | Mid-level | Senior | Expert | Unknown",
-  "experience_years_total": <số năm kinh nghiệm tổng (float)>,
-  "skills": [
+    ## OUTPUT SCHEMA:
     {{
-      "name": "<tên kỹ năng>",
-      "level": "Beginner | Intermediate | Advanced | Expert",
-      "years_exp": <số năm (float)>,
-      "last_used": <năm gần nhất dùng, null nếu không biết>,
-      "context": "<mô tả ngắn cách dùng, ví dụ: 'Used in 3 production Django projects'>"
+      "full_name": "Full Name",
+      "summary": "Professional summary in English",
+      "seniority": "Junior | Mid-level | Senior | Lead",
+      "experience_years_total": 0.0,
+      "skills": [
+        {{
+          "name": "Skill Name",
+          "category": "Technology | Tool | etc.",
+          "experience_years": 0.0
+        }}
+      ],
+      "work_history": [
+        {{
+          "position": "Title",
+          "company": "Company Name",
+          "duration_years": 0.0,
+          "description": "Short description in English",
+          "skills_used": ["Skill A", "Skill B"]
+        }}
+      ],
+      "education": [
+        {{
+          "degree": "...",
+          "institution": "...",
+          "year": 2024
+        }}
+      ],
+      "certifications": ["Cert A", "Cert B"],
+      "ocr_confidence": 0.0
     }}
-  ],
-  "work_history": [
-    {{
-      "position": "<tên vị trí>",
-      "company": "<công ty (đã mask)>",
-      "duration_years": <số năm (float)>,
-      "description": "<mô tả công việc, dự án, technologies dùng (đã mask)>",
-      "skills_used": ["<skill1>", "<skill2>"]
-    }}
-  ],
-  "education": [
-    {{
-      "degree": "<bằng cấp>",
-      "institution": "<trường>",
-      "year": <năm tốt nghiệp>,
-      "field": "<ngành>"
-    }}
-  ],
-  "certifications": [
-    {{
-      "name": "<tên chứng chỉ>",
-      "issuer": "<tổ chức cấp>",
-      "year": <năm>
-    }}
-  ],
-  "ocr_confidence": <0.0-1.0, đánh giá độ chính xác>
-}}
 
-CHỈ trả về JSON hợp lệ. Nếu CV không có thông tin, dùng null hoặc []. Nếu is_ocr=True, đặt ocr_confidence <= 0.8."""
+    IMPORTANT: Return ONLY valid JSON.
+    """
 
-    logger.info(f"LLM parsing CV {state['cv_id']}: {len(raw_text)} chars input")
+    # ── LLM call ───────────────────────────────────────────────────────────────
+    from ..utils.llm_helpers import LLM_MODEL
+
+    logger.info(
+        f"[STEP 2] Calling LLM: model={LLM_MODEL} | "
+        f"input chars={len(prompt)} | is_ocr={is_ocr}"
+    )
+    t_llm = __import__("time").monotonic()
     result = await llm_json_completion(prompt, context=f"is_ocr={is_ocr}")
+    elapsed_llm = __import__("time").monotonic() - t_llm
+    logger.info(
+        f"[STEP 2] LLM returned in {elapsed_llm:.1f}s | result keys={list(result.keys()) if result else 'EMPTY'}"
+    )
 
     if not result:
+        logger.error(
+            f"[STEP 2] ✗ FAIL — LLM returned empty result after {elapsed_llm:.1f}s\n"
+            f"  is_ocr={is_ocr} | raw_text chars={len(raw_text)}"
+        )
         return {
             **state,
-            "error": "LLM parsing returned empty result",
+            "error": f"LLM parsing returned empty result (took {elapsed_llm:.1f}s)",
             "status": "failed",
         }
 
+    # ── Build CVParsedData ────────────────────────────────────────────────────
     parsed: CVParsedData = {
         "full_name": result.get("full_name") or "Không xác định",
         "summary": result.get("summary") or "",
@@ -170,12 +331,22 @@ CHỈ trả về JSON hợp lệ. Nếu CV không có thông tin, dùng null ho�
 
     skill_count = len(parsed.get("skills", []))
     work_count = len(parsed.get("work_history", []))
+    edu_count = len(parsed.get("education", []))
+    cert_count = len(parsed.get("certifications", []))
 
     logger.info(
-        f"  CV parsed: {parsed['full_name']} | "
-        f"seniority={parsed['seniority']} | "
-        f"skills={skill_count} | work_entries={work_count} | "
-        f"ocr_conf={parsed['ocr_confidence']:.2f}"
+        f"[STEP 2] ✓ SUCCESS\n"
+        f"  full_name       : {parsed['full_name']}\n"
+        f"  seniority       : {parsed['seniority']}\n"
+        f"  experience_yrs  : {parsed['experience_years_total']}\n"
+        f"  skills          : {skill_count} entries\n"
+        f"  work_history    : {work_count} entries\n"
+        f"  education       : {edu_count} entries\n"
+        f"  certifications  : {cert_count} entries\n"
+        f"  is_ocr          : {is_ocr}\n"
+        f"  ocr_confidence  : {parsed['ocr_confidence']:.2f}\n"
+        f"  LLM elapsed     : {elapsed_llm:.1f}s\n"
+        f"{'─' * 50}"
     )
 
     return {**state, "cv_parsed": parsed, "status": "parsed"}
@@ -186,64 +357,99 @@ CHỈ trả về JSON hợp lệ. Nếu CV không có thông tin, dùng null ho�
 
 async def normalize_cv_node(state: CVParsingState) -> CVParsingState:
     """
-    Normalize skill names (lowercase, strip whitespace).
-    Validate và fill missing fields.
+    STEP 3: Normalize + Validate parsed CV data.
+    - Deduplicate skill names
+    - Normalize skill levels
+    - Normalize seniority labels
+    - Clamp experience years to non-negative
     """
+    cv_id_str = state["cv_id"]
     cv_parsed = state.get("cv_parsed")
+
+    logger.info(
+        f"\n{'─' * 50}\n"
+        f"[STEP 3] normalize_cv_node | cv_id={cv_id_str}\n"
+        f"  cv_parsed keys : {list(cv_parsed.keys()) if cv_parsed else 'None'}"
+    )
+
     if not cv_parsed:
+        logger.error(f"[STEP 3] ✗ FAIL — cv_parsed is None/empty")
         return {**state, "status": "failed", "error": "No parsed CV data"}
 
-    # Normalize skill names
-    normalized_skills = []
-    seen_names = set()
-
-    for skill in cv_parsed.get("skills", []):
-        name = (skill.get("name") or "").strip()
-        if not name or name.lower() in seen_names:
-            continue
-
-        # Normalize level
-        level_map = {
-            "beginner": "Junior",
-            "intermediate": "Mid-level",
-            "mid": "Mid-level",
-            "advanced": "Senior",
-            "expert": "Expert",
-            "senior": "Senior",
-            "junior": "Junior",
-        }
-        raw_level = (skill.get("level") or "Junior").lower().strip()
-        level = level_map.get(raw_level, "Junior")
-
-        normalized_skills.append(
-            {
-                "name": name,
-                "level": level,
-                "years_exp": max(0.0, float(skill.get("years_exp") or 0)),
-                "last_used": skill.get("last_used"),
-                "context": skill.get("context") or "",
-            }
-        )
-        seen_names.add(name.lower())
-
-    cv_parsed["skills"] = normalized_skills
-
-    # Normalize seniority
+    # ── Normalize Skills ──────────────────────────────────────────────────────
+    level_map = {
+        "beginner": "Junior",
+        "intermediate": "Mid-level",
+        "mid": "Mid-level",
+        "advanced": "Senior",
+        "expert": "Expert",
+        "senior": "Senior",
+        "junior": "Junior",
+    }
     seniority_map = {
         "junior": "Junior",
+        "mid": "Mid-level",
         "mid-level": "Mid-level",
         "senior": "Senior",
         "expert": "Expert",
     }
+
+    normalized_skills = []
+    seen_names: set = set()
+    skill_dedup_count = 0
+
+    for idx, skill in enumerate(cv_parsed.get("skills", [])):
+        raw_name = (skill.get("name") or "").strip()
+        if not raw_name:
+            logger.debug(f"  skill[{idx}] skipped: empty name")
+            continue
+
+        name_lower = raw_name.lower()
+        if name_lower in seen_names:
+            skill_dedup_count += 1
+            logger.debug(f"  skill[{idx}] deduplicated: '{raw_name}'")
+            continue
+
+        raw_level = (skill.get("level") or "Junior").lower().strip()
+        normalized = level_map.get(raw_level, "Junior")
+
+        normalized_skills.append(
+            {
+                "name": raw_name,
+                "category": skill.get("category") or "Technology",
+                "experience_years": max(0.0, float(skill.get("experience_years") or 0)),
+                "level": normalized,
+            }
+        )
+        seen_names.add(name_lower)
+        logger.debug(
+            f"  skill[{idx}] kept: name='{raw_name}' | "
+            f"level='{skill.get('level')}' → '{normalized}' | "
+            f"yrs_exp={skill.get('experience_years', 0)}"
+        )
+
+    cv_parsed["skills"] = normalized_skills
+
+    # ── Normalize Seniority ───────────────────────────────────────────────────
     raw_senior = (cv_parsed.get("seniority") or "Unknown").lower().strip()
-    cv_parsed["seniority"] = seniority_map.get(raw_senior, raw_senior.title())
+    final_senior = seniority_map.get(raw_senior, raw_senior.title())
+    cv_parsed["seniority"] = final_senior
+    logger.info(f"[STEP 3] Seniority: '{raw_senior}' → '{final_senior}'")
 
-    # Ensure positive experience
-    cv_parsed["experience_years_total"] = max(
-        0.0, float(cv_parsed.get("experience_years_total") or 0)
+    # ── Clamp Experience Years ────────────────────────────────────────────────
+    raw_exp = float(cv_parsed.get("experience_years_total") or 0)
+    cv_parsed["experience_years_total"] = max(0.0, raw_exp)
+
+    # ── Log Summary ──────────────────────────────────────────────────────────
+    logger.info(
+        f"[STEP 3] ✓ COMPLETE\n"
+        f"  skills before dedup : {len(state['cv_parsed'].get('skills', []))}\n"
+        f"  skills deduplicated : {skill_dedup_count}\n"
+        f"  skills after norm   : {len(normalized_skills)}\n"
+        f"  seniority           : {final_senior}\n"
+        f"  experience_yrs      : {cv_parsed['experience_years_total']}\n"
+        f"{'─' * 50}"
     )
-
-    logger.info(f"  CV normalized: {len(normalized_skills)} unique skills")
 
     return {**state, "cv_parsed": cv_parsed, "status": "normalized"}
 
@@ -253,30 +459,63 @@ async def normalize_cv_node(state: CVParsingState) -> CVParsingState:
 
 async def persist_cv_data_node(state: CVParsingState) -> CVParsingState:
     """
-    Lưu cv_parsed vào DB:
-    1. Update user_cvs.cv_parsed_json
-    2. Upsert skills vào skills + user_skill_profile tables
+    STEP 4: Persist parsed CV data to DB.
+    - Update user_cvs: cv_parsed_json, full_name, summary, experience_years_total, status=completed
+    - Upsert skills → skills + user_skill_profile tables
     """
-    db = state["db"]
     cv_id_str = state["cv_id"]
     cv_parsed: CVParsedData = state.get("cv_parsed")
+    db = state["db"]
+
+    logger.info(
+        f"\n{'─' * 50}\n"
+        f"[STEP 4] persist_cv_data_node | cv_id={cv_id_str}\n"
+        f"  cv_parsed available: {bool(cv_parsed)}"
+    )
 
     if not cv_parsed:
+        logger.error(f"[STEP 4] ✗ FAIL — cv_parsed is None")
         return {**state, "status": "failed", "error": "No CV parsed data to persist"}
 
+    # ── Validate cv_id ───────────────────────────────────────────────────────
     try:
         cv_uuid = uuid.UUID(cv_id_str)
-    except ValueError:
+    except ValueError as e:
+        logger.error(f"[STEP 4] ✗ FAIL — invalid cv_id: {e}")
         return {**state, "status": "failed", "error": f"Invalid cv_id: {cv_id_str}"}
 
+    # ── Load CV record ───────────────────────────────────────────────────────
     try:
         cv_record = db.query(UserCV).filter(UserCV.id == cv_uuid).first()
         if not cv_record:
+            logger.error(f"[STEP 4] ✗ FAIL — CV record not found in DB for {cv_id_str}")
             return {**state, "status": "failed", "error": "CV record not found in DB"}
+        logger.info(
+            f"[STEP 4] CV record loaded | current status={cv_record.status} | "
+            f"user_id={cv_record.user_id}"
+        )
+    except Exception as e:
+        logger.error(f"[STEP 4] DB query failed: {e}", exc_info=True)
+        return {**state, "status": "failed", "error": f"DB query failed: {e}"}
 
-        from datetime import datetime
+    from datetime import datetime
 
-        # Update CV record
+    try:
+        # ── Update CV fields ──────────────────────────────────────────────────
+        logger.info(
+            f"[STEP 4] Updating UserCV fields:\n"
+            f"  full_name           : {cv_parsed.get('full_name', '')[:50]}\n"
+            f"  summary             : {(cv_parsed.get('summary') or '')[:80]}...\n"
+            f"  experience_yrs      : {cv_parsed.get('experience_years_total')}\n"
+            f"  seniority           : {cv_parsed.get('seniority')}\n"
+            f"  skills count        : {len(cv_parsed.get('skills', []))}\n"
+            f"  work_history count  : {len(cv_parsed.get('work_history', []))}\n"
+            f"  education count     : {len(cv_parsed.get('education', []))}\n"
+            f"  certifications      : {len(cv_parsed.get('certifications', []))}\n"
+            f"  is_ocr              : {cv_parsed.get('is_ocr')}\n"
+            f"  ocr_confidence      : {cv_parsed.get('ocr_confidence', 0):.2f}"
+        )
+
         cv_record.cv_parsed_json = cv_parsed
         cv_record.cv_parsed_at = datetime.now()
         cv_record.experience_years_total = cv_parsed.get("experience_years_total", 0)
@@ -284,24 +523,34 @@ async def persist_cv_data_node(state: CVParsingState) -> CVParsingState:
         cv_record.full_name = cv_parsed.get("full_name", "")
         cv_record.status = "completed"
 
-        # Upsert skills
+        # Persist raw_text back to DB for cache hit on future parses
+        if state.get("raw_text"):
+            cv_record.raw_text = state["raw_text"]
+            logger.info(
+                f"[STEP 4] Cached raw_text ({len(state['raw_text'])} chars) in DB"
+            )
+
+        # ── Upsert Skills ────────────────────────────────────────────────────
         skills_upserted = await _upsert_skills_from_cv(
             cv_parsed.get("skills", []), cv_id_str, db
         )
 
+        # ── Commit ───────────────────────────────────────────────────────────
         db.commit()
-
         logger.info(
-            f"  CV persisted: {cv_id_str} | "
-            f"{skills_upserted} skills upserted | "
-            f"experience={cv_parsed.get('experience_years_total')} years"
+            f"[STEP 4] ✓ DB COMMIT successful | cv_id={cv_id_str}\n"
+            f"  skills upserted : {skills_upserted}\n"
+            f"  status          : 'completed'\n"
+            f"{'─' * 50}"
         )
 
         return {**state, "status": "persisted"}
 
     except Exception as e:
         db.rollback()
-        logger.error(f"Failed to persist CV {cv_id_str}: {e}", exc_info=True)
+        logger.error(
+            f"[STEP 4] ✗ FAIL — commit failed, rolled back: {e}", exc_info=True
+        )
         return {**state, "status": "failed", "error": str(e)}
 
 
@@ -313,63 +562,86 @@ async def _upsert_skills_from_cv(skills: list, cv_id: str, db) -> int:
     Upsert skills từ parsed CV vào skills + user_skill_profile tables.
     Trả về số skills đã upsert.
     """
-    from datetime import datetime
     from shared.models import Skill, UserSkillProfile
 
     upserted_count = 0
+    skipped_count = 0
+    error_count = 0
     cv_uuid = uuid.UUID(cv_id)
 
-    for s in skills:
+    logger.info(
+        f"[STEP 4/SKILLS] Starting skill upsert | cv_id={cv_id} | "
+        f"incoming skills={len(skills)}"
+    )
+
+    for idx, s in enumerate(skills):
         skill_name = (s.get("name") or "").strip()
         if not skill_name:
+            skipped_count += 1
+            logger.debug(f"  skill[{idx}] SKIPPED — empty name")
             continue
 
-        try:
-            # Upsert Skill record
-            skill_record = db.query(Skill).filter(Skill.name == skill_name).first()
+        # ── Upsert Skill record ──────────────────────────────────────────
+        skill_record = db.query(Skill).filter(Skill.name == skill_name).first()
 
-            if not skill_record:
-                skill_record = Skill(
-                    id=uuid.uuid4(), name=skill_name, category="Technology"
-                )
-                db.add(skill_record)
-                db.flush()
-
-            # Upsert UserSkillProfile
-            existing_profile = (
-                db.query(UserSkillProfile)
-                .filter(
-                    UserSkillProfile.cv_id == cv_uuid,
-                    UserSkillProfile.skill_id == skill_record.id,
-                )
-                .first()
+        if not skill_record:
+            skill_record = Skill(
+                id=uuid.uuid4(), name=skill_name, category="Technology"
+            )
+            db.add(skill_record)
+            db.flush()
+            logger.debug(
+                f"  skill[{idx}] CREATED new Skill: id={skill_record.id} name='{skill_name}'"
+            )
+        else:
+            logger.debug(
+                f"  skill[{idx}] REUSED existing Skill: id={skill_record.id} name='{skill_name}'"
             )
 
-            profile_data = {
-                "years_exp": max(0.0, float(s.get("years_exp") or 0)),
-                "level": s.get("level", "Junior"),
-                "last_used_year": s.get("last_used"),
-                "skill_context": s.get("context"),
-                "source": "cv_parsed_v3",
-            }
+        # ── Upsert UserSkillProfile ───────────────────────────────────────
+        existing_profile = (
+            db.query(UserSkillProfile)
+            .filter(
+                UserSkillProfile.cv_id == cv_uuid,
+                UserSkillProfile.skill_id == skill_record.id,
+            )
+            .first()
+        )
 
-            if existing_profile:
-                for key, val in profile_data.items():
-                    setattr(existing_profile, key, val)
-            else:
-                new_profile = UserSkillProfile(
-                    id=uuid.uuid4(),
-                    skill_id=skill_record.id,
-                    cv_id=cv_uuid,
-                    **profile_data,
-                )
-                db.add(new_profile)
+        profile_data = {
+            "years_exp": max(0.0, float(s.get("experience_years") or 0)),
+            "level": s.get("level", "Mid-level"),
+            "source": "cv_parsed_v3",
+        }
 
-            upserted_count += 1
+        if existing_profile:
+            for key, val in profile_data.items():
+                setattr(existing_profile, key, val)
+            logger.debug(
+                f"  skill[{idx}] UPDATED UserSkillProfile: "
+                f"years_exp={profile_data['years_exp']} level={profile_data['level']}"
+            )
+        else:
+            new_profile = UserSkillProfile(
+                id=uuid.uuid4(),
+                skill_id=skill_record.id,
+                cv_id=cv_uuid,
+                **profile_data,
+            )
+            db.add(new_profile)
+            logger.debug(
+                f"  skill[{idx}] INSERTED UserSkillProfile: "
+                f"years_exp={profile_data['years_exp']} level={profile_data['level']}"
+            )
 
-        except Exception as e:
-            logger.warning(f"Failed to upsert skill '{skill_name}': {e}")
-            continue
+        upserted_count += 1
+        logger.debug(f"  skill[{idx}] ✓ upserted: name='{skill_name}'")
 
-    db.commit()
+    logger.info(
+        f"[STEP 4/SKILLS] Skill upsert complete | cv_id={cv_id}\n"
+        f"  total incoming : {len(skills)}\n"
+        f"  upserted       : {upserted_count}\n"
+        f"  skipped (empty): {skipped_count}"
+    )
+
     return upserted_count

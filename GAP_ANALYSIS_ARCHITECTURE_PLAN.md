@@ -3,8 +3,6 @@
 
 > **Dự án:** AI Career Advisor (Team078)
 > **Phiên bản:** v3.0 — LLM-Centric, Holistic Reasoning
-> **Ngày:** 2026-01-26
-> **Người thực hiện:** Claude Code
 
 ---
 

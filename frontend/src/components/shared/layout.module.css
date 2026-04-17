@@ -11,12 +11,35 @@
   background-color: var(--color-bg-dark);
 }
 
-.contentWithSidebar {
-  @apply ml-72 flex flex-col min-h-screen transition-all;
+.mainContent {
+  @apply flex flex-col min-h-screen transition-all duration-500 ease-in-out;
+}
+
+.contentWithChrome {
+  margin-left: var(--sidebar-width);
+}
+
+@media (max-width: 1024px) {
+  .contentWithChrome {
+    margin-left: 0 !important;
+  }
 }
 
 .pageContainer {
-  @apply flex-1 p-8 pt-28 max-w-7xl mx-auto w-full;
+  @apply flex-1 p-4 md:p-10 pt-20 md:pt-24 w-full mx-auto;
+  max-width: 1600px;
+}
+
+.mobileBackdrop {
+  @apply fixed inset-0 bg-black/40 backdrop-blur-sm z-[45] lg:hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.mobileBackdropVisible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .footer {

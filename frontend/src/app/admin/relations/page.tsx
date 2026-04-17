@@ -131,8 +131,8 @@ const RelationsAdminPage = () => {
         <div className={styles.header}>
           <div>
             <h1 className={styles.title}>
-              <Network size={40} className={styles.iconColorDefault} /> 
-              <span>Bản đồ Quan hệ Graph</span>
+              <Network size={40} className={styles.headerIcon} /> 
+              <span>Semantic Network</span>
             </h1>
             <p className={styles.subtitle}>Định nghĩa mối quan hệ phân cấp (Cha - Con) giữa các kỹ năng và vị trí.</p>
           </div>
@@ -192,10 +192,7 @@ const RelationsAdminPage = () => {
                     className={styles.groupHeader}
                   >
                     <div className={styles.flexCenterGap1_5}>
-                      <div className={cn(
-                        styles.groupIconWrapper, 
-                        group.parent_type === 'Position' ? styles.iconPosition : styles.iconDefault
-                      )}>
+                      <div className={cn(styles.groupIconWrapper, group.parent_type === 'Position' ? styles.iconPosition : styles.iconDefault)}>
                         <Layers size={24} className={group.parent_type === 'Position' ? styles.iconColorPosition : styles.iconColorDefault} />
                       </div>
                       <div>
@@ -255,8 +252,8 @@ const RelationsAdminPage = () => {
             
             {groupedRels.length === 0 && !loading && (
               <div className={styles.emptyState}>
-                 <Network size={64} />
-                 <p className={styles.groupSub}>Chưa có kĩ năng cha nào được thiết lập</p>
+                <Network size={64} />
+                <p className={styles.emptyStateText}>Không tìm thấy mối quan hệ nào</p>
               </div>
             )}
           </div>
@@ -275,9 +272,9 @@ const RelationsAdminPage = () => {
               )}
             >
               <div className={cn(styles.notifIcon, notification.type === 'success' ? styles.iconSuccess : styles.iconError)}>
-                {notification.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+                {notification.type === 'success' ? <CheckCircle2 size={24} /> : <AlertCircle size={24} />}
               </div>
-              <span className={styles.childName} style={{ letterSpacing: "tight" }}>{notification.message}</span>
+              <span className={styles.notifText}>{notification.message}</span>
             </motion.div>
           )}
         </AnimatePresence>

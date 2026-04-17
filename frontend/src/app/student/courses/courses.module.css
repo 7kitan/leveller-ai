@@ -86,6 +86,13 @@
   color: white;
 }
 
+.statValue {
+  font-size: 1.875rem;
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: tight;
+}
+
 .statLabel {
   font-size: 10px;
   font-weight: 900;
@@ -469,6 +476,14 @@
   animation: shimmer 2s infinite;
   border-radius: 0.5rem;
 }
+
+.skeletonTitle { height: 1.5rem; width: 75%; margin-bottom: 1rem; }
+.skeletonLabel { height: 0.75rem; width: 4rem; margin-bottom: 1rem; }
+.skeletonText { height: 0.75rem; width: 100%; margin-bottom: 0.5rem; }
+.skeletonTextSub { height: 0.75rem; width: 66%; margin-bottom: 1.5rem; }
+.skeletonTag { height: 1.5rem; width: 4rem; border-radius: 9999px; }
+
+.mt0 { margin-top: 0 !important; }
 
 @keyframes shimmer {
   0% { background-position: 200% 0; }

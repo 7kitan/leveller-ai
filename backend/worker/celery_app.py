@@ -1,5 +1,7 @@
-from celery import Celery
 import os
+import logging
+from celery import Celery
+from celery.signals import after_setup_logger
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -23,6 +25,38 @@ celery_app = Celery(
         # NOTE: gap_analysis_v3_task.py bị DEPRECATE — dùng analysis_tasks thay thế
     ],
 )
+
+@after_setup_logger.connect
+def setup_logging(logger, *args, **kwargs):
+    """
+    Ensure our custom loggers are visible in the Celery worker logs.
+    By default, Celery's logging setup might swallow logs from other loggers.
+    """
+    formatter = logging.Formatter(
+        "[%(asctime)s: %(levelname)s/%(processName)s] %(name)s: %(message)s"
+    )
+
+    # List of loggers to force to stdout
+    loggers_to_config = [
+        "worker",
+        "analysis_worker",
+        "gap_analysis_v3",
+        "llm_utils",
+        "gap_calculator",
+    ]
+
+    for logger_name in loggers_to_config:
+        l = logging.getLogger(logger_name)
+        l.setLevel(logging.INFO)
+        # Ensure it has a handler if it's not propagating to a configured root
+        if not l.handlers:
+            handler = logging.StreamHandler()
+            handler.setFormatter(formatter)
+            l.addHandler(handler)
+        l.propagate = True
+
+    logger.info("✓ Celery logging heartbeat — custom loggers configured.")
+
 
 celery_app.conf.update(
     task_serializer="json",

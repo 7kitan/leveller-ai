@@ -41,6 +41,13 @@ class JobCreate(BaseModel):
     employment_type: Optional[str] = None
 
 
+class JobUpdate(BaseModel):
+    status: Optional[str] = None
+    min_salary_vnd: Optional[int] = None
+    max_salary_vnd: Optional[int] = None
+    title_category: Optional[str] = None
+
+
 class JobResponse(BaseModel):
     id: uuid.UUID
     title_raw: str
@@ -179,19 +186,30 @@ def search_jobs(
 
     if q and USE_VECTOR_SEARCH:
         # ── pgvector semantic search ───────────────────────────────────────
+        # Reset any aborted transaction before vector query
+        try:
+            db.rollback()
+        except Exception:
+            pass
+
         job_vector = get_embedding(q)
         if job_vector:
             vec_query = text("""
                 SELECT id,
-                       1 - (vector <=> :vec::vector) as similarity
+                       1 - (vector <=> :vec) as similarity
                 FROM jobs
                 WHERE status = 'active'
                   AND vector IS NOT NULL
-                ORDER BY vector <=> :vec::vector
+                ORDER BY vector <=> :vec
                 LIMIT 200
             """)
-            vec_results = db.execute(vec_query, {"vec": job_vector}).fetchall()
-            vec_job_ids = {str(r.id): float(r.similarity) for r in vec_results}
+            try:
+                vec_results = db.execute(vec_query, {"vec": job_vector}).fetchall()
+                vec_job_ids = {str(r.id): float(r.similarity) for r in vec_results}
+            except Exception as e:
+                db.rollback()
+                logger.error(f"[job search] pgvector query failed: {e}")
+                vec_job_ids = {}
 
             if vec_job_ids:
                 base_query = base_query.filter(
@@ -269,6 +287,72 @@ def get_job(job_id: uuid.UUID, db: Session = Depends(get_db)):
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return _job_to_response(job)
+
+
+@app.get("/jd/admin/list", response_model=List[JobResponse])
+def admin_list_jobs(
+    request: Request,
+    db: Session = Depends(get_db),
+    limit: int = 100,
+    offset: int = 0,
+    status: Optional[str] = None,
+):
+    """Admin only: Lấy tất cả Job."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    query = db.query(Job)
+    if status:
+        query = query.filter(Job.status == status)
+
+    jobs = query.order_by(Job.created_at.desc()).offset(offset).limit(limit).all()
+    return [_job_to_response(j) for j in jobs]
+
+
+@app.patch("/jd/admin/{job_id}", response_model=JobResponse)
+def admin_update_job(
+    job_id: uuid.UUID,
+    job_in: JobUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Admin only: Cập nhật Job."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    if job_in.status is not None:
+        job.status = job_in.status
+    if job_in.min_salary_vnd is not None:
+        job.min_salary_vnd = job_in.min_salary_vnd
+    if job_in.max_salary_vnd is not None:
+        job.max_salary_vnd = job_in.max_salary_vnd
+    if job_in.title_category is not None:
+        job.title_category = job_in.title_category
+
+    db.commit()
+    db.refresh(job)
+    return _job_to_response(job)
+
+
+@app.delete("/jd/admin/{job_id}")
+def admin_delete_job(
+    job_id: uuid.UUID, request: Request, db: Session = Depends(get_db)
+):
+    """Admin only: Xóa Job."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    db.delete(job)
+    db.commit()
+    return {"message": "Job deleted successfully"}
 
 
 # ─── 5.1 + 5.2: Market Analytics ──────────────────────────────────────────

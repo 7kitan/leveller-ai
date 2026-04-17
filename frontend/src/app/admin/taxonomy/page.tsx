@@ -120,7 +120,7 @@ const TaxonomyAdminPage = () => {
         <div className={styles.header}>
           <div>
             <h1 className={styles.title}>
-              <Database size={40} style={{ color: "#818cf8" }} /> 
+              <Database size={40} className={styles.entityIcon} /> 
               <span>Cognitive Reference Hub</span>
             </h1>
             <p className={styles.subtitle}>Chuẩn hóa và quản lý danh mục kĩ năng, công nghệ trong Knowledge Graph.</p>
@@ -163,8 +163,8 @@ const TaxonomyAdminPage = () => {
                 <tr className={styles.tableHeader}>
                   <th className={cn(styles.th, styles.thWidth1_3)}>Thực thể chính (Reference Entity)</th>
                   <th className={styles.th}>Cách diễn đạt / Từ đồng nghĩa (Aliases)</th>
-                  <th className={cn(styles.th, styles.thWidthW20)} style={{ textAlign: "center" }}></th>
-                  <th className={cn(styles.th, styles.thWidthW24)} style={{ textAlign: "right" }}>Sửa</th>
+                  <th className={cn(styles.th, styles.thWidthW20, styles.thCenter)}></th>
+                  <th className={cn(styles.th, styles.thWidthW24, styles.thRight)}>Sửa</th>
                 </tr>
               </thead>
               <tbody>
@@ -172,7 +172,7 @@ const TaxonomyAdminPage = () => {
                   <tr key={entity.id} className={styles.tr}>
                     <td className={styles.td}>
                       <div className={styles.flexCenterGap3}>
-                         <BookOpen size={14} style={{ color: "#818cf8" }} />
+                         <BookOpen size={14} className={styles.entityIcon} />
                          <span className={styles.entityName}>{entity.reference_name}</span>
                       </div>
                     </td>
@@ -206,7 +206,7 @@ const TaxonomyAdminPage = () => {
                     <td colSpan={4}>
                       <div className={styles.emptyState}>
                         <Tags size={48} />
-                        <p style={{ fontSize: "0.875rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.2em", fontStyle: "italic" }}>Không tìm thấy thực thể nào</p>
+                        <p className={styles.emptyStateText}>Không tìm thấy thực thể nào</p>
                       </div>
                     </td>
                   </tr>
@@ -228,7 +228,7 @@ const TaxonomyAdminPage = () => {
               >
                 <div className={styles.modalHeader}>
                     <h3 className={styles.modalTitle}>
-                        <Database size={24} style={{ color: "#818cf8" }} /> 
+                        <Database size={24} className={styles.entityIcon} /> 
                         <span>Cấu hình Thực thể</span>
                     </h3>
                 </div>
@@ -247,13 +247,12 @@ const TaxonomyAdminPage = () => {
                     <div className={styles.verticalStack1}>
                       <label className={styles.inputLabel}>Bí danh (Aliases)</label>
                       <textarea 
-                        className={styles.modalInput}
-                        style={{ minHeight: "8rem", paddingTop: "1rem" }}
+                        className={cn(styles.modalInput, styles.modalTextarea)}
                         placeholder="e.g. JS, ES6, VanillaJS..."
                         value={formData.aliases}
                         onChange={(e) => setFormData({...formData, aliases: e.target.value})}
                       />
-                      <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.2)", fontStyle: "italic", padding: "0.5rem" }}>
+                      <p className={styles.modalHelpText}>
                         Tự động chuẩn hóa về tên chính trong quá trình phân tích.
                       </p>
                     </div>
@@ -262,7 +261,7 @@ const TaxonomyAdminPage = () => {
                 <div className={styles.modalFooter}>
                   <button 
                     onClick={() => setIsModalOpen(false)} 
-                    style={{ fontSize: "10px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(255,255,255,0.3)" }}
+                    className={styles.modalCancelBtn}
                   >
                     Hủy
                   </button>
@@ -287,10 +286,10 @@ const TaxonomyAdminPage = () => {
                 notification.type === 'success' ? styles.notifSuccess : styles.notifError
               )}
             >
-              <div style={{ padding: "0.5rem", borderRadius: "1rem", backgroundColor: notification.type === 'success' ? "rgba(16, 185, 129, 0.2)" : "rgba(244, 63, 94, 0.2)", color: notification.type === 'success' ? "#10b981" : "#f43f5e" }}>
+              <div className={cn(styles.notifIconContainer, notification.type === 'success' ? styles.notifIconSuccess : styles.notifIconError)}>
                 {notification.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
               </div>
-              <span style={{ fontWeight: 700 }}>{notification.message}</span>
+              <span className={styles.notifText}>{notification.message}</span>
             </motion.div>
           )}
         </AnimatePresence>

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from shared.database import get_db
 from shared.redis_client import result_cache
 from shared.taxonomy_service import taxonomy_service
-from shared.models import UserAnalysis, UserFeedback
+from shared.models import User, UserAnalysis, UserFeedback, Job, UserCV
 from pydantic import BaseModel
 from typing import Optional, List
 import uuid
@@ -62,6 +62,37 @@ async def start_gap_analysis(
     if not user_id:
         raise HTTPException(status_code=401, detail="User not authenticated")
 
+    logger.info(
+        f"[ANALYSIS GAP] start_gap_analysis — "
+        f"user_id={user_id} | cv_id={req.cv_id} | "
+        f"job_id={req.job_id} | jd_text={'provided' if req.jd_text else 'None'}"
+    )
+
+    # Verify CV belongs to this user
+    cv = (
+        db.query(UserCV)
+        .filter(
+            UserCV.id == req.cv_id,
+            UserCV.user_id == uuid.UUID(user_id),
+        )
+        .first()
+    )
+    if not cv:
+        logger.warning(
+            f"[ANALYSIS GAP] CV not found or unauthorized — cv_id={req.cv_id} user_id={user_id}"
+        )
+        raise HTTPException(status_code=404, detail="CV not found or unauthorized")
+
+    # Verify CV is completed
+    if cv.status != "completed":
+        logger.warning(
+            f"[ANALYSIS GAP] CV not ready — cv_id={req.cv_id} status={cv.status}"
+        )
+        raise HTTPException(
+            status_code=400,
+            detail=f"CV chưa hoàn tất phân tích (status={cv.status}). Vui lòng đợi CV được xử lý xong.",
+        )
+
     task = celery_app.send_task(
         "worker.tasks.analysis_tasks.run_gap_analysis",
         args=[
@@ -71,17 +102,40 @@ async def start_gap_analysis(
             req.jd_text,
         ],
     )
+    logger.info(
+        f"[ANALYSIS GAP] Task dispatched — task_id={task.id} | "
+        f"cv_id={req.cv_id} | job_id={req.job_id}"
+    )
     return {"task_id": task.id, "status": "processing"}
 
 
 @app.get("/analysis/status/{task_id}")
 async def get_task_status(task_id: str):
     res = AsyncResult(task_id, app=celery_app)
+    state = res.state
+
+    logger.info(
+        f"[ANALYSIS STATUS] task_id={task_id} | state={state} | "
+        f"ready={res.ready()} | result_type={type(res.result).__name__}"
+    )
 
     if res.ready():
         result = res.result
         if isinstance(result, dict) and "error" in result:
+            logger.error(
+                f"[ANALYSIS STATUS] task FAILED — task_id={task_id} error={result['error']}"
+            )
             raise HTTPException(status_code=500, detail=result["error"])
+
+        # Log success summary
+        if isinstance(result, dict):
+            logger.info(
+                f"[ANALYSIS STATUS] task SUCCESS — task_id={task_id}\n"
+                f"  overall_match_pct : {result.get('overall_match_pct')}\n"
+                f"  skill_gaps        : {len(result.get('skill_gaps', []))}\n"
+                f"  recommended_courses: {len(result.get('recommended_courses', []))}\n"
+                f"  career_roadmap    : {bool(result.get('career_roadmap'))}"
+            )
         return {"status": "completed", "result": result}
 
     return {"status": "processing"}
@@ -177,6 +231,121 @@ async def get_cv_analysis(cv_id: str, request: Request, db: Session = Depends(ge
         )
 
     return analysis.result_json or {}
+
+
+@app.get("/analysis/recommendations")
+async def get_recommendations(request: Request, db: Session = Depends(get_db)):
+    """
+    Lấy danh sách gợi ý công việc dựa trên phân tích mới nhất.
+    Ánh xạ từ result_json sang format RecommendedJob của frontend.
+    """
+    user_id = request.headers.get("X-User-ID")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    analysis = (
+        db.query(UserAnalysis)
+        .filter(UserAnalysis.user_id == uuid.UUID(user_id))
+        .order_by(UserAnalysis.created_at.desc())
+        .first()
+    )
+
+    if not analysis or not analysis.result_json:
+        return []
+
+    # Giả định result_json có key 'job_recommendations' hoặc dữ liệu tương tự
+    # Nếu không có, return danh sách mẫu hoặc trending (mock logic)
+    raw_recs = analysis.result_json.get(
+        "job_recommendations"
+    ) or analysis.result_json.get("recommendations", [])
+
+    return [
+        {
+            "title": r.get("title") or r.get("job_title", "Software Engineer"),
+            "match_score": int(r.get("match_score", 85)),
+            "market_demand": r.get("market_demand", "high"),
+            "top_skillsRequired": r.get("top_skills") or r.get("required_skills", []),
+            "career_path": r.get("career_path", "Senior Level"),
+        }
+        for r in raw_recs
+    ]
+
+
+@app.get("/analysis/market-fit")
+async def get_market_fit(request: Request, db: Session = Depends(get_db)):
+    """
+    Dashboard API: Trả về tóm tắt sự tương thích của user với thị trường.
+    """
+    user_id = request.headers.get("X-User-ID")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    # 1. Tổng số jobs đang active
+    total_jobs = db.query(Job).filter(Job.status == "active").count()
+
+    # 2. Lấy analysis mới nhất cho user này
+    latest = (
+        db.query(UserAnalysis)
+        .filter(UserAnalysis.user_id == uuid.UUID(user_id))
+        .order_by(UserAnalysis.created_at.desc())
+        .first()
+    )
+
+    if not latest or not latest.result_json:
+        return {"matched_jobs": 0, "market_fit_pct": 0, "total_jobs": total_jobs}
+
+    # 3. Trích xuất matched_jobs và market_fit_pct
+    # matched_jobs: Số lượng công việc được gợi ý
+    # market_fit_pct: Điểm match cao nhất (max of recommendations)
+    recommends = latest.result_json.get(
+        "job_recommendations"
+    ) or latest.result_json.get("recommendations", [])
+    matched_jobs = len(recommends)
+
+    fit_scores = [int(r.get("match_score", 0)) for r in recommends]
+    market_fit_pct = max(fit_scores) if fit_scores else 0
+
+    return {
+        "matched_jobs": matched_jobs,
+        "market_fit_pct": market_fit_pct,
+        "total_jobs": total_jobs,
+    }
+
+
+@app.get("/analysis/admin/cvs")
+async def admin_get_all_cvs(request: Request, db: Session = Depends(get_db)):
+    """Admin only: Xem tất cả CV trong hệ thống."""
+    check_admin(request)
+
+    results = db.query(UserCV, User.email).join(User, User.id == UserCV.user_id).all()
+
+    return [
+        {
+            "id": str(cv.id),
+            "user_email": email,
+            "full_name": cv.full_name,
+            "status": cv.status,
+            "created_at": cv.created_at.isoformat(),
+            "file_url": f"/api/cv/download/{cv.id}",
+        }
+        for cv, email in results
+    ]
+
+
+@app.delete("/analysis/admin/cvs/{cv_id}")
+async def admin_delete_cv(
+    cv_id: uuid.UUID, request: Request, db: Session = Depends(get_db)
+):
+    """Admin only: Xóa CV bất kỳ."""
+    check_admin(request)
+
+    cv = db.query(UserCV).filter(UserCV.id == cv_id).first()
+    if not cv:
+        raise HTTPException(status_code=404, detail="CV not found")
+
+    db.delete(cv)
+    db.commit()
+    return {"message": "CV deleted"}
 
 
 # ─── 2.1 + 2.2: Feedback Loop ─────────────────────────────────────────
@@ -453,3 +622,51 @@ async def delete_relationship(parent: str, child: str, rel_type: str, request: R
     check_admin(request)
     taxonomy_service.delete_relationship(parent, child, rel_type)
     return {"message": f"Deleted {rel_type} {parent} → {child}"}
+
+
+# ─── Frontend Entity Alignment ───────────────────────────────────────────
+
+
+@app.get("/analysis/admin/taxonomy/entities")
+async def admin_get_entities(request: Request):
+    """Alignment với TaxonomyAdminPage của frontend."""
+    check_admin(request)
+    skills = taxonomy_service.get_all_skills(limit=500, skip=0)
+    # Map Skill -> TaxonomyEntity {id, reference_name, aliases}
+    return [
+        {
+            "id": s["name"],  # Sử dụng name làm ID cho graph mapping
+            "reference_name": s["name"],
+            "aliases": s.get("aliases", []),
+        }
+        for s in skills
+    ]
+
+
+@app.post("/analysis/admin/taxonomy/entities")
+async def admin_create_entity(req: dict, request: Request):
+    check_admin(request)
+    name = req.get("reference_name")
+    aliases = req.get("aliases", [])
+    if not name:
+        raise HTTPException(status_code=400, detail="Missing reference_name")
+
+    taxonomy_service.create_or_update_skill(name=name, aliases=aliases)
+    return {"id": name, "reference_name": name, "aliases": aliases}
+
+
+@app.put("/analysis/admin/taxonomy/entities/{entity_id}")
+async def admin_update_entity(entity_id: str, req: dict, request: Request):
+    check_admin(request)
+    # Trong Neo4j, update thường là create_or_update
+    name = req.get("reference_name") or entity_id
+    aliases = req.get("aliases", [])
+    taxonomy_service.create_or_update_skill(name=name, aliases=aliases)
+    return {"id": name, "reference_name": name, "aliases": aliases}
+
+
+@app.delete("/analysis/admin/taxonomy/entities/{entity_id}")
+async def admin_delete_entity(entity_id: str, request: Request):
+    check_admin(request)
+    taxonomy_service.delete_skill(entity_id)
+    return {"message": "Entity deleted"}

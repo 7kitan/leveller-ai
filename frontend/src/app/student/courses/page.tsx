@@ -340,7 +340,7 @@ export default function StudentCoursesPage() {
             { label: "Chứng chỉ", value: courses.filter((c) => c.is_certification).length },
           ].map(({ label, value }) => (
             <div key={label} className={styles.statItem}>
-              <div style={{ fontSize: "1.875rem", fontWeight: 900, fontStyle: "italic", letterSpacing: "tight" }}>{value}</div>
+              <div className={styles.statValue}>{value}</div>
               <div className={styles.statLabel}>{label}</div>
             </div>
           ))}
@@ -362,12 +362,12 @@ export default function StudentCoursesPage() {
             <div key={i} className={styles.courseCard}>
               <div className={styles.platformStrip} />
               <div className={styles.courseBody}>
-                <div className={cn(styles.skeleton)} style={{ height: "0.75rem", width: "4rem", marginBottom: "1rem" }} />
-                <div className={cn(styles.skeleton)} style={{ height: "1.5rem", width: "75%", marginBottom: "1rem" }} />
-                <div className={cn(styles.skeleton)} style={{ height: "0.75rem", width: "100%", marginBottom: "0.5rem" }} />
-                <div className={cn(styles.skeleton)} style={{ height: "0.75rem", width: "66%", marginBottom: "1.5rem" }} />
+                <div className={cn(styles.skeleton, styles.skeletonLabel)} />
+                <div className={cn(styles.skeleton, styles.skeletonTitle)} />
+                <div className={cn(styles.skeleton, styles.skeletonText)} />
+                <div className={cn(styles.skeleton, styles.skeletonTextSub)} />
                 <div className={styles.skeletonTagContainer}>
-                  {[1, 2, 3].map((j) => <div key={j} className={cn(styles.skeleton)} style={{ height: "1.5rem", width: "4rem", borderRadius: "9999px" }} />)}
+                  {[1, 2, 3].map((j) => <div key={j} className={cn(styles.skeleton, styles.skeletonTag)} />)}
                 </div>
               </div>
             </div>
@@ -411,8 +411,7 @@ export default function StudentCoursesPage() {
                 onClick={() =>
                   setFilters({ query: "", level: "", platform: "", hasCertificate: false, maxCost: 0, sortBy: "relevance" })
                 }
-                className={styles.courseCta}
-                style={{ marginTop: "0" }}
+                className={cn(styles.courseCta, styles.mt0)}
               >
                 Xóa tất cả bộ lọc
               </button>

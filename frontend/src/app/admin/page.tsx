@@ -6,13 +6,14 @@ import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { 
   Users, 
-  Database, 
-  Network, 
-  TrendingUp, 
-  ShieldCheck, 
-  ArrowUpRight, 
-  Cpu, 
+  Database,
+  Network,
+  TrendingUp,
+  ShieldCheck,
+  ArrowUpRight,
+  Cpu,
   Layers,
+  BookOpen,
   ChevronRight,
   Zap
 } from "lucide-react";
@@ -59,18 +60,32 @@ const AdminDashboard = () => {
       color: "#34d399"
     },
     { 
+      title: "Job Portal", 
+      desc: "Quản trị tin tuyển dụng, trạng thái và ánh xạ taxonomy.", 
+      icon: Layers, 
+      path: "/admin/jobs",
+      color: "#f59e0b"
+    },
+    { 
+      title: "Course Catalog", 
+      desc: "Quản lý dữ liệu khóa học và vector embedding tri thức.", 
+      icon: BookOpen, 
+      path: "/admin/courses",
+      color: "#0ea5e9"
+    },
+    { 
       title: "Relations Map", 
       desc: "Thiết lập quan hệ phân cấp giữa các thực thể tri thức.", 
       icon: Network, 
       path: "/admin/relations",
-      color: "#f59e0b"
+      color: "#f472b6"
     },
     { 
       title: "Market Insight", 
       desc: "Giám sát chỉ số khớp lệnh thị trường và phân tích Gap.", 
       icon: TrendingUp, 
       path: "/admin/market",
-      color: "#f472b6"
+      color: "#a78bfa"
     }
   ];
 
@@ -108,12 +123,17 @@ const AdminDashboard = () => {
         {/* Module Access Grid */}
         <div className={styles.moduleGrid}>
           {dashboardModules.map((stat) => (
-            <Link key={stat.path} href={stat.path} className={styles.moduleCard}>
+            <Link 
+              key={stat.path} 
+              href={stat.path} 
+              className={styles.moduleCard}
+              style={{ "--accent-color": stat.color } as React.CSSProperties}
+            >
                <div className={styles.cardDecoration}>
                    <stat.icon size={48} />
                </div>
                
-               <div className={styles.moduleIconBox} style={{ color: stat.color }}>
+               <div className={styles.moduleIconBox}>
                   <stat.icon size={24} />
                </div>
                
@@ -123,17 +143,17 @@ const AdminDashboard = () => {
                </div>
 
                <div className={styles.footerWrapper}>
-                  <div className={styles.linkText}>
-                    Access Module <ChevronRight size={14} />
-                  </div>
-                  <div className={styles.hoverIcon}>
-                    <ArrowUpRight size={20} style={{ color: stat.color }} />
-                  </div>
+                   <div className={styles.linkText}>
+                     Access Module <ChevronRight size={14} />
+                   </div>
+                   <div className={styles.hoverIcon}>
+                     <ArrowUpRight size={20} className={styles.iconWithAccent} />
+                   </div>
                </div>
 
-               <div className={styles.progressBar}>
-                  <div className={styles.progressFill} style={{ backgroundColor: stat.color }} />
-               </div>
+                <div className={styles.progressBar}>
+                   <div className={styles.progressFill} />
+                </div>
             </Link>
           ))}
         </div>
@@ -141,9 +161,9 @@ const AdminDashboard = () => {
         {/* Global Insight Widget */}
         <div className={styles.insightSection}>
           <TrendingUp size={400} className={styles.bgDecoration} />
-          <div className={styles.relativeZ10}>
+           <div className={styles.relativeZ10}>
             <h2 className={styles.insightTitle}>
-               <Layers size={24} style={{ color: "#818cf8" }} /> Knowledge Logic Health
+               <Layers size={24} className={styles.insightIcon} /> Knowledge Logic Health
             </h2>
             <p className={styles.insightText}>
                Hệ thống đang hoạt động ổn định. Taxonomy được cập nhật lần cuối vào 2 giờ trước. 

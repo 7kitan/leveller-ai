@@ -32,15 +32,21 @@ OPENAI_API_KEY=sk-proj...
 
 ## 5. Nạp dữ liệu vào hệ thống (Seeding)
 
-Bước này giúp ứng dụng có sẵn dữ liệu về công việc và khóa học để bạn thử nghiệm.
+Bước này giúp ứng dụng có sẵn dữ liệu về kỹ năng (Skills), công việc (Jobs) và các khóa học (Courses) để hệ thống có thể phân tích và gợi ý.
 
 1.  Vẫn tại cửa sổ Terminal ở Bước 4, gõ lệnh sau để cài đặt các thư viện cần thiết:
     ```bash
     pip install -r requirements.txt
     ```
-2.  Chạy lệnh nạp dữ liệu:
+2.  Chạy lệnh nạp TOÀN BỘ dữ liệu (Kỹ năng, Công việc, 300+ Khóa học):
     ```bash
-    python scripts/seed_data.py
+    python scripts/seed_all.py
+    ```
+    *Lưu ý: Quá trình này có thể mất vài phút vì hệ thống cần tạo Vector Embedding (tọa độ không gian) cho dữ liệu để phục vụ tìm kiếm thông minh.*
+
+3. Nếu bạn muốn bỏ nạp 300 khóa học Coursera (để chạy nhanh hơn), dùng lệnh:
+    ```bash
+    python scripts/seed_all.py --skip-extended
     ```
 
 ## 6.Tạo tài khoản Admin

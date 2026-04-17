@@ -159,7 +159,13 @@ def seed_courses():
     finally:
         db.close()
 
-if __name__ == "__main__":
+def seed_base_data():
+    """Seed skills, jobs, and base courses."""
+    logger.info("=== STARTING BASE DATA SEEDING ===")
     seed_skills()
     seed_jobs()
     seed_courses()
+    logger.info("=== BASE DATA SEEDING COMPLETED ===")
+
+if __name__ == "__main__":
+    seed_base_data()

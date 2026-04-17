@@ -13,6 +13,7 @@ from shared.llm_utils import get_embedding, openai_client, LLM_PROVIDER, LLM_MOD
 
 logger = logging.getLogger("gap_calculator.retriever")
 
+
 class RequirementRetriever:
     def __init__(self, db: Session):
         self.db = db
@@ -21,31 +22,44 @@ class RequirementRetriever:
         """AI Trích xuất JD với cơ chế 4-Layer Knowledge Retrieval (Hybrid)."""
         jd_text = jd_text.strip()
         jd_embedding = None
-        
+
         # Layer 1: Exact Hit (Hash-based)
         text_hash = hashlib.sha256(jd_text.encode()).hexdigest()[:16]
         exact_id = f"cache_{text_hash}"
         exact_hit = self.db.query(Job).filter(Job.source_id == exact_id).first()
         if exact_hit and exact_hit.extracted_requirements_json:
-            # DIRTY CACHE DETECTION: 
+            # DIRTY CACHE DETECTION:
             # 1. Skip if contains generic placeholders
             reqs = exact_hit.extracted_requirements_json
             reqs_str = json.dumps(reqs).lower()
-            dirty_keywords = ["technologies", "alternative", "category", "required", "optional", "generic"]
-            is_dirty = any(f'"{kw}' in reqs_str or f" {kw}" in reqs_str for kw in dirty_keywords)
-            
+            dirty_keywords = [
+                "technologies",
+                "alternative",
+                "category",
+                "required",
+                "optional",
+                "generic",
+            ]
+            is_dirty = any(
+                f'"{kw}' in reqs_str or f" {kw}" in reqs_str for kw in dirty_keywords
+            )
+
             # 2. Skip if it looks like the old "2-year default" extraction (heuristic)
             if not is_dirty and isinstance(reqs, list):
                 years_list = []
                 for r in reqs:
-                    if r.get("type") == "skill": years_list.append(r.get("years_required"))
+                    if r.get("type") == "skill":
+                        years_list.append(r.get("years_required"))
                     elif r.get("type") == "group":
-                        for s in r.get("skills", []): years_list.append(s.get("years_required"))
-                
+                        for s in r.get("skills", []):
+                            years_list.append(s.get("years_required"))
+
                 # If everything is exactly 2 years, it's likely a legacy extraction using the old forced default
                 if len(years_list) > 2 and all(y == 2 for y in years_list):
                     is_dirty = True
-                    logger.info("LAYER 1 DIRTY CACHE: Detected legacy 2-year default pattern.")
+                    logger.info(
+                        "LAYER 1 DIRTY CACHE: Detected legacy 2-year default pattern."
+                    )
 
             if not is_dirty:
                 logger.info(f"LAYER 1 HIT: Exact hash match {text_hash}")
@@ -69,17 +83,24 @@ class RequirementRetriever:
         # Layer 4: AI Extraction (Chat Completion)
         logger.info("Knowledge Retrieval failed. Executing AI Extraction (GPT)...")
         requirements = await self._ai_extract(jd_text)
-        
+
         if requirements:
             self._save_to_cache(jd_text, jd_embedding, requirements)
-        
+
         return requirements
 
     def _find_keyword_cache(self, jd_text: str) -> Optional[List[Dict[str, Any]]]:
-        if len(jd_text) < 50: return None
+        if len(jd_text) < 50:
+            return None
         try:
+            # Reset any aborted transaction
+            try:
+                self.db.rollback()
+            except Exception:
+                pass
+
             query = text("""
-                SELECT source_id, extracted_requirements_json, 
+                SELECT source_id, extracted_requirements_json,
                        ts_rank_cd(to_tsvector('english', raw_text), plainto_tsquery('english', :text)) as rank
                 FROM jobs
                 WHERE to_tsvector('english', raw_text) @@ plainto_tsquery('english', :text)
@@ -96,11 +117,20 @@ class RequirementRetriever:
             logger.error(f"Error checking keyword cache: {e}")
             return None
 
-    def _find_semantic_cache(self, jd_text: str, embedding: List[float]) -> Optional[List[Dict[str, Any]]]:
-        if not embedding: return None
+    def _find_semantic_cache(
+        self, jd_text: str, embedding: List[float]
+    ) -> Optional[List[Dict[str, Any]]]:
+        if not embedding:
+            return None
         try:
+            # Reset any aborted transaction
+            try:
+                self.db.rollback()
+            except Exception:
+                pass
+
             query = text("""
-                SELECT source_id, extracted_requirements_json, 1 - (vector <=> :vec::vector) as similarity
+                SELECT source_id, extracted_requirements_json, 1 - (vector <=> :vec) as similarity
                 FROM jobs
                 WHERE vector IS NOT NULL AND extracted_requirements_json IS NOT NULL
                 ORDER BY similarity DESC
@@ -115,16 +145,25 @@ class RequirementRetriever:
             logger.error(f"Error checking semantic cache: {e}")
             return None
 
-    def _save_to_cache(self, jd_text: str, embedding: List[float], requirements: List[Dict[str, Any]]):
+    def _save_to_cache(
+        self, jd_text: str, embedding: List[float], requirements: List[Dict[str, Any]]
+    ):
         try:
+            # Reset any aborted transaction
+            try:
+                self.db.rollback()
+            except Exception:
+                pass
+
             text_hash = hashlib.sha256(jd_text.encode()).hexdigest()[:16]
             source_id = f"cache_{text_hash}"
             existing = self.db.query(Job).filter(Job.source_id == source_id).first()
-            
+
             if existing:
                 existing.extracted_requirements_json = requirements
                 existing.last_analyzed_at = datetime.now()
-                if embedding: existing.vector = embedding
+                if embedding:
+                    existing.vector = embedding
             else:
                 new_job = Job(
                     id=uuid.uuid4(),
@@ -134,7 +173,7 @@ class RequirementRetriever:
                     vector=embedding,
                     extracted_requirements_json=requirements,
                     last_analyzed_at=datetime.now(),
-                    status="cache"
+                    status="cache",
                 )
                 self.db.add(new_job)
             self.db.commit()
@@ -211,94 +250,139 @@ class RequirementRetriever:
         try:
             if LLM_PROVIDER == "openai":
                 response = openai_client.chat.completions.create(
-                    model=LLM_MODEL, 
+                    model=LLM_MODEL,
                     messages=[{"role": "user", "content": prompt}],
-                    response_format={"type": "json_object"}
+                    response_format={"type": "json_object"},
                 )
                 raw_content = response.choices[0].message.content
                 raw = json.loads(raw_content)
                 reqs = raw.get("requirements") or []
-                
+
                 normalized_reqs = []
                 for r in reqs:
                     if r.get("type") == "group":
                         # ATOMIC FLATTENING: Nếu group là generic container, flatten nó ra thành từng skill lẻ
                         g_name = (r.get("group_name") or "Skill Group").lower()
-                        container_keywords = ["technologies", "languages", "requirements", "tools", "stack", "category", "alternative"]
-                        is_generic_container = any(kw in g_name for kw in container_keywords)
-                        
+                        container_keywords = [
+                            "technologies",
+                            "languages",
+                            "requirements",
+                            "tools",
+                            "stack",
+                            "category",
+                            "alternative",
+                        ]
+                        is_generic_container = any(
+                            kw in g_name for kw in container_keywords
+                        )
+
                         if is_generic_container:
                             for s in r.get("skills", []):
-                                normalized_reqs.append({
-                                    "type": "skill",
-                                    "skill": s.get("skill"),
-                                    "target_level": s.get("target_level") or "Junior",
-                                    "years_required": s.get("years_required", 0),
-                                    "is_primary": r.get("is_primary") if r.get("is_primary") is not None else True,
-                                    "importance_weight": r.get("importance_weight") or 5
-                                })
+                                normalized_reqs.append(
+                                    {
+                                        "type": "skill",
+                                        "skill": s.get("skill"),
+                                        "target_level": s.get("target_level")
+                                        or "Junior",
+                                        "years_required": s.get("years_required", 0),
+                                        "is_primary": r.get("is_primary")
+                                        if r.get("is_primary") is not None
+                                        else True,
+                                        "importance_weight": r.get("importance_weight")
+                                        or 5,
+                                    }
+                                )
                             continue
 
                         sub_skills = []
                         for s in r.get("skills", []):
-                            sub_skills.append({
-                                "skill": s.get("skill"),
-                                "target_level": s.get("target_level") or "Junior",
-                                "years_required": s.get("years_required", 0)
-                            })
-                        normalized_reqs.append({
-                            "type": "group",
-                            "group_name": r.get("group_name") or "Skill Group",
-                            "group_strategy": r.get("group_strategy") or "exclusive",
-                            "skills": sub_skills,
-                            "is_primary": r.get("is_primary") if r.get("is_primary") is not None else True,
-                            "importance_weight": r.get("importance_weight") or 5
-                        })
+                            sub_skills.append(
+                                {
+                                    "skill": s.get("skill"),
+                                    "target_level": s.get("target_level") or "Junior",
+                                    "years_required": s.get("years_required", 0),
+                                }
+                            )
+                        normalized_reqs.append(
+                            {
+                                "type": "group",
+                                "group_name": r.get("group_name") or "Skill Group",
+                                "group_strategy": r.get("group_strategy")
+                                or "exclusive",
+                                "skills": sub_skills,
+                                "is_primary": r.get("is_primary")
+                                if r.get("is_primary") is not None
+                                else True,
+                                "importance_weight": r.get("importance_weight") or 5,
+                            }
+                        )
                     else:
                         s_name = r.get("skill") or r.get("name")
-                        if not s_name: continue
-                        
+                        if not s_name:
+                            continue
+
                         # HEURISTIC FALLBACK: Split skills with slashes into an "OR" group if LLM missed it
                         if "/" in s_name and any(c.isalpha() for c in s_name):
                             # Handle nested slashes in parentheses like "Database (SQL/NoSQL)"
                             parts = []
                             if "(" in s_name and ")" in s_name:
-                                match = re.search(r'\((.*)\)', s_name)
+                                match = re.search(r"\((.*)\)", s_name)
                                 if match:
                                     inside = match.group(1)
-                                    parts = [p.strip() for p in inside.split("/") if p.strip()]
-                            
+                                    parts = [
+                                        p.strip()
+                                        for p in inside.split("/")
+                                        if p.strip()
+                                    ]
+
                             if not parts:
-                                parts = [p.strip() for p in s_name.split("/") if p.strip()]
-                            
+                                parts = [
+                                    p.strip() for p in s_name.split("/") if p.strip()
+                                ]
+
                             if len(parts) > 1:
                                 sub_skills = []
                                 for p in parts:
-                                    p_clean = re.sub(r'[()\[\]{}]', '', p).strip()
-                                    if not p_clean: continue
-                                    sub_skills.append({
-                                        "skill": p_clean,
-                                        "target_level": r.get("target_level") or "Junior",
-                                        "years_required": r.get("years_required", 0)
-                                    })
-                                normalized_reqs.append({
-                                    "type": "group",
-                                    "group_name": f"{s_name} (Combined)",
-                                    "group_strategy": "exclusive",
-                                    "skills": sub_skills,
-                                    "is_primary": r.get("is_primary") if r.get("is_primary") is not None else True,
-                                    "importance_weight": r.get("importance_weight") or 5
-                                })
+                                    p_clean = re.sub(r"[()\[\]{}]", "", p).strip()
+                                    if not p_clean:
+                                        continue
+                                    sub_skills.append(
+                                        {
+                                            "skill": p_clean,
+                                            "target_level": r.get("target_level")
+                                            or "Junior",
+                                            "years_required": r.get(
+                                                "years_required", 0
+                                            ),
+                                        }
+                                    )
+                                normalized_reqs.append(
+                                    {
+                                        "type": "group",
+                                        "group_name": f"{s_name} (Combined)",
+                                        "group_strategy": "exclusive",
+                                        "skills": sub_skills,
+                                        "is_primary": r.get("is_primary")
+                                        if r.get("is_primary") is not None
+                                        else True,
+                                        "importance_weight": r.get("importance_weight")
+                                        or 5,
+                                    }
+                                )
                                 continue
 
-                        normalized_reqs.append({
-                            "type": "skill",
-                            "skill": s_name,
-                            "target_level": r.get("target_level") or "Junior",
-                            "years_required": r.get("years_required", 0),
-                            "is_primary": r.get("is_primary") if r.get("is_primary") is not None else True,
-                            "importance_weight": r.get("importance_weight") or 5
-                        })
+                        normalized_reqs.append(
+                            {
+                                "type": "skill",
+                                "skill": s_name,
+                                "target_level": r.get("target_level") or "Junior",
+                                "years_required": r.get("years_required", 0),
+                                "is_primary": r.get("is_primary")
+                                if r.get("is_primary") is not None
+                                else True,
+                                "importance_weight": r.get("importance_weight") or 5,
+                            }
+                        )
                 return normalized_reqs
             return []
         except Exception as e:

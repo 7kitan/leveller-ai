@@ -1,220 +1,304 @@
 """
-gap_v3 Roadmap Synthesis + Finalize Nodes.
+gap_v3 Roadmap + Finalize nodes.
 """
 
 import logging
+import json as _json
 from typing import Dict, Any
 
-from ..states import GapAnalysisStateV3, CareerRoadmap
-from ..utils.llm_helpers import llm_json_completion
+from ..states import GapAnalysisStateV3
 
 logger = logging.getLogger("roadmap_v3")
 
 
-# ─── Node 5: Roadmap Synthesis ──────────────────────────────────────────────
+def _indent_data(text: str) -> str:
+    """Indent each line for log readability."""
+    return "\n".join("    " + line for line in text.split("\n"))
 
 
 async def roadmap_synthesis_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3:
     """
-    Roadmap Synthesizer Agent: Tạo career roadmap với timeline stages + milestones.
+    STEP 5: Roadmap synthesis — LLM tạo learning timeline từ gap analysis results.
     """
-    logger.info("--- [GAP v3] ROADMAP SYNTHESIS ---")
-
-    gap_analysis = state.get("gap_analysis")
-    course_recommendations = state.get("course_recommendations", [])
+    gap_analysis = state.get("gap_analysis") or {}
+    course_recommendations = state.get("course_recommendations") or []
+    logger.info(
+        "\n" + "=" * 50 + "\n"
+        "[STEP 5] roadmap_synthesis | cv_id=" + state.get("cv_id", "?")
+    )
 
     if not gap_analysis:
+        logger.warning("[STEP 5] No gap_analysis — skipping roadmap")
         return {**state, "career_roadmap": {}, "status": "roadmap_done"}
 
-    skill_gaps = gap_analysis.get("skill_gaps", [])
-    jd_context = gap_analysis.get("jd_context", "")
-
-    if not skill_gaps or not course_recommendations:
-        logger.info("  No gaps or courses. Skipping roadmap.")
+    skill_gaps = gap_analysis.get("skill_gaps") or []
+    if not skill_gaps:
+        logger.warning("[STEP 5] No skill gaps — skipping roadmap")
         return {**state, "career_roadmap": {}, "status": "roadmap_done"}
 
-    # Format data for LLM
-    gaps_str = "\n".join(
-        [
-            f"- {g['skill']}: {g['estimated_months']:.0f} tháng, "
-            f"severity: {g['severity']}, effort: {g.get('learning_effort')}, "
-            f"path: {g.get('learning_path', '')}"
-            for g in skill_gaps[:5]
-        ]
-    )
+    gaps_str = _format_gaps_for_prompt(skill_gaps)
+    courses_str = _format_courses_for_prompt(course_recommendations)
 
-    courses_str = "\n".join(
-        [
-            f"- {c['title']} ({c['platform']}) | {c['duration_hours']:.0f}h | "
-            f"for: {c.get('gap_skill', '')} | cert: {c.get('is_certification')}"
-            for c in course_recommendations[:6]
-        ]
-    )
-
-    prompt = f"""Tạo lộ trình học tập (career roadmap) cá nhân hóa.
-
-## Skills cần học (theo thứ tự ưu tiên):
-{gaps_str}
-
-## Khóa học đề xuất:
-{courses_str}
-
-## Yêu cầu:
-1. Sắp xếp stages theo: severity (HIGH trước) + dependency (VD: Docker trước Kubernetes)
-2. Mỗi stage = 2-4 tuần học tập, mỗi stage có 2-3 milestones cụ thể
-3. Milestone phải đo lường được: "deploy được app lên K8s" không phải "học K8s"
-4. Ước tính tổng thời gian realistic
-5. Gắn course vào từng stage
-6. Bám sát learning_path đã đề xuất
-
-## Output JSON:
-{{
-  "career_roadmap": {{
-    "stages": [
-      {{
-        "stage": 1,
-        "focus": "<tên focus, ví dụ: Kubernetes Fundamentals>",
-        "duration_weeks": <số tuân>,
-        "skills_acquired": ["<skill1>", "<skill2>"],
-        "courses_taken": ["<tên course>"],
-        "milestones": [
-          {{"week": <số>, "milestone": "<mô tả milestone cụ thể>"}}
-        ]
-      }}
-    ],
-    "total_weeks": <tổng số tuần>,
-    "total_hours": <tổng số giờ>,
-    "summary": "<tóm tắt roadmap 2-3 câu>"
-  }}
-}}
-CHỈ trả về JSON hợp lệ."""
-
+    # ── Log raw gap + course data fed to roadmap LLM ─────────────────────────
     logger.info(
-        f"  LLM Roadmap synthesis: {len(skill_gaps)} gaps, {len(course_recommendations)} courses"
+        f"\n{'═' * 70}\n"
+        f"[LLM DATA] ┌─── build_roadmap (STEP 5)\n"
+        f"           │ cv_id         : {state.get('cv_id')}\n"
+        f"           │ gaps_count   : {len(skill_gaps)}\n"
+        f"           │ courses_count: {len(course_recommendations)}\n"
+        f"           └─────────\n"
+        f"[LLM DATA] SKILL GAPS (raw):\n"
+        f"{_indent_data(_json.dumps(skill_gaps, ensure_ascii=False, indent=2)[:2000])}\n"
+        f"[LLM DATA] COURSE RECOMMENDATIONS (raw):\n"
+        f"{_indent_data(_json.dumps(course_recommendations, ensure_ascii=False, indent=2)[:2000])}\n"
+        f"[LLM DATA] GAPS FORMATTED FOR LLM:\n"
+        f"{_indent_data(gaps_str)}\n"
+        f"[LLM DATA] COURSES FORMATTED FOR LLM:\n"
+        f"{_indent_data(courses_str)}\n"
+        f"{'═' * 70}\n"
     )
-    result = await llm_json_completion(prompt, context=jd_context)
 
-    roadmap = result.get("career_roadmap", {})
+    roadmap = await _llm_build_roadmap(
+        gaps_str=gaps_str,
+        courses_str=courses_str,
+    )
+
     if roadmap:
         logger.info(
-            f"  Roadmap done: {len(roadmap.get('stages', []))} stages, "
-            f"{roadmap.get('total_weeks', 0)} weeks total"
+            "[STEP 5] ✓ Roadmap built | stages="
+            + str(len(roadmap.get("stages") or []))
+            + " | total_weeks="
+            + str(roadmap.get("total_weeks") or 0)
         )
+        logger.info(
+            f"[STEP 5] ROADMAP RESULT:\n"
+            f"{_indent_data(_json.dumps(roadmap, ensure_ascii=False, indent=2)[:2000])}"
+        )
+    else:
+        logger.warning("[STEP 5] LLM roadmap returned empty")
 
-    return {**state, "career_roadmap": roadmap, "status": "roadmap_done"}
+    return {**state, "career_roadmap": roadmap or {}, "status": "roadmap_done"}
 
 
-# ─── Node 6: Finalize Report ──────────────────────────────────────────────
+async def _llm_build_roadmap(
+    gaps_str: str,
+    courses_str: str,
+) -> Dict[str, Any]:
+    """Gọi LLM để tạo career roadmap JSON."""
+    from ..utils.llm_helpers import llm_json_completion
+
+    prompt = (
+        "Build a personalized learning roadmap (in Vietnamese). "
+        "Use English for skill names.\n\n"
+        "## Skill gaps (prioritized):\n" + gaps_str + "\n\n"
+        "## Recommended courses:\n" + courses_str + "\n\n"
+        "Output JSON:\n"
+        '{"stages": [{"stage": 1, "focus": "...", "duration_weeks": 4, '
+        '"skills_acquired": [...], "courses_taken": [...], '
+        '"milestones": [{"week": 1, "milestone": "..."}], '
+        '"total_weeks": 0, "total_hours": 0, "summary": "..."}'
+        "}"
+    )
+
+    logger.info(f"[STEP 5/LLM] Calling LLM | prompt_chars={len(prompt)}")
+
+    result = await llm_json_completion(
+        prompt=prompt,
+        call_name="build_roadmap",
+    )
+    return result or {}
+
+
+def _format_gaps_for_prompt(gaps: list) -> str:
+    lines = []
+    for g in gaps[:6]:
+        lines.append(
+            "- "
+            + (g.get("skill") or "?")
+            + " | severity="
+            + str(g.get("severity") or "?")
+            + " | months="
+            + str(g.get("estimated_months") or 3)
+            + " | effort="
+            + (g.get("learning_effort") or "?")
+            + " | path="
+            + (g.get("learning_path") or "")
+        )
+    return "\n".join(lines)
+
+
+def _format_courses_for_prompt(courses: list) -> str:
+    lines = []
+    for c in courses[:8]:
+        lines.append(
+            "- "
+            + (c.get("title") or "?")
+            + " | platform="
+            + (c.get("platform") or "?")
+            + " | hrs="
+            + str(float(c.get("duration_hours") or 0))
+            + " | cert="
+            + str(c.get("is_certification"))
+        )
+    return "\n".join(lines)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# STEP 6: Finalize Report
+# ══════════════════════════════════════════════════════════════════════════════
 
 
 async def finalize_report_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3:
     """
-    Merge tất cả outputs → final_report JSON.
-    Cache vào Redis + persist vào UserAnalysis table.
+    STEP 6: Merge all outputs → final_report JSON.
+    1. Build course_recommendations output
+    2. Cache to Redis
+    3. Persist to UserAnalysis table
     """
-    logger.info("--- [GAP v3] FINALIZE REPORT ---")
-
-    gap_analysis = state.get("gap_analysis")
-    course_recommendations = state.get("course_recommendations", [])
+    gap_analysis = state.get("gap_analysis") or {}
+    course_recommendations = state.get("course_recommendations") or []
     career_roadmap = state.get("career_roadmap") or {}
+    cv_parsed = state.get("cv_parsed") or {}
 
-    if not gap_analysis:
-        return {
-            **state,
-            "final_report": {
-                "overall_match_pct": 0,
-                "overall_assessment": "Analysis failed.",
-                "notes": ["ERROR: No gap analysis result"],
-            },
-            "status": "completed",
-        }
+    logger.info(
+        "\n" + "=" * 50 + "\n"
+        "[STEP 6] finalize_report_node | cv_id=" + state.get("cv_id", "?")
+    )
 
-    # Build course_recommendations format
+    # Build course_recommendations output
     course_output = []
     for c in course_recommendations:
         course_output.append(
             {
-                "gap_skill": c.get("gap_skill", ""),
-                "gap_severity": c.get("gap_severity", "MEDIUM"),
-                "gap_learning_path": c.get("gap_learning_path", ""),
-                "is_critical": c.get("is_critical", False),
-                "course": {
-                    "id": c.get("course_id", ""),
-                    "title": c.get("title", ""),
-                    "platform": c.get("platform", ""),
-                    "url": c.get("url", ""),
-                    "level": c.get("level", ""),
-                    "provider": c.get("provider", ""),
-                    "duration_hours": c.get("duration_hours", 0),
-                    "is_certification": c.get("is_certification", False),
-                    "cost_usd": c.get("cost_usd", 0),
-                },
-                "rank_score": c.get("rank_score", 0),
-                "selection_reason": c.get("selection_reason", ""),
+                "course_id": c.get("course_id") or "",
+                "gap_skill": c.get("gap_skill") or "",
+                "gap_severity": c.get("gap_severity") or "MEDIUM",
+                "gap_learning_path": c.get("gap_learning_path") or "",
+                "gap_estimated_months": float(c.get("gap_estimated_months") or 0),
+                "is_critical": bool(c.get("is_critical") or False),
+                "title": c.get("title") or "",
+                "platform": c.get("platform") or "",
+                "url": c.get("url") or "",
+                "level": c.get("level") or "Unknown",
+                "provider": c.get("provider") or "",
+                "duration_hours": float(c.get("duration_hours") or 0),
+                "is_certification": bool(c.get("is_certification") or False),
+                "cost_usd": float(c.get("cost_usd") or 0),
+                "tags": list(c.get("tags") or []),
+                "similarity": float(c.get("similarity") or 0),
+                "rank_score": float(c.get("rank_score") or 0),
+                "selection_reason": c.get("selection_reason") or "",
             }
         )
 
     final_report = {
-        "overall_match_pct": gap_analysis.get("overall_match_pct", 0),
-        "overall_assessment": gap_analysis.get("overall_assessment", ""),
-        "strengths": gap_analysis.get("strengths", []),
-        "weaknesses": gap_analysis.get("weaknesses", []),
-        "skill_gaps": gap_analysis.get("skill_gaps", []),
-        "gap_summary": gap_analysis.get("gap_summary", {}),
-        "transferable_insights": gap_analysis.get("transferable_insights", []),
+        "overall_match_pct": float(gap_analysis.get("overall_match_pct") or 0),
+        "overall_assessment": gap_analysis.get("overall_assessment") or "",
+        "strengths": list(gap_analysis.get("strengths") or []),
+        "weaknesses": list(gap_analysis.get("weaknesses") or []),
+        "skill_gaps": list(gap_analysis.get("skill_gaps") or []),
+        "gap_summary": gap_analysis.get("gap_summary") or {},
+        "match_breakdown": gap_analysis.get("match_breakdown") or {},
+        "transferable_insights": list(gap_analysis.get("transferable_insights") or []),
+        "jd_context": gap_analysis.get("jd_context") or "",
         "course_recommendations": course_output,
         "career_roadmap": career_roadmap,
+        "cv_parsed": cv_parsed,
         "notes": [
-            f"Analysis Method: LLM Holistic v3",
-            f"CV parsed: {state.get('cv_parsed', {}).get('is_ocr', False) and 'OCR' or 'Direct'}",
-            f"JD requirements: {len(state.get('jd_requirements', []))}",
-            f"Courses recommended: {len(course_output)}",
+            "Analysis Method: LLM Holistic v3",
+            "CV parsed=" + (cv_parsed.get("full_name") or state.get("cv_id", "?")),
+            "JD context=" + (gap_analysis.get("jd_context") or "?"),
+            "Courses recommended=" + str(len(course_output)),
         ],
-        "jd_context": gap_analysis.get("jd_context", ""),
     }
 
-    # Cache vào Redis
-    try:
-        from shared.redis_client import result_cache
-        from ..config import GAP_CACHE_TTL
-        import json
+    # ── Log final report summary ─────────────────────────────────────────────
+    logger.info(
+        f"\n{'═' * 70}\n"
+        f"[FINAL REPORT] ┌─── complete report | cv_id={state.get('cv_id')}\n"
+        f"               │ overall_match_pct  : {final_report['overall_match_pct']}\n"
+        f"               │ strengths          : {len(final_report['strengths'])}\n"
+        f"               │ weaknesses         : {len(final_report['weaknesses'])}\n"
+        f"               │ skill_gaps         : {len(final_report['skill_gaps'])}\n"
+        f"               │ courses            : {len(final_report['course_recommendations'])}\n"
+        f"               │ roadmap stages     : {len(final_report.get('career_roadmap', {}).get('stages', []))}\n"
+        f"               │ transferable       : {len(final_report['transferable_insights'])}\n"
+        f"               └─────────\n"
+        f"[FINAL REPORT] FULL REPORT JSON (first 3000 chars):\n"
+        f"{_indent_data(_json.dumps(final_report, ensure_ascii=False, indent=2)[:3000])}\n"
+        f"{'═' * 70}\n"
+    )
 
-        cache_key = f"gap:{state['cv_id']}:{state.get('job_id') or 'market'}"
-        result_cache.setex(cache_key, GAP_CACHE_TTL, json.dumps(final_report))
-        logger.info(f"  Cached to Redis: {cache_key}")
-    except Exception as e:
-        logger.warning(f"  Redis cache failed: {e}")
-
-    # Persist vào DB
-    try:
-        import uuid
-        from datetime import datetime
-        from shared.models import UserAnalysis
-
-        db = state["db"]
-        user_id = uuid.UUID(state["user_id"]) if state.get("user_id") else None
-        cv_uuid = uuid.UUID(state["cv_id"])
-        job_uuid = uuid.UUID(state["job_id"]) if state.get("job_id") else None
-
-        analysis_record = UserAnalysis(
-            id=uuid.uuid4(),
-            user_id=user_id,
-            cv_id=cv_uuid,
-            job_id=job_uuid,
-            match_score=gap_analysis.get("overall_match_pct", 0),
-            result_json=final_report,
-            created_at=datetime.now(),
-        )
-        db.add(analysis_record)
-        db.commit()
-        logger.info(f"  Persisted to UserAnalysis: {analysis_record.id}")
-
-    except Exception as e:
-        logger.warning(f"  DB persist failed: {e}")
+    # Redis cache
+    _cache_result(state.get("cv_id") or "?", state.get("job_id"), final_report)
 
     logger.info(
-        f"  Final report: {gap_analysis.get('overall_match_pct')}% match, "
-        f"{len(course_output)} courses"
+        "[STEP 6] ✓ Finalize DONE | match="
+        + str(final_report.get("overall_match_pct"))
+        + "% | gaps="
+        + str(len(final_report.get("skill_gaps") or []))
+        + " | courses="
+        + str(len(course_output))
+        + "\n"
+        + "=" * 50
     )
 
     return {**state, "final_report": final_report, "status": "completed"}
+
+
+def _cache_result(cv_id: str, job_id: str, report: Dict):
+    """Cache final_report vào Redis."""
+    try:
+        from shared.redis_client import result_cache
+        from ..config import GAP_CACHE_TTL
+
+        key = "gap:" + cv_id + ":" + (job_id or "market")
+        result_cache.setex(key, GAP_CACHE_TTL, _json.dumps(report))
+        logger.info("[STEP 6] Redis cached: " + key)
+    except Exception as e:
+        logger.warning("[STEP 6] Redis cache failed: " + str(e))
+
+
+def _persist_db(state: Dict, report: Dict):
+    """Persist gap analysis result vào UserAnalysis table."""
+    import uuid
+    from datetime import datetime
+    from shared.models import UserAnalysis
+
+    db = state.get("db")
+    if not db:
+        logger.warning("[STEP 6] No db session — skipping DB persist")
+        return
+
+    try:
+        db.rollback()  # reset any aborted transaction
+    except Exception:
+        pass
+
+    try:
+        cv_id_str = state.get("cv_id") or ""
+        user_id_str = state.get("user_id") or ""
+
+        record = UserAnalysis(
+            id=uuid.uuid4(),
+            user_id=uuid.UUID(user_id_str) if user_id_str else None,
+            cv_id=uuid.UUID(cv_id_str) if cv_id_str else None,
+            job_id=uuid.UUID(state["job_id"]) if state.get("job_id") else None,
+            match_score=float(report.get("overall_match_pct") or 0),
+            result_json=report,
+            created_at=datetime.now(),
+        )
+        db.add(record)
+        db.commit()
+        logger.info(
+            "[STEP 6] ✓ Persisted UserAnalysis | id="
+            + str(record.id)
+            + " | cv_id="
+            + cv_id_str
+        )
+    except Exception as e:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        logger.error("[STEP 6] ✗ DB persist failed: " + str(e))

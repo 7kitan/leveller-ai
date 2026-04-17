@@ -6,28 +6,17 @@ import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import {
   UploadCloud,
-  MapPin,
-  Briefcase,
   TrendingUp,
   Award,
-  BarChart3,
-  Flame,
   Sparkles,
-  LineChart,
   ArrowRight,
   ChevronRight as ChevronRightIcon,
+  Target,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import styles from "./user-dashboard.module.css";
 import { motion } from "framer-motion";
-
-// ─── Stat icon helper ─────────────────────────────────────────────────────────
-const Target = ({ className }: { className?: string }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-  </svg>
-);
 
 const UserDashboard = () => {
   const { token } = useAuth();
@@ -58,127 +47,98 @@ const UserDashboard = () => {
   ];
 
   const stats = [
-    { label: "Jobs Matched",      value: loadingMarket ? "..." : (marketData?.matched_jobs    || "0"),    icon: Target,     badge: "accent2" },
-    { label: "Market Fit Ratio",  value: loadingMarket ? "..." : `${marketData?.market_fit_pct || 0}%`,  icon: TrendingUp, badge: "success" },
-    { label: "Database Coverage", value: loadingMarket ? "..." : (marketData?.total_jobs     || "0"),   icon: Award,     badge: "danger"  },
+    { label: "Jobs Matched",      value: loadingMarket ? "..." : (marketData?.matched_jobs    || "0"),    icon: Target },
+    { label: "Market Fit Ratio",  value: loadingMarket ? "..." : `${marketData?.market_fit_pct || 0}%`,  icon: TrendingUp },
+    { label: "Database Coverage", value: loadingMarket ? "..." : (marketData?.total_jobs     || "0"),   icon: Award },
   ];
 
   return (
     <AuthGuard requireRole="user">
        <div className={styles.pageRoot}>
-
-        {/* ── Header + CV Upload ────────────────────────────────────────── */}
+        {/* Header */}
         <div className={styles.headerSection}>
-          <div>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
             <h1 className={styles.headerTitle}>User Hub.</h1>
             <p className={styles.headerSubtitle}>
               Giải mã khoảng trống kỹ năng và kết nối với cơ hội tương xứng trên quy mô toàn cầu.
             </p>
-          </div>
-
-          <div className={styles.uploadCard}>
-            <div className={styles.centeredContent}>
-              <div className={styles.uploadIcon}>
-                <UploadCloud size={32} />
-              </div>
-              <h3 className={styles.uploadTitle}>Cập nhật CV mới nhất</h3>
-              <p className={styles.uploadSub}>Kéo thả hoặc bấm để upload file (PDF hoặc Ảnh)</p>
-              <Link href="/user/cv" className={styles.uploadBtn}>
-                TẢI LÊN CV &amp; PHÂN TÍCH
-              </Link>
-            </div>
-          </div>
+          </motion.div>
         </div>
 
-        {/* ── Stats ─────────────────────────────────────────────────────── */}
-        <div className={styles.statsGrid}>
-          {stats.map((stat) => (
-            <div key={stat.label} className={styles.statCard}>
-              <div className={styles.statIconWrapper}>
-                <div className={cn(styles.statIconBox, styles[`statIconBox_${stat.badge}`])}>
-                  <stat.icon size={24} />
+        {/* Bento Grid Top Layer */}
+        <div className={styles.bentoGrid}>
+          {/* CV Card */}
+          <div className={cn(styles.card, styles.uploadCard)}>
+            <div className={styles.uploadIcon}>
+              <UploadCloud size={32} />
+            </div>
+            <h3 className={styles.uploadTitle}>CV Insight</h3>
+            <p className={styles.headerSubtitle} style={{fontSize: "0.9rem", textAlign: "center", marginBottom: "1rem"}}>Cập nhật hồ sơ để nhận phân tích mới nhất.</p>
+            <Link href="/user/cv" className={styles.uploadBtn}>
+              PHÂN TÍCH CV
+            </Link>
+          </div>
+
+          {/* Stats Section */}
+          <div className={cn(styles.card, styles.statsSection)}>
+            <div className={styles.statsGrid}>
+              {stats.map((stat) => (
+                <div key={stat.label} className={styles.statCard}>
+                   <stat.icon size={24} color="var(--color-accent-primary)" />
+                   <div>
+                    <div className={styles.statValue}>{stat.value}</div>
+                    <div className={styles.statLabel}>{stat.label}</div>
+                   </div>
                 </div>
-                <BarChart3 size={16} className={styles.statDecorativeIcon} />
-              </div>
-              <div className={styles.statValue}>{stat.value}</div>
-              <div className={styles.statLabel}>{stat.label}</div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
 
-        {/* ── Hot Job Matches ─────────────────────────────────────────── */}
+        {/* Job Grid Layer */}
         <div className={styles.verticalStack8}>
           <div className={styles.jobListHeader}>
-            <h2 className={styles.jobListTitle}>
-              <Flame size={24} className={styles.iconRose} />
-              Hot Job Matches
-            </h2>
-            <Link href="/user/jobs" className={styles.viewAllLink}>
-              Xem tất cả
-            </Link>
+            <h2 className={styles.jobListTitle}>Top Matches</h2>
+            <Link href="/user/jobs" className={styles.viewAllLink}>Xem tất cả</Link>
           </div>
 
           <div className={styles.jobGrid}>
             {matchedJobs.map((job) => (
               <div key={job.id} className={styles.jobCard}>
-                <div className={styles.matchOverlay}>
-                    <div className={styles.matchValue}>{job.match}</div>
-                    <div className={styles.matchLabel}>Match</div>
-                </div>
-
-                <div>
+                <div style={{display: "flex", justifyContent: "space-between", alignItems: "flex-start"}}>
                    <h3 className={styles.jobTitle}>{job.title}</h3>
-                   <div className={styles.jobMeta}>
-                     <span className={styles.metaItem}>
-                       <Briefcase size={10} className={styles.iconIndigo} />
-                       {job.company}
-                     </span>
-                     <span className={styles.metaItem}>
-                       <MapPin size={10} className={styles.iconIndigo} />
-                       {job.location}
-                     </span>
-                   </div>
+                   <span style={{color: "var(--color-success)", fontWeight: 800}}>{job.match}</span>
                 </div>
                 
-                <div className={styles.skillList}>
+                <div style={{display: "flex", gap: "1rem", fontSize: "0.8rem", opacity: 0.6}}>
+                   <span>{job.company}</span>
+                   <span>{job.location}</span>
+                </div>
+                
+                <div style={{display: "flex", flexWrap: "wrap", gap: "0.5rem"}}>
                   {job.skills.map((s) => (
                     <span key={s} className={styles.skillBadge}>{s}</span>
                   ))}
                 </div>
 
-                <Link href="/user/analysis" className={styles.jobActionBtn}>
-                  <span>GAP ANALYSIS</span>
-                  <ArrowRight size={14} className={styles.iconIndigo} />
+                <Link href="/user/analysis" style={{marginTop: "auto", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 700, fontSize: "0.9rem"}}>
+                   Gap Analysis <ArrowRight size={16} />
                 </Link>
               </div>
             ))}
           </div>
         </div>
 
-        {/* ── Gap Analysis CTA ─────────────────────────────────────────── */}
-        <div className={styles.ctaCard}>
-          <div className={styles.ctaGlow} />
-
-          <div className={styles.pingDecoration}>
-            <div className={styles.pingCircle} />
-            <div className={styles.pingCircle} style={{ animationDelay: "1s" }} />
-          </div>
-
+        {/* CTA Section */}
+        <div className={cn(styles.card, styles.ctaCard)}>
           <div className={styles.ctaContent}>
-            <div className={styles.ctaBadge}>
-              <Sparkles size={14} /> AI Powered Gap Engine
-            </div>
-            <h2 className={styles.ctaTitle}>
-              Thấu hiểu điểm mạnh,<br/>làm chủ lộ trình.
-            </h2>
-            <div className={styles.ctaDesc}>
-              Công cụ Gap Analysis so sánh hàng nghìn tham số giữa hồ sơ của bạn và yêu cầu thực tế từ thị trường để gợi ý các kỹ năng "chốt hạ".
-              {marketData?.top_matching_roles?.length > 0 && (
-                <span className={styles.ctaRoleMatch}>
-                  Vai trò phù hợp nhất: {marketData.top_matching_roles.join(", ")}
-                </span>
-              )}
-            </div>
+            <h2 className={styles.ctaTitle}>Thấu hiểu bản thân.<br/>Làm chủ lộ trình.</h2>
+            <p className={styles.headerSubtitle} style={{color: "inherit", opacity: 0.8}}>
+               Sử dụng AI để so sánh hàng nghìn tham số giữa hồ sơ của bạn và yêu cầu thực tế từ thị trường.
+            </p>
             <Link href="/user/analysis" className={styles.ctaMainBtn}>
               Thử phân tích ngay <ChevronRightIcon size={20} />
             </Link>
@@ -186,23 +146,13 @@ const UserDashboard = () => {
 
           <div className={styles.radarContainer}>
             <div className={styles.radarScan} />
-            <div className={styles.radarRing} style={{ inset: "10%" }} />
-            <div className={styles.radarRing} style={{ inset: "25%" }} />
-            <div className={styles.radarRing} style={{ inset: "40%" }} />
-            <div className={cn(styles.radarPoint, styles.iconEmerald)} style={{ top: "20%", left: "30%" }} />
-            <div className={cn(styles.radarPoint, styles.iconIndigo)} style={{ top: "40%", right: "25%" }} />
-            <div className={cn(styles.radarPoint, styles.iconAmber)} style={{ bottom: "30%", left: "40%" }} />
-            
-            <div className={styles.radarCenter}>
-                <LineChart size={80} />
-            </div>
-
-            <div className={styles.radarStatus} style={{ top: "5%", right: "10%" }}>
-              <span className={styles.radarStatusPulse}>Scanning...</span>
-            </div>
-            <div className={styles.radarStatus} style={{ bottom: "5%", left: "10%" }}>
-              Matched 92%
-            </div>
+            <motion.div 
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ repeat: Infinity, duration: 4 }}
+              style={{ color: "var(--color-accent-primary)" }}
+            >
+              <Sparkles size={120} />
+            </motion.div>
           </div>
         </div>
 

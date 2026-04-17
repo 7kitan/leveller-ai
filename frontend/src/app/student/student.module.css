@@ -1,5 +1,5 @@
 @reference "tailwindcss";
-@reference "../../globals.css";
+@reference "../globals.css";
 
 .pageRoot {
   display: flex;
@@ -169,6 +169,18 @@
   gap: 1.25rem;
 }
 
+.titleIconMuted {
+  color: rgba(255,255,255,0.4);
+}
+
+[data-theme="light"] .titleIconMuted {
+  color: rgba(0,0,0,0.2);
+}
+
+.titleIconCyan {
+  color: #22d3ee;
+}
+
 .sectionSubtitle {
   font-size: 10px;
   font-weight: 900;
@@ -231,6 +243,10 @@
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+}
+
+.iconAmber {
+  color: #fbbf24;
 }
 
 [data-theme="dark"] .iconBox {
@@ -373,6 +389,204 @@
 .courseItem:hover {
   background-color: white;
   border-color: #f59e0b;
+}
+
+.nodeOptimizeLink {
+  font-size: 11px;
+  font-weight: 900;
+  color: white;
+}
+
+[data-theme="light"] .nodeOptimizeLink {
+  color: #0f172a;
+}
+
+.iconAmberSmall {
+  color: #fbbf24;
+}
+
+.coursesWrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+.coursePlatform {
+  font-size: 9px;
+  color: rgba(255,255,255,0.2);
+  font-weight: 900;
+}
+
+[data-theme="light"] .coursePlatform {
+  color: rgba(0,0,0,0.4);
+}
+
+.courseFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.badgeDotCyan {
+  background-color: #22d3ee;
+}
+
+.sidebarStack {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.zapIconCore {
+  color: #8b5cf6;
+}
+
+.graphPoint {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  position: absolute;
+}
+
+.graphPointFrontend {
+  top: 10%;
+  left: 20%;
+  background: #fbbf24;
+  box-shadow: 0 0 10px #fbbf24;
+}
+
+.graphPointAI {
+  bottom: 20%;
+  right: 15%;
+  background: #8b5cf6;
+  box-shadow: 0 0 10px #8b5cf6;
+}
+
+.contextLabelTop {
+  top: -1.5rem;
+}
+
+.contextLabelBottom {
+  bottom: -1.5rem;
+}
+
+.graphSyncTitle {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: white;
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
+[data-theme="light"] .graphSyncTitle {
+  color: #0f172a;
+}
+
+.graphSyncDesc {
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.3);
+  line-height: 1.6;
+}
+
+[data-theme="light"] .graphSyncDesc {
+  color: rgba(0,0,0,0.6);
+}
+
+.roadmapTitle {
+  font-size: 1.25rem;
+  margin-bottom: 3rem;
+}
+
+.compassIcon {
+  color: #8b5cf6;
+}
+
+.roadmapSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+}
+
+.stepIconProgress {
+  background: #8b5cf6;
+  color: white;
+}
+
+.stepIconUpcoming {
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.2);
+}
+
+[data-theme="light"] .stepIconUpcoming {
+  background: rgba(0,0,0,0.05);
+  color: rgba(0,0,0,0.3);
+}
+
+.stepTextWrapper {
+  padding-top: 0.5rem;
+}
+
+.stepStatus {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.5rem;
+}
+
+.stepStatusProgress {
+  color: #a78bfa;
+}
+
+.stepStatusUpcoming {
+  color: rgba(255,255,255,0.2);
+}
+
+[data-theme="light"] .stepStatusUpcoming {
+  color: rgba(0,0,0,0.4);
+}
+
+.stepTitle {
+  font-size: 1rem;
+  font-weight: 900;
+  color: white;
+}
+
+[data-theme="light"] .stepTitle {
+  color: #0f172a;
+}
+
+.milestoneHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.layersIcon {
+  color: #8b5cf6;
+}
+
+.milestoneLabel {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: white;
+}
+
+[data-theme="light"] .milestoneLabel {
+  color: #0f172a;
+}
+
+.milestoneText {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.4);
+  font-weight: 500;
+  font-style: italic;
+}
+
+[data-theme="light"] .milestoneText {
+  color: rgba(0,0,0,0.6);
 }
 
 .courseCardSmall {

@@ -62,7 +62,7 @@ POSTGRES_USER     = os.getenv("POSTGRES_USER", "postgres")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
 POSTGRES_DB       = os.getenv("POSTGRES_DB", "career_advisor")
 POSTGRES_HOST     = os.getenv("POSTGRES_HOST", "localhost")
-DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:5432}/{POSTGRES_DB}"
+DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:5432/{POSTGRES_DB}"
 
 engine    = create_engine(DATABASE_URL)
 Session   = sessionmaker(bind=engine)
@@ -445,7 +445,7 @@ def seed_coursera_300(force: bool = False, dry_run: bool = False,
         return
 
     # ── LLM-assisted tag enrichment (optional batch call) ──────────────────────
-    llm_tags: list[list[str]] = []
+    llm_tags: list[list[str]] = [[] for _ in raw_courses]
     if not dry_run:
         llm_tags = llm_extract_tags_batch(raw_courses, OPENAI_API_KEY or "")
 

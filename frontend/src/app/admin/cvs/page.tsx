@@ -82,7 +82,7 @@ const AdminCVsPage = () => {
         <div className={styles.header}>
           <div>
             <h1 className={styles.title}>
-              <FileText size={40} style={{ color: "#818cf8" }} /> 
+              <FileText size={40} className={styles.titleIcon} /> 
               <span>Giám sát Kho hồ sơ</span>
             </h1>
             <p className={styles.subtitle}>Quản lý trạng thái bóc tách CV và liên kết thực thể người dùng.</p>
@@ -94,15 +94,15 @@ const AdminCVsPage = () => {
              </div>
              <div className={styles.statCard}>
                 <div className={styles.statLabel}>Đã bóc tách</div>
-                <div className={styles.statValue} className={cn(styles.statValue, styles.statValueSuccess)}>{cvs.filter(c => c.status === "completed").length}</div>
+                <div className={cn(styles.statValue, styles.statValueSuccess)}>{cvs.filter(c => c.status === "completed").length}</div>
              </div>
              <div className={styles.statCard}>
                 <div className={styles.statLabel}>Đang xử lý</div>
-                <div className={styles.statValue} className={cn(styles.statValue, styles.statValueWarning)}>{cvs.filter(c => c.status === "processing").length}</div>
+                <div className={cn(styles.statValue, styles.statValueWarning)}>{cvs.filter(c => c.status === "processing").length}</div>
              </div>
              <div className={styles.statCard}>
                 <div className={styles.statLabel}>Lỗi AI</div>
-                <div className={styles.statValue} className={cn(styles.statValue, styles.statValueDanger)}>{cvs.filter(c => c.status === "failed").length}</div>
+                <div className={cn(styles.statValue, styles.statValueDanger)}>{cvs.filter(c => c.status === "failed").length}</div>
              </div>
           </div>
         </div>
@@ -134,7 +134,7 @@ const AdminCVsPage = () => {
                        <th className={styles.th}>Trạng thái</th>
                        <th className={styles.th}>Ngày tải lên</th>
                        <th className={styles.th}>ID Parser</th>
-                       <th className={cn(styles.th)} style={{ textAlign: "right" }}>Thao tác</th>
+                       <th className={cn(styles.th, styles.thRight)}>Thao tác</th>
                     </tr>
                  </thead>
                  <tbody>
@@ -143,7 +143,7 @@ const AdminCVsPage = () => {
                           <td colSpan={5}>
                              <div className={styles.emptyState}>
                                 <div className={styles.spinner}></div>
-                                <span style={{ fontSize: "10px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(255,255,255,0.2)" }}>Fetching repository...</span>
+                                <span className={styles.emptyStateTextSmall}>Fetching repository...</span>
                              </div>
                           </td>
                        </tr>
@@ -152,7 +152,7 @@ const AdminCVsPage = () => {
                           <td colSpan={5}>
                              <div className={styles.emptyState}>
                                 <FileText size={48} />
-                                <span style={{ fontSize: "0.875rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.2em", fontStyle: "italic" }}>Không tìm thấy hồ sơ phù hợp.</span>
+                                <span className={styles.emptyStateTextMain}>Không tìm thấy hồ sơ phù hợp.</span>
                              </div>
                           </td>
                        </tr>
@@ -171,7 +171,7 @@ const AdminCVsPage = () => {
                                 </span>
                              </td>
                              <td className={styles.td}>
-                                <div className={styles.flexRowGap} style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px", fontWeight: 700 }}>
+                                <div className={cn(styles.flexRowGap, styles.dateCell)}>
                                    <Clock size={14} />
                                    {format(new Date(cv.created_at), "dd/MM/yyyy")}
                                 </div>
@@ -195,10 +195,7 @@ const AdminCVsPage = () => {
                                    )}
                                    <button 
                                       onClick={() => handleDelete(cv.id)}
-                                      className={styles.actionBtn}
-                                      style={{ transition: "all 0.3s ease" }}
-                                      onMouseEnter={(e) => e.currentTarget.style.color = "#f43f5e"}
-                                      onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.2)"}
+                                      className={cn(styles.actionBtn, styles.actionBtnDelete)}
                                    >
                                       <Trash2 size={18} />
                                    </button>

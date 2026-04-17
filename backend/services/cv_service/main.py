@@ -29,6 +29,12 @@ class CVUpdate(BaseModel):
     experience_years_total: Optional[float] = None
 
 
+class FinalizeCVRequest(BaseModel):
+    id: str
+    skills: List[dict]
+    user_info: dict
+
+
 app = FastAPI(title="CV Service")
 
 UPLOAD_DIR = "/app/data/cv_uploads"
@@ -73,11 +79,54 @@ async def upload_cv(
         .first()
     )
     if existing_cv:
-        return {
+        resp = {
             "cv_id": str(existing_cv.id),
             "status": existing_cv.status,
             "is_duplicate": True,
         }
+        if existing_cv.status == "completed":
+            # Duplicate CV đã parse xong → trả về data luôn để frontend hiển thị
+            cv_parsed = getattr(existing_cv, "cv_parsed_json", None)
+            is_ocr = cv_parsed.get("is_ocr", False) if cv_parsed else False
+            skills_profiles = (
+                db.query(UserSkillProfile, Skill.name, Skill.category)
+                .join(Skill, UserSkillProfile.skill_id == Skill.id)
+                .filter(UserSkillProfile.cv_id == existing_cv.id)
+                .all()
+            )
+            resp["parser_id"] = None
+            resp["full_name"] = existing_cv.full_name
+            resp["result"] = {
+                "id": str(existing_cv.id),
+                "full_name": existing_cv.full_name or "Parsed Candidate",
+                "summary": existing_cv.summary or "",
+                "experience_years_total": existing_cv.experience_years_total or 0,
+                "status": existing_cv.status,
+                "skills": [
+                    {
+                        "id": str(sp.id),
+                        "skill_id": str(sp.skill_id),
+                        "name": n,
+                        "category": c,
+                        "experience_years": sp.years_exp,
+                    }
+                    for sp, n, c in skills_profiles
+                ],
+                "is_ocr": is_ocr,
+                "cv_parsed": cv_parsed,
+                "work_history": cv_parsed.get("work_history", []) if cv_parsed else [],
+                "education": cv_parsed.get("education", []) if cv_parsed else [],
+                "certifications": cv_parsed.get("certifications", [])
+                if cv_parsed
+                else [],
+                "seniority": cv_parsed.get("seniority", "Unknown")
+                if cv_parsed
+                else "Unknown",
+                "ocr_confidence": cv_parsed.get("ocr_confidence", 1.0)
+                if cv_parsed
+                else 1.0,
+            }
+        return resp
 
     cv_id = uuid.uuid4()
     file_ext = file.filename.split(".")[-1]
@@ -100,17 +149,17 @@ async def upload_cv(
     use_v3 = os.getenv("USE_LLM_GAP_AGENT_V3", "true").lower() == "true"
 
     if use_v3:
-        celery_app.send_task(
+        task = celery_app.send_task(
             "worker.tasks.cv_parsing_v3_task.run_cv_parsing",
             args=[str(cv_id), str(user_id)],  # cv_id trước, user_id sau
         )
     else:
-        celery_app.send_task(
+        task = celery_app.send_task(
             "worker.tasks.parse_cv_task.parse_cv",
             args=[str(user_id), str(cv_id), file_path],
         )
 
-    return {"cv_id": str(cv_id), "status": "processing"}
+    return {"cv_id": str(cv_id), "parser_id": task.id, "status": "processing"}
 
 
 @app.get("/cv/list")
@@ -134,6 +183,7 @@ async def list_user_cvs(request: Request, db: Session = Depends(get_db)):
     return [
         {
             "id": str(cv.id),
+            "file_name": cv.full_name or f"CV_{str(cv.id)[:8]}",
             "full_name": cv.full_name,
             "status": cv.status,
             "error_message": cv.error_message,
@@ -141,6 +191,74 @@ async def list_user_cvs(request: Request, db: Session = Depends(get_db)):
         }
         for cv in cvs
     ]
+
+
+@app.post("/cv/finalize")
+async def finalize_cv(
+    req: FinalizeCVRequest, request: Request, db: Session = Depends(get_db)
+):
+    """
+    Spec 1.9: Lưu kết quả bóc tách kĩ năng vào profile người dùng.
+    Duyệt qua danh sách kĩ năng đã parser và lưu vào UserSkillProfile.
+    """
+    user_id_str = request.headers.get("X-User-ID")
+    if not user_id_str:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    cv_uuid = uuid.UUID(req.id)
+    cv = db.query(UserCV).filter(UserCV.id == cv_uuid).first()
+    if not cv:
+        raise HTTPException(status_code=404, detail="CV not found")
+
+    # Kiểm tra quyền sở hữu
+    if str(cv.user_id) != user_id_str:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Cập nhật metadata CV từ user_info
+    cv.full_name = req.user_info.get("full_name", cv.full_name)
+    cv.experience_years_total = req.user_info.get(
+        "total_exp_years", cv.experience_years_total
+    )
+
+    # Cập nhật danh sách skills
+    # 1. Xóa skills cũ của CV này để ghi đè (Finalize)
+    db.query(UserSkillProfile).filter(UserSkillProfile.cv_id == cv.id).delete()
+
+    # 2. Thêm skills mới
+    for s_data in req.skills:
+        s_name = s_data.get("name", "").strip()
+        if not s_name:
+            continue
+
+        # Chuẩn hóa tên kĩ năng
+        s_name_std = s_name.title() if len(s_name) > 3 else s_name.upper()
+
+        # Tìm hoặc tạo kĩ năng trong taxonomy
+        skill = db.query(Skill).filter(Skill.name.ilike(s_name)).first()
+        if not skill:
+            skill = Skill(
+                id=uuid.uuid4(),
+                name=s_name_std,
+                category=s_data.get("category", "Technology"),
+            )
+            db.add(skill)
+            db.commit()
+            db.refresh(skill)
+
+        new_prof = UserSkillProfile(
+            id=uuid.uuid4(),
+            user_id=cv.user_id,
+            cv_id=cv.id,
+            skill_id=skill.id,
+            years_exp=float(s_data.get("experience_years", 0)),
+            level=s_data.get("level", "Mid-level"),
+            source="cv_parsed",
+        )
+        db.add(new_prof)
+
+    db.commit()
+    logger.info(f"CV Finalized: {cv.id} for user {user_id_str}")
+    return {"message": "Portfolio updated successfully", "cv_id": str(cv.id)}
 
 
 @app.get("/cv/admin/all")
@@ -281,12 +399,17 @@ async def get_cv_detail(cv_id: str, request: Request, db: Session = Depends(get_
         "experience_years_total": cv.experience_years_total,
         "status": cv.status,
         "error_message": cv.error_message,
+        "user_info": {
+            "full_name": cv.full_name or "Parsed Candidate",
+            "total_exp_years": cv.experience_years_total or 0,
+        },
         "skills": [
             {
                 "id": str(sp.id),
                 "skill_id": str(sp.skill_id),
                 "name": n,
                 "category": c,
+                "experience_years": sp.years_exp,  # Map years_exp to experience_years for frontend
                 "years_exp": sp.years_exp,
                 "level": sp.level,
             }
@@ -437,12 +560,90 @@ async def delete_cv_skill(
 
 
 @app.get("/cv/status/{task_id}")
-async def get_cv_status(task_id: str):
+async def get_cv_status(task_id: str, request: Request, db: Session = Depends(get_db)):
+    """
+    Poll Celery task status.
+    Khi task SUCCESS → tự động fetch CV data từ DB và trả về đầy đủ
+    để frontend không cần gọi thêm /cv/{cv_id}.
+    """
     task_result = celery_app.AsyncResult(task_id)
+
+    # Translate Celery state → frontend-friendly status
+    celery_status = task_result.status
+    if celery_status == "SUCCESS":
+        status = "completed"
+    elif celery_status == "FAILURE":
+        status = "failed"
+    else:
+        status = "processing"
+
+    result_data = None
+    if task_result.ready():
+        raw = task_result.result
+        if celery_status == "SUCCESS" and isinstance(raw, dict):
+            cv_id = raw.get("cv_id")
+            if cv_id:
+                # Fetch full CV data from DB
+                try:
+                    cv_uuid = uuid.UUID(cv_id)
+                    cv = db.query(UserCV).filter(UserCV.id == cv_uuid).first()
+                    if cv:
+                        # Get skills from UserSkillProfile
+                        skills_profiles = (
+                            db.query(UserSkillProfile, Skill.name, Skill.category)
+                            .join(Skill, UserSkillProfile.skill_id == Skill.id)
+                            .filter(UserSkillProfile.cv_id == cv.id)
+                            .all()
+                        )
+                        cv_parsed = getattr(cv, "cv_parsed_json", None)
+                        is_ocr = cv_parsed.get("is_ocr", False) if cv_parsed else False
+
+                        result_data = {
+                            "id": str(cv.id),
+                            "full_name": cv.full_name or "Parsed Candidate",
+                            "summary": cv.summary or "",
+                            "experience_years_total": cv.experience_years_total or 0,
+                            "status": cv.status,
+                            "skills": [
+                                {
+                                    "id": str(sp.id),
+                                    "skill_id": str(sp.skill_id),
+                                    "name": n,
+                                    "category": c,
+                                    "experience_years": sp.years_exp,
+                                }
+                                for sp, n, c in skills_profiles
+                            ],
+                            "is_ocr": is_ocr,
+                            "cv_parsed": cv_parsed,
+                            "work_history": cv_parsed.get("work_history", [])
+                            if cv_parsed
+                            else [],
+                            "education": cv_parsed.get("education", [])
+                            if cv_parsed
+                            else [],
+                            "certifications": cv_parsed.get("certifications", [])
+                            if cv_parsed
+                            else [],
+                            "seniority": cv_parsed.get("seniority", "Unknown")
+                            if cv_parsed
+                            else "Unknown",
+                            "ocr_confidence": cv_parsed.get("ocr_confidence", 1.0)
+                            if cv_parsed
+                            else 1.0,
+                        }
+                        status = cv.status  # reflects actual DB status
+                except Exception as e:
+                    logger.warning(f"get_cv_status: failed to fetch CV data: {e}")
+
+        elif celery_status == "FAILURE":
+            error_msg = str(raw) if raw else "Unknown error"
+            status = "failed"
+
     return {
         "task_id": task_id,
-        "status": task_result.status,
-        "result": task_result.result if task_result.ready() else None,
+        "status": status,
+        "result": result_data,
     }
 
 

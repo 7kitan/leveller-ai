@@ -187,7 +187,6 @@ const AdminUsersPage = () => {
           <button 
             onClick={handleOpenCreate}
             className={styles.addBtn}
-            style={{ backgroundColor: "#818cf8" }}
           >
             <UserPlus size={18} /> 
             <span>Thêm tài khoản</span>
@@ -220,7 +219,7 @@ const AdminUsersPage = () => {
                 <th className={styles.th}>Vai trò</th>
                 <th className={styles.th}>ID Hệ thống</th>
                 <th className={styles.th}>Ngày tham gia</th>
-                <th className={cn(styles.th)} style={{ textAlign: "right" }}>Thao tác</th>
+                <th className={cn(styles.th, styles.thRight)}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -229,7 +228,7 @@ const AdminUsersPage = () => {
                   <td colSpan={5}>
                     <div className={styles.skeletonRow}>
                       <div className={styles.spinner}></div>
-                      <span style={{ fontSize: "10px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>Synchronizing...</span>
+                      <span className={styles.skeletonText}>Synchronizing...</span>
                     </div>
                   </td>
                 </tr>
@@ -237,8 +236,8 @@ const AdminUsersPage = () => {
                 <tr>
                   <td colSpan={5}>
                      <div className={styles.emptyState}>
-                        <UsersIcon size={48} style={{ color: "rgba(255,255,255,0.2)" }} />
-                        <p style={{ fontSize: "0.875rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>Không tìm thấy người dùng</p>
+                        <UsersIcon size={48} className={styles.emptyStateIcon} />
+                        <p className={styles.emptyStateText}>Không tìm thấy người dùng</p>
                      </div>
                   </td>
                 </tr>
@@ -248,7 +247,7 @@ const AdminUsersPage = () => {
                     <td className={styles.td}>
                       <div className={styles.userCell}>
                         <div className={styles.avatar}>
-                          {user.email.charAt(0).toUpperCase()}
+                          {(user.full_name?.[0] || user.email[0]).toUpperCase()}
                         </div>
                         <div>
                           <div className={styles.userName}>{user.full_name || "Chưa cập nhật tên"}</div>
@@ -265,12 +264,12 @@ const AdminUsersPage = () => {
                       </span>
                     </td>
                     <td className={styles.td}>
-                      <div style={{ fontFamily: "monospace", fontSize: "10px", color: "rgba(255,255,255,0.1)", letterSpacing: "-0.02em" }}>
+                      <div className={styles.userId}>
                         {user.id.substring(0, 13)}...
                       </div>
                     </td>
                     <td className={styles.td}>
-                      <div style={{ fontSize: "10px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(255,255,255,0.2)" }}>
+                      <div className={styles.userDate}>
                         {user.created_at ? format(new Date(user.created_at), "dd/MM/yyyy") : "N/A"}
                       </div>
                     </td>
@@ -352,7 +351,7 @@ const AdminUsersPage = () => {
                                 type="checkbox"
                                 checked={currentUser.is_admin || false}
                                 onChange={(e) => setCurrentUser({...currentUser, is_admin: e.target.checked})}
-                                style={{ width: "1.25rem", height: "1.25rem" }}
+                                className={styles.checkboxInput}
                             />
                         </div>
                     </div>
@@ -382,11 +381,11 @@ const AdminUsersPage = () => {
                   className={styles.deleteModalContent}
                 >
                     <div className={styles.deleteIconBox}>
-                        <AlertTriangle size={32} style={{ color: "#f43f5e" }} />
+                        <AlertTriangle size={32} className={styles.deleteIcon} />
                     </div>
                     <div>
                       <h3 className={styles.deleteConfirmTitle}>Xác nhận xóa?</h3>
-                      <p className={styles.deleteConfirmDesc}>Tài khoản <span style={{ color: "white", fontWeight: 900 }}>{userToDelete?.email}</span> sẽ bị xóa vĩnh viễn khỏi hệ thống.</p>
+                      <p className={styles.deleteConfirmDesc}>Tài khoản <span className={styles.deleteConfirmTarget}>{userToDelete?.full_name || userToDelete?.email}</span> sẽ bị xóa vĩnh viễn khỏi hệ thống.</p>
                     </div>
                     <div className={styles.deleteActions}>
                         <button onClick={() => setShowDeleteConfirm(false)} className={styles.cancelDeleteBtn}>

@@ -46,88 +46,68 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
 
   return (
     <div className={styles.formWrapper}>
-      <div className={styles.gradientBg} />
+      <div className={styles.overlay} />
       
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className={styles.panel}
       >
         <div className={styles.header}>
-          <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            className={styles.iconBox}
-          >
-            {isLogin ? <LogIn size={32} /> : <UserPlus size={32} />}
-          </motion.div>
           <h2 className={styles.title}>
             {isLogin ? "Chào mừng trở lại" : "Tạo tài khoản mới"}
           </h2>
           <p className={styles.subtitle}>
-            {isLogin ? "Đăng nhập để tiếp tục hành trình sự nghiệp" : "Bắt đầu tối ưu hóa sự nghiệp của bạn ngay hôm nay"}
+            {isLogin ? "Đăng nhập để dẫn bước tương lai." : "Bắt đầu định danh giá trị bản thân."}
           </p>
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit}>
-          <div className={styles.inputGroup}>
-            <div className={styles.inputWrapper}>
-              <input
-                type="email"
-                required
-                className={styles.inputField}
-                placeholder="Địa chỉ Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className={styles.inputWrapper}>
-              <input
-                type="password"
-                required
-                className={styles.inputField}
-                placeholder="Mật khẩu"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
+          <input
+            type="email"
+            required
+            className={styles.inputField}
+            placeholder="Địa chỉ Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input
+            type="password"
+            required
+            className={styles.inputField}
+            placeholder="Mật khẩu"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
           {error && (
-            <motion.div 
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className={styles.errorBox}
-            >
-              <AlertCircle size={16} /> {error}
-            </motion.div>
+            <div className={styles.errorBox}>
+              <AlertCircle size={18} /> {error}
+            </div>
           )}
 
-          <div className={styles.submitWrapper}>
-            <button
-              type="submit"
-              disabled={loading}
-              className={styles.submitBtn}
-            >
-              {loading ? (
-                <Loader2 size={24} className={styles.animateSpin} />
-              ) : (
-                <span>
-                  {isLogin ? "Đăng Nhập" : "Đăng Ký"}
-                </span>
-              )}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className={styles.submitBtn}
+          >
+            {loading ? (
+              <Loader2 size={24} className={styles.animateSpin} />
+            ) : (
+              <span>
+                {isLogin ? "Đăng Nhập" : "Đăng Ký"}
+              </span>
+            )}
+          </button>
         </form>
 
-        <div className={styles.toggleWrapper}>
-          <button 
-            onClick={() => setIsLogin(!isLogin)}
-            className={styles.toggleBtn}
-          >
-            {isLogin ? "Chưa có tài khoản? Đăng ký ngay" : "Đã có tài khoản? Đăng nhập"}
-          </button>
-        </div>
+        <button 
+          onClick={() => setIsLogin(!isLogin)}
+          className={styles.toggleBtn}
+        >
+          {isLogin ? "Chưa có tài khoản? Tham gia ngay" : "Đã có tài khoản? Quay lại đăng nhập"}
+        </button>
       </motion.div>
     </div>
   );

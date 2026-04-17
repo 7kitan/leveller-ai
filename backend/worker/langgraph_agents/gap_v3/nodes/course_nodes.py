@@ -1,19 +1,28 @@
 """
 gap_v3 Course Recommendation Agent.
-2-step: LLM prioritize TOP 3 gaps → vector search → LLM select TOP 2.
+STEP 1: LLM prioritize TOP 3 gaps
+STEP 2: pgvector search → LLM select TOP 2
 """
 
+import json as _json
 import logging
 from typing import Dict, Any, List
 
-from ..states import GapAnalysisStateV3, CourseRecommendation
+from ..states import GapAnalysisStateV3
 from ..utils.llm_helpers import llm_json_completion
 from ..config import VECTOR_SIM_THRESHOLD
 
 logger = logging.getLogger("course_agent_v3")
 
 
-# ─── Node 4: Course Recommendation ─────────────────────────────────────────
+def _indent_data(text: str) -> str:
+    """Indent each line for log readability."""
+    return "\n".join("    " + line for line in text.split("\n"))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NODE 4: Course Recommendation
+# ══════════════════════════════════════════════════════════════════════════════
 
 
 async def course_recommendation_llm_node(
@@ -21,74 +30,123 @@ async def course_recommendation_llm_node(
 ) -> GapAnalysisStateV3:
     """
     Course Recommendation Agent:
-    1. LLM chọn TOP 3 gaps cần học nhất (ưu tiên weakest + most critical)
-    2. pgvector search candidates per gap
-    3. LLM chọn TOP 2 courses phù hợp nhất per gap
-    4. Deduplicate + rank
+      1. LLM chọn TOP 3 gaps cần học nhất (weakest + most critical)
+      2. pgvector search candidates per gap
+      3. LLM chọn TOP 2 courses phù hợp nhất per gap
+      4. Deduplicate + rank
     """
-    logger.info("--- [GAP v3] COURSE RECOMMENDATION AGENT ---")
-
     gap_analysis = state.get("gap_analysis")
+    logger.info(
+        "\n" + "=" * 50 + "\n"
+        "[STEP 4] course_recommendation_llm_node | cv_id=" + state.get("cv_id", "?")
+    )
+
     if not gap_analysis:
+        logger.warning("[STEP 4] No gap_analysis — skipping course recommendation")
         return {**state, "course_recommendations": [], "status": "courses_done"}
 
-    skill_gaps = gap_analysis.get("skill_gaps", [])
-    jd_context = gap_analysis.get("jd_context", "")
+    skill_gaps = gap_analysis.get("skill_gaps") or []
+    jd_context = gap_analysis.get("jd_context") or ""
 
     if not skill_gaps:
-        logger.info("  No skill gaps found. Skipping course recommendation.")
+        logger.warning("[STEP 4] No skill_gaps — skipping course recommendation")
         return {**state, "course_recommendations": [], "status": "courses_done"}
 
-    # ── Step 1: LLM Prioritize TOP 3 Gaps ─────────────────────────────
+    # Reset aborted transaction
+    try:
+        state["db"].rollback()
+    except Exception:
+        pass
+
+    # ── Log raw skill_gaps data fed to LLM prioritization ───────────────────
+    logger.info(
+        f"\n{'═' * 70}\n"
+        f"[LLM DATA] ┌─── course_recommendation (STEP 4)\n"
+        f"           │ jd_context : {jd_context or '(none)'}\n"
+        f"           │ total gaps : {len(skill_gaps)}\n"
+        f"           └─────────\n"
+        f"[LLM DATA] SKILL GAPS (raw from gap_analysis):\n"
+        f"{_indent_data(_json.dumps(skill_gaps, ensure_ascii=False, indent=2)[:3000])}\n"
+        f"{'═' * 70}\n"
+    )
+
+    # STEP 1: LLM prioritize TOP 3 gaps
     top_gaps = await _llm_prioritize_gaps(skill_gaps, jd_context)
     logger.info(
-        f"  Step 1: {len(top_gaps)} gaps prioritized: {[g['skill'] for g in top_gaps]}"
+        "[STEP 4] TOP gaps: "
+        + ", ".join(str(g.get("skill", "?")) for g in top_gaps[:3])
     )
 
     if not top_gaps:
+        logger.warning("[STEP 4] No top gaps prioritized")
         return {**state, "course_recommendations": [], "status": "courses_done"}
 
-    # ── Step 2: Vector Search + LLM Select per gap ───────────────────
-    all_recommendations = []
+    all_recommendations: List[Dict] = []
     db = state["db"]
 
+    # STEP 2: Vector search + LLM select per gap
     for gap in top_gaps:
-        gap_skill = gap["skill"]
-        required_level = gap.get("required_level", "Mid-level")
-        estimated_months = gap.get("estimated_months", 3)
-        learning_path = gap.get("learning_path", "")
+        gap_skill = gap.get("skill") or "?"
+        required_level = gap.get("required_level") or "Mid-level"
+        estimated_months = gap.get("estimated_months") or 3
+        learning_path = gap.get("learning_path") or ""
 
-        # Vector search candidates
         course_candidates = await _vector_search_courses(
-            skill_name=gap_skill, target_level=required_level, db=db, limit=12
+            skill_name=gap_skill,
+            target_level=required_level,
+            db=db,
+            limit=12,
         )
 
         if not course_candidates:
-            logger.info(f"  No courses found for gap: {gap_skill}")
+            logger.warning("[STEP 4] No courses found for gap: " + gap_skill)
             continue
 
-        logger.info(f"  Step 2: {len(course_candidates)} candidates for '{gap_skill}'")
-
-        # LLM select TOP 2
-        selected = await _llm_select_courses(
-            gap=gap, candidates=course_candidates, jd_context=jd_context
+        logger.info(
+            "[STEP 4] "
+            + str(len(course_candidates))
+            + " candidates for gap: "
+            + gap_skill
         )
 
-        for course in selected:
-            course["gap_skill"] = gap_skill
-            course["gap_severity"] = gap.get("severity", "MEDIUM")
-            course["gap_learning_path"] = learning_path
-            course["gap_estimated_months"] = estimated_months
-            course["is_critical"] = gap.get("is_critical", False)
-            all_recommendations.append(course)
+        # ── Log raw candidate courses fed to LLM ──────────────────────────────
+        logger.info(
+            f"\n{'─' * 50}\n"
+            f"[LLM DATA] ┌─── _llm_select_courses | gap={gap_skill}\n"
+            f"           │ candidates  : {len(course_candidates)}\n"
+            f"           │ jd_context  : {jd_context or '(none)'}\n"
+            f"           │ required_lvl: {required_level}\n"
+            f"           │ severity    : {gap.get('severity') or 'MEDIUM'}\n"
+            f"           │ est_months  : {estimated_months}\n"
+            f"           └─────────\n"
+            f"[LLM DATA] COURSE CANDIDATES:\n"
+            f"{_indent_data(_json.dumps(course_candidates, ensure_ascii=False, indent=2)[:2000])}\n"
+            f"{'─' * 50}\n"
+        )
 
-    # ── Step 3: Deduplicate + Rank ────────────────────────────────────
+        selected = await _llm_select_courses(
+            gap=gap,
+            candidates=course_candidates,
+            jd_context=jd_context,
+        )
+
+        for c in selected:
+            c["gap_skill"] = gap_skill
+            c["gap_severity"] = gap.get("severity") or "MEDIUM"
+            c["gap_learning_path"] = learning_path
+            c["gap_estimated_months"] = estimated_months
+            c["is_critical"] = bool(gap.get("is_critical"))
+            all_recommendations.append(c)
+
+    # STEP 3: Deduplicate + rank
     course_recommendations = _deduplicate_and_rank(all_recommendations)
 
     logger.info(
-        f"  Course recommendation done: {len(course_recommendations)} unique courses"
+        "[STEP 4] DONE | unique courses: "
+        + str(len(course_recommendations))
+        + " | cv_id="
+        + state.get("cv_id", "?")
     )
-
     return {
         **state,
         "course_recommendations": course_recommendations,
@@ -96,266 +154,279 @@ async def course_recommendation_llm_node(
     }
 
 
-# ─── Step 1: LLM Prioritize Gaps ──────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+# STEP 1: LLM Prioritize Gaps
+# ══════════════════════════════════════════════════════════════════════════════
 
 
 async def _llm_prioritize_gaps(skill_gaps: List[Dict], jd_context: str) -> List[Dict]:
-    """LLM chọn TOP 3 gaps cần học nhất."""
+    """LLM chọn TOP 3 gaps ưu tiên học trước."""
     if not skill_gaps:
         return []
 
     gaps_str = "\n".join(
-        [
-            f"- #{i + 1} {g['skill']} | severity: {g['severity']} | "
-            f"is_critical: {g.get('is_critical')} | "
-            f"months: {g.get('estimated_months')} | "
-            f"learning_effort: {g.get('learning_effort')} | "
-            f"bridge_from: {g.get('bridge_from', 'none')} | "
-            f"learning_path: {g.get('learning_path', '')}"
-            for i, g in enumerate(skill_gaps)
-        ]
+        "- #"
+        + str(i + 1)
+        + " "
+        + (g.get("skill") or "?")
+        + " | severity="
+        + str(g.get("severity") or "?")
+        + " | is_critical="
+        + str(g.get("is_critical"))
+        + " | months="
+        + str(g.get("estimated_months") or 0)
+        + " | effort="
+        + str(g.get("learning_effort") or "?")
+        for i, g in enumerate(skill_gaps)
     )
 
-    prompt = f"""Chọn TOP 3 skill gaps ƯU TIÊN NHẤT để lấp gap.
+    prompt = (
+        "Choose TOP 3 skill gaps to prioritize.\n\n"
+        "Job context: " + jd_context + "\n\n"
+        "All gaps:\n" + gaps_str + "\n\n"
+        "Priority rules:\n"
+        "1. HIGH severity + is_critical=True → priority\n"
+        "2. transferable (bridge_from not null) → fast ROI\n"
+        "3. estimated_months <= 3 → quick win\n"
+        "4. LOW severity → skip\n\n"
+        "Output JSON:\n"
+        '{"top_gaps": [{"skill": "...", "severity": "HIGH|MEDIUM|LOW", '
+        '"is_critical": true/false, "estimated_months": 3, '
+        '"learning_path": "..."}]}'
+    )
 
-## Job Context: {jd_context}
+    # ── Log raw skill_gaps input ─────────────────────────────────────────────
+    logger.info(
+        f"\n{'═' * 70}\n"
+        f"[LLM DATA] ┌─── prioritize_gaps (STEP 4a)\n"
+        f"           │ jd_context  : {jd_context or '(none)'}\n"
+        f"           │ total_gaps : {len(skill_gaps)}\n"
+        f"           └─────────\n"
+        f"[LLM DATA] SKILL GAPS (for prioritization):\n"
+        f"{_indent_data(gaps_str)}\n"
+        f"[LLM DATA] PRIORITIZATION PROMPT:\n"
+        f"{_indent_data(prompt)}\n"
+        f"{'═' * 70}\n"
+    )
 
-## All Skill Gaps:
-{gaps_str}
+    result = await llm_json_completion(
+        prompt=prompt,
+        context=jd_context,
+        call_name="prioritize_gaps",
+    )
 
-## Quy tắc ưu tiên:
-1. HIGH severity + is_critical=True → HỌC TRƯỚC (job requirement thiết yếu)
-2. Có bridge_from (transferable) → học NHANH (ROI cao) → ưu tiên
-3. estimated_months ≤ 3 → có thể hoàn thành trước khi apply
-4. LOW severity → bỏ qua (dễ tự học, không cần course)
-5. Tối đa 3 gaps — không cần học quá nhiều cùng lúc
-
-## Output JSON:
-{{
-  "top_gaps": [
-    {{
-      "skill": "<tên>",
-      "severity": "HIGH | MEDIUM | LOW",
-      "is_critical": true|false,
-      "priority_rank": <1, 2, 3>,
-      "estimated_months": <số tháng>,
-      "bridge_from": "<skill đã có, null>",
-      "learning_path": "<lộ trình>",
-      "reason": "<tại sao ưu tiên skill này>"
-    }}
-  ]
-}}
-CHỈ trả về JSON hợp lệ. Tối đa 3 gaps."""
-
-    result = await llm_json_completion(prompt, context=jd_context)
-    top_gaps = result.get("top_gaps", [])
-
-    # Fallback: sort by severity + is_critical if LLM failed
-    if not top_gaps:
-        severity_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
-        sorted_gaps = sorted(
-            skill_gaps,
-            key=lambda g: (
-                severity_order.get(g.get("severity", "LOW"), 2),
-                -int(g.get("is_critical", False)),
-                g.get("estimated_months", 99),
-            ),
-        )
-        top_gaps = sorted_gaps[:3]
+    top_gaps = result.get("top_gaps") or []
+    if top_gaps:
         logger.info(
-            f"  LLM prioritize failed. Using fallback sort: {[g['skill'] for g in top_gaps]}"
+            "[STEP 4/Prioritize] LLM OK: " + str(len(top_gaps)) + " gaps chosen"
         )
+        logger.info(
+            f"[STEP 4/Prioritize] TOP GAPS RESULT:\n"
+            f"{_indent_data(_json.dumps(top_gaps, ensure_ascii=False, indent=2))}"
+        )
+        return top_gaps
 
-    return top_gaps
+    # Fallback: sort by severity + is_critical + estimated_months
+    severity_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
+    sorted_gaps = sorted(
+        skill_gaps,
+        key=lambda g: (
+            severity_order.get(g.get("severity") or "LOW", 2),
+            -int(bool(g.get("is_critical"))),
+            float(g.get("estimated_months") or 999),
+        ),
+    )
+    logger.warning(
+        "[STEP 4/Prioritize] LLM failed — fallback sort: "
+        + ", ".join(g.get("skill", "?") for g in sorted_gaps[:3])
+    )
+    return sorted_gaps[:3]
 
 
-# ─── Step 2a: Vector Search ─────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+# STEP 2a: pgvector course search
+# ══════════════════════════════════════════════════════════════════════════════
 
 
 async def _vector_search_courses(
-    skill_name: str, target_level: str, db, limit: int = 12
+    skill_name: str,
+    target_level: str,
+    db,
+    limit: int = 12,
 ) -> List[Dict]:
-    """pgvector similarity search cho courses."""
-    from sqlalchemy import text
     from shared.llm_utils import get_embedding
 
-    search_text = f"{skill_name} {target_level} course tutorial"
+    search_text = skill_name + " " + target_level + " course tutorial"
     skill_vector = get_embedding(search_text)
 
     if not skill_vector:
-        logger.warning(f"  No embedding for: {skill_name}")
-        # Fallback: text search
-        return await _text_search_courses(skill_name, db, limit)
+        logger.warning("[STEP 4/Search] No embedding for: " + skill_name)
+        return []
+
+    from sqlalchemy import text
 
     query = text("""
         SELECT id, title, platform, url, level, provider,
                duration_hours, is_certification, cost_usd, tags,
-               1 - (vector <=> :vec::vector) as similarity
+               1 - (vector <=> CAST(:vec AS vector)) as similarity
         FROM courses
         WHERE vector IS NOT NULL
-          AND 1 - (vector <=> :vec::vector) > :sim_threshold
+          AND 1 - (vector <=> CAST(:vec AS vector)) > :sim_threshold
         ORDER BY similarity DESC
-        LIMIT :limit
+        LIMIT :limit_val
     """)
 
     results = db.execute(
         query,
-        {"vec": skill_vector, "sim_threshold": VECTOR_SIM_THRESHOLD, "limit": limit},
+        {
+            "vec": skill_vector,
+            "sim_threshold": VECTOR_SIM_THRESHOLD,
+            "limit_val": limit,
+        },
     ).fetchall()
 
-    return [
+    courses = [
         {
             "course_id": str(r.id),
-            "title": r.title,
-            "platform": r.platform,
-            "url": r.url,
+            "title": r.title or "?",
+            "platform": r.platform or "Unknown",
+            "url": r.url or "",
             "level": r.level or "Unknown",
-            "provider": getattr(r, "provider", "Unknown") or "Unknown",
+            "provider": getattr(r, "provider") or "Unknown",
             "duration_hours": float(r.duration_hours or 0),
             "is_certification": bool(r.is_certification),
             "cost_usd": float(r.cost_usd or 0),
-            "tags": r.tags or [],
-            "similarity": float(r.similarity),
+            "tags": list(r.tags) if r.tags else [],
+            "similarity": float(r.similarity or 0),
         }
         for r in results
     ]
 
+    # ── Log vector search results ─────────────────────────────────────────────
+    logger.info(
+        f"[STEP 4/Search] {len(courses)} courses found for '{skill_name}' | "
+        f"sim_threshold={VECTOR_SIM_THRESHOLD}"
+    )
+    for c in courses[:5]:
+        logger.info(
+            f"  course: {c.get('title')} | platform={c.get('platform')} | "
+            f"level={c.get('level')} | hrs={c.get('duration_hours')} | "
+            f"sim={c.get('similarity', 0):.3f} | cert={c.get('is_certification')}"
+        )
 
-async def _text_search_courses(skill_name: str, db, limit: int = 12) -> List[Dict]:
-    """Fallback: text search khi không có vector."""
-    from sqlalchemy import text
-
-    query = text("""
-        SELECT id, title, platform, url, level, provider,
-               duration_hours, is_certification, cost_usd, tags
-        FROM courses
-        WHERE title ILIKE :pattern
-           OR :skill = ANY(tags::text[])
-        ORDER BY is_certification DESC, duration_hours ASC
-        LIMIT :limit
-    """)
-
-    results = db.execute(
-        query, {"pattern": f"%{skill_name}%", "skill": skill_name, "limit": limit}
-    ).fetchall()
-
-    return [
-        {
-            "course_id": str(r.id),
-            "title": r.title,
-            "platform": r.platform,
-            "url": r.url,
-            "level": r.level or "Unknown",
-            "provider": getattr(r, "provider", "Unknown") or "Unknown",
-            "duration_hours": float(r.duration_hours or 0),
-            "is_certification": bool(r.is_certification),
-            "cost_usd": float(r.cost_usd or 0),
-            "tags": r.tags or [],
-            "similarity": 0.5,  # Default
-        }
-        for r in results
-    ]
+    return courses
 
 
-# ─── Step 2b: LLM Select Best Courses ────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+# STEP 2b: LLM Select Best Courses
+# ══════════════════════════════════════════════════════════════════════════════
 
 
 async def _llm_select_courses(
-    gap: Dict, candidates: List[Dict], jd_context: str
+    gap: Dict,
+    candidates: List[Dict],
+    jd_context: str,
 ) -> List[Dict]:
     """LLM chọn TOP 2 courses phù hợp nhất cho 1 gap skill."""
     if not candidates:
         return []
 
-    skill_name = gap["skill"]
-    required_level = gap.get("required_level", "Mid-level")
-    estimated_months = gap.get("estimated_months", 3)
-    learning_path = gap.get("learning_path", "")
-    severity = gap.get("severity", "MEDIUM")
+    skill_name = gap.get("skill") or "?"
+    required_level = gap.get("required_level") or "Mid-level"
+    estimated_months = gap.get("estimated_months") or 3
+    severity = gap.get("severity") or "MEDIUM"
 
     candidates_str = "\n".join(
-        [
-            f"- [{i + 1}] {c['title']} | {c['platform']} | {c['level']} | "
-            f"{c['duration_hours']}h | cert: {c['is_certification']} | "
-            f"similarity: {c['similarity']:.2f} | ${c['cost_usd']:.2f} | "
-            f"tags: {', '.join(c['tags'][:5] if c['tags'] else [])}"
-            for i, c in enumerate(candidates)
-        ]
+        "  ["
+        + str(i + 1)
+        + "] "
+        + c.get("title", "?")
+        + " | "
+        + (c.get("platform") or "?")
+        + " | "
+        + (c.get("level") or "?")
+        + " | "
+        + str(c.get("duration_hours") or "0")
+        + "h"
+        + " | cert="
+        + str(c.get("is_certification"))
+        + " | sim="
+        + f"{c.get('similarity', 0):.2f}"
+        for i, c in enumerate(candidates)
     )
 
-    prompt = f"""Chọn TOP 2 khóa học phù hợp nhất để lấp gap "{skill_name}"
-(target level: {required_level}, severity: {severity}, ước tính: {estimated_months} tháng).
+    prompt = (
+        "Choose TOP 2 courses for gap: " + skill_name + "\n"
+        "Required level: " + required_level + "\n"
+        "Severity: " + severity + " | estimated_months: " + str(estimated_months) + "\n"
+        "Candidates:\n" + candidates_str + "\n\n"
+        "Priority: certification > level match > free/cheap > relevance\n\n"
+        'Output JSON: {"selected_courses": [{"course_id": "<id>", "selection_reason": "..."}]}'
+    )
 
-## Learning path đề xuất: {learning_path}
+    # ── Log course selection prompt ───────────────────────────────────────────
+    logger.info(
+        f"[STEP 4/select] Calling LLM for gap={skill_name} | "
+        f"{len(candidates)} candidates | context={jd_context or '(none)'}"
+    )
+    logger.info(f"[STEP 4/select] COURSE SELECTION PROMPT:\n{_indent_data(prompt)}\n")
 
-## Available Courses ({len(candidates)} candidates):
-{candidates_str}
+    result = await llm_json_completion(
+        prompt=prompt,
+        context=jd_context,
+        call_name="select_courses",
+    )
 
-## Quy tắc chọn:
-1. Ưu tiên is_certification = true (giá trị trên CV)
-2. Duration phù hợp: không quá 2.5× estimated_months (VD: 3 tháng → khóa ≤ 80 giờ)
-3. Level phù hợp với gap:
-   - severity=HIGH → Beginner courses (chưa có gì)
-   - severity=MEDIUM → Intermediate courses
-4. Platform uy tín: Udemy, Coursera, Pluralsight, LinkedIn Learning, edX
-5. Free hoặc < $50 là best value
-6. Khóa nào phù hợp với learning_path → ưu tiên
+    selected_list = result.get("selected_courses") or []
+    course_map = {c.get("course_id"): c for c in candidates}
 
-## Output JSON:
-{{
-  "selected_courses": [
-    {{
-      "course_id": "<id>",
-      "selection_reason": "<tại sao chọn khóa này cho gap {skill_name}>"
-    }}
-  ]
-}}
-CHỈ trả về JSON hợp lệ. Top 2 thôi."""
+    logger.info(
+        f"[STEP 4/select] LLM selected {len(selected_list)} courses:\n"
+        f"{_indent_data(_json.dumps(selected_list, ensure_ascii=False, indent=2))}"
+    )
 
-    result = await llm_json_completion(prompt, context=jd_context)
-    selected_ids = [c["course_id"] for c in result.get("selected_courses", [])]
-
-    # Map back to full course data
-    course_map = {c["course_id"]: c for c in candidates}
     output = []
-
-    for cid in selected_ids[:2]:
+    for item in selected_list[:2]:
+        cid = item.get("course_id")
         course = course_map.get(cid)
-        if not course:
-            continue
-        sel = next(
-            (s for s in result.get("selected_courses", []) if s["course_id"] == cid), {}
-        )
-        output.append(
-            {
-                **course,
-                "selection_reason": sel.get("selection_reason", ""),
-                "learning_path": learning_path,
-            }
-        )
+        if course:
+            course["selection_reason"] = item.get("selection_reason") or ""
+            output.append(course)
 
     return output
 
 
-# ─── Step 3: Deduplicate + Rank ────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+# STEP 3: Deduplicate + Rank
+# ══════════════════════════════════════════════════════════════════════════════
 
 
 def _deduplicate_and_rank(courses: List[Dict]) -> List[Dict]:
     """Deduplicate và rank theo severity × certification × similarity."""
-    seen_ids = {}
+    seen = {}
     for c in courses:
         cid = c.get("course_id")
-        if cid and cid not in seen_ids:
-            seen_ids[cid] = c
+        if cid and cid not in seen:
+            seen[cid] = c
 
-    ranked = list(seen_ids.values())
-
+    ranked = list(seen.values())
     severity_w = {"HIGH": 1.0, "MEDIUM": 0.7, "LOW": 0.4}
-    for c in ranked:
-        sev = severity_w.get(c.get("gap_severity", "LOW"), 0.4)
-        cert = 0.2 if c.get("is_certification") else 0
-        sim = c.get("similarity", 0) * 0.2
-        c["rank_score"] = round(sev * 0.6 + cert * 0.2 + sim, 3)
 
-    ranked.sort(key=lambda x: x["rank_score"], reverse=True)
+    for c in ranked:
+        sev = severity_w.get(c.get("gap_severity") or "LOW", 0.4)
+        cert_bonus = 0.2 if c.get("is_certification") else 0.0
+        sim = float(c.get("similarity") or 0) * 0.2
+        c["rank_score"] = round(sev * 0.6 + cert_bonus + sim, 3)
+
+    ranked.sort(key=lambda x: x.get("rank_score", 0), reverse=True)
+
+    # ── Log final ranked courses ─────────────────────────────────────────────
+    logger.info(f"[STEP 4/Rank] Final ranked {len(ranked)} courses:")
+    for i, c in enumerate(ranked[:8]):
+        logger.info(
+            f"  [{i + 1}] {c.get('title')} | gap={c.get('gap_skill')} | "
+            f"severity={c.get('gap_severity')} | rank_score={c.get('rank_score')} | "
+            f"cert={c.get('is_certification')} | sim={c.get('similarity', 0):.3f}"
+        )
+
     return ranked

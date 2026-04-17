@@ -20,18 +20,45 @@ VECTOR_SIM_THRESHOLD = float(os.getenv("GAP_VECTOR_SIM_THRESHOLD", "0.60"))
 class GapSkill(BaseModel):
     skill_name: str
     target_level: str = "Mid-level"
-    gap_type: str = "MISSING"
-    severity: str = "MEDIUM"  # HIGH | MEDIUM | LOW — ảnh hưởng rank
-    severity: str = "MEDIUM"
+    gap_type: str = "MISSING"  # MISSING | PARTIAL
+    severity: str = "MEDIUM"  # HIGH | MEDIUM | LOW
 
 
 class RecommendRequest(BaseModel):
     gap_skills: List[GapSkill]
 
 
+class CourseCreate(BaseModel):
+    title: str
+    platform: str
+    url: str
+    level: str = "Beginner"
+    provider: Optional[str] = None
+    duration_hours: Optional[float] = None
+    cost_usd: float = 0.0
+    tags: List[str] = []
+
+
+class CourseUpdate(BaseModel):
+    title: Optional[str] = None
+    platform: Optional[str] = None
+    url: Optional[str] = None
+    level: Optional[str] = None
+    provider: Optional[str] = None
+    duration_hours: Optional[float] = None
+    cost_usd: Optional[float] = None
+    tags: Optional[List[str]] = None
+
+
 def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 12):
     """pgvector similarity search cho courses. Fallback ILIKE nếu không có vector."""
     from shared.llm_utils import get_embedding
+
+    # Reset any aborted transaction before querying
+    try:
+        db.rollback()
+    except Exception:
+        pass
 
     search_text = f"{skill_name} {target_level} course tutorial"
     skill_vector = get_embedding(search_text)
@@ -40,21 +67,26 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
         query = text("""
             SELECT id, title, platform, url, level, provider,
                    duration_hours, is_certification, cost_usd, tags,
-                   1 - (vector <=> :vec::vector) as similarity
+                   1 - (vector <=> :vec) as similarity
             FROM courses
             WHERE vector IS NOT NULL
-              AND 1 - (vector <=> :vec::vector) > :sim_threshold
+              AND 1 - (vector <=> :vec) > :sim_threshold
             ORDER BY similarity DESC
             LIMIT :limit
         """)
-        results = db.execute(
-            query,
-            {
-                "vec": skill_vector,
-                "sim_threshold": VECTOR_SIM_THRESHOLD,
-                "limit": limit,
-            },
-        ).fetchall()
+        try:
+            results = db.execute(
+                query,
+                {
+                    "vec": skill_vector,
+                    "sim_threshold": VECTOR_SIM_THRESHOLD,
+                    "limit": limit,
+                },
+            ).fetchall()
+        except Exception as e:
+            db.rollback()
+            logger.error(f"[_vector_search_courses] pgvector query failed: {e}")
+            results = []
     else:
         # Fallback: ILIKE text search
         query = text("""
@@ -67,10 +99,19 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
             ORDER BY is_certification DESC, duration_hours ASC
             LIMIT :limit
         """)
-        results = db.execute(
-            query,
-            {"pattern": f"%{skill_name}%", "skill_name": skill_name, "limit": limit},
-        ).fetchall()
+        try:
+            results = db.execute(
+                query,
+                {
+                    "pattern": f"%{skill_name}%",
+                    "skill_name": skill_name,
+                    "limit": limit,
+                },
+            ).fetchall()
+        except Exception as e:
+            db.rollback()
+            logger.error(f"[_vector_search_courses] ILIKE fallback failed: {e}")
+            results = []
 
     return [
         {
@@ -217,3 +258,121 @@ async def get_trending_skills(
         }
         for r in res
     ]
+
+
+@app.get("/recommend/admin/courses")
+async def admin_list_courses(
+    request: Request, db: Session = Depends(get_db), limit: int = 100, offset: int = 0
+):
+    """Admin only: Danh sách tất cả khóa học."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    courses = (
+        db.query(Course)
+        .order_by(Course.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    return courses
+
+
+@app.post("/recommend/admin/courses")
+async def admin_create_course(
+    req: CourseCreate, request: Request, db: Session = Depends(get_db)
+):
+    """Admin only: Tạo khóa học mới + tạo embedding."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    from shared.llm_utils import get_embedding
+
+    # Tạo context cho embedding
+    context = f"{req.title} {req.platform} {req.level} {' '.join(req.tags)}"
+    vector = get_embedding(context)
+
+    new_course = Course(
+        id=uuid.uuid4(),
+        title=req.title,
+        platform=req.platform,
+        url=req.url,
+        level=req.level,
+        provider=req.provider,
+        duration_hours=req.duration_hours,
+        cost_usd=req.cost_usd,
+        tags=req.tags,
+        embedding_context=context,
+        vector=vector,
+    )
+    db.add(new_course)
+    db.commit()
+    db.refresh(new_course)
+    return new_course
+
+
+@app.patch("/recommend/admin/courses/{course_id}")
+async def admin_update_course(
+    course_id: uuid.UUID,
+    req: CourseUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Admin only: Cập nhật khóa học + cập nhật embedding nếu cần."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+
+    needs_re_embedding = False
+    if req.title is not None:
+        course.title = req.title
+        needs_re_embedding = True
+    if req.platform is not None:
+        course.platform = req.platform
+        needs_re_embedding = True
+    if req.level is not None:
+        course.level = req.level
+        needs_re_embedding = True
+    if req.tags is not None:
+        course.tags = req.tags
+        needs_re_embedding = True
+
+    if req.url is not None:
+        course.url = req.url
+    if req.provider is not None:
+        course.provider = req.provider
+    if req.duration_hours is not None:
+        course.duration_hours = req.duration_hours
+    if req.cost_usd is not None:
+        course.cost_usd = req.cost_usd
+
+    if needs_re_embedding:
+        from shared.llm_utils import get_embedding
+
+        context = f"{course.title} {course.platform} {course.level} {' '.join(course.tags or [])}"
+        course.embedding_context = context
+        course.vector = get_embedding(context)
+
+    db.commit()
+    db.refresh(course)
+    return course
+
+
+@app.delete("/recommend/admin/courses/{course_id}")
+async def admin_delete_course(
+    course_id: uuid.UUID, request: Request, db: Session = Depends(get_db)
+):
+    """Admin only: Xóa khóa học."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+
+    db.delete(course)
+    db.commit()
+    return {"message": "Course deleted successfully"}

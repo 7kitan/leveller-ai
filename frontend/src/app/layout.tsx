@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import AuthGuard from "@/components/auth/AuthGuard";
 
-const inter = Outfit({ subsets: ["latin"], variable: "--font-inter" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {

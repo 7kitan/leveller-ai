@@ -35,13 +35,15 @@ def get_embeddings_batch(texts: List[str]) -> List[List[float]]:
         clean_texts = [t.replace("\n", " ").strip() for t in texts if t]
         if not clean_texts: return []
 
+        logger.info(f"[LLM BATCH EMBED] Sending {len(clean_texts)} texts to OpenAI...")
         response = openai_client.embeddings.create(
             input=clean_texts,
             model="text-embedding-3-small"
         )
+        logger.info(f"[LLM BATCH EMBED] ✓ Success | vectors={len(response.data)}")
         return [d.embedding for d in response.data]
     except Exception as e:
-        logger.error(f"Error generating batch embeddings: {e}")
+        logger.error(f"[LLM BATCH EMBED] ❌ Error generating batch embeddings: {e}")
         return []
 
 def get_chat_completion(prompt: str, system_prompt: str = "You are a helpful assistant.", json_mode: bool = False) -> Optional[str]:
@@ -52,6 +54,7 @@ def get_chat_completion(prompt: str, system_prompt: str = "You are a helpful ass
         return None
         
     try:
+        logger.info(f"[LLM CHAT] Calling completion | model={LLM_MODEL} | prompt_len={len(prompt)}")
         response = openai_client.chat.completions.create(
             model=LLM_MODEL,
             messages=[
@@ -60,9 +63,11 @@ def get_chat_completion(prompt: str, system_prompt: str = "You are a helpful ass
             ],
             response_format={"type": "json_object"} if json_mode else None
         )
-        return response.choices[0].message.content
+        raw = response.choices[0].message.content
+        logger.info(f"[LLM CHAT] ✓ Success | response_len={len(raw or '')}")
+        return raw
     except Exception as e:
-        logger.error(f"Error calling LLM: {e}")
+        logger.error(f"[LLM CHAT] ❌ Error calling LLM: {e}")
         return None
 
 def build_cv_skill_context(skill_name: str, level: str, years: float, last_used: int = None, context: str = "") -> str:

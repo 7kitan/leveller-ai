@@ -28,6 +28,7 @@ class UserResponse(BaseModel):
     id: str
     email: str
     is_admin: bool
+    full_name: Optional[str] = None
 
 class AuthResponse(BaseModel):
     access_token: str
@@ -48,6 +49,11 @@ class AdminUserUpdate(BaseModel):
     is_admin: Optional[bool] = None
     is_active: Optional[bool] = None
 
+class UserProfileUpdate(BaseModel):
+    full_name: Optional[str] = None
+    old_password: Optional[str] = None
+    password: Optional[str] = None
+
 @app.post("/auth/register", response_model=AuthResponse)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user_in.email).first()
@@ -66,7 +72,12 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     
     access_token = create_access_token(data={"sub": str(new_user.id), "email": new_user.email})
     
-    user_data = {"id": str(new_user.id), "email": new_user.email, "is_admin": new_user.is_admin}
+    user_data = {
+        "id": str(new_user.id), 
+        "email": new_user.email, 
+        "is_admin": new_user.is_admin,
+        "full_name": new_user.full_name
+    }
     token_key = f"token:{hash_token(access_token)}"
     session_pointer = f"user_session:{new_user.id}"
 
@@ -93,7 +104,12 @@ def login(user_in: UserLogin, db: Session = Depends(get_db)):
     
     access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
     
-    user_data = {"id": str(user.id), "email": user.email, "is_admin": user.is_admin}
+    user_data = {
+        "id": str(user.id), 
+        "email": user.email, 
+        "is_admin": user.is_admin,
+        "full_name": user.full_name
+    }
     token_key = f"token:{hash_token(access_token)}"
     session_pointer = f"user_session:{user.id}"
 
@@ -152,7 +168,12 @@ def verify(token: str, db: Session = Depends(get_db)):
             raise HTTPException(status_code=401, detail="User found but inactive")
             
         # Re-cache user data for subsequent requests (if caching is enabled)
-        user_data = {"id": str(user.id), "email": user.email, "is_admin": user.is_admin}
+        user_data = {
+            "id": str(user.id), 
+            "email": user.email, 
+            "is_admin": user.is_admin,
+            "full_name": user.full_name
+        }
         auth_cache.setex(token_key, ACCESS_TOKEN_EXPIRE_SECONDS, json.dumps(user_data))
         logging.info(f"DEBUG Auth: Deep verification successful for user {user.email}")
         
@@ -176,7 +197,42 @@ def get_me(request: Request, db: Session = Depends(get_db)):
     return {
         "id": str(user.id),
         "email": user.email,
-        "is_admin": user.is_admin
+        "is_admin": user.is_admin,
+        "full_name": user.full_name
+    }
+
+@app.patch("/auth/profile", response_model=AdminUserResponse)
+def patch_profile(request: Request, user_in: UserProfileUpdate, db: Session = Depends(get_db)):
+    """User self-service: Cập nhật thông tin cá nhân (tên, mật khẩu)."""
+    user_id = request.headers.get("X-User-ID")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="X-User-ID header missing")
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user_in.full_name is not None:
+        user.full_name = user_in.full_name
+    
+    if user_in.password:
+        if not user_in.old_password:
+            raise HTTPException(status_code=400, detail="Mật khẩu hiện tại là bắt buộc để thay đổi mật khẩu")
+        
+        if not verify_password(user_in.old_password, user.hashed_password):
+            raise HTTPException(status_code=400, detail="Mật khẩu hiện tại không chính xác")
+            
+        user.hashed_password = get_password_hash(user_in.password)
+        
+    db.commit()
+    db.refresh(user)
+    
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "full_name": user.full_name,
+        "is_admin": user.is_admin,
+        "created_at": user.created_at.isoformat() if user.created_at else None
     }
 
 @app.get("/auth/admin/users", response_model=List[AdminUserResponse])

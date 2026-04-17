@@ -21,5 +21,10 @@ ENV PYTHONPATH=/app
 COPY shared/ ./shared/
 COPY worker/ ./worker/
 
-# Chạy Celery worker
-CMD ["celery", "-A", "worker.celery_app", "worker", "--loglevel=info"]
+# Logging config: stdout với format rõ ràng cho tất cả loggers
+# --loglevel=info chỉ set celery.worker logger
+# Dùng --logfile=- để Celery ghi tất cả log ra stdout/stderr thay vì file
+CMD ["celery", "-A", "worker.celery_app", "worker", \
+     "--loglevel=info", \
+     "--logfile=-", \
+     "--concurrency=2"]

@@ -185,6 +185,8 @@
 .thWidth1_3 { width: 33.333333%; }
 .thWidthW20 { width: 5rem; }
 .thWidthW24 { width: 6rem; }
+.thCenter { text-align: center; }
+.thRight { text-align: right; }
 
 .verticalStack8 {
     display: flex;
@@ -398,6 +400,18 @@
   background-color: rgba(0, 0, 0, 0.01);
 }
 
+.modalCancelBtn {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="light"] .modalCancelBtn {
+  color: rgba(0, 0, 0, 0.4);
+}
+
 [data-theme="dark"] .modalFooter {
     background-color: rgba(255, 255, 255, 0.01);
 }
@@ -430,6 +444,14 @@
     color: var(--color-text-muted);
 }
 
+.emptyStateText {
+  font-size: 0.875rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-style: italic;
+}
+
 .notification {
   position: fixed;
   bottom: 2rem;
@@ -449,6 +471,41 @@
 
 .notifSuccess { background-color: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2); }
 .notifError { background-color: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.2); }
+
+.notifIconContainer {
+  padding: 0.5rem;
+  border-radius: 1rem;
+}
+
+.notifIconSuccess {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.notifIconError {
+  background-color: rgba(244, 63, 94, 0.2);
+  color: #f43f5e;
+}
+
+.notifText {
+  font-weight: 700;
+}
+
+.modalTextarea {
+  min-height: 8rem;
+  padding-top: 1rem;
+}
+
+.modalHelpText {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.2);
+  font-style: italic;
+  padding: 0.5rem;
+}
+
+[data-theme="light"] .modalHelpText {
+  color: rgba(0, 0, 0, 0.4);
+}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }

@@ -2,9 +2,9 @@
 gap_v3: LLM-Centric Holistic Gap Analysis Pipeline.
 """
 
-from .orchestrator import run_gap_analysis_v3
-from .cv_parsing_graph import run_cv_parsing_pipeline
-from .states import (
+from worker.langgraph_agents.gap_v3.orchestrator import run_gap_analysis_v3
+from worker.langgraph_agents.gap_v3.cv_parsing_graph import run_cv_parsing_pipeline
+from worker.langgraph_agents.gap_v3.states import (
     CVParsingState,
     GapAnalysisStateV3,
     CVParsedData,
@@ -12,7 +12,7 @@ from .states import (
     CourseRecommendation,
     CareerRoadmap,
 )
-from .config import (
+from worker.langgraph_agents.gap_v3.config import (
     GAP_LLM_MODEL,
     GAP_CACHE_TTL,
     JD_EXTRACT_CACHE_TTL,

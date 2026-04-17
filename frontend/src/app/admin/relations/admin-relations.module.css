@@ -192,6 +192,14 @@
 .iconColorPosition { color: #f59e0b; }
 .iconColorDefault { color: #4f46e5; }
 
+.headerIcon {
+  color: #f59e0b;
+}
+
+.groupIcon {
+  color: #d1d5db;
+}
+
 .flexCenterGap1_5 {
     display: flex;
     align-items: center;
@@ -364,6 +372,14 @@
     background: rgba(0, 0, 0, 0.01);
 }
 
+.emptyStateText {
+  font-size: 0.875rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-style: italic;
+}
+
 .notification {
   position: fixed;
   bottom: 2rem;
@@ -382,6 +398,10 @@
 .notifSuccess {
   background-color: rgba(16, 185, 129, 0.05);
   border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.notifText {
+  font-weight: 700;
 }
 
 .notifError {

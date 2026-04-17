@@ -55,16 +55,174 @@
   flex-direction: column;
 }
 
+.titleMain {
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -0.05rem;
+  color: var(--color-text-main);
+}
+
+.gradientText {
+  background: linear-gradient(to right, #06b6d4, #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-style: italic;
+}
+
+.headerSubtitle {
+  color: var(--color-text-muted);
+  font-weight: 500;
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+/* ── Radar & Detailed Info ────────────────────────────────────────── */
+.radarSection {
+  width: 100%;
+  max-width: 300px;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 2rem;
+  padding: 1rem;
+}
+
+@media (max-width: 1200px) {
+  .radarSection {
+    margin: 0 auto;
+  }
+}
+
+.gridTwo {
+  display: grid;
+  grid-template-cols: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .gridTwo {
+    grid-template-cols: repeat(2, 1fr);
+  }
+}
+
+.infoCard {
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 2.5rem;
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+}
+
+.infoTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.infoList {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.infoList li {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  position: relative;
+  padding-left: 1.75rem;
+  opacity: 0.8;
+}
+
+.infoList li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: var(--color-accent-primary);
+  font-weight: 900;
+}
+
+.successIcon { color: #10b981; }
+.warningIcon { color: #f59e0b; }
+
+.insightBox {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(6, 182, 212, 0.08));
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 2.5rem;
+  padding: 3rem;
+  margin-top: 1rem;
+}
+
+.insightTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--color-accent-primary);
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.insightContent {
+  display: grid;
+  grid-template-cols: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .insightContent {
+    grid-template-cols: repeat(2, 1fr);
+  }
+}
+
+.insightItem {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1.25rem 2rem;
+  border-radius: 1.5rem;
+  font-size: 0.95rem;
+  color: var(--color-text-main);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-style: italic;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.375rem 1rem;
-  background-color: rgba(6, 182, 212, 0.1);
-  border: 1px solid rgba(6, 182, 212, 0.2);
+  background-color: rgba(79, 70, 229, 0.06);
+  border: 1px solid rgba(79, 70, 229, 0.12);
   border-radius: 9999px;
   width: fit-content;
-  margin-bottom: 1rem;
+}
+
+.badgeLabel {
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--color-accent-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.2rem;
+}
+
+.gradientText {
+  background: linear-gradient(to right, var(--color-accent-primary), #0ea5e9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-style: italic;
 }
 
 .badgeLabel {
@@ -79,7 +237,7 @@
   font-size: 3rem;
   font-weight: 900;
   letter-spacing: -0.05rem;
-  color: white;
+  color: var(--color-text-main);
 }
 
 .gradientText {
@@ -90,7 +248,7 @@
 }
 
 .headerSubtitle {
-    color: rgba(255, 255, 255, 0.3);
+    color: var(--color-text-muted);
     font-weight: 500;
     font-style: italic;
     margin-top: 0.5rem;
@@ -104,10 +262,10 @@
 
 .refreshBtn {
   padding: 1.25rem 2.5rem;
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 1.25rem;
-  color: white;
+  color: var(--color-text-main);
   font-size: 11px;
   font-weight: 900;
   text-transform: uppercase;
@@ -166,12 +324,13 @@
 }
 
 .insightCard {
-  background-color: rgba(255, 255, 255, 0.01);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 2.5rem;
   padding: 2.5rem;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
 }
 
 .insightIcon {
@@ -189,7 +348,7 @@
 .insightTitle {
     font-size: 1.25rem;
     font-weight: 900;
-    color: white;
+    color: var(--color-text-main);
     font-style: italic;
     letter-spacing: tight;
     margin-bottom: 0.75rem;
@@ -198,21 +357,21 @@
 .insightValue {
     font-size: 2.5rem;
     font-weight: 900;
-    color: white;
+    color: var(--color-text-main);
     font-style: italic;
     letter-spacing: -0.05rem;
     line-height: 1;
 }
 
 .insightSubtext {
-    color: rgba(255, 255, 255, 0.2);
+    color: var(--color-text-muted);
     font-size: 12px;
     margin-top: 1rem;
 }
 
 .recommendationCard {
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 2.5rem;
   padding: 3rem;
   transition: all 0.5s ease;
@@ -222,14 +381,14 @@
 
 .recommendationCard:hover {
   transform: translateY(-0.5rem);
-  background-color: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+  border-color: var(--color-accent-primary);
 }
 
 .jobTitle {
   font-size: 1.5rem;
   font-weight: 900;
-  color: white;
+  color: var(--color-text-main);
   font-style: italic;
   letter-spacing: -0.025rem;
   margin-bottom: 1.5rem;
@@ -278,7 +437,7 @@
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.2rem;
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--color-text-muted);
 }
 
 .skillList {
@@ -289,20 +448,20 @@
 
 .skillBadge {
   padding: 0.5rem 1rem;
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 0.75rem;
   font-size: 11px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-text-main);
 }
 
 .actionBtn {
   margin-top: 2.5rem;
   width: 100%;
   padding: 1.25rem;
-  background-color: white;
-  color: #0f172a;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: white;
   border-radius: 1.25rem;
   font-size: 11px;
   font-weight: 900;
@@ -331,7 +490,7 @@
 .footerTitle {
   font-size: 1.25rem;
   font-weight: 900;
-  color: white;
+  color: var(--color-text-main);
   font-style: italic;
   margin-bottom: 1rem;
 }
@@ -374,4 +533,584 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Title Section ────────────────────────────────────────────────────── */
+.titleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.titleMain {
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -0.05rem;
+  color: var(--color-text-main);
+}
+
+.headerSubtitle {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-style: italic;
+  max-width: 40rem;
+}
+
+/* ── Back Link ────────────────────────────────────────────────────────── */
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.backLink:hover {
+  opacity: 1;
+}
+
+/* ── Match Banner ──────────────────────────────────────────────────────── */
+.matchBanner {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 3rem;
+  padding: 3rem 4rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.04);
+  flex-wrap: wrap;
+}
+
+.matchScoreBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.matchScore {
+  font-size: 5rem;
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.08em;
+  line-height: 1;
+  background: linear-gradient(to right, #4f46e5, #0ea5e9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.matchLabel {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.matchRight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.matchAssessment {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  font-style: italic;
+  line-height: 1.7;
+  opacity: 0.7;
+}
+
+.matchStats {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.matchStat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.matchStatValue {
+  font-size: 1.75rem;
+  font-weight: 900;
+  font-style: italic;
+  color: var(--color-text-main);
+  letter-spacing: -0.04em;
+}
+
+.matchStatLabel {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-text-muted);
+  opacity: 0.4;
+}
+
+/* ── Severity Row ────────────────────────────────────────────────────── */
+.severityRow {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.severityPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  border: 1px solid;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ── Tab Bar ──────────────────────────────────────────────────────────── */
+.tabBar {
+  display: flex;
+  gap: 0.5rem;
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 2rem;
+  padding: 0.5rem;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.875rem 2rem;
+  border-radius: 1.5rem;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0.5;
+}
+
+.tab:hover {
+  opacity: 0.8;
+}
+
+.tabActive {
+  background-color: var(--color-accent-primary);
+  color: white;
+  opacity: 1;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+.tabCount {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  padding: 0.1rem 0.5rem;
+  font-size: 10px;
+}
+
+/* ── Empty State ──────────────────────────────────────────────────────── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 8rem 4rem;
+  text-align: center;
+}
+
+.emptySection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 5rem 2rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  opacity: 0.4;
+  font-style: italic;
+}
+
+.emptyIcon {
+  opacity: 0.3;
+}
+
+.emptyTitle {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+}
+
+.emptySub {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  max-width: 30rem;
+  line-height: 1.6;
+}
+
+.startBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+  color: white;
+  border-radius: 1.5rem;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  box-shadow: 0 15px 40px rgba(79, 70, 229, 0.3);
+  transition: all 0.3s;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+}
+
+.startBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 25px 50px rgba(79, 70, 229, 0.4);
+}
+
+/* ── Skill Gap Grid ───────────────────────────────────────────────────── */
+.gapGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  gap: 1.5rem;
+}
+
+.gapCard {
+  background-color: var(--color-panel-bg);
+  border: 1px solid;
+  border-radius: 2rem;
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.gapCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.gapCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.gapSkillName {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+}
+
+.gapSeverityBadge {
+  display: inline-flex;
+  padding: 0.25rem 0.875rem;
+  border-radius: 9999px;
+  border: 1px solid;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.gapCardMeta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.gapType {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.gapMonths {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.gapEffort {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-accent-primary);
+  opacity: 0.5;
+}
+
+/* ── Course Grid ──────────────────────────────────────────────────────── */
+.courseGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(26rem, 1fr));
+  gap: 1.5rem;
+}
+
+.courseCard {
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 2.5rem;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.courseCard:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 12px 32px rgba(79, 70, 229, 0.1);
+}
+
+.courseCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.courseTitle {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  line-height: 1.4;
+}
+
+.certBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  background-color: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 9999px;
+  font-size: 9px;
+  font-weight: 900;
+  color: #10b981;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+
+.courseMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.courseGapTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: rgba(79, 70, 229, 0.05);
+  border: 1px solid rgba(79, 70, 229, 0.12);
+  border-radius: 1rem;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-accent-primary);
+  width: fit-content;
+}
+
+.courseReason {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  line-height: 1.6;
+  opacity: 0.6;
+}
+
+.courseLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-accent-primary);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.courseLink:hover {
+  opacity: 0.7;
+}
+
+/* ── Roadmap ──────────────────────────────────────────────────────────── */
+.roadmapSection {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.roadmapSummary {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 2.5rem;
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 2.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text-main);
+  font-style: italic;
+  line-height: 1.7;
+  opacity: 0.7;
+}
+
+.roadmapIcon {
+  color: var(--color-accent-primary);
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.roadmapTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-left: 2rem;
+  position: relative;
+}
+
+.roadmapTimeline::before {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  top: 1rem;
+  bottom: 1rem;
+  width: 1px;
+  background: var(--color-border-subtle);
+}
+
+.roadmapStage {
+  display: flex;
+  gap: 2rem;
+  padding-bottom: 3rem;
+  position: relative;
+}
+
+.roadmapStage:last-child {
+  padding-bottom: 0;
+}
+
+.roadmapDot {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background-color: var(--color-accent-primary);
+  opacity: 0.6;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.roadmapContent {
+  flex: 1;
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 2rem;
+  padding: 2rem 2.5rem;
+}
+
+.roadmapStageNum {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-accent-primary);
+  opacity: 0.5;
+  margin-bottom: 0.75rem;
+}
+
+.roadmapFocus {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  margin-bottom: 0.75rem;
+}
+
+.roadmapWeeks {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────── */
+.footer {
+  padding: 3rem;
+  background-color: rgba(79, 70, 229, 0.03);
+  border: 1px solid rgba(79, 70, 229, 0.08);
+  border-radius: 3rem;
+}
+
+.footerTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
+.footerIcon {
+  color: var(--color-accent-primary);
+}
+
+.footerText {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  opacity: 0.6;
 }

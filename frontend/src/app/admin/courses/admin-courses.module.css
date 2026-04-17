@@ -1,0 +1,337 @@
+@reference "tailwindcss";
+@reference "../../globals.css";
+
+.pageRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.header {
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 3rem;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+@media (min-width: 1024px) {
+  .header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  font-style: italic;
+  letter-spacing: -0.05em;
+}
+
+.headerIcon {
+  color: var(--color-accent-primary);
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-top: 0.5rem;
+  opacity: 0.7;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 2.5rem;
+  background-color: var(--color-accent-primary);
+  color: white;
+  border-radius: 1.25rem;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
+}
+
+.contentStack {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.controlBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 2rem;
+}
+
+.searchContainer {
+  position: relative;
+  flex: 1;
+  max-width: 30rem;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 1rem 1.5rem 1rem 3.5rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1.25rem;
+  color: var(--color-text-main);
+  font-weight: 700;
+  outline: none;
+}
+
+.refreshBtn {
+  padding: 0.75rem;
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1rem;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.tableContainer {
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 3rem;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHeader {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.th {
+  padding: 1.5rem 2rem;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border-subtle);
+  opacity: 0.6;
+}
+
+.thRight { text-align: right; }
+
+.tr {
+  border-bottom: 1px solid var(--color-border-subtle);
+  transition: background-color 0.3s ease;
+}
+
+.tr:hover {
+  background-color: rgba(0, 0, 0, 0.01);
+}
+
+.td {
+  padding: 1.5rem 2rem;
+}
+
+.courseMainInfo {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.courseIconBox {
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: rgba(14, 165, 233, 0.05);
+  border: 1px solid rgba(14, 165, 233, 0.1);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0ea5e9;
+}
+
+.courseTitleText {
+  font-weight: 900;
+  color: var(--color-text-main);
+  font-style: italic;
+}
+
+.platformName {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.levelBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.75rem;
+  background-color: rgba(6, 182, 212, 0.05);
+  border: 1px solid rgba(6, 182, 212, 0.1);
+  color: #0891b2;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.tagGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tagBadge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.actionGroup {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.actionBtn {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  transition: all 0.3s ease;
+}
+
+.actionBtn:hover {
+  color: var(--color-text-main);
+  opacity: 1;
+}
+
+.actionBtnDelete:hover {
+  color: #f43f5e;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modalContent {
+  width: 100%;
+  max-width: 32rem;
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 2.5rem;
+  padding: 2.5rem;
+}
+
+.modalTitle {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  font-style: italic;
+  margin-bottom: 2rem;
+}
+
+.formGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formField label {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.formField input, .formField select {
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1rem;
+  color: var(--color-text-main);
+  font-weight: 700;
+  outline: none;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+}
+
+.submitBtn {
+  padding: 1rem 2rem;
+  background-color: var(--color-accent-primary);
+  color: white;
+  border-radius: 1rem;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.notification {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1.5rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.notifSuccess { border-left: 4px solid #10b981; }
+.notifError { border-left: 4px solid #f43f5e; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

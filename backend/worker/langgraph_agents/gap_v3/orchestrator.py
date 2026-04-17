@@ -3,14 +3,14 @@ gap_v3 Orchestrator: LangGraph cho toàn bộ Gap Analysis v3 pipeline.
 """
 
 from langgraph.graph import StateGraph, END
-from ..states import GapAnalysisStateV3
-from ..nodes.gap_nodes import (
+from .states import GapAnalysisStateV3
+from .nodes.gap_nodes import (
     load_cv_parsed_data_node,
     extract_jd_node,
     gap_analysis_llm_node,
 )
-from ..nodes.course_nodes import course_recommendation_llm_node
-from ..nodes.finalize_nodes import roadmap_synthesis_node, finalize_report_node
+from .nodes.course_nodes import course_recommendation_llm_node
+from .nodes.finalize_nodes import roadmap_synthesis_node, finalize_report_node
 
 
 def _should_continue(state: GapAnalysisStateV3) -> str:
@@ -25,7 +25,6 @@ gap_v3_workflow = StateGraph(GapAnalysisStateV3)
 
 gap_v3_workflow.set_entry_point("load_cv")
 gap_v3_workflow.add_node("load_cv", load_cv_parsed_data_node)
-gap_v3_workflow.add_node("extract_jd", extract_jd_node)
 gap_v3_workflow.add_node("gap_analysis", gap_analysis_llm_node)
 gap_v3_workflow.add_node("course_agent", course_recommendation_llm_node)
 gap_v3_workflow.add_node("roadmap", roadmap_synthesis_node)
@@ -33,10 +32,7 @@ gap_v3_workflow.add_node("finalize", finalize_report_node)
 
 # Edges
 gap_v3_workflow.add_conditional_edges(
-    "load_cv", _should_continue, {"continue": "extract_jd", "end": END}
-)
-gap_v3_workflow.add_conditional_edges(
-    "extract_jd", _should_continue, {"continue": "gap_analysis", "end": END}
+    "load_cv", _should_continue, {"continue": "gap_analysis", "end": END}
 )
 gap_v3_workflow.add_conditional_edges(
     "gap_analysis", _should_continue, {"continue": "course_agent", "end": END}
