@@ -1,25 +1,32 @@
+import logging
 import os
 import sys
-import logging
-from sqlalchemy import create_engine, text
+
 from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
 
 # Add parent directory to sys.path to import shared modules
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from shared.database import Base, engine
-from shared.models import User, Course, Skill, Job # Import all to ensure Base knows them
 from scripts.create_admin import create_admin
 from scripts.seed_all import seed_base_data
 from scripts.seed_import_worker import seed_courses
+from shared.database import Base, engine
+from shared.models import (  # Import all to ensure Base knows them
+    Course,
+    Job,
+    Skill,
+    User,
+)
 
 # Logging setup
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%H:%M:%S"
+    datefmt="%H:%M:%S",
 )
 logger = logging.getLogger("setup_db")
+
 
 def setup_db(skip_extended=True, skip_embed=False):
     logger.info("🚀 Starting Full Database Setup...")
@@ -32,7 +39,9 @@ def setup_db(skip_extended=True, skip_embed=False):
             conn.commit()
             logger.info("  [OK] pgvector extension ready")
     except Exception as e:
-        logger.warning(f"  [WARN] Could not create extension (might already exist or permission issue): {e}")
+        logger.warning(
+            f"  [WARN] Could not create extension (might already exist or permission issue): {e}"
+        )
 
     # 2. Create Schema
     logger.info("Step 2: Creating Tables & Constraints...")
@@ -55,15 +64,27 @@ def setup_db(skip_extended=True, skip_embed=False):
     except Exception as e:
         logger.error(f"  [ERROR] Admin creation failed: {e}")
 
-    logger.info("✅ Database Setup Completed Successfully! (Seeding skipped - use crawlers/seed_all.py)")
+    logger.info(
+        "✅ Database Setup Completed Successfully! (Seeding skipped - use scripts/seed_all.py)"
+    )
+
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Full Database Setup: Schema creation + Seeding")
-    parser.add_argument("--extended", action="store_true", help="Seed the full 300+ courses dataset")
-    parser.add_argument("--skip-embed", action="store_true", help="Skip OpenAI embeddings for faster setup")
-    
+
+    parser = argparse.ArgumentParser(
+        description="Full Database Setup: Schema creation + Seeding"
+    )
+    parser.add_argument(
+        "--extended", action="store_true", help="Seed the full 300+ courses dataset"
+    )
+    parser.add_argument(
+        "--skip-embed",
+        action="store_true",
+        help="Skip OpenAI embeddings for faster setup",
+    )
+
     args = parser.parse_args()
-    
+
     # Run setup
     setup_db(skip_extended=not args.extended, skip_embed=args.skip_embed)
