@@ -92,6 +92,21 @@ python -c "from worker.celery_app import celery_app; celery_app.send_task('worke
 
 ---
 
+## 🔍 Bước 7: Cấu hình bóc tách CV (Parser Strategies)
+
+Hệ thống hỗ trợ 2 chiến lược bóc tách dữ liệu từ CV (Direct và Chandra):
+
+1. **Direct (Mặc định)**: Sử dụng thư viện nội bộ (`pymupdf`, `pdf2image`) để trích xuất text. Phù hợp cho CV dạng text hoặc file PDF chuẩn.
+2. **Chandra (Khuyên dùng cho bản quét)**: Sử dụng dịch vụ OCR thông minh (qua API) để xử lý các CV dạng ảnh chụp hoặc scan có độ phức tạp cao.
+
+Để chuyển đổi, hãy sửa biến `CV_PARSER_STRATEGY` trong file `.env`:
+```env
+# Chọn 'direct' hoặc 'chandra'
+CV_PARSER_STRATEGY=chandra
+```
+
+---
+
 ## 💻 Bước 6: Khởi động Frontend
 
 1. Di chuyển sang thư mục `frontend/`:

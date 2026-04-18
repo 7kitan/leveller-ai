@@ -145,14 +145,17 @@ const UserRecommendPage = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((r) => {
-        console.log("[RECOMMEND] Loaded from /analysis/user/latest");
-        setGapResult(r.data as GapResult);
+        if (r.data) {
+          console.log("[RECOMMEND] Loaded from /analysis/user/latest");
+          setGapResult(r.data as GapResult);
+        } else {
+          console.log("[RECOMMEND] No analysis found (null response)");
+          setError("Không tìm thấy kết quả phân tích. Vui lòng chạy Gap Analysis trước.");
+        }
       })
       .catch((e) => {
-        console.error("[RECOMMEND] No analysis found:", e);
-        setError(
-          "Không tìm thấy kết quả phân tích. Vui lòng chạy Gap Analysis trước."
-        );
+        console.error("[RECOMMEND] API Error:", e);
+        setError("Không thể kết nối đến hệ thống phân tích.");
       })
       .finally(() => setLoading(false));
   }, [token]);

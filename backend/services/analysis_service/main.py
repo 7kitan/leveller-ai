@@ -156,10 +156,7 @@ async def get_latest_analysis(request: Request, db: Session = Depends(get_db)):
     )
 
     if not analysis:
-        raise HTTPException(
-            status_code=404,
-            detail="No analysis found. Please upload a CV and start analysis first.",
-        )
+        return None
 
     return analysis.result_json or {}
 

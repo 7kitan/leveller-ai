@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Data & Temp
+data/
+scratch/
+logs/
+-
+*.log
+
+# Git & IDE
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Backend env
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store

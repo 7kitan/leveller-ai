@@ -11,6 +11,7 @@ from typing import Dict, Any
 from ..states import CVParsingState, CVParsedData
 from ..utils.pii_masker import mask_pii, mask_work_history
 from ..utils.llm_helpers import llm_json_completion
+from ..utils.ocr_client import ocr_client
 from shared.models import UserCV, UserSkillProfile, Skill
 
 logger = logging.getLogger("cv_parsing_v3")
@@ -115,7 +116,35 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
         logger.error(f"[STEP 1] Error locating file: {e}", exc_info=True)
         return {**state, "error": f"Error locating CV file: {e}", "status": "failed"}
 
-    # ── Extract text via pymupdf ──────────────────────────────────────────────
+    # ── Strategy Check: Chandra vs Direct ──────────────────────────────────
+    strategy = os.getenv("CV_PARSER_STRATEGY", "direct").lower()
+    is_ocr = False
+
+    if strategy == "chandra":
+        logger.info(f"[STEP 1] Selection: CHANDRA — Calling external OCR API...")
+        ocr_result = await ocr_client.ocr_file(file_path)
+        
+        if ocr_result["status"] == "success":
+            raw_text = ocr_result["text"]
+            is_ocr = ocr_result["is_ocr"]
+            logger.info(
+                f"[STEP 1] ✓ CHANDRA SUCCESS | text_len={len(raw_text)} | "
+                f"confidence={ocr_result.get('confidence', 0):.2f}"
+            )
+            return {
+                **state,
+                "raw_text": raw_text,
+                "is_ocr": is_ocr,
+                "status": "text_extracted",
+            }
+        else:
+            logger.warning(
+                f"[STEP 1] ⚠ CHANDRA FAILED: {ocr_result.get('error')} | "
+                f"Falling back to DIRECT extraction..."
+            )
+            # Continue to direct logic
+
+    # ── Extract text via pymupdf (DIRECT) ────────────────────────────────────
     try:
         doc = fitz.open(file_path)
         num_pages = len(doc)

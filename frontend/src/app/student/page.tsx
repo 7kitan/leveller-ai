@@ -43,14 +43,14 @@ const StudentDashboard = () => {
             "X-User-ID": user.id
           }
         });
-        setAnalysis(response.data);
-      } catch (err: any) {
-        if (err.response?.status === 404) {
-          console.log("No analysis found for user. Showing zero-state.");
-          setAnalysis(null);
+        if (response.data) {
+          setAnalysis(response.data);
         } else {
-          console.error("Failed to fetch latest analysis:", err);
+          setAnalysis(null);
         }
+      } catch (err: any) {
+        console.error("Failed to fetch latest analysis:", err);
+        setAnalysis(null);
       } finally {
         setLoading(false);
       }

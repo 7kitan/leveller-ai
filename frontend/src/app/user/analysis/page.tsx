@@ -21,7 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import styles from "./user-analysis.module.css";
 
-/* ── Types ─────────────────────────────────────────────────────────────── */
+/* -- Types --------------------------------------------------------------- */
 interface CVOption {
   id: string;
   full_name: string | null;
@@ -39,7 +39,7 @@ interface JobOption {
 
 type Phase = "setup" | "processing" | "completed" | "failed";
 
-/* ── Step labels ──────────────────────────────────────────────────────── */
+/* -- Step labels -------------------------------------------------------- */
 const PIPELINE_STEPS = [
   { label: "Bóc tách JD & CV", key: "extract" },
   { label: "Phân tích Gap", key: "analyze" },
@@ -66,11 +66,11 @@ function AnalysisPageContent() {
   const initialJobId = searchParams.get("job_id");
   const initialJobTitle = searchParams.get("job_title");
 
-  /* ── CV list ──────────────────────────────────────────────────────── */
+  /* -- CV list -------------------------------------------------------- */
   const [cvs, setCvs] = useState<CVOption[]>([]);
   const [selectedCvId, setSelectedCvId] = useState<string>("");
 
-  /* ── JD input mode ────────────────────────────────────────────────── */
+  /* -- JD input mode -------------------------------------------------- */
   const [jdMode, setJdMode] = useState<"select" | "paste">("select");
   const [selectedJobId, setSelectedJobId] = useState<string>("");
   const [selectedJob, setSelectedJob] = useState<JobOption | null>(null);
@@ -79,16 +79,16 @@ function AnalysisPageContent() {
   const [jobResults, setJobResults] = useState<JobOption[]>([]);
   const [searchingJobs, setSearchingJobs] = useState(false);
 
-  /* ── Validation & submission ──────────────────────────────────────── */
+  /* -- Validation & submission ---------------------------------------- */
   const [error, setError] = useState<string>("");
 
-  /* ── Pipeline state ─────────────────────────────────────────────────── */
+  /* -- Pipeline state --------------------------------------------------- */
   const [phase, setPhase] = useState<Phase>("setup");
   const [taskId, setTaskId] = useState<string>("");
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
 
-  /* ── Handle URL Params ────────────────────────────────────────────── */
+  /* -- Handle URL Params ---------------------------------------------- */
   useEffect(() => {
     if (initialJobId && initialJobTitle) {
       setSelectedJobId(initialJobId);
@@ -103,7 +103,7 @@ function AnalysisPageContent() {
     }
   }, [initialJobId, initialJobTitle]);
 
-  /* ── Load CVs ─────────────────────────────────────────────────────── */
+  /* -- Load CVs ------------------------------------------------------- */
   useEffect(() => {
     if (!token) return;
     axios
@@ -116,7 +116,7 @@ function AnalysisPageContent() {
       .catch((e) => console.error("[ANALYSIS] load CVs:", e));
   }, [token]);
 
-  /* ── Search jobs when switching to select mode ───────────────────── */
+  /* -- Search jobs when switching to select mode --------------------- */
   useEffect(() => {
     if (jdMode !== "select" || !token) return;
     const t = setTimeout(() => searchJobs(jobSearch), 400);
@@ -148,12 +148,12 @@ function AnalysisPageContent() {
     setSelectedJobId("");
   };
 
-  /* ── Validate setup ──────────────────────────────────────────────── */
+  /* -- Validate setup ------------------------------------------------ */
   const isValid =
     !!selectedCvId &&
     (jdMode === "paste" ? pastedJdText.trim().length > 20 : !!selectedJobId);
 
-  /* ── Start analysis ──────────────────────────────────────────────── */
+  /* -- Start analysis ------------------------------------------------ */
   const startAnalysis = async () => {
     setError("");
     if (!isValid) {
@@ -196,7 +196,7 @@ function AnalysisPageContent() {
     }
   };
 
-  /* ── Poll Celery task ─────────────────────────────────────────── */
+  /* -- Poll Celery task ------------------------------------------- */
   const pollStatus = (tid: string) => {
     const interval = setInterval(async () => {
       try {
@@ -239,7 +239,7 @@ function AnalysisPageContent() {
     }, 2500);
   };
 
-  /* ── Retry / back ──────────────────────────────────────────────── */
+  /* -- Retry / back ------------------------------------------------ */
   const handleRetry = () => {
     setPhase("setup");
     setProgress(0);
@@ -247,9 +247,9 @@ function AnalysisPageContent() {
     setError("");
   };
 
-  /* ═══════════════════════════════════════════════════════════════════
-     PHASE: SETUP — chọn JD + CV rồi bắt đầu
-  ═══════════════════════════════════════════════════════════════════ */
+  /* ===================================================================
+     PHASE: SETUP - chọn JD + CV rồi bắt đầu
+  =================================================================== */
   if (phase === "setup" || phase === "failed") {
     return (
       <div className={styles.pageRoot}>
@@ -272,7 +272,7 @@ function AnalysisPageContent() {
             </p>
           </div>
 
-          {/* ── JD Section ──────────────────────────────────────── */}
+          {/* -- JD Section ---------------------------------------- */}
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <Target size={18} className={styles.sectionIcon} />
@@ -300,7 +300,7 @@ function AnalysisPageContent() {
               </button>
             </div>
 
-            {/* ── Mode: Select from list ──────────────────────────── */}
+            {/* -- Mode: Select from list ---------------------------- */}
             {jdMode === "select" && (
               <div className={styles.jdSelectSection}>
                 {selectedJob ? (
@@ -361,7 +361,7 @@ function AnalysisPageContent() {
               </div>
             )}
 
-            {/* ── Mode: Paste JD text ────────────────────────────── */}
+            {/* -- Mode: Paste JD text ------------------------------ */}
             {jdMode === "paste" && (
               <div className={styles.jdPasteSection}>
                 <textarea
@@ -379,7 +379,7 @@ function AnalysisPageContent() {
             )}
           </div>
 
-          {/* ── CV Section ──────────────────────────────────────── */}
+          {/* -- CV Section ---------------------------------------- */}
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <FileText size={18} className={styles.sectionIcon} />
@@ -426,7 +426,7 @@ function AnalysisPageContent() {
             )}
           </div>
 
-          {/* ── Error ──────────────────────────────────────── */}
+          {/* -- Error ---------------------------------------- */}
           {error && (
             <div className={styles.errorBox}>
               <AlertCircle size={16} />
@@ -434,7 +434,7 @@ function AnalysisPageContent() {
             </div>
           )}
 
-          {/* ── Actions ────────────────────────────────── */}
+          {/* -- Actions ---------------------------------- */}
           <div className={styles.setupActions}>
             <button
               onClick={() => router.push("/user/jobs")}
@@ -457,9 +457,9 @@ function AnalysisPageContent() {
     );
   }
 
-  /* ═══════════════════════════════════════════════════════════════════
+  /* ===================================================================
      PHASE: PROCESSING
-  ═══════════════════════════════════════════════════════════════════ */
+  =================================================================== */
   if (phase === "processing") {
     return (
       <div className={styles.pageRoot}>
@@ -517,9 +517,9 @@ function AnalysisPageContent() {
     );
   }
 
-  /* ═══════════════════════════════════════════════════════════════════
+  /* ===================================================================
      PHASE: COMPLETED
-  ═══════════════════════════════════════════════════════════════════ */
+  =================================================================== */
   return (
     <div className={styles.pageRoot}>
       <div className={styles.glowTop} />
