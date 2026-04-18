@@ -27,7 +27,7 @@ if os.getenv("HF_LOCAL_FILES_ONLY", "0").lower() in ("1", "true", "yes"):
 # Silence noisy loggers
 logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
 logging.getLogger("transformers.tokenization_utils_base").setLevel(logging.ERROR)
-logging.getLogger("bert_score").setLevel(logging.ERROR)
+# logging.getLogger("bert_score").setLevel(logging.ERROR)
 
 # --- Force Local Caching to avoid re-downloading models in ephemeral containers ---
 # If HF_HOME is not set, we use a local directory inside the project
@@ -87,8 +87,8 @@ except Exception as e:
 # --- Heavy Imports moved to top to avoid late import issues ---
 try:
     from transformers import AutoModelForImageTextToText, AutoProcessor, BitsAndBytesConfig, AutoModel
-    from bert_score import BERTScorer
-    from sentence_transformers import CrossEncoder
+# from bert_score import BERTScorer
+# from sentence_transformers import CrossEncoder
     
     # --- Monkeypatch AutoModel to prefer safetensors but fallback to pickle ---
     _orig_from_pretrained = AutoModel.from_pretrained
@@ -126,7 +126,7 @@ class AIModelHub:
         
         # Chandra OCR 2 — Real model from Datalab
         self.chandra_path = os.getenv("CHANDRA_MODEL_PATH", "datalab-to/chandra-ocr-2")
-        self.bert_model_name = os.getenv("BERTSCORE_MODEL_NAME", "microsoft/deberta-v3-base")
+        # self.bert_model_name = os.getenv("BERTSCORE_MODEL_NAME", "microsoft/deberta-v3-base")
         
     def load_chandra(self):
         """Load Chandra OCR 2 (datalab-to/chandra-ocr-2).
@@ -219,30 +219,30 @@ class AIModelHub:
                 logger.error(f"DEBUG MODELS: [FATAL] Failed to load Chandra OCR 2: {e}")
                 raise
 
-    def load_bertscore(self):
-        """Load Cross-Encoder model (used for skill matching).
-        Note: We keep the method name 'load_bertscore' for internal backward compatibility 
-        with engine calls for now, but it initializes a Cross-Encoder.
-        """
-        if self.skill_matcher is None:
-            logger.info(f"Loading Cross-Encoder with {self.bert_model_name}...")
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            
-            # Use CrossEncoder for high-precision short-string matching
-            self.skill_matcher = CrossEncoder(
-                self.bert_model_name,
-                device=device
-            )
-            logger.info(f"Cross-Encoder initialized on {device}.")
-            
-            # Backwards compatibility reference (if any code still uses self.bert_scorer)
-            # self.bert_scorer = self.skill_matcher 
+    # def load_bertscore(self):
+    #     """Load Cross-Encoder model (used for skill matching).
+    #     Note: We keep the method name 'load_bertscore' for internal backward compatibility 
+    #     with engine calls for now, but it initializes a Cross-Encoder.
+    #     """
+    #     if self.skill_matcher is None:
+    #         logger.info(f"Loading Cross-Encoder with {self.bert_model_name}...")
+    #         device = "cuda" if torch.cuda.is_available() else "cpu"
+    #         
+    #         # Use CrossEncoder for high-precision short-string matching
+    #         self.skill_matcher = CrossEncoder(
+    #             self.bert_model_name,
+    #             device=device
+    #         )
+    #         logger.info(f"Cross-Encoder initialized on {device}.")
+    #         
+    #         # Backwards compatibility reference (if any code still uses self.bert_scorer)
+    #         # self.bert_scorer = self.skill_matcher 
 
     def unload_models(self):
         """Force memory cleanup."""
         self.chandra_model = None
         self.chandra_processor = None
-        self.skill_matcher = None
+        # self.skill_matcher = None
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -252,7 +252,7 @@ class AIModelHub:
         """Load all models at startup to avoid delay during requests."""
         logger.info("Initializing all AI models...")
         self.load_chandra()
-        self.load_bertscore()
+        # self.load_bertscore()
         logger.info("All AI models loaded successfully.")
 
 # Global instance

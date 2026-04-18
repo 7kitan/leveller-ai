@@ -13,7 +13,7 @@ python-multipart==0.0.9
 torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cpu
 transformers>=4.46.0
-bert-score==0.3.13
+# bert-score==0.3.13
 accelerate>=0.34.0
 bitsandbytes>=0.43.0
 Pillow==10.2.0
@@ -21,10 +21,10 @@ numpy==1.26.4
 pdf2image==1.17.0
 
 # Required for DeBERTa-v3 Tokenizer
-sentencepiece
-tiktoken
-protobuf
+# sentencepiece
+# tiktoken
+# protobuf
 
 # Chandra OCR 2 (datalab-to/chandra-ocr-2)
 chandra-ocr
-sentence-transformers
+# sentence-transformers

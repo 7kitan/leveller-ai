@@ -151,80 +151,81 @@ async def process_ocr_task(payload: dict):
         logger.error(f"OCR Error: {e}")
         return {"error": str(e)}
 
-async def calculate_bertscore_task(payload: dict):
-    """Heavy task: BERTScore calculation. Supports single jd_skill or list of jd_skills."""
-    logger.info(f"DEBUG HUB: Received BERTScore Payload keys: {list(payload.keys())}")
-    
-    cv_skills = payload.get("cv_skills") or payload.get("cv_text") or []
-    jd_skill = payload.get("jd_skill")
-    jd_skills = payload.get("jd_skills") or []
-    
-    # Force wrap single skill into list if plural is missing
-    if jd_skill and not jd_skills:
-        jd_skills = [jd_skill]
-        
-    logger.info(f"DEBUG HUB: CV Skills Count: {len(cv_skills)}, JD Skills Count: {len(jd_skills)}")
-    
-    if not cv_skills or not jd_skills:
-        logger.error(f"DEBUG HUB: Validation Failed. CV: {len(cv_skills)}, JD: {len(jd_skills)}")
-        return {"error": "Missing skills for comparison", "received_keys": list(payload.keys())}
+# async def calculate_bertscore_task(payload: dict):
+#     """Heavy task: BERTScore calculation. Supports single jd_skill or list of jd_skills."""
+#     logger.info(f"DEBUG HUB: Received BERTScore Payload keys: {list(payload.keys())}")
+#     
+#     cv_skills = payload.get("cv_skills") or payload.get("cv_text") or []
+#     jd_skill = payload.get("jd_skill")
+#     jd_skills = payload.get("jd_skills") or []
+#     
+#     # Force wrap single skill into list if plural is missing
+#     if jd_skill and not jd_skills:
+#         jd_skills = [jd_skill]
+#         
+#     logger.info(f"DEBUG HUB: CV Skills Count: {len(cv_skills)}, JD Skills Count: {len(jd_skills)}")
+#     
+#     if not cv_skills or not jd_skills:
+#         logger.error(f"DEBUG HUB: Validation Failed. CV: {len(cv_skills)}, JD: {len(jd_skills)}")
+#         return {"error": "Missing skills for comparison", "received_keys": list(payload.keys())}
+# 
+#     # Ensure all elements are strings to prevent 'int too big to convert' tokenizer crashes
+#     # and filter out any empty strings
+#     try:
+#         cv_skills = [str(s).strip() for s in cv_skills if str(s).strip()]
+#         jd_skills = [str(s).strip() for s in jd_skills if str(s).strip()]
+#     except Exception as e:
+#         logger.error(f"DEBUG HUB: Failed to sanitize input skills mapping: {e}")
+#         return {"error": f"Invalid skill data types: {e}"}
+# 
+#     if not cv_skills or not jd_skills:
+#         logger.error("DEBUG HUB: Validation Failed AFTER sanitization. Empty skill lists.")
+#         return {"error": "Missing valid string skills for comparison"}
+# 
+#     try:
+#         results = {}
+#         logger.info(f"DEBUG HUB: Comparing {len(cv_skills)} CV Skills. First 3: {cv_skills[:3]}")
+#         
+#         # Create Cartesian product of pairs (JD Skill, CV Skill)
+#         # This allows the Cross-Encoder to see both concepts simultaneously.
+#         all_pairs = []
+#         for jd_skill_item in jd_skills:
+#             for cv_skill_item in cv_skills:
+#                 all_pairs.append((jd_skill_item, cv_skill_item))
+#         
+#         logger.info(f"DEBUG HUB: Batch matching {len(all_pairs)} pairs using Cross-Encoder...")
+#         
+#         # Batch prediction on GPU
+#         all_scores = hub.skill_matcher.predict(all_pairs, batch_size=32, show_progress_bar=False)
+#         
+#         # Aggregate Results
+#         # For each JD skill, we find the best match in the CV.
+#         idx = 0
+#         for jd_skill_item in jd_skills:
+#             jd_scores = all_scores[idx : idx + len(cv_skills)]
+#             idx += len(cv_skills)
+#             
+#             # Find best match in this JD skill's result slice
+#             best_cv_idx = int(np.argmax(jd_scores))
+#             best_score = float(jd_scores[best_cv_idx])
+#             
+#             # Calibrate Status: Cross-Encoder scores are more discriminative.
+#             # 0.7+ is usually a strong match. 0.3-0.7 is partial/related.
+#             results[jd_skill_item] = {
+#                 "best_match": cv_skills[best_cv_idx],
+#                 "score": round(best_score, 4),
+#                 "status": "PASS" if best_score >= 0.7 else "PARTIAL" if best_score > 0.3 else "MISSING"
+#             }
+#             
+#             logger.info(f"DEBUG HUB: Result for '{jd_skill_item}': BestMatch='{cv_skills[best_cv_idx]}' Score={round(best_score, 4)} Status={results[jd_skill_item]['status']}")
+#         
+#         # Return object depends on input type
+#         if jd_skill and len(jd_skills) == 1:
+#             return results[jd_skill]
+#         return results
+#     except Exception as e:
+#         import traceback
+#         tb_str = traceback.format_exc()
+#         logger.error(f"BERTScore Error: {e}\n{tb_str}")
+#         return {"error": str(e), "traceback": tb_str}
 
-    # Ensure all elements are strings to prevent 'int too big to convert' tokenizer crashes
-    # and filter out any empty strings
-    try:
-        cv_skills = [str(s).strip() for s in cv_skills if str(s).strip()]
-        jd_skills = [str(s).strip() for s in jd_skills if str(s).strip()]
-    except Exception as e:
-        logger.error(f"DEBUG HUB: Failed to sanitize input skills mapping: {e}")
-        return {"error": f"Invalid skill data types: {e}"}
-
-    if not cv_skills or not jd_skills:
-        logger.error("DEBUG HUB: Validation Failed AFTER sanitization. Empty skill lists.")
-        return {"error": "Missing valid string skills for comparison"}
-
-    try:
-        results = {}
-        logger.info(f"DEBUG HUB: Comparing {len(cv_skills)} CV Skills. First 3: {cv_skills[:3]}")
-        
-        # Create Cartesian product of pairs (JD Skill, CV Skill)
-        # This allows the Cross-Encoder to see both concepts simultaneously.
-        all_pairs = []
-        for jd_skill_item in jd_skills:
-            for cv_skill_item in cv_skills:
-                all_pairs.append((jd_skill_item, cv_skill_item))
-        
-        logger.info(f"DEBUG HUB: Batch matching {len(all_pairs)} pairs using Cross-Encoder...")
-        
-        # Batch prediction on GPU
-        all_scores = hub.skill_matcher.predict(all_pairs, batch_size=32, show_progress_bar=False)
-        
-        # Aggregate Results
-        # For each JD skill, we find the best match in the CV.
-        idx = 0
-        for jd_skill_item in jd_skills:
-            jd_scores = all_scores[idx : idx + len(cv_skills)]
-            idx += len(cv_skills)
-            
-            # Find best match in this JD skill's result slice
-            best_cv_idx = int(np.argmax(jd_scores))
-            best_score = float(jd_scores[best_cv_idx])
-            
-            # Calibrate Status: Cross-Encoder scores are more discriminative.
-            # 0.7+ is usually a strong match. 0.3-0.7 is partial/related.
-            results[jd_skill_item] = {
-                "best_match": cv_skills[best_cv_idx],
-                "score": round(best_score, 4),
-                "status": "PASS" if best_score >= 0.7 else "PARTIAL" if best_score > 0.3 else "MISSING"
-            }
-            
-            logger.info(f"DEBUG HUB: Result for '{jd_skill_item}': BestMatch='{cv_skills[best_cv_idx]}' Score={round(best_score, 4)} Status={results[jd_skill_item]['status']}")
-        
-        # Return object depends on input type
-        if jd_skill and len(jd_skills) == 1:
-            return results[jd_skill]
-        return results
-    except Exception as e:
-        import traceback
-        tb_str = traceback.format_exc()
-        logger.error(f"BERTScore Error: {e}\n{tb_str}")
-        return {"error": str(e), "traceback": tb_str}
