@@ -14,9 +14,11 @@ import {
   Workflow,
   Compass,
   Layers,
-  Sparkles
+  Sparkles,
+  Zap
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import styles from "./student.module.css";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,6 +26,7 @@ import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 
 const StudentDashboard = () => {
+  const router = useRouter();
   const [activeSkill, setActiveSkill] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -41,8 +44,13 @@ const StudentDashboard = () => {
           }
         });
         setAnalysis(response.data);
-      } catch (err) {
-        console.error("Failed to fetch latest analysis:", err);
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          console.log("No analysis found for user. Showing zero-state.");
+          setAnalysis(null);
+        } else {
+          console.error("Failed to fetch latest analysis:", err);
+        }
       } finally {
         setLoading(false);
       }
@@ -50,27 +58,6 @@ const StudentDashboard = () => {
 
     fetchLatestAnalysis();
   }, [token, user]);
-
-  // Map backend roadmap to growthPath
-  const roadmapStages = analysis?.career_roadmap?.stages || [];
-  const growthPath = roadmapStages.map((stage: any, idx: number) => ({
-    step: stage.focus || stage.stage_name || `Giai đoạn ${stage.stage}`,
-    status: idx === 0 ? "In-Progress" : "Upcoming",
-    icon: idx === 0 ? Workflow : (idx === 1 ? Cpu : Box),
-    summary: stage.summary || ""
-  }));
-
-  // Fallback to internal roles if none in analysis
-  const roles = analysis?.target_roles || ["AI Solutions Architect", "Full-Stack Tech Lead"];
-  
-  // Real skills from cv_parsed (embedded in result_json if v3, or separately if needed)
-  // v3 analysis typically includes cv_parsed
-  const cvParsed = analysis?.cv_parsed || analysis?.cv_parsed_json || {};
-  const currentSkills = (cvParsed.skills || []).slice(0, 3).map((s: any) => ({
-    name: s.name,
-    level: s.level || "Beginner",
-    progress: s.level === "Expert" ? 95 : (s.level === "Advanced" ? 80 : (s.level === "Intermediate" ? 60 : 30))
-  }));
 
   if (loading) {
     return (
@@ -85,12 +72,77 @@ const StudentDashboard = () => {
     );
   }
 
+  // Zero State: No analysis found
+  if (!analysis) {
+    return (
+      <AuthGuard>
+        <div className={styles.pageRoot}>
+          <div className={styles.emptyStateContainer}>
+            <div className={styles.emptyStateContent}>
+              <div className={styles.emptyStateDecoration} />
+              <div className={styles.emptyStateIconBox}>
+                 <Sparkles size={48} />
+              </div>
+              
+              <div className={styles.emptyStateText}>
+                <h1 className={styles.emptyStateTitle}>
+                  THE<br />
+                  <span className={styles.nexusText}>GENOME WAITS.</span>
+                </h1>
+                <p className={styles.emptyStateSub}>
+                  Lộ trình nghề nghiệp của bạn đang được ẩn giấu. Hãy để AI của Lumix giải mã bộ kỹ năng và ánh xạ tương lai của bạn ngay bây giờ.
+                </p>
+              </div>
+
+              <div className={styles.emptySteps}>
+                <div className={styles.emptyStepItem}>
+                  <div className={styles.emptyStepIcon}>01</div>
+                  <span className={styles.emptyStepLabel}>Tải lên CV</span>
+                </div>
+                <div className={styles.emptyStepItem}>
+                  <div className={styles.emptyStepIcon}>02</div>
+                  <span className={styles.emptyStepLabel}>AI Đánh giá Gap</span>
+                </div>
+                <div className={styles.emptyStepItem}>
+                   <div className={styles.emptyStepIcon}>03</div>
+                   <span className={styles.emptyStepLabel}>Nhận lộ trình</span>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => router.push("/user/analysis")}
+                className={styles.ctaButton}
+              >
+                BẮT ĐẦU PHÂN TÍCH CV <ArrowUpRight size={24} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </AuthGuard>
+    );
+  }
+
+  // Data processing for normal state
+  const roadmapStages = analysis?.career_roadmap?.stages || [];
+  const growthPath = roadmapStages.map((stage: any, idx: number) => ({
+    step: stage.focus || stage.stage_name || `Giai đoạn ${stage.stage}`,
+    status: idx === 0 ? "In-Progress" : "Upcoming",
+    icon: idx === 0 ? Workflow : (idx === 1 ? Cpu : Box),
+    summary: stage.summary || ""
+  }));
+
+  const roles = analysis?.target_roles || ["AI Solutions Architect", "Full-Stack Tech Lead"];
+  const cvParsed = analysis?.cv_parsed || analysis?.cv_parsed_json || {};
+  const currentSkills = (cvParsed.skills || []).slice(0, 3).map((s: any) => ({
+    name: s.name,
+    level: s.level || "Beginner",
+    progress: s.level === "Expert" ? 95 : (s.level === "Advanced" ? 80 : (s.level === "Intermediate" ? 60 : 30))
+  }));
   const matchPct = analysis?.overall_match_pct || 0;
 
   return (
     <AuthGuard>
       <div className={styles.pageRoot}>
-        {/* ── Welcome Section ────────────────────────────────────────── */}
         <section className={styles.welcomeSection}>
           <div className={styles.headerInfo}>
             <div className={styles.careerBadge}>
@@ -102,12 +154,8 @@ const StudentDashboard = () => {
               <span className={styles.nexusText}>NEXUS.</span>
             </h1>
             <p className={styles.headerSubtitle}>
-               {analysis ? (
-                 <>Chào mừng trở lại. AI đã phân tích sự phù hợp của bạn với thị trường.
-                 Hệ thống phát hiện <b>{analysis.skill_gaps?.length || 0}</b> khoảng trống tri thức trong lộ trình lên <b>{roles[0]}</b>.</>
-               ) : (
-                 <>Chào mừng bạn đến với THE NEXUS. Hãy tải lên CV để AI bắt đầu ánh xạ lộ trình nghề nghiệp của bạn.</>
-               )}
+               Chào mừng trở lại. AI đã phân tích sự phù hợp của bạn với thị trường.
+               Hệ thống phát hiện <b>{analysis.skill_gaps?.length || 0}</b> khoảng trống tri thức trong lộ trình lên <b>{roles[0]}</b>.
             </p>
           </div>
 
@@ -124,7 +172,6 @@ const StudentDashboard = () => {
         </section>
 
         <div className={styles.mainGrid}>
-            {/* ── Skills & Learning Focus ────────────────────────────────── */}
             <div className={styles.mainContentArea}>
                 <div>
                    <div className={styles.sectionHeader}>
@@ -198,7 +245,6 @@ const StudentDashboard = () => {
                    </div>
                 </div>
 
-                {/* Recommendations Widget */}
                 <div>
                     <div className={styles.sectionHeader}>
                         <h2 className={styles.sectionTitle}>
@@ -234,9 +280,7 @@ const StudentDashboard = () => {
                 </div>
             </div>
 
-            {/* ── Sidebar: AI Roadmap & Career Insights ─────────────────── */}
              <div className={styles.sidebarStack}>
-               {/* Career Sphere Visualization Placeholder */}
                <div className={styles.sphereWidget}>
                   <div className={styles.sphereContainer}>
                      <div className={styles.outerRing}></div>
@@ -244,7 +288,6 @@ const StudentDashboard = () => {
                       <div className={styles.sphereCore}>
                          <Zap size={32} className={styles.zapIconCore} />
                       </div>
-                     {/* Floating nodes */}
                       <div className={cn(styles.graphPoint, styles.graphPointFrontend)}>
                          <span className={cn(styles.contextLabel, styles.contextLabelTop)}>Foundations</span>
                       </div>
@@ -258,7 +301,6 @@ const StudentDashboard = () => {
                    </div>
                </div>
 
-               {/* Step-by-Step Roadmap */}
                <div className={styles.roadmapPanel}>
                    <h3 className={cn(styles.sectionTitle, styles.roadmapTitle)}>
                      <Compass size={20} className={styles.compassIcon} /> Learning Path
@@ -297,17 +339,6 @@ const StudentDashboard = () => {
                         <p className={styles.milestoneText}>{analysis.career_roadmap.stages[0].summary || analysis.career_roadmap.summary}</p>
                      </div>
                    )}
-               </div>
-            </div>
-        </div>
-      </div>
-    </AuthGuard>
-  );
-};
-
-export default StudentDashboard;
-tyles.milestoneText}>Hoàn thành "Graph Databases" để unlock vai trò Tech Lead tại 12 tập đoàn công nghệ.</p>
-                   </div>
                </div>
             </div>
         </div>

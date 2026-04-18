@@ -9,7 +9,7 @@ import json
 import hashlib
 import logging
 import uuid as _uuid
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 from ..states import GapAnalysisStateV3, GapAnalysisResult
 from ..utils.llm_helpers import llm_json_completion
@@ -118,33 +118,8 @@ async def extract_jd_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3:
     return {**state, "status": "jd_extracted_skipped"}
 
 
-def _build_jd_extraction_prompt(jd_text: str) -> str:
-    return (
-        'Extract technical requirements from the Job Description below. Translate all to English.\n\n'
-        "## JD Text:\n"
-        + jd_text +
-        '\n\n'
-        "## Rules:\n"
-        "1. EXHAUSTIVE — extract ALL hard technical skills, frameworks, tools.\n"
-        "2. TRANSLATE skill names and descriptions to English.\n"
-        "3. LEVELS: Junior / Mid-level / Senior / Expert.\n"
-        "4. YEARS: 0 if not mentioned.\n"
-        "5. WEIGHT: 1-10 based on criticality.\n\n"
-        "## Output JSON:\n"
-        '{\n'
-        '  "job_title": "...",\n'
-        '  "requirements": [\n'
-        '    {\n'
-        '      "skill": "SkillName",\n'
-        '      "target_level": "Mid-level",\n'
-        '      "years_required": 0,\n'
-        '      "is_mandatory": true,\n'
-        '      "importance_weight": 5\n'
-        '    }\n'
-        '  ]\n'
-        '}\n'
-        '\nReturn ONLY valid JSON.'
-    )
+# [DEPRECATED] _build_jd_extraction_prompt — kept to avoid breaking existing imports.
+# Logic merged into _build_merged_gap_prompt and _build_gap_only_prompt.
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -153,23 +128,49 @@ def _build_jd_extraction_prompt(jd_text: str) -> str:
 
 async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3:
     """
-    STEP 2+3 (COMBINED): Holistic JD Extraction & Gap Analysis.
+    OPTIMIZED STEP 2+3 (COMBINED): Gap Analysis.
 
-    Takes RAW JD + Parsed CV → Extracts requirements AND calculates gaps in one go.
-    This ensures LLM has full context of the JD text for better reasoning.
+    TWO paths:
+      Path A (Pre-populated): jd_requirements / jd_parsed already in state
+        → SKIP LLM extraction — go straight to gap analysis with CV
+        → from orchestrator.py when job_id is used and DB has extracted_requirements_json
+
+      Path B (Full): No pre-population
+        → LLM does JD extraction + gap analysis + top_gaps in ONE call
     """
     cv_id = state.get("cv_id")
-    jd_text = (state.get("jd_text") or "").strip()
+    jd_text_raw = state.get("jd_text")
+    jd_text = (jd_text_raw or "").strip()
     jd_context = state.get("jd_context") or ""
+    job_id = state.get("job_id")
     cv_parsed = state.get("cv_parsed")
 
-    logger.info(f"\n{'─' * 50}\n[STEP 3] gap_analysis_llm_node (COMBINED) | cv_id={cv_id}")
+    # ── Pre-populated from orchestrator (job_id path) ─────────────────────
+    pre_jd_requirements = state.get("jd_requirements")
+    pre_jd_parsed = state.get("jd_parsed")
+
+    logger.info(
+        f"\n{'─' * 50}\n"
+        f"[STEP 3] gap_analysis_llm_node | cv_id={cv_id}\n"
+        f"  pre_jd_requirements: {f'{len(pre_jd_requirements)} items' if pre_jd_requirements else 'None'}\n"
+        f"  pre_jd_parsed      : {'present' if pre_jd_parsed else 'None'}\n"
+        f"  jd_text_raw        : {repr(jd_text_raw)}\n"
+        f"  jd_text len        : {len(jd_text)}\n"
+        f"  job_id             : {job_id}\n"
+        f"  jd_context         : {repr(jd_context)}"
+    )
 
     if not cv_parsed:
         logger.error("[STEP 3] ✗ No cv_parsed in state")
         return {**state, "error": "No CV parsed data", "status": "failed"}
-    if not jd_text:
-        logger.error("[STEP 3] ✗ No JD text")
+
+    if not jd_text and not pre_jd_requirements:
+        logger.error(
+            f"[STEP 3] ✗ No JD — FAILING\n"
+            f"  jd_text_raw={repr(jd_text_raw)}\n"
+            f"  job_id={job_id}\n"
+            f"  jd_context={repr(jd_context)}"
+        )
         return {**state, "error": "No JD text", "status": "failed"}
 
     # Reset any aborted transaction
@@ -178,96 +179,200 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
     except Exception:
         pass
 
-    # ── Redis cache check (Combined key) ───────────────────────────────────
-    from shared.redis_client import result_cache
-    from ..config import GAP_CACHE_TTL
-
-    jd_hash = hashlib.md5(jd_text.encode()).hexdigest()[:16]
-    cache_key = f"gap_v3_combined:{cv_id}:{jd_hash}"
-
-    cached_raw = result_cache.get(cache_key)
-    if cached_raw:
-        try:
-            cached_data = json.loads(cached_raw)
-            logger.info(f"[STEP 3] ✓ Redis CACHE HIT | key={cache_key}")
-            return {
-                **state,
-                "jd_parsed": cached_data["jd_parsed"],
-                "jd_requirements": cached_data["jd_parsed"].get("requirements") or [],
-                "gap_analysis": cached_data["gap_analysis"],
-                "status": "gap_analyzed",
-            }
-        except Exception as e:
-            logger.warning(f"[STEP 3] Cache parse failed: {e}")
-
-    # ── Format for LLM ────────────────────────────────────────────────
-    cv_text = _format_cv_for_llm(cv_parsed)
-
-    logger.info(
-        f"[STEP 3] Calling Combined LLM | jd_chars={len(jd_text)} | cv_chars={len(cv_text)}"
-    )
-
-    # ── Call LLM ───────────────────────────────────────────────────
-    prompt = _build_merged_gap_prompt(cv_text, jd_text)
-    system = (
-        "You are a Senior Career Match Analyst. Conduct a thorough JD extraction and "
-        "holistic gap analysis. Write assessment and learning paths in Vietnamese. "
-        "Keep technical skill names in English."
-    )
-
-    result = await llm_json_completion(
-        prompt=prompt,
-        context=f"Job: {jd_context}",
-        system_prompt=system,
-        temperature=0.1,
-        call_name="gap_analysis_combined",
-    )
-
-    if result:
+    # ══ PATH A: Pre-populated from job_id — SKIP LLM JD extraction ══════════
+    if pre_jd_requirements:
         logger.info(
-            f"\n[LLM DATA] ┌─── gap_analysis_combined (FULL RESULT)\n"
-            f"           └─────────\n"
-            f"{_indent_data(json.dumps(result, ensure_ascii=False, indent=2))}\n"
+            f"[STEP 3] PATH A: Using pre-extracted requirements ({len(pre_jd_requirements)} items)\n"
+            f"  → SKIPPING LLM extraction\n"
+            f"  → Proceeding to gap analysis with CV only"
         )
 
-    if not result or "gap_analysis" not in result:
-        logger.error("[STEP 3] ✗ Combined LLM failed or returned partial result")
-        return {**state, "error": "Combined LLM analysis failed", "status": "failed"}
+        cv_text = _format_cv_for_llm(cv_parsed)
+        jd_parsed_info = pre_jd_parsed or {}
+        job_title = jd_parsed_info.get("job_title") or jd_context
 
-    jd_parsed = result.get("jd_parsed") or {}
-    gap_analysis_raw = result.get("gap_analysis") or {}
+        # Build gap-analysis prompt WITHOUT JD text (JD already extracted)
+        prompt = _build_gap_only_prompt(cv_text, pre_jd_requirements, job_title)
+        system = (
+            "You are a Senior Career Match Analyst. Analyze the candidate's CV "
+            "against the EXTRACTED job requirements provided below. "
+            "Write assessment and learning paths in Vietnamese. "
+            "Keep technical skill names in English."
+        )
 
-    # Finalize result structure with context
-    gap_analysis: GapAnalysisResult = {
-        **gap_analysis_raw,
-        "match_breakdown": gap_analysis_raw.get("match_breakdown") or {},
-        "strengths": list(gap_analysis_raw.get("strengths") or []),
-        "weaknesses": list(gap_analysis_raw.get("weaknesses") or []),
-        "skill_gaps": list(gap_analysis_raw.get("skill_gaps") or []),
-        "transferable_insights": list(gap_analysis_raw.get("transferable_insights") or []),
-        "jd_context": jd_context,
-    }
+        result = await llm_json_completion(
+            prompt=prompt,
+            context=jd_context,
+            system_prompt=system,
+            temperature=0.1,
+            call_name="gap_analysis_from_requirements",
+        )
 
-    # ── Cache result ─────────────────────────────────────────────────────
-    try:
-        combined_result = {
-            "jd_parsed": jd_parsed,
-            "gap_analysis": gap_analysis
+        if result:
+            logger.info(
+                f"\n[LLM DATA] ┌─── gap_analysis_from_requirements (PATH A)\n"
+                f"           └─────────\n"
+                f"{_indent_data(json.dumps(result, ensure_ascii=False, indent=2))}\n"
+            )
+
+        if not result or "gap_analysis" not in result:
+            logger.error("[STEP 3/PATH_A] LLM failed or returned partial result")
+            return {**state, "error": "Gap analysis LLM failed", "status": "failed"}
+
+        gap_analysis_raw = result.get("gap_analysis") or {}
+
+        # Compute top_gaps inline
+        top_gaps_raw = gap_analysis_raw.get("top_gaps") or []
+        top_gaps: List[Any] = list(top_gaps_raw)
+        if not top_gaps:
+            skill_gaps_fallback = gap_analysis_raw.get("skill_gaps") or []
+            severity_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
+            top_gaps = sorted(
+                skill_gaps_fallback,
+                key=lambda g: (
+                    severity_order.get(g.get("severity") or "LOW", 2),
+                    -int(bool(g.get("is_critical"))),
+                    float(g.get("estimated_months") or 999),
+                ),
+            )[:3]
+
+        gap_analysis = {
+            **gap_analysis_raw,
+            "match_breakdown": gap_analysis_raw.get("match_breakdown") or {},
+            "strengths": list(gap_analysis_raw.get("strengths") or []),
+            "weaknesses": list(gap_analysis_raw.get("weaknesses") or []),
+            "skill_gaps": list(gap_analysis_raw.get("skill_gaps") or []),
+            "transferable_insights": list(gap_analysis_raw.get("transferable_insights") or []),
+            "jd_context": jd_context,
+            "top_gaps": top_gaps,
         }
-        result_cache.setex(cache_key, GAP_CACHE_TTL, json.dumps(combined_result))
-        logger.info(f"[STEP 3] ✓ Cached combined result | key={cache_key}")
-    except Exception as e:
-        logger.warning(f"[STEP 3] Caching failed: {e}")
 
-    logger.info(f"[STEP 3] ✓ DONE | match={gap_analysis.get('overall_match_pct')}%")
+        # Build jd_parsed to match schema
+        jd_parsed = {
+            "job_title": job_title,
+            "requirements": pre_jd_requirements,
+        }
 
-    return {
-        **state,
-        "jd_parsed": jd_parsed,
-        "jd_requirements": jd_parsed.get("requirements") or [],
-        "gap_analysis": gap_analysis,
-        "status": "gap_analyzed"
-    }
+        logger.info(f"[STEP 3] PATH A DONE | match={gap_analysis.get('overall_match_pct')}%")
+
+        return {
+            **state,
+            "jd_parsed": jd_parsed,
+            "jd_requirements": pre_jd_requirements,
+            "gap_analysis": gap_analysis,
+            "status": "gap_analyzed",
+        }
+
+    # ══ PATH B: Full JD text — LLM extracts + analyzes in one call ═══════════
+    else:
+        logger.info(
+            f"[STEP 3] PATH B: Using jd_text ({len(jd_text)} chars) — full LLM extraction"
+        )
+
+        # Redis cache check
+        from shared.redis_client import result_cache
+        from ..config import GAP_CACHE_TTL
+
+        jd_hash = hashlib.md5(jd_text.encode()).hexdigest()[:16]
+        cache_key = f"gap_v3_combined:{cv_id}:{jd_hash}"
+
+        cached_raw = result_cache.get(cache_key)
+        if cached_raw:
+            try:
+                cached_data = json.loads(cached_raw)
+                logger.info(f"[STEP 3] ✓ Redis CACHE HIT | key={cache_key}")
+                return {
+                    **state,
+                    "jd_parsed": cached_data["jd_parsed"],
+                    "jd_requirements": cached_data["jd_parsed"].get("requirements") or [],
+                    "gap_analysis": cached_data["gap_analysis"],
+                    "status": "gap_analyzed",
+                }
+            except Exception as e:
+                logger.warning(f"[STEP 3] Cache parse failed: {e}")
+
+        # ── Format for LLM ────────────────────────────────────────────────
+        cv_text = _format_cv_for_llm(cv_parsed)
+
+        logger.info(
+            f"[STEP 3/PATH_B] Calling Combined LLM | jd_chars={len(jd_text)} | cv_chars={len(cv_text)}"
+        )
+
+        prompt = _build_merged_gap_prompt(cv_text, jd_text)
+        system = (
+            "You are a Senior Career Match Analyst. Conduct a thorough JD extraction and "
+            "holistic gap analysis. Write assessment and learning paths in Vietnamese. "
+            "Keep technical skill names in English."
+        )
+
+        result = await llm_json_completion(
+            prompt=prompt,
+            context=jd_context,
+            system_prompt=system,
+            temperature=0.1,
+            call_name="gap_analysis_combined",
+        )
+
+        if result:
+            logger.info(
+                f"\n[LLM DATA] ┌─── gap_analysis_combined (PATH B)\n"
+                f"           └─────────\n"
+                f"{_indent_data(json.dumps(result, ensure_ascii=False, indent=2))}\n"
+            )
+
+        if not result or "gap_analysis" not in result:
+            logger.error("[STEP 3/PATH_B] LLM failed or returned partial result")
+            return {**state, "error": "Combined LLM analysis failed", "status": "failed"}
+
+        jd_parsed = result.get("jd_parsed") or {}
+        gap_analysis_raw = result.get("gap_analysis") or {}
+
+        # Compute top_gaps inline
+        top_gaps_raw = gap_analysis_raw.get("top_gaps") or []
+        top_gaps: List[Any] = list(top_gaps_raw)
+        if not top_gaps:
+            skill_gaps_fallback = gap_analysis_raw.get("skill_gaps") or []
+            severity_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
+            top_gaps = sorted(
+                skill_gaps_fallback,
+                key=lambda g: (
+                    severity_order.get(g.get("severity") or "LOW", 2),
+                    -int(bool(g.get("is_critical"))),
+                    float(g.get("estimated_months") or 999),
+                ),
+            )[:3]
+
+        gap_analysis = {
+            **gap_analysis_raw,
+            "match_breakdown": gap_analysis_raw.get("match_breakdown") or {},
+            "strengths": list(gap_analysis_raw.get("strengths") or []),
+            "weaknesses": list(gap_analysis_raw.get("weaknesses") or []),
+            "skill_gaps": list(gap_analysis_raw.get("skill_gaps") or []),
+            "transferable_insights": list(gap_analysis_raw.get("transferable_insights") or []),
+            "jd_context": jd_context,
+            "top_gaps": top_gaps,
+        }
+
+        # Cache result
+        try:
+            combined_result = {
+                "jd_parsed": jd_parsed,
+                "gap_analysis": gap_analysis,
+            }
+            result_cache.setex(cache_key, GAP_CACHE_TTL, json.dumps(combined_result))
+            logger.info(f"[STEP 3/PATH_B] ✓ Cached combined result | key={cache_key}")
+        except Exception as e:
+            logger.warning(f"[STEP 3/PATH_B] Caching failed: {e}")
+
+        logger.info(f"[STEP 3/PATH_B] DONE | match={gap_analysis.get('overall_match_pct')}%")
+
+        return {
+            **state,
+            "jd_parsed": jd_parsed,
+            "jd_requirements": jd_parsed.get("requirements") or [],
+            "gap_analysis": gap_analysis,
+            "status": "gap_analyzed",
+        }
 
 
 def _format_cv_for_llm(cv_parsed: dict) -> str:
@@ -342,7 +447,12 @@ def _format_jd_for_llm(requirements: list) -> str:
 
 
 def _build_merged_gap_prompt(cv_text: str, jd_text: str) -> str:
-    """Combines JD extraction and Gap analysis into one prompt."""
+    """
+    Optimized v3: Merges JD extraction + Gap analysis + Gap prioritization into ONE LLM call.
+
+    Previous version: separate calls for gap_analysis and gap_prioritization.
+    Current version : single call returns all, including top_gaps.
+    """
     return (
         "You are a Senior Career Match Analyst. Your task is to perform a deep analysis of a candidate's CV against a Job Description (JD).\n\n"
         "## JD RAW TEXT:\n"
@@ -353,7 +463,14 @@ def _build_merged_gap_prompt(cv_text: str, jd_text: str) -> str:
         "## MISSION:\n"
         "1. EXTRACT: Analyze the raw JD text to identify the Job Title and structured Technical Requirements (skills, levels, years).\n"
         "2. ANALYZE: Compare the candidate's CV against the extracted requirements and the overall job context.\n"
-        "3. EVALUATE: Provide a holistic match score, breakdown of skill matches, strengths, weaknesses, and a detailed list of gaps.\n\n"
+        "3. EVALUATE: Provide a holistic match score, breakdown of skill matches, strengths, weaknesses, and a detailed list of gaps.\n"
+        "4. PRIORITIZE: From the skill_gaps list, select TOP 3 gaps that should be addressed FIRST.\n\n"
+        "## PRIORITIZATION RULES (for top_gaps):\n"
+        "  - HIGH severity + is_critical=True → highest priority\n"
+        "  - transferable (bridge_from not null) → fast ROI, prefer these\n"
+        "  - estimated_months <= 3 → quick wins, elevate priority\n"
+        "  - LOW severity + not is_critical → skip (do NOT include in top_gaps)\n"
+        "  - If fewer than 3 gaps exist, return only what is available.\n\n"
         "## OUTPUT JSON SCHEMA:\n"
         "{\n"
         '  "jd_parsed": {\n'
@@ -381,10 +498,95 @@ def _build_merged_gap_prompt(cv_text: str, jd_text: str) -> str:
         '    "strengths": ["..."],\n'
         '    "weaknesses": ["..."],\n'
         '    "skill_gaps": [\n'
-        '       { "skill": "English Name", "severity": "HIGH | MEDIUM | LOW", "is_critical": boolean, "estimated_months": number, "learning_path": "Vietnamese description" }\n'
+        '       { "skill": "English Name", "required_level": "Mid-level", "severity": "HIGH | MEDIUM | LOW", "is_critical": boolean, "estimated_months": number, "learning_path": "Vietnamese description" }\n'
         '    ],\n'
-        '    "transferable_insights": ["..."]\n'
+        '    "transferable_insights": ["..."],\n'
+        '    "top_gaps": [\n'
+        '       { "skill": "English Name", "required_level": "Mid-level", "severity": "HIGH | MEDIUM | LOW", "is_critical": boolean, "estimated_months": number, "learning_path": "Vietnamese description" }\n'
+        '    ]\n'
         '  }\n'
         "}\n\n"
-        "Ensure the output satisfies ALL requirements for both components. Return ONLY valid JSON."
+        "Return ONLY valid JSON."
+    )
+
+
+def _build_gap_only_prompt(
+    cv_text: str,
+    pre_jd_requirements: list,
+    job_title: str,
+) -> str:
+    """
+    OPTIMIZED PATH A: Gap analysis WITHOUT JD raw text.
+
+    Used when job_id is provided and extracted_requirements_json already exists in DB.
+    The JD text has already been processed — just analyze CV against the structured requirements.
+    """
+    # Format requirements as structured list
+    req_lines = []
+    for i, req in enumerate(pre_jd_requirements):
+        if req.get("type") == "group":
+            group_name = req.get("group_name") or "Skill Group"
+            strategy = req.get("group_strategy") or "exclusive"
+            sub_skills = req.get("skills") or []
+            skills_str = ", ".join(
+                f"{s.get('skill')} ({s.get('target_level')}, {s.get('years_required', 0)} yrs)"
+                for s in sub_skills
+            )
+            req_lines.append(
+                f"  [{i + 1}] GROUP: {group_name} [{strategy.upper()}]\n"
+                f"      Skills: {skills_str}"
+            )
+        else:
+            skill_name = req.get("skill") or req.get("name") or "?"
+            target_level = req.get("target_level") or "Junior"
+            years = req.get("years_required", 0)
+            mandatory = "REQUIRED" if req.get("is_mandatory") else "OPTIONAL"
+            weight = req.get("importance_weight") or 5
+            req_lines.append(
+                f"  [{i + 1}] [{mandatory}] {skill_name} | level={target_level} | "
+                f"yrs={years} | weight={weight}"
+            )
+    requirements_text = "\n".join(req_lines) if req_lines else "  (no requirements)"
+
+    return (
+        "You are a Senior Career Match Analyst. Your task is to analyze a candidate's CV "
+        "against the EXTRACTED job requirements provided below.\n\n"
+        "## JOB TITLE: " + job_title + "\n\n"
+        "## EXTRACTED JOB REQUIREMENTS:\n" + requirements_text + "\n\n"
+        "## CANDIDATE CV (PARSED):\n" + cv_text + "\n\n"
+        "## MISSION:\n"
+        "1. ANALYZE: Compare the candidate's CV against the extracted requirements.\n"
+        "2. EVALUATE: Provide a holistic match score, breakdown of skill matches, "
+        "strengths, weaknesses, and a detailed list of gaps.\n"
+        "3. PRIORITIZE: From the skill_gaps list, select TOP 3 gaps that should be "
+        "addressed FIRST.\n\n"
+        "## PRIORITIZATION RULES (for top_gaps):\n"
+        "  - HIGH severity + is_critical=True → highest priority\n"
+        "  - transferable (bridge_from not null) → fast ROI, prefer these\n"
+        "  - estimated_months <= 3 → quick wins, elevate priority\n"
+        "  - LOW severity + not is_critical → skip (do NOT include in top_gaps)\n\n"
+        "## OUTPUT JSON SCHEMA:\n"
+        "{\n"
+        '  "gap_analysis": {\n'
+        '    "overall_match_pct": score 0-100,\n'
+        '    "overall_assessment": "summary in Vietnamese",\n'
+        '    "match_breakdown": {\n'
+        '      "Technical Skills": 0-100,\n'
+        '      "Experience": 0-100,\n'
+        '      "Soft Skills": 0-100,\n'
+        '      "Education": 0-100,\n'
+        '      "Domain Knowledge": 0-100\n'
+        '    },\n'
+        '    "strengths": ["..."],\n'
+        '    "weaknesses": ["..."],\n'
+        '    "skill_gaps": [\n'
+        '       { "skill": "English Name", "required_level": "Mid-level", "severity": "HIGH | MEDIUM | LOW", "is_critical": boolean, "estimated_months": number, "learning_path": "Vietnamese description" }\n'
+        '    ],\n'
+        '    "transferable_insights": ["..."],\n'
+        '    "top_gaps": [\n'
+        '       { "skill": "English Name", "required_level": "Mid-level", "severity": "HIGH | MEDIUM | LOW", "is_critical": boolean, "estimated_months": number, "learning_path": "Vietnamese description" }\n'
+        '    ]\n'
+        '  }\n'
+        "}\n\n"
+        "Return ONLY valid JSON."
     )

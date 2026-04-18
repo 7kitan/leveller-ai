@@ -18,66 +18,18 @@ def _indent_data(text: str) -> str:
 
 async def roadmap_synthesis_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3:
     """
-    STEP 5: Roadmap synthesis — LLM tạo learning timeline từ gap analysis results.
+    STEP 5: Roadmap pass-through (OPTIMIZED — roadmap already built inside course_recommendation_llm_node).
+
+    Previous version: separate LLM call → removed.
+    Current version : just return career_roadmap from state (already computed).
     """
-    gap_analysis = state.get("gap_analysis") or {}
-    course_recommendations = state.get("course_recommendations") or []
+    career_roadmap = state.get("career_roadmap") or {}
     logger.info(
         "\n" + "=" * 50 + "\n"
-        "[STEP 5] roadmap_synthesis | cv_id=" + state.get("cv_id", "?")
+        "[STEP 5] roadmap_synthesis (PASS-THROUGH) | cv_id=" + state.get("cv_id", "?") +
+        " | roadmap_stages=" + str(len(career_roadmap.get("stages") or []))
     )
-
-    if not gap_analysis:
-        logger.warning("[STEP 5] No gap_analysis — skipping roadmap")
-        return {**state, "career_roadmap": {}, "status": "roadmap_done"}
-
-    skill_gaps = gap_analysis.get("skill_gaps") or []
-    if not skill_gaps:
-        logger.warning("[STEP 5] No skill gaps — skipping roadmap")
-        return {**state, "career_roadmap": {}, "status": "roadmap_done"}
-
-    gaps_str = _format_gaps_for_prompt(skill_gaps)
-    courses_str = _format_courses_for_prompt(course_recommendations)
-
-    # ── Log raw gap + course data fed to roadmap LLM ─────────────────────────
-    logger.info(
-        f"\n{'═' * 70}\n"
-        f"[LLM DATA] ┌─── build_roadmap (STEP 5)\n"
-        f"           │ cv_id         : {state.get('cv_id')}\n"
-        f"           │ gaps_count   : {len(skill_gaps)}\n"
-        f"           │ courses_count: {len(course_recommendations)}\n"
-        f"           └─────────\n"
-        f"[LLM DATA] SKILL GAPS (raw):\n"
-        f"{_indent_data(_json.dumps(skill_gaps, ensure_ascii=False, indent=2)[:2000])}\n"
-        f"[LLM DATA] COURSE RECOMMENDATIONS (raw):\n"
-        f"{_indent_data(_json.dumps(course_recommendations, ensure_ascii=False, indent=2)[:2000])}\n"
-        f"[LLM DATA] GAPS FORMATTED FOR LLM:\n"
-        f"{_indent_data(gaps_str)}\n"
-        f"[LLM DATA] COURSES FORMATTED FOR LLM:\n"
-        f"{_indent_data(courses_str)}\n"
-        f"{'═' * 70}\n"
-    )
-
-    roadmap = await _llm_build_roadmap(
-        gaps_str=gaps_str,
-        courses_str=courses_str,
-    )
-
-    if roadmap:
-        logger.info(
-            "[STEP 5] ✓ Roadmap built | stages="
-            + str(len(roadmap.get("stages") or []))
-            + " | total_weeks="
-            + str(roadmap.get("total_weeks") or 0)
-        )
-        logger.info(
-            f"[STEP 5] ROADMAP RESULT:\n"
-            f"{_indent_data(_json.dumps(roadmap, ensure_ascii=False, indent=2)[:2000])}"
-        )
-    else:
-        logger.warning("[STEP 5] LLM roadmap returned empty")
-
-    return {**state, "career_roadmap": roadmap or {}, "status": "roadmap_done"}
+    return {**state, "career_roadmap": career_roadmap, "status": "roadmap_done"}
 
 
 async def _llm_build_roadmap(
@@ -201,11 +153,12 @@ async def finalize_report_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3:
         "match_breakdown": gap_analysis.get("match_breakdown") or {},
         "transferable_insights": list(gap_analysis.get("transferable_insights") or []),
         "jd_context": gap_analysis.get("jd_context") or "",
+        "top_gaps": list(gap_analysis.get("top_gaps") or []),  # Optimized: inline from gap_analysis
         "course_recommendations": course_output,
         "career_roadmap": career_roadmap,
         "cv_parsed": cv_parsed,
         "notes": [
-            "Analysis Method: LLM Holistic v3",
+            "Analysis Method: LLM Holistic v3 Optimized (2 LLM calls total)",
             "CV parsed=" + (cv_parsed.get("full_name") or state.get("cv_id", "?")),
             "JD context=" + (gap_analysis.get("jd_context") or "?"),
             "Courses recommended=" + str(len(course_output)),

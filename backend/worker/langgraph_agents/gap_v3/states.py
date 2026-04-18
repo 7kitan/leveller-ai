@@ -69,7 +69,7 @@ class GapSummary(TypedDict, total=False):
 
 
 class GapAnalysisResult(TypedDict, total=False):
-    """Output của Gap Analysis Agent."""
+    """Output của Gap Analysis Agent — optimized v3 (gap + prioritize merged)."""
 
     overall_match_pct: float
     overall_assessment: str
@@ -79,6 +79,8 @@ class GapAnalysisResult(TypedDict, total=False):
     gap_summary: GapSummary
     transferable_insights: List[str]
     jd_context: str
+    # ── Optimized: top_gaps inline (no separate LLM call) ─────────────────────
+    top_gaps: List[SkillGap]  # TOP 3 prioritized gaps (merged from gap_analysis)
 
 
 class CourseRecommendation(TypedDict, total=False):

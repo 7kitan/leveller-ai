@@ -8,16 +8,20 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text, or_, and_
 from sqlalchemy.dialects.postgresql import UUID
 from shared.database import get_db
-from shared.models import Job
-from shared.redis_client import result_cache
+from shared.models import Job, SystemSetting
 from shared.llm_utils import get_embedding
+from shared.scrapers.topcv import TopCVScraper
 from pydantic import BaseModel
-from typing import List, Optional
+from shared.schemas import PaginatedResponse
+from typing import List, Optional, Any
 from datetime import datetime, timedelta
 import uuid
 import os
 import json
 import logging
+import re
+import traceback
+from worker.celery_app import celery_app
 
 app = FastAPI(title="JD Service")
 logger = logging.getLogger("jd_service")
@@ -66,6 +70,28 @@ class JobResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class SettingUpdate(BaseModel):
+    value: Any
+
+
+class SettingResponse(BaseModel):
+    key: str
+    value: Any
+    description: Optional[str] = None
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class CrawlUrlRequest(BaseModel):
+    url: str
+
+
+class JobBulkCreate(BaseModel):
+    jobs: List[JobCreate]
 
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
@@ -149,7 +175,7 @@ def list_jobs(
     return [_job_to_response(j) for j in jobs]
 
 
-@app.get("/jd/search", response_model=List[JobResponse])
+@app.get("/jd/search", response_model=PaginatedResponse[JobResponse])
 def search_jobs(
     db: Session = Depends(get_db),
     # ── Text / Semantic search ─────────────────────────────────────────
@@ -260,7 +286,7 @@ def search_jobs(
     if category:
         base_query = base_query.filter(Job.title_category.ilike(f"%{category}%"))
 
-    # Execute
+    total = base_query.count()
     jobs = base_query.order_by(Job.created_at.desc()).offset(offset).limit(limit).all()
 
     # Attach similarity scores if vector search was used
@@ -272,12 +298,19 @@ def search_jobs(
     if q and USE_VECTOR_SEARCH and similarity_scores:
         results.sort(
             key=lambda x: (
-                similarity_scores.get(x["id"], 0) if x.get("similarity") else 0
+                similarity_scores.get(str(x["id"]), 0) if x.get("similarity") else 0
             ),
             reverse=True,
         )
 
-    return results
+    return {
+        "items": results,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "page": (offset // limit) + 1,
+        "pages": (total + limit - 1) // limit
+    }
 
 
 @app.get("/jd/{job_id}", response_model=JobResponse)
@@ -289,24 +322,45 @@ def get_job(job_id: uuid.UUID, db: Session = Depends(get_db)):
     return _job_to_response(job)
 
 
-@app.get("/jd/admin/list", response_model=List[JobResponse])
+@app.get("/jd/admin/list", response_model=PaginatedResponse[JobResponse])
 def admin_list_jobs(
     request: Request,
     db: Session = Depends(get_db),
-    limit: int = 100,
-    offset: int = 0,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     status: Optional[str] = None,
+    q: Optional[str] = Query(None)
 ):
-    """Admin only: Lấy tất cả Job."""
+    """Admin only: Lấy tất cả Job với phân trang."""
     if request.headers.get("X-Is-Admin") != "true":
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     query = db.query(Job)
     if status:
         query = query.filter(Job.status == status)
+    
+    if q:
+        query = query.filter(
+            or_(
+                Job.title_raw.ilike(f"%{q}%"),
+                Job.company_name.ilike(f"%{q}%"),
+                Job.raw_text.ilike(f"%{q}%")
+            )
+        )
 
+    total = query.count()
     jobs = query.order_by(Job.created_at.desc()).offset(offset).limit(limit).all()
-    return [_job_to_response(j) for j in jobs]
+
+    items = [_job_to_response(j) for j in jobs]
+    
+    return {
+        "items": items,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "page": (offset // limit) + 1,
+        "pages": (total + limit - 1) // limit
+    }
 
 
 @app.patch("/jd/admin/{job_id}", response_model=JobResponse)
@@ -353,6 +407,111 @@ def admin_delete_job(
     db.delete(job)
     db.commit()
     return {"message": "Job deleted successfully"}
+
+
+@app.post("/jd/admin/crawl")
+def admin_trigger_crawl(request: Request):
+    """Admin only: Kích hoạt cào tin TopCV ngay lập tức."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    try:
+        task = celery_app.send_task("worker.tasks.crawler_tasks.crawl_topcv_jobs_task", args=[20], kwargs={"force": True})
+        return {"message": "Crawler task started", "task_id": task.id}
+    except Exception as e:
+        logger.error(f"Failed to trigger crawler task: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Could not trigger crawler: {str(e)}")
+
+
+# ─── Admin Settings & Manual Crawl ──────────────────────────────────────────
+
+
+@app.get("/jd/admin/settings", response_model=List[SettingResponse])
+def admin_list_settings(request: Request, db: Session = Depends(get_db)):
+    """Admin only: Lấy danh sách settings hệ thống."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    settings = db.query(SystemSetting).all()
+    return settings
+
+
+@app.patch("/jd/admin/settings/{key}", response_model=SettingResponse)
+def admin_update_setting(
+    key: str, setting_in: SettingUpdate, request: Request, db: Session = Depends(get_db)
+):
+    """Admin only: Cập nhật setting."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    setting = db.query(SystemSetting).filter(SystemSetting.key == key).first()
+    if not setting:
+        raise HTTPException(status_code=404, detail="Setting not found")
+
+    setting.value = setting_in.value
+    db.commit()
+    db.refresh(setting)
+    return setting
+
+
+@app.post("/jd/admin/crawl/fetch")
+def admin_crawl_fetch_job(req: CrawlUrlRequest, request: Request):
+    """Admin only: Cào dữ liệu từ 1 URL TopCV để hiển thị ra form (chưa lưu)."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    if "topcv.vn" not in req.url:
+        raise HTTPException(status_code=400, detail="Chỉ hỗ trợ URL từ TopCV.vn")
+
+    scraper = TopCVScraper()
+    data = scraper.scrape_job_details(req.url)
+    if not data:
+        raise HTTPException(status_code=404, detail="Không thể lấy dữ liệu từ URL này. Có thể bị block hoặc URL sai.")
+
+    return data
+
+
+@app.post("/jd/admin/bulk")
+def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = Depends(get_db)):
+    """Admin only: Lưu nhiều job cùng lúc (từ manual import)."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    new_jobs_count = 0
+    for job_in in req.jobs:
+        # Check if already exists
+        job_id_match = re.search(r'/(\d+)\.html', job_in.source_url or "")
+        source_id = f"TOPCV_{job_id_match.group(1)}" if job_id_match else f"manual_{uuid.uuid4()}"
+        
+        existing = db.query(Job).filter(Job.source_id == source_id).first()
+        if existing:
+            continue
+
+        # Generate Embedding context
+        embedding_ctx = f"{job_in.title_raw} at {job_in.company_name}. {job_in.location_raw}. {job_in.raw_text[:1000]}"
+        vector = get_embedding(embedding_ctx)
+        
+        job = Job(
+            source_id=source_id,
+            title_raw=job_in.title_raw,
+            raw_text=job_in.raw_text,
+            company_name=job_in.company_name,
+            source_url=job_in.source_url,
+            source_label=job_in.source_label or "manual",
+            min_salary_vnd=job_in.min_salary_vnd,
+            max_salary_vnd=job_in.max_salary_vnd,
+            location_raw=job_in.location_raw,
+            employment_type=job_in.employment_type,
+            status="active",
+            embedding_context=embedding_ctx,
+            vector=vector
+        )
+        db.add(job)
+        new_jobs_count += 1
+
+    db.commit()
+    return {"message": f"Successfully imported {new_jobs_count} jobs", "count": new_jobs_count}
 
 
 # ─── 5.1 + 5.2: Market Analytics ──────────────────────────────────────────
@@ -575,5 +734,3 @@ def get_role_analytics(
 
 
 # ─── Internal helpers ─────────────────────────────────────────────────────────
-
-from worker.celery_app import celery_app

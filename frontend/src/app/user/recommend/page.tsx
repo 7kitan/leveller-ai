@@ -33,43 +33,61 @@ import styles from "./user-recommend.module.css";
 /* ── Types ─────────────────────────────────────────────────────────────── */
 interface CourseRec {
   course_id: string;
+  gap_skill?: string;
+  gap_severity?: string;
+  gap_learning_path?: string;
+  gap_estimated_months?: number;
+  is_critical?: boolean;
   title: string;
   platform: string;
   url: string;
   level: string;
   provider: string;
   duration_hours: number;
+  is_certification: boolean;
   cost_usd: number;
   tags: string[];
-  gap_skill: string;
-  gap_severity: string;
-  gap_estimated_months: number;
   similarity: number;
-  is_certification: boolean;
+  rank_score?: number;
   selection_reason: string;
 }
 
 interface SkillGap {
   skill: string;
+  required_level?: string;
   severity: string;
-  gap_type: string;
+  is_critical?: boolean;
   estimated_months: number;
-  learning_effort: string;
+  learning_path?: string;
+  gap_type?: string;
+  learning_effort?: string;
 }
 
 interface GapResult {
   overall_match_pct: number;
   overall_assessment: string;
-  skill_gaps: SkillGap[];
-  recommended_courses: CourseRec[];
-  career_roadmap?: {
-    summary: string;
-    stages: { stage: number; focus: string; duration_weeks: number }[];
-  };
   strengths: string[];
   weaknesses: string[];
+  skill_gaps: SkillGap[];
+  gap_summary?: any;
   match_breakdown: Record<string, number>;
   transferable_insights: string[];
+  jd_context?: string;
+  top_gaps?: SkillGap[];
+  course_recommendations: CourseRec[];
+  career_roadmap?: {
+    stages: { 
+      stage: number; 
+      focus: string; 
+      duration_weeks: number;
+      skills_acquired?: string[];
+      courses_taken?: string[];
+      milestones?: { week: number; milestone: string }[];
+    }[];
+    total_weeks: number;
+    total_hours: number;
+    summary: string;
+  };
 }
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
@@ -201,22 +219,25 @@ const UserRecommendPage = () => {
     overall_match_pct, 
     overall_assessment, 
     skill_gaps = [], 
-    recommended_courses = [], 
-    career_roadmap 
+    course_recommendations = [], 
+    career_roadmap,
+    strengths = [],
+    weaknesses = [],
+    match_breakdown = {}
   } = gapResult;
 
   const highGaps = skill_gaps.filter((g) => g.severity === "HIGH");
   const mediumGaps = skill_gaps.filter((g) => g.severity === "MEDIUM");
   const lowGaps = skill_gaps.filter((g) => g.severity === "LOW");
 
-  const totalHours = recommended_courses.reduce((s, c) => s + (c.duration_hours || 0), 0);
-  const certCourses = recommended_courses.filter((c) => c.is_certification);
-  const freeCourses = recommended_courses.filter((c) => !c.is_certification && (c.cost_usd || 0) === 0);
+  const totalHours = course_recommendations.reduce((s, c) => s + (c.duration_hours || 0), 0);
+  const certCourses = course_recommendations.filter((c) => c.is_certification);
+  const freeCourses = course_recommendations.filter((c) => !c.is_certification && (c.cost_usd || 0) === 0);
 
   /* ── Tabs ──────────────────────────────────────────────────────────────── */
   const tabs = [
     { key: "gaps", label: "Khoảng cách kỹ năng", icon: Layers, count: skill_gaps.length },
-    { key: "courses", label: "Khóa học đề xuất", icon: BookOpen, count: recommended_courses.length },
+    { key: "courses", label: "Khóa học đề xuất", icon: BookOpen, count: course_recommendations.length },
     { key: "roadmap", label: "Lộ trình học tập", icon: Target, count: career_roadmap?.stages?.length ?? 0 },
   ] as const;
 
@@ -262,7 +283,7 @@ const UserRecommendPage = () => {
           <div className={styles.radarSection}>
              <ResponsiveContainer width="100%" height={200}>
                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={
-                  gapResult.match_breakdown ? Object.entries(gapResult.match_breakdown).map(([name, value]) => ({
+                  Object.keys(match_breakdown).length > 0 ? Object.entries(match_breakdown).map(([name, value]) => ({
                     subject: name,
                     A: value,
                     fullMark: 100,
@@ -296,11 +317,11 @@ const UserRecommendPage = () => {
                 <span className={styles.matchStatLabel}>Kỹ năng cần bổ sung</span>
               </div>
               <div className={styles.matchStat}>
-                <span className={styles.matchStatValue}>{recommended_courses.length}</span>
+                <span className={styles.matchStatValue}>{course_recommendations.length}</span>
                 <span className={styles.matchStatLabel}>Khóa học gợi ý</span>
               </div>
               <div className={styles.matchStat}>
-                <span className={styles.matchStatValue}>{totalHours}h</span>
+                <span className={styles.matchStatValue}>{totalHours.toFixed(1)}h</span>
                 <span className={styles.matchStatLabel}>Tổng thời lượng</span>
               </div>
             </div>
@@ -315,10 +336,10 @@ const UserRecommendPage = () => {
               Điểm mạnh nổi bật
             </h3>
             <ul className={styles.infoList}>
-              {(gapResult.strengths || []).map((s, i) => (
+              {strengths.map((s, i) => (
                 <li key={i}>{s}</li>
               ))}
-              {(!gapResult.strengths || gapResult.strengths.length === 0) && <li>Đang phân tích dữ liệu...</li>}
+              {strengths.length === 0 && <li>Đang phân tích dữ liệu...</li>}
             </ul>
           </div>
           <div className={styles.infoCard}>
@@ -327,10 +348,10 @@ const UserRecommendPage = () => {
               Điểm cần cải thiện
             </h3>
             <ul className={styles.infoList}>
-              {(gapResult.weaknesses || []).map((w, i) => (
+              {weaknesses.map((w, i) => (
                 <li key={i}>{w}</li>
               ))}
-              {(!gapResult.weaknesses || gapResult.weaknesses.length === 0) && <li>Tất cả kỹ năng đều ổn.</li>}
+              {weaknesses.length === 0 && <li>Tất cả kỹ năng đều ổn.</li>}
             </ul>
           </div>
         </div>
@@ -415,13 +436,25 @@ const UserRecommendPage = () => {
                     </span>
                   </div>
                   <div className={styles.gapCardMeta}>
-                    <span className={styles.gapType}>{gap.gap_type}</span>
+                    {gap.required_level && (
+                      <span className={styles.gapLevel}>
+                         Level: <b>{gap.required_level}</b>
+                      </span>
+                    )}
                     <span className={styles.gapMonths}>
                       <Clock size={12} />
                       ~{gap.estimated_months ?? 1} tháng
                     </span>
-                    <span className={styles.gapEffort}>{gap.learning_effort || "MEDIUM"}</span>
+                    {gap.gap_type && <span className={styles.gapType}>{gap.gap_type}</span>}
+                    {gap.is_critical && <span className={styles.criticalTag}>Critical</span>}
                   </div>
+
+                  {gap.learning_path && (
+                    <div className={styles.gapLearningPath}>
+                       <Sparkles size={12} className={styles.pathIcon} />
+                       <p>{gap.learning_path}</p>
+                    </div>
+                  )}
                 </motion.div>
               ))
             )}
@@ -431,13 +464,13 @@ const UserRecommendPage = () => {
         {/* ── Tab: Courses ─────────────────────────────────────────────────── */}
         {activeTab === "courses" && (
           <div className={styles.courseGrid}>
-            {recommended_courses.length === 0 ? (
+            {course_recommendations.length === 0 ? (
               <div className={styles.emptySection}>
                 <BookOpen size={40} className={styles.emptyIcon} />
                 <p>Chưa có khóa học nào được đề xuất.</p>
               </div>
             ) : (
-              recommended_courses.map((course, idx) => (
+              course_recommendations.map((course, idx) => (
                 <motion.div
                   key={course.course_id || idx}
                   initial={{ opacity: 0, y: 10 }}
@@ -462,7 +495,7 @@ const UserRecommendPage = () => {
                     <span>·</span>
                     <span>{course.platform || course.provider || "Unknown"}</span>
                     <span>·</span>
-                    <span>{course.duration_hours || 0}h</span>
+                    <span>{(course.duration_hours || 0).toFixed(1)}h</span>
                     <span>·</span>
                     <span>{course.cost_usd === 0 ? "Miễn phí" : `$${course.cost_usd}`}</span>
                   </div>
@@ -470,7 +503,7 @@ const UserRecommendPage = () => {
                   {course.gap_skill && (
                     <div className={styles.courseGapTag}>
                       <Zap size={12} />
-                      Bổ sung: {course.gap_skill}
+                      Bổ sung: {course.gap_skill} ({course.gap_severity})
                     </div>
                   )}
 
@@ -480,17 +513,24 @@ const UserRecommendPage = () => {
                     </p>
                   )}
 
-                  {course.url && (
-                    <a
-                      href={course.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={styles.courseLink}
-                    >
-                      <ExternalLink size={14} />
-                      Xem khóa học
-                    </a>
-                  )}
+                  <div className={styles.courseFooterActions}>
+                    {course.url && (
+                      <a
+                        href={course.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.courseLink}
+                      >
+                        <ExternalLink size={14} />
+                        Xem khóa học
+                      </a>
+                    )}
+                    {course.similarity && (
+                      <span className={styles.similarityScore}>
+                         Confidence: {Math.round(course.similarity * 100)}%
+                      </span>
+                    )}
+                  </div>
                 </motion.div>
               ))
             )}
@@ -517,6 +557,32 @@ const UserRecommendPage = () => {
                           <Clock size={12} />
                           {stage.duration_weeks} tuần
                         </div>
+                        
+                        {(stage.skills_acquired || []).length > 0 && (
+                          <div className={styles.roadmapSkills}>
+                            {stage.skills_acquired?.map((s, si) => (
+                              <span key={si} className={styles.roadmapSkillBadge}>{s}</span>
+                            ))}
+                          </div>
+                        )}
+
+                        {(stage.courses_taken || []).length > 0 && (
+                          <div className={styles.roadmapCoursesList}>
+                             <BookOpen size={10} />
+                             {stage.courses_taken?.join(", ")}
+                          </div>
+                        )}
+
+                        {(stage.milestones || []).length > 0 && (
+                          <div className={styles.roadmapMilestones}>
+                             {stage.milestones?.map((m, mi) => (
+                               <div key={mi} className={styles.roadmapMilestoneItem}>
+                                  <CheckCircle2 size={10} className={styles.milestoneCheck} />
+                                  <span>Week {m.week}: {m.milestone}</span>
+                               </div>
+                             ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

@@ -1,14 +1,18 @@
-from fastapi import FastAPI, Depends, Request, HTTPException
+from fastapi import FastAPI, Depends, Request, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import text, func
+from sqlalchemy import text, func, or_
 from shared.database import get_db
 from shared.models import Course, JobSkillRequirement, Job
 from shared.level_mapper import LevelMapper
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 import uuid
 import logging
 import os
+from datetime import datetime
+from worker.celery_app import celery_app
+from celery.result import AsyncResult
+from shared.schemas import PaginatedResponse
 
 app = FastAPI(title="Recommender Service")
 logger = logging.getLogger("recommender")
@@ -28,25 +32,77 @@ class RecommendRequest(BaseModel):
     gap_skills: List[GapSkill]
 
 
+class CrawlRequest(BaseModel):
+    url: str
+
+
 class CourseCreate(BaseModel):
     title: str
-    platform: str
+    platform: Optional[str] = None
+    source_platform: Optional[str] = "manual"
+    source_id: Optional[str] = None
+    external_uuid: Optional[str] = None
     url: str
     level: str = "Beginner"
     provider: Optional[str] = None
     duration_hours: Optional[float] = None
+    duration_raw: Optional[str] = None
     cost_usd: float = 0.0
+    languages: List[str] = ["en"]
+    skills_raw: List[str] = []
+    tools_raw: List[str] = []
+    outcomes: List[str] = []
+    modules: List[str] = []
     tags: List[str] = []
+
+
+class CourseBulkCreate(BaseModel):
+    courses: List[CourseCreate]
+
+
+class CourseRead(BaseModel):
+    id: uuid.UUID
+    title: str
+    description: Optional[str] = None
+    source_platform: Optional[str] = None
+    source_id: Optional[str] = None
+    external_uuid: Optional[str] = None
+    provider: Optional[str] = None
+    platform: Optional[str] = None
+    url: Optional[str] = None
+    level: Optional[str] = None
+    is_certification: bool = False
+    duration_hours: Optional[float] = None
+    duration_raw: Optional[str] = None
+    cost_usd: float = 0.0
+    languages: Optional[List[str]] = None
+    skills_raw: Optional[List[str]] = None
+    tools_raw: Optional[List[str]] = None
+    outcomes: Optional[List[str]] = None
+    modules: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
+    created_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CourseUpdate(BaseModel):
     title: Optional[str] = None
     platform: Optional[str] = None
+    source_platform: Optional[str] = None
+    source_id: Optional[str] = None
+    external_uuid: Optional[str] = None
     url: Optional[str] = None
     level: Optional[str] = None
     provider: Optional[str] = None
     duration_hours: Optional[float] = None
+    duration_raw: Optional[str] = None
     cost_usd: Optional[float] = None
+    languages: Optional[List[str]] = None
+    skills_raw: Optional[List[str]] = None
+    tools_raw: Optional[List[str]] = None
+    outcomes: Optional[List[str]] = None
+    modules: Optional[List[str]] = None
     tags: Optional[List[str]] = None
 
 
@@ -60,13 +116,16 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
     except Exception:
         pass
 
-    search_text = f"{skill_name} {target_level} course tutorial"
+    # Tăng cường search_text để matching tốt hơn với embedding_context mới
+    search_text = f"Skill: {skill_name}. Level: {target_level}. Course teaching {skill_name} concepts and applications."
     skill_vector = get_embedding(search_text)
 
     if skill_vector:
+        # Fetch thêm các trường JSONB để ranking chính xác hơn
         query = text("""
-            SELECT id, title, platform, url, level, provider,
+            SELECT id, title, source_platform, platform, url, level, provider,
                    duration_hours, is_certification, cost_usd, tags,
+                   skills_raw, modules, outcomes,
                    1 - (vector <=> :vec) as similarity
             FROM courses
             WHERE vector IS NOT NULL
@@ -90,8 +149,9 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
     else:
         # Fallback: ILIKE text search
         query = text("""
-            SELECT id, title, platform, url, level, provider,
+            SELECT id, title, source_platform, platform, url, level, provider,
                    duration_hours, is_certification, cost_usd, tags,
+                   skills_raw, modules, outcomes,
                    0.6 as similarity
             FROM courses
             WHERE title ILIKE :pattern
@@ -117,7 +177,7 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
         {
             "course_id": str(r.id),
             "title": r.title,
-            "platform": r.platform,
+            "platform": r.platform or r.source_platform,
             "url": r.url,
             "level": r.level or "Unknown",
             "provider": getattr(r, "provider", "Unknown") or "Unknown",
@@ -125,6 +185,9 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
             "is_certification": bool(r.is_certification),
             "cost_usd": float(r.cost_usd or 0),
             "tags": r.tags or [],
+            "skills_raw": r.skills_raw or [],
+            "modules": r.modules or [],
+            "outcomes": r.outcomes or [],
             "similarity": float(r.similarity),
         }
         for r in results
@@ -132,23 +195,42 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
 
 
 def _rank_courses(
-    candidates: List[dict], target_level: str, severity: str
+    candidates: List[dict], target_level: str, severity: str, skill_name: str
 ) -> List[dict]:
-    """Rank courses: severity × certification × level_match × similarity."""
+    """
+    Rank courses: similarity (60%) + certification/level (40%).
+    Cộng điểm bonus nếu khớp chính xác tên Skill trong metadata.
+    """
     target_score = LevelMapper.to_score(target_level)
     severity_w = {"HIGH": 1.0, "MEDIUM": 0.7, "LOW": 0.4}
-
     sev = severity_w.get(severity, 0.4)
 
     for c in candidates:
-        cert_bonus = 0.2 if c.get("is_certification") else 0
+        # 1. Similarity Score (60% weight)
+        sim_score = c.get("similarity", 0.5) * 0.6
+
+        # 2. Certification Bonus
+        cert_bonus = 0.15 if c.get("is_certification") else 0
+        
+        # 3. Level Match
         c_level_score = LevelMapper.to_score(c.get("level") or "Unknown")
         level_diff = c_level_score - target_score
+        level_bonus = 0.05 if level_diff >= 0 else (level_diff * 0.1)
 
-        level_bonus = 0.05 if level_diff >= 0 else (level_diff * 0.15)
-        sim = c.get("similarity", 0.5) * 0.2
+        # 4. Hard Match Bonus (0.1) - Tìm trong tags, skills_raw, hoặc modules
+        hard_match_bonus = 0
+        search_area = (
+            [s.lower() for s in c.get("tags", [])] +
+            [s.lower() for s in c.get("skills_raw", [])] +
+            [str(m).lower() for m in c.get("modules", [])]
+        )
+        if any(skill_name.lower() in item for item in search_area):
+            hard_match_bonus = 0.1
 
-        c["rank_score"] = round(sev * 0.5 + cert_bonus * 0.3 + level_bonus + sim, 3)
+        # Final Rank Score
+        c["rank_score"] = round(
+            (sim_score + cert_bonus + level_bonus + hard_match_bonus) * sev, 3
+        )
 
     candidates.sort(key=lambda x: x["rank_score"], reverse=True)
     return candidates
@@ -187,7 +269,7 @@ async def recommend_courses(req: RecommendRequest, db: Session = Depends(get_db)
             continue
 
         # Rank
-        ranked = _rank_courses(candidates, gap.target_level, gap.severity)
+        ranked = _rank_courses(candidates, gap.target_level, gap.severity, gap.skill_name)
 
         # Giới hạn: 2 cho MISSING, 1 cho PARTIAL
         limit = 2 if gap.gap_type == "MISSING" else 1
@@ -260,25 +342,43 @@ async def get_trending_skills(
     ]
 
 
-@app.get("/recommend/admin/courses")
+@app.get("/recommend/admin/courses", response_model=PaginatedResponse[CourseRead])
 async def admin_list_courses(
-    request: Request, db: Session = Depends(get_db), limit: int = 100, offset: int = 0
+    request: Request, 
+    db: Session = Depends(get_db), 
+    limit: int = Query(20, ge=1, le=100), 
+    offset: int = Query(0, ge=0),
+    q: Optional[str] = Query(None)
 ):
-    """Admin only: Danh sách tất cả khóa học."""
+    """Admin only: Danh sách tất cả khóa học với phân trang."""
     if request.headers.get("X-Is-Admin") != "true":
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
-    courses = (
-        db.query(Course)
-        .order_by(Course.created_at.desc())
-        .offset(offset)
-        .limit(limit)
-        .all()
-    )
-    return courses
+    query = db.query(Course)
+    
+    if q:
+        query = query.filter(
+            or_(
+                Course.title.ilike(f"%{q}%"),
+                Course.platform.ilike(f"%{q}%"),
+                Course.provider.ilike(f"%{q}%")
+            )
+        )
+
+    total = query.count()
+    items = query.order_by(Course.created_at.desc()).offset(offset).limit(limit).all()
+    
+    return {
+        "items": items,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "page": (offset // limit) + 1,
+        "pages": (total + limit - 1) // limit
+    }
 
 
-@app.post("/recommend/admin/courses")
+@app.post("/recommend/admin/courses", response_model=CourseRead)
 async def admin_create_course(
     req: CourseCreate, request: Request, db: Session = Depends(get_db)
 ):
@@ -288,19 +388,36 @@ async def admin_create_course(
 
     from shared.llm_utils import get_embedding
 
-    # Tạo context cho embedding
-    context = f"{req.title} {req.platform} {req.level} {' '.join(req.tags)}"
+    # Tạo context cho embedding - Flat & Rich context
+    context = (
+        f"PLATFORM: {req.platform or req.source_platform}. "
+        f"TITLE: {req.title}. "
+        f"PROVIDER: {req.provider or 'Unknown'}. "
+        f"DESCRIPTION: {req.title}. " # Fallback if no description in Create
+        f"MODULES: {', '.join(req.modules)}. "
+        f"SKILLS: {', '.join(req.skills_raw)}. "
+        f"OUTCOMES: {', '.join(req.outcomes)}."
+    )
     vector = get_embedding(context)
 
     new_course = Course(
         id=uuid.uuid4(),
         title=req.title,
+        source_platform=req.source_platform,
+        source_id=req.source_id,
+        external_uuid=req.external_uuid,
         platform=req.platform,
         url=req.url,
         level=req.level,
         provider=req.provider,
         duration_hours=req.duration_hours,
+        duration_raw=req.duration_raw,
+        languages=req.languages,
         cost_usd=req.cost_usd,
+        skills_raw=req.skills_raw,
+        tools_raw=req.tools_raw,
+        outcomes=req.outcomes,
+        modules=req.modules,
         tags=req.tags,
         embedding_context=context,
         vector=vector,
@@ -311,7 +428,70 @@ async def admin_create_course(
     return new_course
 
 
-@app.patch("/recommend/admin/courses/{course_id}")
+@app.post("/recommend/admin/courses/bulk")
+async def admin_bulk_create_courses(
+    req: CourseBulkCreate, request: Request, db: Session = Depends(get_db)
+):
+    """Admin only: Tạo nhiều khóa học mới trong một transaction."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    from shared.llm_utils import get_embedding
+
+    new_courses = []
+    for c_req in req.courses:
+        # Check if exists (optional but recommended for bulk)
+        existing = db.query(Course).filter(
+            Course.source_platform == c_req.source_platform,
+            Course.source_id == c_req.source_id
+        ).first()
+        if existing:
+            continue
+
+        context = (
+            f"PLATFORM: {c_req.platform or c_req.source_platform}. "
+            f"TITLE: {c_req.title}. "
+            f"PROVIDER: {c_req.provider or 'Unknown'}. "
+            f"DESCRIPTION: {c_req.title}. "
+            f"MODULES: {', '.join(c_req.modules)}. "
+            f"SKILLS: {', '.join(c_req.skills_raw)}. "
+            f"OUTCOMES: {', '.join(c_req.outcomes)}."
+        )
+        vector = get_embedding(context)
+
+        new_course = Course(
+            id=uuid.uuid4(),
+            title=c_req.title,
+            source_platform=c_req.source_platform,
+            source_id=c_req.source_id,
+            external_uuid=c_req.external_uuid,
+            platform=c_req.platform,
+            url=c_req.url,
+            level=c_req.level,
+            provider=c_req.provider,
+            duration_hours=c_req.duration_hours,
+            duration_raw=c_req.duration_raw,
+            languages=c_req.languages,
+            cost_usd=c_req.cost_usd,
+            skills_raw=c_req.skills_raw,
+            tools_raw=c_req.tools_raw,
+            outcomes=c_req.outcomes,
+            modules=c_req.modules,
+            tags=c_req.tags,
+            embedding_context=context,
+            vector=vector,
+        )
+        db.add(new_course)
+        new_courses.append(new_course)
+
+    db.commit()
+    for c in new_courses:
+        db.refresh(c)
+    
+    return {"count": len(new_courses), "status": "success"}
+
+
+@app.patch("/recommend/admin/courses/{course_id}", response_model=CourseRead)
 async def admin_update_course(
     course_id: uuid.UUID,
     req: CourseUpdate,
@@ -333,6 +513,13 @@ async def admin_update_course(
     if req.platform is not None:
         course.platform = req.platform
         needs_re_embedding = True
+    if req.source_platform is not None:
+        course.source_platform = req.source_platform
+        needs_re_embedding = True
+    if req.source_id is not None:
+        course.source_id = req.source_id
+    if req.external_uuid is not None:
+        course.external_uuid = req.external_uuid
     if req.level is not None:
         course.level = req.level
         needs_re_embedding = True
@@ -346,13 +533,36 @@ async def admin_update_course(
         course.provider = req.provider
     if req.duration_hours is not None:
         course.duration_hours = req.duration_hours
+    if req.duration_raw is not None:
+        course.duration_raw = req.duration_raw
     if req.cost_usd is not None:
         course.cost_usd = req.cost_usd
+    if req.languages is not None:
+        course.languages = req.languages
+    if req.skills_raw is not None:
+        course.skills_raw = req.skills_raw
+        needs_re_embedding = True
+    if req.tools_raw is not None:
+        course.tools_raw = req.tools_raw
+    if req.outcomes is not None:
+        course.outcomes = req.outcomes
+        needs_re_embedding = True
+    if req.modules is not None:
+        course.modules = req.modules
+        needs_re_embedding = True
 
     if needs_re_embedding:
         from shared.llm_utils import get_embedding
 
-        context = f"{course.title} {course.platform} {course.level} {' '.join(course.tags or [])}"
+        context = (
+            f"PLATFORM: {course.platform or course.source_platform}. "
+            f"TITLE: {course.title}. "
+            f"PROVIDER: {course.provider or 'Unknown'}. "
+            f"DESCRIPTION: {course.description or course.title}. "
+            f"MODULES: {', '.join(course.modules or [])}. "
+            f"SKILLS: {', '.join(course.skills_raw or [])}. "
+            f"OUTCOMES: {', '.join(course.outcomes or [])}."
+        )
         course.embedding_context = context
         course.vector = get_embedding(context)
 
@@ -363,7 +573,9 @@ async def admin_update_course(
 
 @app.delete("/recommend/admin/courses/{course_id}")
 async def admin_delete_course(
-    course_id: uuid.UUID, request: Request, db: Session = Depends(get_db)
+    course_id: uuid.UUID,
+    request: Request,
+    db: Session = Depends(get_db),
 ):
     """Admin only: Xóa khóa học."""
     if request.headers.get("X-Is-Admin") != "true":
@@ -375,4 +587,33 @@ async def admin_delete_course(
 
     db.delete(course)
     db.commit()
-    return {"message": "Course deleted successfully"}
+    return {"message": "Deleted successfully"}
+
+
+@app.post("/recommend/admin/courses/crawl")
+async def admin_crawl_course(req: CrawlRequest, request: Request):
+    """Admin only: Dispatch background task to crawl course data."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    task = celery_app.send_task(
+        "worker.tasks.crawler_tasks.crawl_course_task",
+        args=[req.url],
+    )
+    return {"task_id": task.id, "status": "processing"}
+
+
+@app.get("/recommend/admin/courses/crawl/status/{task_id}")
+async def admin_get_crawl_status(task_id: str, request: Request):
+    """Admin only: Check crawl task status."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    res = AsyncResult(task_id, app=celery_app)
+    if res.ready():
+        # Task is finished (can be success or fail in app logic)
+        result = res.result
+        if isinstance(result, dict) and "error" in result:
+             return {"status": "failed", "error": result["error"]}
+        return {"status": "completed", "result": result}
+    return {"status": "processing"}

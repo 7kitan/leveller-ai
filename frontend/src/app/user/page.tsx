@@ -40,21 +40,54 @@ const UserDashboard = () => {
     fetchMarketFit();
   }, [token]);
 
-  const matchedJobs = [
-    { id: 1, title: "Senior Backend Engineer", company: "Aura Tech", location: "Hồ Chí Minh", match: "92%", skills: ["FastAPI", "Neo4j", "Docker"] },
-    { id: 2, title: "DevOps Architect", company: "Cloud Nexus", location: "Hà Nội", match: "85%", skills: ["Kubernetes", "AWS", "Terraform"] },
-    { id: 3, title: "Fullstack Developer", company: "Nexus AI", location: "Remote", match: "78%", skills: ["Next.js", "Python", "Redis"] },
-  ];
+  // Map API courses to job card format
+  const matchedJobs = (marketData?.courses || []).map((c: any, i: number) => ({
+    id: i + 1,
+    title: c.title || "Khóa học kỹ năng",
+    company: c.platform || "E-learning",
+    location: c.level || "Online",
+    match: c.rank_score
+      ? `${Math.round(parseFloat(c.rank_score) * 100)}%`
+      : `${Math.round(parseFloat(c.similarity || 0) * 100)}%`,
+    skills: (c.tags || []).slice(0, 4),
+  }));
+
+  // Fallback: show placeholder if no courses
+  const displayJobs =
+    matchedJobs.length > 0
+      ? matchedJobs
+      : [
+          {
+            id: 1,
+            title: "Chưa có khóa học được gợi ý",
+            company: "Phân tích CV để nhận gợi ý",
+            location: "",
+            match: "—",
+            skills: ["Upload CV để bắt đầu"],
+          },
+        ];
 
   const stats = [
-    { label: "Jobs Matched",      value: loadingMarket ? "..." : (marketData?.matched_jobs    || "0"),    icon: Target },
-    { label: "Market Fit Ratio",  value: loadingMarket ? "..." : `${marketData?.market_fit_pct || 0}%`,  icon: TrendingUp },
-    { label: "Database Coverage", value: loadingMarket ? "..." : (marketData?.total_jobs     || "0"),   icon: Award },
+    {
+      label: "Khóa học gợi ý",
+      value: loadingMarket ? "..." : String(marketData?.matched_jobs ?? "0"),
+      icon: Target,
+    },
+    {
+      label: "CV Match Score",
+      value: loadingMarket ? "..." : `${marketData?.market_fit_pct || 0}%`,
+      icon: TrendingUp,
+    },
+    {
+      label: "Tổng việc làm",
+      value: loadingMarket ? "..." : String(marketData?.total_jobs || "0"),
+      icon: Award,
+    },
   ];
 
   return (
     <AuthGuard requireRole="user">
-       <div className={styles.pageRoot}>
+      <div className={styles.pageRoot}>
         {/* Header */}
         <div className={styles.headerSection}>
           <motion.div
@@ -76,7 +109,9 @@ const UserDashboard = () => {
               <UploadCloud size={32} />
             </div>
             <h3 className={styles.uploadTitle}>CV Insight</h3>
-            <p className={styles.headerSubtitle} style={{fontSize: "0.9rem", textAlign: "center", marginBottom: "1rem"}}>Cập nhật hồ sơ để nhận phân tích mới nhất.</p>
+            <p className={styles.headerSubtitle} style={{ fontSize: "0.9rem", textAlign: "center", marginBottom: "1rem" }}>
+              Cập nhật hồ sơ để nhận phân tích mới nhất.
+            </p>
             <Link href="/user/cv" className={styles.uploadBtn}>
               PHÂN TÍCH CV
             </Link>
@@ -87,45 +122,50 @@ const UserDashboard = () => {
             <div className={styles.statsGrid}>
               {stats.map((stat) => (
                 <div key={stat.label} className={styles.statCard}>
-                   <stat.icon size={24} color="var(--color-accent-primary)" />
-                   <div>
+                  <stat.icon size={24} color="var(--color-accent-primary)" />
+                  <div>
                     <div className={styles.statValue}>{stat.value}</div>
                     <div className={styles.statLabel}>{stat.label}</div>
-                   </div>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Job Grid Layer */}
+        {/* Course Grid Layer */}
         <div className={styles.verticalStack8}>
           <div className={styles.jobListHeader}>
-            <h2 className={styles.jobListTitle}>Top Matches</h2>
-            <Link href="/user/jobs" className={styles.viewAllLink}>Xem tất cả</Link>
+            <h2 className={styles.jobListTitle}>Khóa học gợi ý</h2>
+            <Link href="/user/analysis" className={styles.viewAllLink}>
+              Phân tích gap ngay
+            </Link>
           </div>
 
           <div className={styles.jobGrid}>
-            {matchedJobs.map((job) => (
+            {displayJobs.map((job) => (
               <div key={job.id} className={styles.jobCard}>
-                <div style={{display: "flex", justifyContent: "space-between", alignItems: "flex-start"}}>
-                   <h3 className={styles.jobTitle}>{job.title}</h3>
-                   <span style={{color: "var(--color-success)", fontWeight: 800}}>{job.match}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <h3 className={styles.jobTitle}>{job.title}</h3>
+                  <span style={{ color: "var(--color-success)", fontWeight: 800 }}>{job.match}</span>
                 </div>
-                
-                <div style={{display: "flex", gap: "1rem", fontSize: "0.8rem", opacity: 0.6}}>
-                   <span>{job.company}</span>
-                   <span>{job.location}</span>
+
+                <div style={{ display: "flex", gap: "1rem", fontSize: "0.8rem", opacity: 0.6 }}>
+                  <span>{job.company}</span>
+                  <span>{job.location}</span>
                 </div>
-                
-                <div style={{display: "flex", flexWrap: "wrap", gap: "0.5rem"}}>
-                  {job.skills.map((s) => (
+
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                  {job.skills.map((s: string) => (
                     <span key={s} className={styles.skillBadge}>{s}</span>
                   ))}
                 </div>
 
-                <Link href="/user/analysis" style={{marginTop: "auto", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 700, fontSize: "0.9rem"}}>
-                   Gap Analysis <ArrowRight size={16} />
+                <Link
+                  href="/user/analysis"
+                  style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 700, fontSize: "0.9rem" }}
+                >
+                  Gap Analysis <ArrowRight size={16} />
                 </Link>
               </div>
             ))}
@@ -135,9 +175,11 @@ const UserDashboard = () => {
         {/* CTA Section */}
         <div className={cn(styles.card, styles.ctaCard)}>
           <div className={styles.ctaContent}>
-            <h2 className={styles.ctaTitle}>Thấu hiểu bản thân.<br/>Làm chủ lộ trình.</h2>
-            <p className={styles.headerSubtitle} style={{color: "inherit", opacity: 0.8}}>
-               Sử dụng AI để so sánh hàng nghìn tham số giữa hồ sơ của bạn và yêu cầu thực tế từ thị trường.
+            <h2 className={styles.ctaTitle}>
+              Thấu hiểu bản thân.<br />Làm chủ lộ trình.
+            </h2>
+            <p className={styles.headerSubtitle} style={{ color: "inherit", opacity: 0.8 }}>
+              Sử dụng AI để so sánh hàng nghìn tham số giữa hồ sơ của bạn và yêu cầu thực tế từ thị trường.
             </p>
             <Link href="/user/analysis" className={styles.ctaMainBtn}>
               Thử phân tích ngay <ChevronRightIcon size={20} />
@@ -146,7 +188,7 @@ const UserDashboard = () => {
 
           <div className={styles.radarContainer}>
             <div className={styles.radarScan} />
-            <motion.div 
+            <motion.div
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ repeat: Infinity, duration: 4 }}
               style={{ color: "var(--color-accent-primary)" }}
@@ -155,7 +197,6 @@ const UserDashboard = () => {
             </motion.div>
           </div>
         </div>
-
       </div>
     </AuthGuard>
   );

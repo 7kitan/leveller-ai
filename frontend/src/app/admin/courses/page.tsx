@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import Pagination from "@/components/shared/Pagination";
 import { 
   Plus, 
   Trash2, 
@@ -14,25 +15,88 @@ import {
   ExternalLink,
   Clock,
   DollarSign,
-  CheckCircle2,
   AlertCircle,
-  Tag
+  Tag,
+  Globe,
+  CheckCircle2,
+  List,
+  Target,
+  Award,
+  BadgeDollarSign,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import styles from "./admin-courses.module.css";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 interface Course {
   id: string;
   title: string;
+  description?: string;
   platform: string;
+  source_platform?: string | null;
+  source_id?: string | null;
+  external_uuid?: string | null;
   url: string;
   level: string;
   provider: string | null;
   duration_hours: number | null;
+  duration_raw?: string | null;
   cost_usd: number;
+  languages?: string[];
   tags: string[];
+  skills_raw?: string[];
+  outcomes?: string[];
+  modules?: string[];
+  is_certification?: boolean;
 }
+
+const TagInput = ({ tags, setTags, placeholder = "Thêm thẻ..." }: { tags: string[], setTags: (tags: string[]) => void, placeholder?: string }) => {
+  const [input, setInput] = useState("");
+
+  const addTag = (val: string) => {
+    const trimmed = val.trim();
+    if (trimmed && !tags.includes(trimmed)) {
+      setTags([...tags, trimmed]);
+    }
+    setInput("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      addTag(input);
+    } else if (e.key === "Backspace" && !input && tags.length > 0) {
+      setTags(tags.slice(0, -1));
+    }
+  };
+
+  return (
+    <div className={styles.tagInputWrapper}>
+      {tags.map((tag, idx) => (
+        <span key={idx} className={styles.tagPill}>
+          {tag}
+          <button 
+            type="button" 
+            onClick={() => setTags(tags.filter((_, i) => i !== idx))}
+            className={styles.tagDelete}
+          >
+            <X size={10} />
+          </button>
+        </span>
+      ))}
+      <input
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={() => addTag(input)}
+        placeholder={tags.length === 0 ? placeholder : ""}
+        className={styles.tagInnerInput}
+      />
+    </div>
+  );
+};
 
 const AdminCoursesPage = () => {
   const { token } = useAuth();
@@ -43,25 +107,50 @@ const AdminCoursesPage = () => {
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [pageSize] = useState(10); // Trang Admin hiển thị ít hơn chút cho thoáng
+
   const [formData, setFormData] = useState({
     title: "",
+    description: "",
     platform: "",
+    source_platform: "",
+    source_id: "",
+    external_uuid: "",
     url: "",
     level: "Beginner",
     provider: "",
-    tags: ""
+    duration_hours: "",
+    duration_raw: "",
+    cost_usd: "0",
+    languages: [] as string[],
+    tags: [] as string[],
+    skills: [] as string[],
+    outcomes: [] as string[],
+    modules: "",
+    is_certification: false
   });
 
-  const fetchCourses = async () => {
+  const fetchCourses = async (page = 1) => {
     setIsLoading(true);
     try {
+      const offset = (page - 1) * pageSize;
       const resp = await axios.get("/api/recommend/admin/courses", {
+        params: {
+          limit: pageSize,
+          offset: offset,
+          q: searchTerm || undefined
+        },
         headers: { 
           Authorization: `Bearer ${token}`,
           "X-Is-Admin": "true"
         }
       });
-      setCourses(resp.data);
+      setCourses(resp.data.items);
+      setTotalPages(resp.data.pages);
+      setCurrentPage(page);
     } catch (err) {
       showNotification("Không thể tải danh sách khóa học", "error");
     } finally {
@@ -70,8 +159,16 @@ const AdminCoursesPage = () => {
   };
 
   useEffect(() => {
-    if (token) fetchCourses();
+    if (token) fetchCourses(1);
   }, [token]);
+
+  // Handle search with debounce ideally, but for now reset page
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (token) fetchCourses(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
@@ -82,7 +179,16 @@ const AdminCoursesPage = () => {
     try {
       const payload = {
         ...formData,
-        tags: formData.tags.split(',').map(s => s.trim()).filter(Boolean)
+        duration_hours: formData.duration_hours ? parseFloat(formData.duration_hours) : null,
+        cost_usd: formData.cost_usd ? parseFloat(formData.cost_usd) : 0,
+        tags: formData.tags,
+        skills_raw: formData.skills,
+        outcomes: formData.outcomes,
+        languages: formData.languages,
+        modules: formData.modules.split('\n').map(s => s.trim()).filter(Boolean),
+        source_platform: formData.source_platform || null,
+        source_id: formData.source_id || null,
+        external_uuid: formData.external_uuid || null
       };
 
       if (editingCourse) {
@@ -129,11 +235,23 @@ const AdminCoursesPage = () => {
     setEditingCourse(course);
     setFormData({
       title: course.title,
+      description: course.description || "",
       platform: course.platform,
+      source_platform: course.source_platform || "",
+      source_id: course.source_id || "",
+      external_uuid: course.external_uuid || "",
       url: course.url,
       level: course.level,
       provider: course.provider || "",
-      tags: course.tags.join(", ")
+      duration_hours: course.duration_hours?.toString() || "",
+      duration_raw: course.duration_raw || "",
+      cost_usd: course.cost_usd.toString(),
+      languages: course.languages || [],
+      tags: course.tags,
+      skills: course.skills_raw || [],
+      outcomes: course.outcomes || [],
+      modules: (course.modules || []).join("\n"),
+      is_certification: course.is_certification || false
     });
     setIsModalOpen(true);
   };
@@ -154,17 +272,44 @@ const AdminCoursesPage = () => {
             </h1>
             <p className={styles.subtitle}>Quản lý thư viện khóa học và cấu hình Knowledge Embedding.</p>
           </div>
-          <button 
-            onClick={() => {
-              setEditingCourse(null);
-              setFormData({ title: "", platform: "", url: "", level: "Beginner", provider: "", tags: "" });
-              setIsModalOpen(true);
-            }} 
-            className={styles.addBtn}
-          >
-            <Plus size={18} /> 
-            Thêm khóa học
-          </button>
+          <div className="flex gap-3">
+            <Link href="/admin/courses/import">
+              <button className={cn(styles.addBtn, "bg-blue-600 hover:bg-blue-700")}>
+                <Globe size={18} /> 
+                Import từ URL
+              </button>
+            </Link>
+            <button 
+              onClick={() => {
+                setEditingCourse(null);
+                setFormData({ 
+                  title: "", 
+                  description: "",
+                  platform: "", 
+                  source_platform: "",
+                  source_id: "",
+                  external_uuid: "",
+                  url: "", 
+                  level: "Beginner", 
+                  provider: "", 
+                  duration_hours: "",
+                  duration_raw: "",
+                  cost_usd: "0",
+                  languages: [],
+                  tags: [], 
+                  skills: [],
+                  outcomes: [],
+                  modules: "",
+                  is_certification: false
+                });
+                setIsModalOpen(true);
+              }} 
+              className={styles.addBtn}
+            >
+              <Plus size={18} /> 
+              Thêm khóa học
+            </button>
+          </div>
         </div>
 
         <div className={styles.contentStack}>
@@ -179,7 +324,7 @@ const AdminCoursesPage = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button onClick={fetchCourses} className={styles.refreshBtn}>
+            <button onClick={() => fetchCourses(currentPage)} className={styles.refreshBtn}>
               <RefreshCcw size={18} className={cn(isLoading && "animate-spin")} />
             </button>
           </div>
@@ -189,13 +334,15 @@ const AdminCoursesPage = () => {
               <thead>
                 <tr className={styles.tableHeader}>
                   <th className={styles.th}>Khóa học / Nền tảng</th>
+                  <th className={styles.th}>Nhà cung cấp</th>
+                  <th className={styles.th}>Thời lượng / Giá</th>
                   <th className={styles.th}>Cấp độ</th>
                   <th className={styles.th}>Tags</th>
                   <th className={cn(styles.th, styles.thRight)}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((course) => (
+                {courses.map((course) => (
                   <tr key={course.id} className={styles.tr}>
                     <td className={styles.td}>
                       <div className={styles.courseMainInfo}>
@@ -212,6 +359,19 @@ const AdminCoursesPage = () => {
                             </div>
                          </div>
                       </div>
+                    </td>
+                    <td className={styles.td}>
+                       <span className={styles.levelBadge}>{course.provider || "N/A"}</span>
+                    </td>
+                    <td className={styles.td}>
+                       <div className={styles.courseMetaInfo}>
+                          <div className={styles.metaRow}>
+                             <Clock size={12} /> {course.duration_raw || course.duration_hours + 'h'}
+                          </div>
+                          <div className={styles.metaRow}>
+                             <BadgeDollarSign size={12} /> {course.cost_usd > 0 ? `$${course.cost_usd}` : 'Free'}
+                          </div>
+                       </div>
                     </td>
                     <td className={styles.td}>
                        <span className={styles.levelBadge}>{course.level}</span>
@@ -239,6 +399,12 @@ const AdminCoursesPage = () => {
               </tbody>
             </table>
           </div>
+
+          <Pagination 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => fetchCourses(page)}
+          />
         </div>
 
         <AnimatePresence>
@@ -255,12 +421,21 @@ const AdminCoursesPage = () => {
                 </div>
                 <div className={styles.modalBody}>
                    <div className={styles.formGrid}>
-                      <div className={styles.formField}>
+                      <div className={styles.sectionTitle}>Thông tin chính</div>
+                      <div className={cn(styles.formField, styles.formFieldFull)}>
                          <label>Tên khóa học</label>
                          <input 
                            value={formData.title}
                            onChange={e => setFormData({...formData, title: e.target.value})}
                            placeholder="e.g. Advanced Python Patterns"
+                         />
+                      </div>
+                      <div className={cn(styles.formField, styles.formFieldFull)}>
+                         <label>Mô tả ngắn</label>
+                         <textarea 
+                           value={formData.description}
+                           onChange={e => setFormData({...formData, description: e.target.value})}
+                           placeholder="Mô tả nội dung khóa học..."
                          />
                       </div>
                       <div className={styles.formField}>
@@ -272,6 +447,38 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       <div className={styles.formField}>
+                         <label>Nhà cung cấp (Provider)</label>
+                         <input 
+                           value={formData.provider}
+                           onChange={e => setFormData({...formData, provider: e.target.value})}
+                           placeholder="e.g. Google, IBM"
+                         />
+                      </div>
+                      <div className={styles.formField}>
+                         <label>Nền tảng gốc (Source)</label>
+                         <input 
+                           value={formData.source_platform}
+                           onChange={e => setFormData({...formData, source_platform: e.target.value})}
+                           placeholder="e.g. coursera"
+                         />
+                      </div>
+                      <div className={styles.formField}>
+                         <label>Mã ID gốc (Source ID)</label>
+                         <input 
+                           value={formData.source_id}
+                           onChange={e => setFormData({...formData, source_id: e.target.value})}
+                           placeholder="e.g. advanced-patterns"
+                         />
+                      </div>
+                      <div className={styles.formField}>
+                         <label>UUID Hệ thống gốc</label>
+                         <input 
+                           value={formData.external_uuid}
+                           onChange={e => setFormData({...formData, external_uuid: e.target.value})}
+                           placeholder="e.g. 22-char ID"
+                         />
+                      </div>
+                      <div className={cn(styles.formField, styles.formFieldFull)}>
                          <label>URL</label>
                          <input 
                            value={formData.url}
@@ -279,6 +486,8 @@ const AdminCoursesPage = () => {
                            placeholder="https://..."
                          />
                       </div>
+                      
+                      <div className={styles.sectionTitle}>Chi tiết & Giá</div>
                       <div className={styles.formField}>
                          <label>Cấp độ</label>
                          <select 
@@ -291,11 +500,81 @@ const AdminCoursesPage = () => {
                          </select>
                       </div>
                       <div className={styles.formField}>
-                         <label>Tags (cách nhau bởi dấu phẩy)</label>
+                         <label>Giá (USD)</label>
                          <input 
-                           value={formData.tags}
-                           onChange={e => setFormData({...formData, tags: e.target.value})}
-                           placeholder="python, backend, patterns"
+                           type="number"
+                           value={formData.cost_usd}
+                           onChange={e => setFormData({...formData, cost_usd: e.target.value})}
+                         />
+                      </div>
+                      <div className={styles.formField}>
+                         <label>Thời lượng (giờ)</label>
+                         <input 
+                           type="number"
+                           value={formData.duration_hours}
+                           onChange={e => setFormData({...formData, duration_hours: e.target.value})}
+                         />
+                      </div>
+                      <div className={styles.formField}>
+                         <label>Thời lượng (text)</label>
+                         <input 
+                           value={formData.duration_raw}
+                           onChange={e => setFormData({...formData, duration_raw: e.target.value})}
+                           placeholder="e.g. 4 weeks"
+                         />
+                      </div>
+                      <div className={cn(styles.formField, styles.formFieldFull)}>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input 
+                            type="checkbox"
+                            className="w-4 h-4"
+                            checked={formData.is_certification}
+                            onChange={e => setFormData({...formData, is_certification: e.target.checked})}
+                          />
+                          <span>Khóa học có chứng chỉ (Certification)</span>
+                        </label>
+                      </div>
+
+                      <div className={styles.sectionTitle}>Nội dung học tập</div>
+                      <div className={cn(styles.formField, styles.formFieldFull)}>
+                         <label>Kỹ năng (Skills)</label>
+                         <TagInput 
+                            tags={formData.skills}
+                            setTags={(skills) => setFormData({...formData, skills})}
+                            placeholder="Type skill and press Enter..."
+                         />
+                      </div>
+                      <div className={cn(styles.formField, styles.formFieldFull)}>
+                         <label>Kết quả (Outcomes)</label>
+                         <TagInput 
+                            tags={formData.outcomes}
+                            setTags={(outcomes) => setFormData({...formData, outcomes})}
+                            placeholder="Type outcome and press Enter..."
+                         />
+                      </div>
+                      <div className={cn(styles.formField, styles.formFieldFull)}>
+                         <label>Ngôn ngữ (Languages)</label>
+                         <TagInput 
+                            tags={formData.languages}
+                            setTags={(languages) => setFormData({...formData, languages})}
+                            placeholder="e.g. en, vi"
+                         />
+                      </div>
+                      <div className={cn(styles.formField, styles.formFieldFull)}>
+                         <label>Modules (Danh sách bài học - mỗi dòng một bài)</label>
+                         <textarea 
+                           className="h-32"
+                           value={formData.modules}
+                           onChange={e => setFormData({...formData, modules: e.target.value})}
+                           placeholder="Introduction&#10;Basic Syntax&#10;Advanced Patterns..."
+                         />
+                      </div>
+                      <div className={cn(styles.formField, styles.formFieldFull)}>
+                         <label>Tags (#tag)</label>
+                         <TagInput 
+                            tags={formData.tags}
+                            setTags={(tags) => setFormData({...formData, tags})}
+                            placeholder="Add tag and press Enter..."
                          />
                       </div>
                    </div>

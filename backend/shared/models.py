@@ -9,6 +9,7 @@ from sqlalchemy import (
     Text,
     BigInteger,
     JSON,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from pgvector.sqlalchemy import Vector
@@ -18,11 +19,21 @@ import uuid
 from .database import Base
 
 
+class SystemSetting(Base):
+    __tablename__ = "system_settings"
+
+    key = Column(String(100), primary_key=True)
+    value = Column(JSON, nullable=False)
+    description = Column(Text)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+
+
 class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
+    username = Column(String(100), unique=True, nullable=True, index=True)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255))
     is_active = Column(Boolean, default=True)
@@ -42,7 +53,7 @@ class UserCV(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
-    file_id = Column(String(100), unique=True)  # ID từ storage (MinIO/Local)
+    file_id = Column(String(100), unique=True)  # ID định danh file trong Local Storage
 
     full_name = Column(String(255))
     summary = Column(Text)
@@ -75,21 +86,21 @@ class Job(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     source_id = Column(String(100), unique=True, nullable=False)
     title_raw = Column(Text, nullable=False)
-    title_category = Column(String(100))
-    domain_role = Column(String(100))
-    company_name = Column(String(255))
+    title_category = Column(String(100), index=True)
+    domain_role = Column(String(100), index=True)
+    company_name = Column(String(255), index=True)
     source_url = Column(Text)
     source_label = Column(String(100))
     raw_text = Column(Text)
 
-    min_salary_vnd = Column(BigInteger)
-    max_salary_vnd = Column(BigInteger)
+    min_salary_vnd = Column(BigInteger, index=True)
+    max_salary_vnd = Column(BigInteger, index=True)
     required_exp_years = Column(Float)
     employment_type = Column(String(50))
 
     location_raw = Column(Text)
-    location_normalized = Column(String(100))
-    location_district = Column(String(100))
+    location_normalized = Column(String(100), index=True)
+    location_district = Column(String(100), index=True)
 
     status = Column(String(20), nullable=False, default="active")
 
@@ -162,21 +173,42 @@ class UserSkillProfile(Base):
 
 class Course(Base):
     __tablename__ = "courses"
+    __table_args__ = (
+        UniqueConstraint("source_platform", "source_id", name="uq_course_source"),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(Text, nullable=False)
     description = Column(Text)
-    platform = Column(String(100))
+    
+    # ── Source Info ──────────────────────────────────────────────────
+    source_platform = Column(String(100), index=True) # e.g. coursera, udemy
+    source_id = Column(String(255), index=True)       # e.g. slug or internal id
+    external_uuid = Column(String(100), index=True)   # e.g. 22-char ID for Coursera
+    provider = Column(String(100))                    # e.g. IBM, Stanford
+    platform = Column(String(100))                    # Legacy/Display platform name
     url = Column(Text)
-    language = Column(String(10))
-    level = Column(String(20))
+
+    # ── Metadata (Enhanced) ──────────────────────────────────────────
+    languages = Column(JSON)                          # List of language codes
+    language = Column(String(10))                     # Primary language code
+    level = Column(String(50))
     is_certification = Column(Boolean, default=False)
-    provider = Column(String(100))
     duration_hours = Column(Float)
+    duration_raw = Column(String(100))                # e.g. "2 weeks", "Approx. 6 months"
     cost_usd = Column(Float, default=0)
-    tags = Column(ARRAY(Text))
+    
+    # ── Rich Content (JSONB) ─────────────────────────────────────────
+    skills_raw = Column(JSON)                         # Skills as provided by source
+    tools_raw = Column(JSON)                          # Tools as provided by source
+    outcomes = Column(JSON)                           # Learning outcomes
+    modules = Column(JSON)                             # Modules/Syllabus
+    tags = Column(ARRAY(Text))                        # Standardized tags
+    
+    # ── Vector Search ───────────────────────────────────────────────
     embedding_context = Column(Text)
     vector = Column(Vector(1536))
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

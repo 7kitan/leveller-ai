@@ -65,6 +65,59 @@
   box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
 }
 
+.settingToggle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1.25rem;
+}
+
+.toggleLabel {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  opacity: 0.8;
+}
+
+.toggleBtn {
+  width: 3rem;
+  height: 1.5rem;
+  border-radius: 1rem;
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.toggleOn {
+  background-color: #10b981;
+}
+
+.toggleOff {
+  background-color: var(--color-border-subtle);
+}
+
+.toggleKnob {
+  width: 1rem;
+  height: 1rem;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 0.25rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggleOn .toggleKnob {
+  left: 1.75rem;
+}
+
+.toggleOff .toggleKnob {
+  left: 0.25rem;
+}
+
 .contentStack {
   display: flex;
   flex-direction: column;
@@ -331,6 +384,87 @@
 
 .notifSuccess { border-left: 4px solid #10b981; }
 .notifError { border-left: 4px solid #f43f5e; }
+
+.tagInputWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1rem;
+  min-height: 3.5rem;
+  align-items: center;
+}
+
+.tagInputWrapper:focus-within {
+  border-color: var(--color-accent-primary);
+  background-color: transparent;
+}
+
+.tagPill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.tagDelete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tagDelete:hover {
+  background-color: rgba(244, 63, 94, 0.1);
+  color: #f43f5e;
+}
+
+.tagInnerInput {
+  flex: 1;
+  min-width: 5rem;
+  border: none !important;
+  background: transparent !important;
+  padding: 0.25rem !important;
+  outline: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.sourceLabel {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.sourceTopcv {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.sourceManual {
+  background-color: rgba(79, 70, 229, 0.1);
+  color: var(--color-accent-primary);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import Pagination from "@/components/shared/Pagination";
 import { 
   Plus, 
   Trash2, 
@@ -15,7 +16,9 @@ import {
   DollarSign,
   Briefcase,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Globe,
+  Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import styles from "./admin-jobs.module.css";
@@ -29,7 +32,14 @@ interface Job {
   min_salary_vnd: number | null;
   max_salary_vnd: number | null;
   status: string;
+  source_label?: string;
   created_at: string;
+}
+
+interface SystemSetting {
+  key: string;
+  value: any;
+  description?: string;
 }
 
 const AdminJobsPage = () => {
@@ -40,6 +50,13 @@ const AdminJobsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [crawlEnabled, setCrawlEnabled] = useState<boolean>(true);
+  const [isUpdatingSetting, setIsUpdatingSetting] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [pageSize] = useState(10);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -49,16 +66,24 @@ const AdminJobsPage = () => {
     status: "active"
   });
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (page = 1) => {
     setIsLoading(true);
     try {
+      const offset = (page - 1) * pageSize;
       const resp = await axios.get("/api/jd/admin/list", {
+        params: {
+          limit: pageSize,
+          offset: offset,
+          q: searchTerm || undefined
+        },
         headers: { 
           Authorization: `Bearer ${token}`,
           "X-Is-Admin": "true"
         }
       });
-      setJobs(resp.data);
+      setJobs(resp.data.items);
+      setTotalPages(resp.data.pages);
+      setCurrentPage(page);
     } catch (err) {
       showNotification("Không thể tải danh sách công việc", "error");
     } finally {
@@ -66,9 +91,59 @@ const AdminJobsPage = () => {
     }
   };
 
+  const fetchSettings = async () => {
+    try {
+      const resp = await axios.get("/api/jd/admin/settings", {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "X-Is-Admin": "true"
+        }
+      });
+      const topcvSetting = resp.data.find((s: SystemSetting) => s.key === "topcv_crawl_enabled");
+      if (topcvSetting) {
+        setCrawlEnabled(topcvSetting.value);
+      }
+    } catch (err) {
+      console.error("Failed to fetch settings", err);
+    }
+  };
+
+  const toggleCrawlSetting = async () => {
+    setIsUpdatingSetting(true);
+    try {
+      const newValue = !crawlEnabled;
+      await axios.patch(`/api/jd/admin/settings/topcv_crawl_enabled`, 
+        { value: newValue },
+        {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "X-Is-Admin": "true"
+          }
+        }
+      );
+      setCrawlEnabled(newValue);
+      showNotification(newValue ? "Đã bật tự động cào tin" : "Đã tắt tự động cào tin");
+    } catch (err) {
+      showNotification("Không thể cập nhật cấu hình", "error");
+    } finally {
+      setIsUpdatingSetting(false);
+    }
+  };
+
   useEffect(() => {
-    if (token) fetchJobs();
+    if (token) {
+      fetchJobs(1);
+      fetchSettings();
+    }
   }, [token]);
+
+  // Handle search resets pagination
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (token) fetchJobs(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
@@ -115,21 +190,34 @@ const AdminJobsPage = () => {
   };
 
   const openEdit = (job: Job) => {
-    setEditingJob(job);
-    setFormData({
-      title: job.title,
-      company_name: job.company_name,
-      location: job.location,
-      description: "", 
-      status: job.status
-    });
     setIsModalOpen(true);
   };
 
-  const filtered = jobs.filter(j =>
-    (j.title ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (j.company_name ?? "").toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleCrawl = async () => {
+    if (!confirm("Kích hoạt crawler lấy 20 tin Tech mới nhất từ TopCV?")) return;
+    setIsLoading(true);
+    try {
+      await axios.post("/api/jd/admin/crawl", {}, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "X-Is-Admin": "true"
+        }
+      });
+      showNotification("Đã kích hoạt Crawler. Vui lòng đợi vài phút...");
+      // Refresh sau 5s để xem có tin mới chưa
+      setTimeout(() => fetchJobs(1), 5000);
+    } catch (err) {
+      showNotification("Lỗi khi kích hoạt crawler", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  const handleManualImport = () => {
+    window.location.href = "/admin/jobs/import";
+  };
+
 
   return (
     <AuthGuard requireAdmin>
@@ -142,13 +230,34 @@ const AdminJobsPage = () => {
             </h1>
             <p className={styles.subtitle}>Quản trị hệ thống tin tuyển dụng và trạng thái listing.</p>
           </div>
-          <button 
-            disabled 
-            className={cn(styles.addBtn, "opacity-50 cursor-not-allowed")}
-          >
-            <Plus size={18} /> 
-            Đăng tin mới
-          </button>
+          <div className="flex gap-4">
+            <div className={styles.settingToggle}>
+               <div className={styles.toggleLabel}>Auto Crawl (30m)</div>
+               <button 
+                 onClick={toggleCrawlSetting} 
+                 disabled={isUpdatingSetting}
+                 className={cn(styles.toggleBtn, crawlEnabled ? styles.toggleOn : styles.toggleOff)}
+               >
+                 <div className={styles.toggleKnob} />
+               </button>
+            </div>
+            
+            <button 
+              onClick={handleManualImport}
+              className={cn(styles.addBtn, "bg-blue-600 hover:bg-blue-700")}
+            >
+              <Globe size={18} /> 
+              Import từ URL
+            </button>
+            
+            <button 
+              onClick={handleCrawl}
+              className={cn(styles.addBtn, "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200")}
+            >
+              <RefreshCcw size={18} className={cn(isLoading && "animate-spin")} /> 
+              Crawl Now
+            </button>
+          </div>
         </div>
 
         <div className={styles.contentStack}>
@@ -163,7 +272,7 @@ const AdminJobsPage = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button onClick={fetchJobs} className={styles.refreshBtn}>
+            <button onClick={() => fetchJobs(currentPage)} className={styles.refreshBtn}>
               <RefreshCcw size={18} className={cn(isLoading && "animate-spin")} />
             </button>
           </div>
@@ -173,6 +282,7 @@ const AdminJobsPage = () => {
               <thead>
                 <tr className={styles.tableHeader}>
                   <th className={styles.th}>Công việc / Công ty</th>
+                  <th className={styles.th}>Nguồn</th>
                   <th className={styles.th}>Địa điểm</th>
                   <th className={styles.th}>Lương</th>
                   <th className={styles.th}>Trạng thái</th>
@@ -180,7 +290,7 @@ const AdminJobsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((job) => (
+                {jobs.map((job) => (
                   <tr key={job.id} className={styles.tr}>
                     <td className={styles.td}>
                       <div className={styles.jobMainInfo}>
@@ -192,6 +302,14 @@ const AdminJobsPage = () => {
                             <div className={styles.companyName}>{job.company_name}</div>
                          </div>
                       </div>
+                    </td>
+                    <td className={styles.td}>
+                       <span className={cn(
+                         styles.sourceLabel,
+                         job.source_label === 'topcv' ? styles.sourceTopcv : styles.sourceManual
+                       )}>
+                         {job.source_label || "MANUAL"}
+                       </span>
                     </td>
                     <td className={styles.td}>
                        <div className={styles.metaInfo}>
@@ -228,6 +346,12 @@ const AdminJobsPage = () => {
               </tbody>
             </table>
           </div>
+
+          <Pagination 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => fetchJobs(page)}
+          />
         </div>
 
         <AnimatePresence>

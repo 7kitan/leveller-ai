@@ -22,6 +22,7 @@ celery_app = Celery(
         "worker.tasks.parse_jd_task",  # JD stub (Phase 4)
         "worker.tasks.analysis_tasks",  # Main analysis entry (v3 khi flag=true, legacy khi flag=false)
         "worker.langgraph_agents.gap_v3.tasks.cv_parsing_v3_task",  # CV parsing v3 (khi USE_LLM_GAP_AGENT_V3=true)
+        "worker.tasks.crawler_tasks",  # Course metadata crawler
         # NOTE: gap_analysis_v3_task.py bị DEPRECATE — dùng analysis_tasks thay thế
     ],
 )
@@ -40,6 +41,7 @@ def setup_logging(logger, *args, **kwargs):
     loggers_to_config = [
         "worker",
         "analysis_worker",
+        "crawler_worker",
         "gap_analysis_v3",
         "llm_utils",
         "gap_calculator",
@@ -64,6 +66,13 @@ celery_app.conf.update(
     result_serializer="json",
     timezone="Asia/Ho_Chi_Minh",
     enable_utc=True,
+    beat_schedule={
+        "auto-crawl-topcv-every-30-mins": {
+            "task": "worker.tasks.crawler_tasks.crawl_topcv_jobs_task",
+            "schedule": 1800.0,  # 30 minutes
+            "args": (20,),
+        },
+    },
 )
 
 if __name__ == "__main__":

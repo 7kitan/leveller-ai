@@ -151,6 +151,8 @@ def run_gap_analysis(user_id: str, cv_id: str, job_id: str = None, jd_text: str 
                                 " @"
                             )
                         )
+                        # ── FIX: pass raw_text as jd_text so v3 orchestrator has it ──
+                        jd_text = job.raw_text
                         logger.info(
                             f"[ANALYSIS STEP 2] Extracted {len(requirements)} requirements from job text"
                         )
@@ -228,6 +230,15 @@ def run_gap_analysis(user_id: str, cv_id: str, job_id: str = None, jd_text: str 
                 logger.info(
                     "[ANALYSIS STEP 3] Invoking run_gap_analysis_v3 orchestrator..."
                 )
+                logger.info(
+                    f"[ANALYSIS STEP 3] PAYLOAD to v3 orchestrator:\n"
+                    f"  cv_id     : {cv_id}\n"
+                    f"  user_id   : {user_id}\n"
+                    f"  job_id    : {job_id}\n"
+                    f"  jd_text   : {'<provided, ' + str(len(jd_text or '')) + ' chars>' if jd_text else '<NONE>'}\n"
+                    f"  jd_text[:200]: {repr((jd_text or '')[:200])}\n"
+                    f"  jd_context: {repr(jd_context)}"
+                )
                 t3 = time.monotonic()
                 report = loop.run_until_complete(
                     run_gap_analysis_v3(
@@ -290,6 +301,7 @@ def run_gap_analysis(user_id: str, cv_id: str, job_id: str = None, jd_text: str 
             created_at=datetime.now(),
         )
         db.add(new_analysis)
+        db.flush()  # Force INSERT execution so the ID exists for the User relation
 
         # Update User's last_analysis_id for persistent state
         from shared.models import User

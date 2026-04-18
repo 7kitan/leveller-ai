@@ -128,10 +128,10 @@ function AnalysisPageContent() {
     setSearchingJobs(true);
     axios
       .get("/api/jd/search", {
-        params: { search_text: q || undefined, limit: 10 },
+        params: { q: q || undefined, limit: 10 },
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((r) => setJobResults(r.data as JobOption[]))
+      .then((r) => setJobResults(r.data.items as JobOption[]))
       .catch(() => setJobResults([]))
       .finally(() => setSearchingJobs(false));
   };

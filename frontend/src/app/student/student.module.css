@@ -809,3 +809,152 @@
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ── Zero State Styles ────────────────────────────────────────── */
+.emptyStateContainer {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.emptyStateContent {
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 4rem;
+  padding: 6rem 4rem;
+  max-width: 60rem;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.emptyStateDecoration {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.03) 0%, transparent 60%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.emptyStateIconBox {
+  width: 8rem;
+  height: 8rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1));
+  border-radius: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f59e0b;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.emptyStateText {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.emptyStateTitle {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  font-style: italic;
+}
+
+.emptyStateSub {
+  font-size: 1.25rem;
+  color: var(--color-text-muted);
+  max-width: 32rem;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.emptySteps {
+  display: flex;
+  gap: 3rem;
+  margin: 2rem 0;
+  position: relative;
+  z-index: 1;
+}
+
+.emptyStepItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.emptyStepIcon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1rem;
+  background-color: rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+[data-theme="dark"] .emptyStepIcon {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.emptyStepLabel {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.ctaButton {
+  margin-top: 2rem;
+  padding: 1.5rem 4rem;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border-radius: 2rem;
+  font-size: 1.125rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 20px 40px rgba(245, 158, 11, 0.3);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 1;
+  animation: pulse 2s infinite;
+}
+
+.ctaButton:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 30px 60px rgba(245, 158, 11, 0.4);
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 20px 40px rgba(245, 158, 11, 0.3); }
+  50% { transform: scale(1.02); box-shadow: 0 25px 50px rgba(245, 158, 11, 0.5); }
+  100% { transform: scale(1); box-shadow: 0 20px 40px rgba(245, 158, 11, 0.3); }
+}

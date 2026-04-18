@@ -49,7 +49,9 @@ def get_embedding(text):
 def seed_skills():
     """Seed skills from tech_taxonomy.json into Postgres."""
     db = SessionLocal()
-    taxonomy_path = os.path.join(os.path.dirname(__file__), "../../dataset/tech_taxonomy.json")
+    # Use environment variable if provided (for Docker), otherwise fallback to relative path (for local)
+    dataset_dir = os.getenv("DATASET_DIR", os.path.join(os.path.dirname(__file__), "../../dataset"))
+    taxonomy_path = os.path.join(dataset_dir, "tech_taxonomy.json")
     try:
         with open(taxonomy_path, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -74,98 +76,9 @@ def seed_skills():
     finally:
         db.close()
 
-def seed_jobs():
-    """Seed jobs from jobs_dataset.json."""
-    db = SessionLocal()
-    jobs_path = os.path.join(os.path.dirname(__file__), "../../dataset/jobs_dataset.json")
-    try:
-        if not os.path.exists(jobs_path):
-            logger.warning(f"Jobs dataset not found at {jobs_path}")
-            return
-
-        with open(jobs_path, "r", encoding="utf-8") as f:
-            jobs_data = json.load(f)
-            
-        logger.info(f"--- [JOBS] Seeding {len(jobs_data)} jobs ---")
-        for j in jobs_data:
-            existing = db.query(Job).filter(Job.source_id == j['source_id']).first()
-            if existing: continue
-            
-            context = f"{j['title']} {j['company']} {j['mo_ta_cong_viec'][:200]}"
-            embedding = get_embedding(context)
-            
-            new_job = Job(
-                id=uuid.uuid4(),
-                source_id=j['source_id'],
-                title_raw=j['title'],
-                company_name=j['company'],
-                source_url=j['url'],
-                raw_text=j['mo_ta_cong_viec'],
-                embedding_context=context,
-                vector=embedding,
-                status="active"
-            )
-            db.add(new_job)
-            logger.info(f"  > Seeded Job: {j['title']}")
-        
-        db.commit()
-        logger.info("--- [SUCCESS] Jobs seeded! ---")
-    except Exception as e:
-        logger.error(f"Jobs seeding error: {e}")
-        db.rollback()
-    finally:
-        db.close()
-
-def seed_courses():
-    """Seed standard courses with embeddings."""
-    db = SessionLocal()
-    try:
-        courses = [
-            {"title": "Java Programming Masterclass", "platform": "Udemy", "level": "Middle", "provider": "Tim Buchalka", "tags": ["Java", "Backend"]},
-            {"title": "React - The Complete Guide", "platform": "Udemy", "level": "Middle", "provider": "Maximilian Schwarz", "tags": ["React", "Frontend"]},
-            {"title": "Fullstack Web Dev with Next.js", "platform": "Vercel", "level": "Senior", "provider": "Next.js Team", "tags": ["Next.js", "React", "TypeScript"]},
-            {"title": "AI & Machine Learning Foundations", "platform": "Coursera", "level": "Beginner", "provider": "Stanford", "tags": ["AI", "Python", "ML"]},
-            {"title": "AWS Certified Developer", "platform": "AWS", "level": "Middle", "provider": "Amazon", "tags": ["AWS", "Cloud", "DevOps"]},
-            {"title": "System Design Interview Guide", "platform": "ByteByteGo", "level": "Senior", "provider": "Alex Xu", "tags": ["System Design", "Architecture"]},
-            {"title": "NestJS Progressive Node.js Framework", "platform": "Udemy", "level": "Middle", "provider": "NestJS", "tags": ["NestJS", "Node.js", "Backend"]}
-        ]
-
-        logger.info(f"--- [COURSES] Seeding {len(courses)} courses ---")
-        for c in courses:
-            existing = db.query(Course).filter(Course.title == c['title']).first()
-            if existing: continue
-            
-            context = f"{c['title']} {c['provider']} {' '.join(c['tags'])}"
-            embedding = get_embedding(context)
-            
-            new_course = Course(
-                id=uuid.uuid4(),
-                title=c['title'],
-                platform=c['platform'],
-                level=c['level'],
-                provider=c['provider'],
-                tags=c['tags'],
-                embedding_context=context,
-                vector=embedding
-            )
-            db.add(new_course)
-            logger.info(f"  > Seeded Course: {c['title']}")
-        
-        db.commit()
-        logger.info("--- [SUCCESS] Courses seeded! ---")
-    except Exception as e:
-        logger.error(f"Courses seeding error: {e}")
-        db.rollback()
-    finally:
-        db.close()
-
 def seed_base_data():
-    """Seed skills, jobs, and base courses."""
-    logger.info("=== STARTING BASE DATA SEEDING ===")
-    seed_skills()
-    seed_jobs()
-    seed_courses()
-    logger.info("=== BASE DATA SEEDING COMPLETED ===")
+    """Seed base data (Currently empty as seeding is now via crawlers)."""
+    logger.info("=== BASE DATA SEEDING (SKIPPED - USE CRAWLERS) ===")
 
 if __name__ == "__main__":
     seed_base_data()

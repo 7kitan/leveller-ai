@@ -130,7 +130,7 @@ class RequirementRetriever:
                 pass
 
             query = text("""
-                SELECT source_id, extracted_requirements_json, 1 - (vector <=> :vec) as similarity
+                SELECT source_id, extracted_requirements_json, 1 - (vector <=> :vec::vector) as similarity
                 FROM jobs
                 WHERE vector IS NOT NULL AND extracted_requirements_json IS NOT NULL
                 ORDER BY similarity DESC

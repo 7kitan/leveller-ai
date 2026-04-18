@@ -19,18 +19,19 @@
   font-size: 3rem;
   font-weight: 900;
   letter-spacing: -0.05em;
-  color: white;
+  color: var(--color-text-main);
   margin-bottom: 0.5rem;
   font-style: italic;
   text-transform: uppercase;
 }
 
 .subtitle {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-text-muted);
   font-size: 1rem;
   font-weight: 500;
   max-width: 32rem;
 }
+
 
 .gradientText {
   background: linear-gradient(to right, #06b6d4, #0891b2);
@@ -169,8 +170,8 @@
 }
 
 .card {
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 2rem;
   padding: 2rem;
   display: flex;
@@ -182,10 +183,9 @@
 }
 
 .card:hover {
-  background-color: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.1);
   transform: translateY(-0.5rem);
-  box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+  border-color: var(--color-accent-primary);
 }
 
 .card::before {
@@ -245,24 +245,62 @@
 }
 
 .statusOther {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--color-border-subtle);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.sourceBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sourceTopcv {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.sourceManual {
+  background-color: rgba(79, 70, 229, 0.1);
+  color: var(--color-accent-primary, #4f46e5);
+  border: 1px solid rgba(79, 70, 229, 0.2);
 }
 
 .cardTitle {
   font-size: 1.25rem;
   font-weight: 900;
-  color: white;
+  color: var(--color-text-main);
   line-height: 1.4;
   letter-spacing: -0.02em;
+  margin-bottom: 0.25rem;
+}
+
+.companyName {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .cardMeta {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--color-text-muted);
   font-size: 0.75rem;
   font-weight: 500;
 }
@@ -271,8 +309,8 @@
   margin-top: auto;
   width: 100%;
   padding: 1rem;
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--color-accent-primary);
+  border: 1px solid var(--color-accent-primary);
   border-radius: 1.25rem;
   color: white;
   font-weight: 900;
@@ -284,8 +322,8 @@
 }
 
 .actionBtn:hover {
-  background-color: #4f46e5;
-  border-color: #4f46e5;
+  background-color: var(--color-apple-bright-blue);
+  border-color: var(--color-apple-bright-blue);
   box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
 }
 
@@ -318,28 +356,29 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  background-color: rgba(255, 255, 255, 0.01);
-  border: 1px dashed rgba(255, 255, 255, 0.05);
+  background-color: var(--color-panel-bg);
+  border: 1px dashed var(--color-border-subtle);
   border-radius: 3rem;
   gap: 1rem;
 }
 
 .emptyIcon {
-  color: rgba(255, 255, 255, 0.1);
+  color: var(--color-text-muted);
   margin-bottom: 1rem;
+  opacity: 0.5;
 }
 
 .emptyTitle {
   font-size: 1.5rem;
   font-weight: 900;
-  color: white;
+  color: var(--color-text-main);
   text-transform: uppercase;
   letter-spacing: -0.05em;
   font-style: italic;
 }
 
 .emptySub {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--color-text-muted);
   font-size: 0.875rem;
   font-weight: 500;
 }

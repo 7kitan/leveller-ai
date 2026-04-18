@@ -18,4 +18,4 @@ JD_EXTRACT_CACHE_TTL = int(os.getenv("JD_EXTRACT_CACHE_TTL", "3600"))  # 1 hour
 CV_PARSED_CACHE_TTL = int(os.getenv("CV_PARSED_CACHE_TTL", "86400"))  # 24h
 
 # Vector search thresholds
-VECTOR_SIM_THRESHOLD = float(os.getenv("GAP_VECTOR_SIM_THRESHOLD", "0.60"))
+VECTOR_SIM_THRESHOLD = float(os.getenv("GAP_VECTOR_SIM_THRESHOLD", "0.35"))

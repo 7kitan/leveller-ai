@@ -295,20 +295,28 @@ async def get_market_fit(request: Request, db: Session = Depends(get_db)):
         return {"matched_jobs": 0, "market_fit_pct": 0, "total_jobs": total_jobs}
 
     # 3. Trích xuất matched_jobs và market_fit_pct
-    # matched_jobs: Số lượng công việc được gợi ý
-    # market_fit_pct: Điểm match cao nhất (max of recommendations)
-    recommends = latest.result_json.get(
-        "job_recommendations"
-    ) or latest.result_json.get("recommendations", [])
-    matched_jobs = len(recommends)
+    # Hệ thống mới: dùng course_recommendations từ gap analysis v3
+    # (job_recommendations không còn được tạo trong pipeline v3)
+    course_recommendations = latest.result_json.get("course_recommendations") or []
+    matched_jobs = len(course_recommendations)
 
-    fit_scores = [int(r.get("match_score", 0)) for r in recommends]
-    market_fit_pct = max(fit_scores) if fit_scores else 0
+    # market_fit_pct: lấy từ overall_match_pct hoặc tính từ rank_score
+    market_fit_pct = int(float(latest.result_json.get("overall_match_pct") or 0))
+
+    # Fallback: nếu không có overall_match_pct, tính từ course rank_scores
+    if market_fit_pct == 0 and course_recommendations:
+        fit_scores = [
+            int(float(c.get("rank_score") or 0) * 100)
+            for c in course_recommendations
+            if c.get("rank_score")
+        ]
+        market_fit_pct = max(fit_scores) if fit_scores else 0
 
     return {
         "matched_jobs": matched_jobs,
         "market_fit_pct": market_fit_pct,
         "total_jobs": total_jobs,
+        "courses": course_recommendations,  # Forward full course data to frontend
     }
 
 

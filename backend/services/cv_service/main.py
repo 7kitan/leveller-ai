@@ -310,8 +310,7 @@ async def delete_cv(cv_id: str, request: Request, db: Session = Depends(get_db))
     if not is_admin(request) and str(cv.user_id) != user_id_str:
         raise HTTPException(status_code=403, detail="Not authorized to delete this CV")
 
-    # Xóa file vật lý nếu tồn tại
-    # Lưu ý: Trong thực tế nên xóa cả trong Storage (MinIO)
+    # Xóa file vật lý trong Local Storage
     try:
         # Tìm file có ID tương ứng trong UPLOAD_DIR
         for filename in os.listdir(UPLOAD_DIR):

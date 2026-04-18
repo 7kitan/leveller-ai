@@ -1,64 +1,113 @@
-#  Hướng Dẫn
+# 🚀 Nexus AI - Hướng Dẫn Cài Đặt và Vận Hành
 
-## 1. Chuẩn bị công cụ (Prerequisites)
+Nexus AI là nền tảng phân tích CV và gợi ý lộ trình nghề nghiệp thông minh, sử dụng công nghệ Vector Search và LLM (OpenAI) để kết nối ứng viên với công việc và khóa học phù hợp nhất.
 
-1.  **Docker Desktop** : [Tải tại đây](https://www.docker.com/products/docker-desktop/)
-2.  **Python** : [Tải tại đây](https://www.python.org/downloads/)
+---
 
-## 2. Tải mã nguồn dự án
+## 📋 Yêu cầu hệ thống (Prerequisites)
 
-`git clone https://github.com/a20-ai-thuc-chien/A20-App-078.git`
+Trước khi bắt đầu, hãy đảm bảo máy tính của bạn đã cài đặt:
+1.  **Docker Desktop**: [Tải tại đây](https://www.docker.com/products/docker-desktop/) (Bắt buộc để chạy Database & Redis).
+2.  **Python 3.10+**: [Tải tại đây](https://www.python.org/downloads/).
+3.  **Node.js 18+**: [Tải tại đây](https://nodejs.org/).
+4.  **OpenAI API Key**: Cần thiết để tạo Embedding và Phân tích logic.
 
-## 3. Thiết lập API Key (OpenAI)
+---
 
-- Project hiện chỉ dùng OpenAI API (11/04/26)
-- Tạo file `.env`:
+## 🛠️ Bước 1: Thiết lập Môi trường (Environment)
 
-```
-OPENAI_API_KEY=sk-proj...
-```
+1.  **Tải mã nguồn**:
+    ```bash
+    git clone https://github.com/a20-ai-thuc-chien/A20-App-078.git
+    cd A20-App-078
+    ```
 
-## 4. Setup Docker backend
+2.  **Cấu hình biến môi trường**:
+    - Vào thư mục `backend/`.
+    - Tạo file `.env` từ file mẫu:
+    ```bash
+    cp .env.example .env
+    ```
+    - Mở file `.env` và điền `OPENAI_API_KEY` của bạn.
 
-1. Mở phần mềm **Docker Desktop** đã cài ở Bước 1 lên và đợi nó khởi động xong.
-2. Mở thư mục dự án, nhấn chuột phải vào khoảng trống và chọn **Open in Terminal (hoặc Open PowerShell Here)**.
-3. Gõ lệnh sau và nhấn Enter:
-    ```bashP
-    cd backend
+---
+
+## 🐳 Bước 2: Khởi động Hạ tầng (Infrastructure)
+
+Sử dụng Docker để khởi chạy PostgreSQL (pgvector) và Redis.
+
+1.  Mở Terminal tại thư mục `backend/`.
+2.  Chạy lệnh build và khởi động:
+    ```bash
     docker-compose up -d --build
     ```
-4. Đợi khoảng 3-5 phút để hệ thống tự động tải và cài đặt. Khi nào xong, bạn sẽ thấy các dòng chữ xanh báo "Started".
-5. Tiếp tục dùng terminal cho bước 5
+3.  Kiểm tra trạng thái các container: `docker ps`. Đảm bảo các dịch vụ `advisor_db`, `advisor_redis`, `advisor_worker` đang chạy.
 
-## 5. Nạp dữ liệu vào hệ thống (Seeding)
+---
 
-Bước này giúp ứng dụng có sẵn dữ liệu về kỹ năng (Skills), công việc (Jobs) và các khóa học (Courses) để hệ thống có thể phân tích và gợi ý.
+## 🗄️ Bước 3: Khởi tạo Database & Admin
 
-1.  Vẫn tại cửa sổ Terminal ở Bước 4, gõ lệnh sau để cài đặt các thư viện cần thiết:
+Bước này sẽ tạo các bảng biểu trong Database và tạo tài khoản Admin mặc định.
+
+1.  Cài đặt thư viện Python (tại thư mục `backend/`):
     ```bash
     pip install -r requirements.txt
     ```
-2.  Chạy lệnh nạp TOÀN BỘ dữ liệu (Kỹ năng, Công việc, 300+ Khóa học):
+2.  Chạy script khởi tạo:
     ```bash
-    python scripts/seed_all.py
+    python scripts/setup_db.py
     ```
-    *Lưu ý: Quá trình này có thể mất vài phút vì hệ thống cần tạo Vector Embedding (tọa độ không gian) cho dữ liệu để phục vụ tìm kiếm thông minh.*
+    - *Script này sẽ tự động tạo bảng và tạo tài khoản admin: `admin@lumix.ai` / `Admin@123`.*
 
-3. Nếu bạn muốn bỏ nạp 300 khóa học Coursera (để chạy nhanh hơn), dùng lệnh:
+---
+
+---
+
+## 🌱 Bước 4: Nạp dữ liệu Khóa học (Seeding Courses)
+
+Dữ liệu khóa học sẽ được nạp từ bộ 306 link Coursera có sẵn.
+
+### Nạp Khóa học Coursera (Async)
+Đẩy các link từ `dataset/coursera_links.txt` vào hàng đợi để Worker xử lý:
+```bash
+python scripts/seed_all.py --force
+```
+*(Hệ thống sử dụng Vector Search để gợi ý khóa học dựa trên kỹ năng trong CV)*
+
+---
+
+## 🕷️ Bước 5: Thu thập Job từ TopCV (Live Import)
+
+Vì không sử dụng bộ dữ liệu tĩnh, bạn cần cào dữ liệu trực tiếp từ TopCV để có danh sách công việc.
+
+### Cách 1: Chạy lệnh thủ công qua CLI
+Cào 20 tin tuyển dụng mới nhất:
+```bash
+python -c "from worker.celery_app import celery_app; celery_app.send_task('worker.tasks.crawler_tasks.crawl_topcv_jobs_task', args=[20], kwargs={'force': True})"
+```
+
+### Cách 2: Qua Dashboard Admin
+1. Đăng nhập vào trang Admin (`/admin`).
+2. Vào mục **Jobs Manager** -> Nhấn **Trigger TopCV Crawl**.
+
+---
+
+## 💻 Bước 6: Khởi động Frontend
+
+1. Di chuyển sang thư mục `frontend/`:
     ```bash
-    python scripts/seed_all.py --skip-extended
+    cd ../frontend
     ```
-
-## 6.Tạo tài khoản Admin
-
-Để đăng nhập vào hệ thống, bạn cần tạo một tài khoản admin:
-
-1.  Gõ lệnh sau vào Terminal:
+2. Cài đặt dependencies và chạy:
     ```bash
-    python scripts/create_admin.py --email admin@demo.ai --password Admin@123
+    npm install
+    npm run dev
     ```
-    *(Bạn có thể thay đổi email và mật khẩu theo ý muốn)*
 
-## Launch
-Truy cập vào địa chỉ: [**http://localhost:3000**](http://localhost:3000).
-Đăng nhập bằng tài khoản bạn vừa tạo ở Bước 6 để bắt đầu sử dụng.
+---
+
+## 🚀 Truy cập Hệ thống
+
+- **User Dashboard**: [http://localhost:3000](http://localhost:3000)
+- **Admin Panel**: [http://localhost:3000/admin](http://localhost:3000/admin)
+- **Mặc định**: `admin@lumix.ai` / `Admin@123`
