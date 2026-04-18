@@ -76,52 +76,42 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
         import fitz  # pymupdf
 
         file_id = getattr(cv_record, "file_id", None) or cv_id_str
-        file_ext = getattr(cv_record, "file_ext", None) or "pdf"
-        upload_dir = os.getenv("CV_UPLOAD_DIR", "/app/data/cv_uploads")
-        file_path = os.path.join(upload_dir, f"{file_id}.{file_ext}")
+        upload_dir = os.getenv("CV_UPLOAD_DIR", "data/cv_uploads")
+        
+        # Strategy Detection
+        strategy = os.getenv("CV_PARSER_STRATEGY", "direct").lower()
+        logger.info(f"[STEP 1] Selected Strategy: {strategy.upper()}")
 
-        logger.info(
-            f"[STEP 1] Resolving file path:\n"
-            f"  upload_dir={upload_dir}\n"
-            f"  file_id={file_id} | file_ext={file_ext}\n"
-            f"  resolved_path={file_path}"
-        )
-
-        if not os.path.exists(file_path):
-            logger.error(f"[STEP 1] FILE NOT FOUND on disk: {file_path}")
-            # Fallback: try original cv_id as filename
-            fallback_path = os.path.join(upload_dir, f"{cv_id_str}.pdf")
-            if os.path.exists(fallback_path):
-                file_path = fallback_path
-                logger.info(f"[STEP 1] ✓ Found via fallback path: {file_path}")
-            else:
-                logger.error(f"[STEP 1] FALLBACK ALSO MISSING: {fallback_path}")
-                return {
-                    **state,
-                    "error": f"CV file not found at {file_path} (fallback also missing)",
-                    "status": "failed",
-                }
+        # Robust File Discovery
+        file_path = None
+        # Try finding the file by ID in the upload directory regardless of extension
+        if os.path.exists(upload_dir):
+            for f_name in os.listdir(upload_dir):
+                if f_name.startswith(f"{file_id}."):
+                    file_path = os.path.join(upload_dir, f_name)
+                    logger.info(f"[STEP 1] ✓ File DISCOVERED on disk: {file_path}")
+                    break
+        
+        if not file_path:
+            logger.error(f"[STEP 1] FILE NOT FOUND on disk starting with: {file_id}")
+            return {
+                **state,
+                "error": f"CV file not found for ID: {file_id} in {upload_dir}",
+                "status": "failed",
+            }
 
         file_size = os.path.getsize(file_path)
-        logger.info(f"[STEP 1] File found | size={file_size:,} bytes")
+        logger.info(f"[STEP 1] File ready | size={file_size:,} bytes | path={file_path}")
 
-    except ImportError as ie:
-        logger.error(f"[STEP 1] pymupdf (fitz) not installed: {ie}")
-        return {
-            **state,
-            "error": f"Dependency missing: pymupdf — {ie}",
-            "status": "failed",
-        }
     except Exception as e:
         logger.error(f"[STEP 1] Error locating file: {e}", exc_info=True)
         return {**state, "error": f"Error locating CV file: {e}", "status": "failed"}
 
-    # ── Strategy Check: Chandra vs Direct ──────────────────────────────────
-    strategy = os.getenv("CV_PARSER_STRATEGY", "direct").lower()
+    # ── Execution: Chandra vs Direct ──────────────────────────────────────
     is_ocr = False
 
     if strategy == "chandra":
-        logger.info(f"[STEP 1] Selection: CHANDRA — Calling external OCR API...")
+        logger.info(f"[STEP 1] HUB REQUEST: Sending {os.path.basename(file_path)} to Chandra OCR API...")
         ocr_result = await ocr_client.ocr_file(file_path)
         
         if ocr_result["status"] == "success":
@@ -129,7 +119,7 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
             is_ocr = ocr_result["is_ocr"]
             logger.info(
                 f"[STEP 1] ✓ CHANDRA SUCCESS | text_len={len(raw_text)} | "
-                f"confidence={ocr_result.get('confidence', 0):.2f}"
+                f"is_ocr={is_ocr}"
             )
             return {
                 **state,
@@ -139,7 +129,7 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
             }
         else:
             logger.warning(
-                f"[STEP 1] ⚠ CHANDRA FAILED: {ocr_result.get('error')} | "
+                f"[STEP 1] ⚠ CHANDRA HUB FAILED: {ocr_result.get('error')} | "
                 f"Falling back to DIRECT extraction..."
             )
             # Continue to direct logic
