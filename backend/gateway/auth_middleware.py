@@ -7,6 +7,7 @@ from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from shared.redis_client import auth_cache
 from shared.auth_utils import hash_token
+from shared.config_utils import config_manager
 
 AUTH_SVC_URL = os.getenv("AUTH_SVC_URL", "http://auth-service:8000")
 
@@ -16,7 +17,18 @@ async def auth_middleware(request: Request, call_next):
     
     is_public = request.url.path == "/" or any(request.url.path.startswith(path) for path in public_paths)
     
-    if is_public:
+    # 1. Maintenance Mode Check (High Priority)
+    maintenance_mode = config_manager.get_setting("maintenance_mode", False)
+    
+    # Critical paths that should always be accessible to allow admins to login and fix things
+    critical_paths = ["/health", "/auth/login", "/user/login", "/admin/settings"]
+    is_critical = any(request.url.path.startswith(path) for path in critical_paths)
+
+    if maintenance_mode and not is_critical:
+        # If public but not critical, or restricted, we must check if user is admin
+        # Proceed to extract token and check admin status
+        pass
+    elif is_public:
         return await call_next(request)
 
     # Extract Token
@@ -69,10 +81,36 @@ async def auth_middleware(request: Request, call_next):
                 request.scope["headers"].append((b"x-is-admin", b"true"))
                 
             request.state.user = user_data
+            
+            # --- Maintenance Mode Enforcement ---
+            if maintenance_mode:
+                is_admin_user = user_data.get("is_admin", False)
+                if not is_admin_user and not is_critical:
+                    logging.warning(f"Maintenance Mode: Blocking non-admin user {user_id} for path {request.url.path}")
+                    return JSONResponse(
+                        status_code=503, 
+                        content={
+                            "detail": "Hệ thống đang bảo trì để nâng cấp. Vui lòng quay lại sau.",
+                            "maintenance": True,
+                            "duration": config_manager.get_setting("maintenance_duration", "Không xác định")
+                        }
+                    )
+
             return await call_next(request)
             
     except Exception as e:
         logging.error(f"DEBUG Gateway: Error processing token: {str(e)}")
         return JSONResponse(status_code=401, content={"detail": "Invalid token format"})
+
+    # If we fall through and maintenance is ON, block unauthenticated requests to non-critical paths
+    if maintenance_mode and not is_critical:
+        return JSONResponse(
+            status_code=503, 
+            content={
+                "detail": "Hệ thống đang bảo trì. Vui lòng đăng nhập bằng tài khoản Quản trị.",
+                "maintenance": True,
+                "duration": config_manager.get_setting("maintenance_duration", "Không xác định")
+            }
+        )
 
     return JSONResponse(status_code=401, content={"detail": "Token expired or session invalid"})

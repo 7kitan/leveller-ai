@@ -26,8 +26,6 @@ const ADMIN_NAV_ITEMS = [
   { name: "CV Repository",         icon: FileText,        path: "/admin/cvs" },
   { name: "Course Catalog",        icon: BookOpen,        path: "/admin/courses" },
   { name: "Job Portal",            icon: Layers,          path: "/admin/jobs" },
-  { name: "Taxonomy Hub",          icon: Database,        path: "/admin/taxonomy" },
-  { name: "Relations Map",          icon: Network,         path: "/admin/relations" },
   { name: "System Settings",       icon: Settings,        path: "/admin/settings" },
 ];
 

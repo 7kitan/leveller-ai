@@ -4,10 +4,12 @@ Spec: 1.9 Skill Gap, 1.10 Course Recommendations, 1.11 Career Roadmap,
       2.1 Feedback, 2.2 System Improvement, 3.2 Transparency, 4.2 History.
 """
 
-from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi import FastAPI, Request, HTTPException, Depends, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from shared.database import get_db
 from shared.redis_client import result_cache
+from shared.schemas import PaginatedResponse
 from shared.taxonomy_service import taxonomy_service
 from shared.models import User, UserAnalysis, UserFeedback, Job, UserCV
 from pydantic import BaseModel
@@ -356,14 +358,28 @@ async def get_market_fit(request: Request, db: Session = Depends(get_db)):
     }
 
 
-@app.get("/analysis/admin/cvs")
-async def admin_get_all_cvs(request: Request, db: Session = Depends(get_db)):
-    """Admin only: Xem tất cả CV trong hệ thống."""
+@app.get("/analysis/admin/cvs", response_model=PaginatedResponse[dict])
+async def admin_get_all_cvs(
+    request: Request, 
+    db: Session = Depends(get_db),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    q: Optional[str] = Query(None)
+):
+    """Admin only: Xem tất cả CV trong hệ thống với phân trang."""
     check_admin(request)
 
-    results = db.query(UserCV, User.email).join(User, User.id == UserCV.user_id).all()
+    query = db.query(UserCV, User.email).join(User, User.id == UserCV.user_id)
+    
+    if q:
+        query = query.filter(
+            (UserCV.full_name.ilike(f"%{q}%")) | (User.email.ilike(f"%{q}%"))
+        )
 
-    return [
+    total = query.count()
+    results = query.order_by(UserCV.created_at.desc()).offset(offset).limit(limit).all()
+
+    items = [
         {
             "id": str(cv.id),
             "user_email": email,
@@ -374,6 +390,15 @@ async def admin_get_all_cvs(request: Request, db: Session = Depends(get_db)):
         }
         for cv, email in results
     ]
+    
+    return {
+        "items": items,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "page": (offset // limit) + 1,
+        "pages": (total + limit - 1) // limit
+    }
 
 
 @app.delete("/analysis/admin/cvs/{cv_id}")
@@ -688,6 +713,26 @@ async def simulate_boost(
 def check_admin(request: Request):
     if request.headers.get("X-Is-Admin") != "true":
         raise HTTPException(status_code=403, detail="Admin privileges required")
+
+
+@app.get("/analysis/admin/stats")
+async def admin_get_stats(request: Request, db: Session = Depends(get_db)):
+    """Admin only: Lấy thống kê tổng quan hệ thống."""
+    check_admin(request)
+    
+    user_count = db.query(User).count()
+    cv_count = db.query(UserCV).count()
+    job_count = db.query(Job).filter(Job.status == "active").count()
+    
+    # Tính điểm market fit trung bình
+    avg_fit = db.query(func.avg(UserAnalysis.match_score)).scalar() or 0.0
+    
+    return {
+        "users": user_count,
+        "cvs": cv_count,
+        "jobs": job_count,
+        "marketFits": round(float(avg_fit), 1)
+    }
 
 
 class SkillCreate(BaseModel):

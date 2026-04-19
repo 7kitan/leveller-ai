@@ -1,28 +1,23 @@
 version: '3.8'
-
-x-worker-base: &worker-base
-  build:
+x-worker-base:
+  build: &id001
     context: .
     dockerfile: Dockerfile.worker
   env_file: .env
-  environment:
-    - REDIS_HOST=advisor_redis
-    - POSTGRES_HOST=advisor_db
-  volumes:
-    - .:/app
-    - ./data:/app/data
-  depends_on:
+  environment: &id002
+  - REDIS_HOST=advisor_redis
+  - POSTGRES_HOST=advisor_db
+  volumes: &id003
+  - .:/app
+  - ./data:/app/data
+  depends_on: &id004
     db:
       condition: service_healthy
     redis:
       condition: service_healthy
-  networks:
-    - advisor_net
-
+  networks: &id005
+  - advisor_net
 services:
-  # --------------------------------------------------------------------------
-  # DATA LAYER
-  # --------------------------------------------------------------------------
   db:
     image: ankane/pgvector:v0.5.1
     container_name: advisor_db
@@ -31,185 +26,220 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+    - 5432:5432
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+    - ./data/postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d career_advisor"]
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres -d career_advisor
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - advisor_net
-
+    - advisor_net
   redis:
     image: redis:7-alpine
     container_name: advisor_redis
     ports:
-      - "6379:6379"
+    - 6379:6379
     volumes:
-      - ./data/redis:/data
+    - ./data/redis:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test:
+      - CMD
+      - redis-cli
+      - ping
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - advisor_net
-
-
-  # --------------------------------------------------------------------------
-  # MICROSERVICES
-  # --------------------------------------------------------------------------
+    - advisor_net
   gateway:
     build:
       context: .
       dockerfile: Dockerfile.service
     container_name: advisor_gateway
     environment:
-      - APP_MODULE=gateway.main:app
-      - REDIS_HOST=advisor_redis
+    - APP_MODULE=gateway.main:app
+    - REDIS_HOST=advisor_redis
     ports:
-      - "8000:8000"
+    - 8000:8000
     env_file: .env
     command: sh -c "uvicorn gateway.main:app --host 0.0.0.0 --port 8000 --reload"
     volumes:
-      - .:/app
-      - ./data:/app/data
+    - .:/app
+    - ./data:/app/data
     depends_on:
       redis:
         condition: service_healthy
       auth-service:
         condition: service_started
+      admin-service:
+        condition: service_started
     networks:
-      - advisor_net
-
+    - advisor_net
   auth-service:
     build:
       context: .
       dockerfile: Dockerfile.service
     container_name: advisor_auth
     environment:
-      - APP_MODULE=services.auth_service.main:app
-      - POSTGRES_HOST=advisor_db
-      - REDIS_HOST=advisor_redis
+    - APP_MODULE=services.auth_service.main:app
+    - POSTGRES_HOST=advisor_db
+    - REDIS_HOST=advisor_redis
     env_file: .env
-    command: sh -c "uvicorn services.auth_service.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "uvicorn services.auth_service.main:app --host 0.0.0.0 --port 8000
+      --reload"
     volumes:
-      - .:/app
+    - .:/app
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      - advisor_net
-
+    - advisor_net
   jd-service:
     build:
       context: .
       dockerfile: Dockerfile.service
     container_name: advisor_jd
     environment:
-      - APP_MODULE=services.jd_service.main:app
-      - POSTGRES_HOST=advisor_db
-      - REDIS_HOST=advisor_redis
+    - APP_MODULE=services.jd_service.main:app
+    - POSTGRES_HOST=advisor_db
+    - REDIS_HOST=advisor_redis
     env_file: .env
-    command: sh -c "uvicorn services.jd_service.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "uvicorn services.jd_service.main:app --host 0.0.0.0 --port 8000
+      --reload"
     volumes:
-      - .:/app
-      - ./data:/app/data
+    - .:/app
+    - ./data:/app/data
     depends_on:
       db:
         condition: service_healthy
     networks:
-      - advisor_net
-
+    - advisor_net
   cv-service:
     build:
       context: .
       dockerfile: Dockerfile.service
     container_name: advisor_cv
     environment:
-      - APP_MODULE=services.cv_service.main:app
-      - REDIS_HOST=advisor_redis
-      - POSTGRES_HOST=advisor_db
+    - APP_MODULE=services.cv_service.main:app
+    - REDIS_HOST=advisor_redis
+    - POSTGRES_HOST=advisor_db
     env_file: .env
-    command: sh -c "uvicorn services.cv_service.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "uvicorn services.cv_service.main:app --host 0.0.0.0 --port 8000
+      --reload"
     volumes:
-      - .:/app
-      - ./data:/app/data
+    - .:/app
+    - ./data:/app/data
     depends_on:
       db:
         condition: service_healthy
     networks:
-      - advisor_net
-
+    - advisor_net
   analysis-service:
     build:
       context: .
       dockerfile: Dockerfile.service
     container_name: advisor_analysis
     environment:
-      - APP_MODULE=services.analysis_service.main:app
-      - POSTGRES_HOST=advisor_db
-      - REDIS_HOST=advisor_redis
+    - APP_MODULE=services.analysis_service.main:app
+    - POSTGRES_HOST=advisor_db
+    - REDIS_HOST=advisor_redis
     env_file: .env
-    command: sh -c "uvicorn services.analysis_service.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "uvicorn services.analysis_service.main:app --host 0.0.0.0 --port
+      8000 --reload"
     volumes:
-      - .:/app
+    - .:/app
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      - advisor_net
-
+    - advisor_net
   recommender-service:
     build:
       context: .
       dockerfile: Dockerfile.service
     container_name: advisor_recommender
     environment:
-      - APP_MODULE=services.recommender_service.main:app
-      - POSTGRES_HOST=advisor_db
-      - REDIS_HOST=advisor_redis
+    - APP_MODULE=services.recommender_service.main:app
+    - POSTGRES_HOST=advisor_db
+    - REDIS_HOST=advisor_redis
     env_file: .env
-    command: sh -c "uvicorn services.recommender_service.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "uvicorn services.recommender_service.main:app --host 0.0.0.0 --port
+      8000 --reload"
     volumes:
-      - .:/app
+    - .:/app
     depends_on:
       db:
         condition: service_healthy
     networks:
-      - advisor_net
-
+    - advisor_net
   worker_analysis:
-    <<: *worker-base
+    build: *id001
+    env_file: .env
+    environment: *id002
+    volumes: *id003
+    depends_on: *id004
+    networks: *id005
     container_name: advisor_worker_analysis
-    command: celery -A worker.celery_app worker -Q analysis_queue --loglevel=info --logfile=- --concurrency=${WORKER_ANALYSIS_CONCURRENCY:-1}
-
+    command: celery -A worker.celery_app worker -Q analysis_queue --loglevel=info
+      --logfile=- --concurrency=${WORKER_ANALYSIS_CONCURRENCY:-1}
   worker_parsing:
-    <<: *worker-base
+    build: *id001
+    env_file: .env
+    environment: *id002
+    volumes: *id003
+    depends_on: *id004
+    networks: *id005
     container_name: advisor_worker_parsing
-    command: celery -A worker.celery_app worker -Q parsing_queue --loglevel=info --logfile=- --concurrency=${WORKER_PARSING_CONCURRENCY:-2}
-
+    command: celery -A worker.celery_app worker -Q parsing_queue --loglevel=info --logfile=-
+      --concurrency=${WORKER_PARSING_CONCURRENCY:-2}
   worker_crawler:
-    <<: *worker-base
+    build: *id001
+    env_file: .env
+    environment: *id002
+    volumes: *id003
+    depends_on: *id004
+    networks: *id005
     container_name: advisor_worker_crawler
-    command: celery -A worker.celery_app worker -Q crawler_queue --loglevel=info --logfile=- --concurrency=${WORKER_CRAWLER_CONCURRENCY:-1}
-
+    command: celery -A worker.celery_app worker -Q crawler_queue --loglevel=info --logfile=-
+      --concurrency=${WORKER_CRAWLER_CONCURRENCY:-1}
   worker_default:
-    <<: *worker-base
+    build: *id001
+    env_file: .env
+    environment: *id002
+    volumes: *id003
+    depends_on: *id004
+    networks: *id005
     container_name: advisor_worker_default
     command: celery -A worker.celery_app worker --loglevel=info --logfile=- --concurrency=${WORKER_DEFAULT_CONCURRENCY:-1}
-
+  admin-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+    container_name: advisor_admin
+    environment:
+    - APP_MODULE=services.admin_service.main:app
+    - POSTGRES_HOST=advisor_db
+    - REDIS_HOST=advisor_redis
+    env_file: .env
+    command: sh -c "uvicorn services.admin_service.main:app --host 0.0.0.0 --port
+      8000 --reload"
+    volumes:
+    - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+    - advisor_net
 networks:
   advisor_net:
     driver: bridge
-
-# volumes:
-#   pgdata:
-#   redisdata:
-

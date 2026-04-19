@@ -4,6 +4,7 @@ from shared.database import get_db
 from shared.models import User, UserCV, UserSkillProfile, Skill, UserAnalysis
 from worker.celery_app import celery_app
 from shared.redis_client import result_cache
+from shared.schemas import PaginatedResponse
 import uuid
 import json
 import os
@@ -303,21 +304,29 @@ async def finalize_cv(
     return {"message": "Portfolio updated successfully with full validation", "cv_id": str(cv.id)}
 
 
-@app.get("/cv/admin/all")
-async def admin_list_all_cvs(request: Request, db: Session = Depends(get_db)):
-    """Admin only: Lấy tất cả CV của toàn hệ thống."""
+@app.get("/cv/admin/all", response_model=PaginatedResponse[dict])
+async def admin_list_all_cvs(
+    request: Request, 
+    db: Session = Depends(get_db),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    q: Optional[str] = Query(None)
+):
+    """Admin only: Lấy tất cả CV của toàn hệ thống với phân trang."""
     if not is_admin(request):
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
-    # Query all CVs and join with User to get email
-    results = (
-        db.query(UserCV, User.email)
-        .join(User, UserCV.user_id == User.id)
-        .order_by(UserCV.created_at.desc())
-        .all()
-    )
+    query = db.query(UserCV, User.email).join(User, UserCV.user_id == User.id)
+    
+    if q:
+        query = query.filter(
+            (UserCV.full_name.ilike(f"%{q}%")) | (User.email.ilike(f"%{q}%"))
+        )
 
-    return [
+    total = query.count()
+    results = query.order_by(UserCV.created_at.desc()).offset(offset).limit(limit).all()
+
+    items = [
         {
             "id": str(cv.id),
             "user_email": email,
@@ -327,6 +336,15 @@ async def admin_list_all_cvs(request: Request, db: Session = Depends(get_db)):
         }
         for cv, email in results
     ]
+    
+    return {
+        "items": items,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "page": (offset // limit) + 1,
+        "pages": (total + limit - 1) // limit
+    }
 
 
 @app.delete("/cv/{cv_id}")

@@ -1,19 +1,76 @@
 import os
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import openai
+from shared.config_utils import config_manager
+from shared.ai_service import generate_completion
 
 logger = logging.getLogger("llm_utils")
 
-# Load Configuration
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai").lower()
-LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# ─── Mapping & Configuration ──────────────────────────────────────────────────
 
-# Initialize Client
-openai_client = None
-if LLM_PROVIDER == "openai" and OPENAI_API_KEY:
-    openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+# Mapping từ Model ID sang Provider
+MODEL_PROVIDER_MAP = {
+    # Google Gemini
+    "gemini-1.5-pro": "google",
+    "gemini-1.5-flash": "google",
+    # OpenAI
+    "gpt-4o": "openai",
+    "gpt-4o-mini": "openai",
+    "gpt-4-turbo": "openai",
+    # Anthropic
+    "claude-3-5-sonnet": "anthropic",
+    "claude-3-opus": "anthropic",
+}
+
+# ─── Clients Factory ─────────────────────────────────────────────────────────
+
+class LLMFactory:
+    """
+    Factory class quản lý singleton clients cho các LLM providers khác nhau.
+    """
+    _clients = {}
+
+    @classmethod
+    def get_provider(cls, model_name: str) -> str:
+        return MODEL_PROVIDER_MAP.get(model_name, "openai")
+
+    @classmethod
+    def get_openai_client(cls):
+        if "openai" not in cls._clients:
+            api_key = os.getenv("OPENAI_API_KEY")
+            if api_key:
+                cls._clients["openai"] = openai.OpenAI(api_key=api_key)
+            else:
+                logger.warning("OPENAI_API_KEY is not set.")
+                return None
+        return cls._clients["openai"]
+
+    @classmethod
+    def get_google_client(cls):
+        # Lưu ý: Google GenAI SDK sử dụng hàm khởi tạo khác, 
+        # nhưng ở đây ta có thể dùng LangChain wrapper để đồng bộ.
+        if "google" not in cls._clients:
+            try:
+                from langchain_google_genai import ChatGoogleGenerativeAI
+                api_key = os.getenv("GEMINI_API_KEY")
+                if api_key:
+                    cls._clients["google"] = ChatGoogleGenerativeAI(
+                        model="gemini-1.5-flash", # Default, sẽ override khi gọi
+                        google_api_key=api_key
+                    )
+                else:
+                    logger.warning("GEMINI_API_KEY is not set.")
+                    return None
+            except ImportError:
+                logger.error("langchain-google-genai not installed.")
+                return None
+        return cls._clients["google"]
+
+# Initialize default OpenAI client for legacy support (embeddings)
+openai_client = LLMFactory.get_openai_client()
+
+# ─── Embedding Functions ────────────────────────────────────────────────────
 
 def get_embedding(text: str) -> Optional[List[float]]:
     """
@@ -27,7 +84,8 @@ def get_embeddings_batch(texts: List[str]) -> List[List[float]]:
     """
     Tạo vector nhúng (embedding) cho danh sách các đoạn văn bản (Batch).
     """
-    if not texts or not openai_client:
+    client = LLMFactory.get_openai_client()
+    if not texts or not client:
         return []
         
     try:
@@ -36,7 +94,7 @@ def get_embeddings_batch(texts: List[str]) -> List[List[float]]:
         if not clean_texts: return []
 
         logger.info(f"[LLM BATCH EMBED] Sending {len(clean_texts)} texts to OpenAI...")
-        response = openai_client.embeddings.create(
+        response = client.embeddings.create(
             input=clean_texts,
             model="text-embedding-3-small"
         )
@@ -46,29 +104,27 @@ def get_embeddings_batch(texts: List[str]) -> List[List[float]]:
         logger.error(f"[LLM BATCH EMBED] ❌ Error generating batch embeddings: {e}")
         return []
 
-def get_chat_completion(prompt: str, system_prompt: str = "You are a helpful assistant.", json_mode: bool = False) -> Optional[str]:
+# ─── Chat Completion Functions ──────────────────────────────────────────────
+
+def get_chat_completion(
+    prompt: str, 
+    system_prompt: str = "You are a helpful assistant.", 
+    json_mode: bool = False,
+    model: Optional[str] = None
+) -> Optional[str]:
     """
-    Hàm dùng chung để gọi Chat Completion.
+    [LEGACY] Wrapper for the new AI Service completion core.
+    This function is maintained for backward compatibility.
     """
-    if not openai_client:
-        return None
-        
-    try:
-        logger.info(f"[LLM CHAT] Calling completion | model={LLM_MODEL} | prompt_len={len(prompt)}")
-        response = openai_client.chat.completions.create(
-            model=LLM_MODEL,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt}
-            ],
-            response_format={"type": "json_object"} if json_mode else None
-        )
-        raw = response.choices[0].message.content
-        logger.info(f"[LLM CHAT] ✓ Success | response_len={len(raw or '')}")
-        return raw
-    except Exception as e:
-        logger.error(f"[LLM CHAT] ❌ Error calling LLM: {e}")
-        return None
+    return generate_completion(
+        prompt=prompt,
+        system_prompt=system_prompt,
+        json_mode=json_mode,
+        model=model,
+        call_name="legacy_llm_utils"
+    )
+
+# ─── Utility Functions ───────────────────────────────────────────────────────
 
 def build_cv_skill_context(skill_name: str, level: str, years: float, last_used: int = None, context: str = "") -> str:
     parts = [f"Skill: {skill_name}"]

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text, func, or_
 from shared.database import get_db
 from shared.models import Course, JobSkillRequirement, Job
+from shared.config_utils import config_manager
 from shared.level_mapper import LevelMapper
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
@@ -17,8 +18,8 @@ from shared.schemas import PaginatedResponse
 app = FastAPI(title="Recommender Service")
 logger = logging.getLogger("recommender")
 
-# Thresholds
-VECTOR_SIM_THRESHOLD = float(os.getenv("GAP_VECTOR_SIM_THRESHOLD", "0.60"))
+# Thresholds - Now managed via ConfigManager for hot-reloading
+VECTOR_SIM_THRESHOLD = float(config_manager.get_setting("similarity_threshold", 0.60))
 
 
 class GapSkill(BaseModel):

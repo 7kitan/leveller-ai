@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import Pagination from "@/components/shared/Pagination";
 import { 
   FileText, 
   Search, 
@@ -30,14 +31,27 @@ const AdminCVsPage = () => {
   const [cvs, setCvs] = useState<AdminCV[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [pageSize] = useState(10);
 
-  const fetchCVs = async () => {
+  const fetchCVs = async (page = 1) => {
     setLoading(true);
     try {
+      const offset = (page - 1) * pageSize;
       const resp = await axios.get("/api/analysis/admin/cvs", {
+        params: {
+          limit: pageSize,
+          offset: offset,
+          q: searchTerm || undefined
+        },
         headers: { Authorization: `Bearer ${token}` }
       });
-      setCvs(resp.data);
+      setCvs(resp.data.items || []);
+      setTotalPages(resp.data.pages || 0);
+      setCurrentPage(page);
     } catch (err) {
       console.error("Fetch CVS error:", err);
     } finally {
@@ -46,8 +60,16 @@ const AdminCVsPage = () => {
   };
 
   useEffect(() => {
-    if (token) fetchCVs();
+    if (token) fetchCVs(1);
   }, [token]);
+
+  // Handle search resets pagination
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (token) fetchCVs(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Xóa hồ sơ này? Hành động này không thể hoàn tác.")) return;
@@ -61,10 +83,7 @@ const AdminCVsPage = () => {
     }
   };
 
-  const filtered = cvs.filter(c => 
-    c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.user_email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = cvs;
 
   const getStatusClass = (status: string) => {
     switch (status) {
@@ -120,7 +139,7 @@ const AdminCVsPage = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                  />
               </div>
-              <button onClick={fetchCVs} className={styles.refreshBtn}>
+              <button onClick={() => fetchCVs(currentPage)} className={styles.refreshBtn}>
                  <RefreshCcw size={18} className={cn(loading && "animate-spin")} />
               </button>
            </div>
@@ -207,6 +226,12 @@ const AdminCVsPage = () => {
                  </tbody>
               </table>
            </div>
+           <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(page) => fetchCVs(page)}
+              className="mt-6"
+            />
         </div>
       </div>
     </AuthGuard>

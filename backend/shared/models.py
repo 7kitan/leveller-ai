@@ -38,7 +38,7 @@ class User(Base):
     full_name = Column(String(255))
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     cvs = relationship("UserCV", back_populates="user")
@@ -73,7 +73,7 @@ class UserCV(Base):
     cv_parsed_at = Column(DateTime(timezone=True), nullable=True)  # Timestamp
     is_verified = Column(Boolean, default=False)  # User has confirmed parsed data
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     user = relationship("User", back_populates="cvs")

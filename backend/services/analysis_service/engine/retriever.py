@@ -9,7 +9,8 @@ import uuid
 import re
 
 from shared.models import Job
-from shared.llm_utils import get_embedding, openai_client, LLM_PROVIDER, LLM_MODEL
+from shared.llm_utils import get_embedding
+from shared.ai_service import generate_completion
 
 logger = logging.getLogger("gap_calculator.retriever")
 
@@ -248,142 +249,144 @@ class RequirementRetriever:
         Return ONLY valid JSON.
         """
         try:
-            if LLM_PROVIDER == "openai":
-                response = openai_client.chat.completions.create(
-                    model=LLM_MODEL,
-                    messages=[{"role": "user", "content": prompt}],
-                    response_format={"type": "json_object"},
-                )
-                raw_content = response.choices[0].message.content
-                raw = json.loads(raw_content)
-                reqs = raw.get("requirements") or []
+            raw_content = generate_completion(
+                prompt=prompt,
+                system_prompt="YOU ARE A SENIOR TECHNICAL RECRUITMENT EXPERT.",
+                json_mode=True,
+                call_name="requirement_extraction"
+            )
+            if not raw_content:
+                return []
 
-                normalized_reqs = []
-                for r in reqs:
-                    if r.get("type") == "group":
-                        # ATOMIC FLATTENING: Nếu group là generic container, flatten nó ra thành từng skill lẻ
-                        g_name = (r.get("group_name") or "Skill Group").lower()
-                        container_keywords = [
-                            "technologies",
-                            "languages",
-                            "requirements",
-                            "tools",
-                            "stack",
-                            "category",
-                            "alternative",
-                        ]
-                        is_generic_container = any(
-                            kw in g_name for kw in container_keywords
-                        )
+            raw = json.loads(raw_content)
+            reqs = raw.get("requirements") or []
 
-                        if is_generic_container:
-                            for s in r.get("skills", []):
-                                normalized_reqs.append(
-                                    {
-                                        "type": "skill",
-                                        "skill": s.get("skill"),
-                                        "target_level": s.get("target_level")
-                                        or "Junior",
-                                        "years_required": s.get("years_required", 0),
-                                        "is_primary": r.get("is_primary")
-                                        if r.get("is_primary") is not None
-                                        else True,
-                                        "importance_weight": r.get("importance_weight")
-                                        or 5,
-                                    }
-                                )
-                            continue
+            normalized_reqs = []
+            for r in reqs:
+                if r.get("type") == "group":
+                    # ATOMIC FLATTENING: Nếu group là generic container, flatten nó ra thành từng skill lẻ
+                    g_name = (r.get("group_name") or "Skill Group").lower()
+                    container_keywords = [
+                        "technologies",
+                        "languages",
+                        "requirements",
+                        "tools",
+                        "stack",
+                        "category",
+                        "alternative",
+                    ]
+                    is_generic_container = any(
+                        kw in g_name for kw in container_keywords
+                    )
 
-                        sub_skills = []
+                    if is_generic_container:
                         for s in r.get("skills", []):
-                            sub_skills.append(
+                            normalized_reqs.append(
                                 {
+                                    "type": "skill",
                                     "skill": s.get("skill"),
-                                    "target_level": s.get("target_level") or "Junior",
+                                    "target_level": s.get("target_level")
+                                    or "Junior",
                                     "years_required": s.get("years_required", 0),
+                                    "is_primary": r.get("is_primary")
+                                    if r.get("is_primary") is not None
+                                    else True,
+                                    "importance_weight": r.get("importance_weight")
+                                    or 5,
                                 }
                             )
-                        normalized_reqs.append(
+                        continue
+
+                    sub_skills = []
+                    for s in r.get("skills", []):
+                        sub_skills.append(
                             {
-                                "type": "group",
-                                "group_name": r.get("group_name") or "Skill Group",
-                                "group_strategy": r.get("group_strategy")
-                                or "exclusive",
-                                "skills": sub_skills,
-                                "is_primary": r.get("is_primary")
-                                if r.get("is_primary") is not None
-                                else True,
-                                "importance_weight": r.get("importance_weight") or 5,
+                                "skill": s.get("skill"),
+                                "target_level": s.get("target_level") or "Junior",
+                                "years_required": s.get("years_required", 0),
                             }
                         )
-                    else:
-                        s_name = r.get("skill") or r.get("name")
-                        if not s_name:
-                            continue
+                    normalized_reqs.append(
+                        {
+                            "type": "group",
+                            "group_name": r.get("group_name") or "Skill Group",
+                            "group_strategy": r.get("group_strategy")
+                            or "exclusive",
+                            "skills": sub_skills,
+                            "is_primary": r.get("is_primary")
+                            if r.get("is_primary") is not None
+                            else True,
+                            "importance_weight": r.get("importance_weight") or 5,
+                        }
+                    )
+                else:
+                    s_name = r.get("skill") or r.get("name")
+                    if not s_name:
+                        continue
 
-                        # HEURISTIC FALLBACK: Split skills with slashes into an "OR" group if LLM missed it
-                        if "/" in s_name and any(c.isalpha() for c in s_name):
-                            # Handle nested slashes in parentheses like "Database (SQL/NoSQL)"
-                            parts = []
-                            if "(" in s_name and ")" in s_name:
-                                match = re.search(r"\((.*)\)", s_name)
-                                if match:
-                                    inside = match.group(1)
-                                    parts = [
-                                        p.strip()
-                                        for p in inside.split("/")
-                                        if p.strip()
-                                    ]
-
-                            if not parts:
+                    # HEURISTIC FALLBACK: Split skills with slashes into an "OR" group if LLM missed it
+                    if "/" in s_name and any(c.isalpha() for c in s_name):
+                        # Handle nested slashes in parentheses like "Database (SQL/NoSQL)"
+                        parts = []
+                        if "(" in s_name and ")" in s_name:
+                            match = re.search(r"\((.*)\)", s_name)
+                            if match:
+                                inside = match.group(1)
                                 parts = [
-                                    p.strip() for p in s_name.split("/") if p.strip()
+                                    p.strip()
+                                    for p in inside.split("/")
+                                    if p.strip()
                                 ]
 
-                            if len(parts) > 1:
-                                sub_skills = []
-                                for p in parts:
-                                    p_clean = re.sub(r"[()\[\]{}]", "", p).strip()
-                                    if not p_clean:
-                                        continue
-                                    sub_skills.append(
-                                        {
-                                            "skill": p_clean,
-                                            "target_level": r.get("target_level")
-                                            or "Junior",
-                                            "years_required": r.get(
-                                                "years_required", 0
-                                            ),
-                                        }
-                                    )
-                                normalized_reqs.append(
+                        if not parts:
+                            parts = [
+                                p.strip() for p in s_name.split("/") if p.strip()
+                            ]
+
+                        if len(parts) > 1:
+                            sub_skills = []
+                            for p in parts:
+                                p_clean = re.sub(r"[()\[\]{}]", "", p).strip()
+                                if not p_clean:
+                                    continue
+                                sub_skills.append(
                                     {
-                                        "type": "group",
-                                        "group_name": f"{s_name} (Combined)",
-                                        "group_strategy": "exclusive",
-                                        "skills": sub_skills,
-                                        "is_primary": r.get("is_primary")
-                                        if r.get("is_primary") is not None
-                                        else True,
-                                        "importance_weight": r.get("importance_weight")
-                                        or 5,
+                                        "skill": p_clean,
+                                        "target_level": r.get("target_level")
+                                        or "Junior",
+                                        "years_required": r.get(
+                                            "years_required", 0
+                                        ),
                                     }
                                 )
-                                continue
+                            normalized_reqs.append(
+                                {
+                                    "type": "group",
+                                    "group_name": f"{s_name} (Combined)",
+                                    "group_strategy": "exclusive",
+                                    "skills": sub_skills,
+                                    "is_primary": r.get("is_primary")
+                                    if r.get("is_primary") is not None
+                                    else True,
+                                    "importance_weight": r.get("importance_weight")
+                                    or 5,
+                                }
+                            )
+                            continue
 
-                        normalized_reqs.append(
-                            {
-                                "type": "skill",
-                                "skill": s_name,
-                                "target_level": r.get("target_level") or "Junior",
-                                "years_required": r.get("years_required", 0),
-                                "is_primary": r.get("is_primary")
-                                if r.get("is_primary") is not None
-                                else True,
-                                "importance_weight": r.get("importance_weight") or 5,
-                            }
-                        )
-                return normalized_reqs
+                    normalized_reqs.append(
+                        {
+                            "type": "skill",
+                            "skill": s_name,
+                            "target_level": r.get("target_level") or "Junior",
+                            "years_required": r.get("years_required", 0),
+                            "is_primary": r.get("is_primary")
+                            if r.get("is_primary") is not None
+                            else True,
+                            "importance_weight": r.get("importance_weight") or 5,
+                        }
+                    )
+            return normalized_reqs
             return []
         except Exception as e:
             logger.error(f"Error extracting requirements with AI: {str(e)}")
