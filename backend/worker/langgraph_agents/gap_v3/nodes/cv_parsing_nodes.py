@@ -261,38 +261,47 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
     # ── Build prompt ──────────────────────────────────────────────────────────
     prompt = f"""
     SYSTEM ROLE:
-    You are a Precision HR Data Architect. Your task is to transform unstructured CV text into a high-fidelity JSON schema for a Skill Gap Analysis system.
+    You are a Precision HR Data Architect. Your task is to:
+    1. Validate if the uploaded text is a Curriculum Vitae (CV) or Resume.
+    2. If it is a CV, transform it into a high-fidelity JSON.
+    3. If it is NOT a CV, return a specific failure status.
 
     TODAY'S DATE: {current_date}
 
-    STRICT RULES:
+    VALIDATION RULE:
+    - A document is considered a CV if it contains at least TWO of the following: Full Name, Contact Info, Education History, Work Experience, or Professional Skills.
+    - If the document is an invoice, a random article, a book chapter, or any non-CV text, set "status": "fail" and stop extraction.
+
+    STRICT RULES (Only apply if document is a CV):
     1. FACTUAL INTEGRITY: Extract ONLY information explicitly present. Do not infer skills.
     2. DATE PRECISION & OVERLAP LOGIC: 
        - Use {current_date} for any "Present", "Now", or "Current" end dates.
-       - NON-ADDICTIVE CALCULATION: Identify all unique time segments. If two roles are held simultaneously (e.g., Job A: 2022-2024 and Job B: 2023-2025), the total duration is the span from the earliest start to the latest end (2022-2025 = 3 years). Do NOT simply sum the durations of each role.
+       - NON-ADDICTIVE CALCULATION: Identify all unique time segments. If two roles overlap, calculate the unique span (e.g., 2022-2024 & 2023-2025 = 3 years).
     3. LANGUAGE: All summaries and descriptions must be translated into English.
-    4. NO NORMALIZATION: Keep the 'raw_name' for technical skills (e.g., "Py" remains "Py", "TF" remains "TF").
+    4. NO NORMALIZATION: Keep 'raw_name' for technical skills (e.g., "Py" remains "Py").
     5. CONTEXTUAL SENIORITY: 
-       - Evaluate seniority based on years of experience RELEVANT to the target role/career goal mentioned in the summary.
-       - If a career shift is detected (e.g., Engineer to AI Advisor), the Seniority level must reflect only the years in the new/relevant field. 
-       - Benchmark: Junior (< 2 yrs), Mid-level (2-5 yrs), Senior (5-10 yrs), Lead (> 10 yrs) of RELEVANT experience.
-    6. MESSY TEXT PROTOCOL: In case of interleaved/messy text, perform "Visual Block Anchor": Link dates to the job title that appears in the same logical section, not just the text that is physically closest.
+       - Evaluate seniority based on RELEVANT experience to the target role.
+       - Career shift: count only years in the new/relevant field. 
+       - Junior (< 2 yrs), Mid-level (2-5 yrs), Senior (5-10 yrs), Lead (> 10 yrs).
+    6. MESSY TEXT PROTOCOL: Use "Visual Block Anchor" to link dates to job titles within the same logical section.
 
-    INTERNAL MONOLOGUE (Mandatory Reasoning Step):
-    Before generating the JSON, perform these steps mentally:
-    - Step 1: Chronological Audit. List all start/end dates. Identify overlapping periods.
-    - Step 2: Relevance Filter. Is this a career shifter? If yes, which years count towards their current "Seniority"?
-    - Step 3: Skill-to-Role Mapping. Which skills were actually used in which job? Calculate 'experience_years' per skill based on the duration of those specific jobs.
-    - Step 4: Quality Check. Assess 'ocr_confidence' (1.0 for clean, 0.5 for mixed columns/messy).
+    INTERNAL MONOLOGUE:
+    - Step 0: [Validation] Does this text look like a CV? If no, prepare "fail" response.
+    - Step 1: Chronological Audit (List dates, subtract overlaps).
+    - Step 2: Relevance Filter for Seniority.
+    - Step 3: Skill-to-Role Mapping.
+    - Step 4: Quality Check for 'ocr_confidence'.
 
     ## CV TEXT:
     {masked_text}
 
     ## OUTPUT SCHEMA (DO NOT CHANGE ANY KEYS):
     {{
-      "full_name": "Full Name",
-      "summary": "Professional summary in English",
-      "seniority": "Junior | Mid-level | Senior | Lead",
+      "status": "success | fail",
+      "error_message": "Reason if fail, else null",
+      "full_name": "Full Name or null",
+      "summary": "Professional summary in English or null",
+      "seniority": "Junior | Mid-level | Senior | Lead | null",
       "experience_years_total": 0.0,
       "skills": [
         {{
