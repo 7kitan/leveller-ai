@@ -267,20 +267,23 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
 
     STRICT RULES:
     1. FACTUAL INTEGRITY: Extract ONLY information explicitly present. Do not infer skills.
-    2. DATE PRECISION: 
+    2. DATE PRECISION & OVERLAP LOGIC: 
        - Use {current_date} for any "Present", "Now", or "Current" end dates.
-       - MERGE OVERLAPS: If two work periods overlap, calculate the unique duration to avoid double-counting in 'experience_years_total'.
+       - NON-ADDICTIVE CALCULATION: Identify all unique time segments. If two roles are held simultaneously (e.g., Job A: 2022-2024 and Job B: 2023-2025), the total duration is the span from the earliest start to the latest end (2022-2025 = 3 years). Do NOT simply sum the durations of each role.
     3. LANGUAGE: All summaries and descriptions must be translated into English.
     4. NO NORMALIZATION: Keep the 'raw_name' for technical skills (e.g., "Py" remains "Py", "TF" remains "TF").
-    5. SENIORITY LOGIC: 
-       - Junior (< 2 yrs), Mid-level (2-5 yrs), Senior (5-10 yrs), Lead (> 10 yrs).
-       - *Note: If a career shift is detected in the summary, prioritize relevance to the target role for seniority.*
+    5. CONTEXTUAL SENIORITY: 
+       - Evaluate seniority based on years of experience RELEVANT to the target role/career goal mentioned in the summary.
+       - If a career shift is detected (e.g., Engineer to AI Advisor), the Seniority level must reflect only the years in the new/relevant field. 
+       - Benchmark: Junior (< 2 yrs), Mid-level (2-5 yrs), Senior (5-10 yrs), Lead (> 10 yrs) of RELEVANT experience.
+    6. MESSY TEXT PROTOCOL: In case of interleaved/messy text, perform "Visual Block Anchor": Link dates to the job title that appears in the same logical section, not just the text that is physically closest.
 
-    INTERNAL MONOLOGUE (Reasoning Step):
-    Before generating the JSON, mentally:
-    - List all date ranges and subtract overlaps.
-    - Match each skill to the roles where it was used to estimate 'experience_years' for that skill.
-    - Determine 'ocr_confidence' (1.0 for clean layout, 0.5 for messy/column-mixed text).
+    INTERNAL MONOLOGUE (Mandatory Reasoning Step):
+    Before generating the JSON, perform these steps mentally:
+    - Step 1: Chronological Audit. List all start/end dates. Identify overlapping periods.
+    - Step 2: Relevance Filter. Is this a career shifter? If yes, which years count towards their current "Seniority"?
+    - Step 3: Skill-to-Role Mapping. Which skills were actually used in which job? Calculate 'experience_years' per skill based on the duration of those specific jobs.
+    - Step 4: Quality Check. Assess 'ocr_confidence' (1.0 for clean, 0.5 for mixed columns/messy).
 
     ## CV TEXT:
     {masked_text}
