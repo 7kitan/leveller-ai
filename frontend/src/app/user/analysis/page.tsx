@@ -87,6 +87,7 @@ function AnalysisPageContent() {
   const [taskId, setTaskId] = useState<string>("");
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
+  const [processMessage, setProcessMessage] = useState<string>("Đang khởi tạo...");
 
   /* -- Handle URL Params ---------------------------------------------- */
   useEffect(() => {
@@ -226,17 +227,59 @@ function AnalysisPageContent() {
           return;
         }
 
-        // Simulate step progression while processing
-        setProgress((p) => {
-          const next = p + Math.floor(Math.random() * 6) + 2;
-          const clamped = Math.min(next, 94);
-          setCurrentStep(detectStep(clamped));
-          return clamped;
-        });
+        // Capture granular progress from API
+        const { progress: apiProgress, message } = resp.data as { progress?: number; message?: string };
+        if (apiProgress !== undefined) {
+          setProgress(apiProgress);
+          setCurrentStep(detectStep(apiProgress));
+        } else {
+            // Fallback to simulation if no granular progress yet
+            setProgress((p) => {
+              const next = p + Math.floor(Math.random() * 3) + 1;
+              const clamped = Math.min(next, 94);
+              setCurrentStep(detectStep(clamped));
+              return clamped;
+            });
+        }
+        
+        if (message) {
+            // We can store this in a new state or just log it for now.
+            // Let's add a state for it.
+            setProcessMessage(message);
+        }
       } catch (err) {
         console.error(`[ANALYSIS] poll error:`, err);
       }
     }, 2500);
+  };
+
+  /* -- Point 4: Graceful Cancellation ----------------------------- */
+  const handleCancel = async () => {
+    if (!taskId || !token) return;
+    try {
+      await axios.delete(`/api/analysis/status/${taskId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log(`[ANALYSIS] Revoke request sent — task_id=${taskId}`);
+      setError("Phân tích đã bị hủy theo yêu cầu của người dùng.");
+      setPhase("setup");
+    } catch (err) {
+      console.error("[ANALYSIS] Revoke failed:", err);
+    }
+  };
+
+  /* -- Point 2: Leave & Return (Notification) --------------------- */
+  const [notified, setNotified] = useState(false);
+  const handleNotify = async () => {
+    if (!taskId || !token) return;
+    try {
+      await axios.post(`/api/analysis/notify/${taskId}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotified(true);
+    } catch (err) {
+      console.error("[ANALYSIS] Notify failed:", err);
+    }
   };
 
   /* -- Retry / back ------------------------------------------------ */
@@ -508,10 +551,34 @@ function AnalysisPageContent() {
             />
           </div>
           <div className={styles.progressPct}>{progress}%</div>
+          
+          <div className={styles.granularMessage}>
+            <Loader2 size={16} className={styles.spinIcon} />
+            <span>{processMessage}</span>
+          </div>
 
           <p className={styles.processingSub}>
             Task ID: <code>{taskId}</code>
           </p>
+
+          <div className={styles.asyncActions}>
+            <button 
+              onClick={handleNotify} 
+              disabled={notified}
+              className={cn(styles.notifyBtn, notified && styles.notifyBtnDone)}
+            >
+              {notified ? <CheckCircle2 size={16} /> : <Zap size={16} />}
+              {notified ? "SẼ THÔNG BÁO CHO BẠN" : "THÔNG BÁO KHI XONG"}
+            </button>
+            <button onClick={handleCancel} className={styles.cancelBtn}>
+              <X size={16} />
+              DỪNG PHÂN TÍCH
+            </button>
+          </div>
+
+          <div className={styles.leaveHint}>
+            <p>Phân tích chuyên sâu có thể mất 2-3 phút. Bạn có thể an tâm đóng trình duyệt, hệ thống sẽ lưu kết quả vào tài khoản của bạn.</p>
+          </div>
         </div>
       </div>
     );

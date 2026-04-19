@@ -71,6 +71,7 @@ class UserCV(Base):
         JSON, nullable=True
     )  # Structured CV data (skills, work_history, etc.)
     cv_parsed_at = Column(DateTime(timezone=True), nullable=True)  # Timestamp
+    is_verified = Column(Boolean, default=False)  # User has confirmed parsed data
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

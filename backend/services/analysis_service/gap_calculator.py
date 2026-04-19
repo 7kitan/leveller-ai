@@ -288,7 +288,7 @@ Chỉ trả về JSON hợp lệ."""
                 if (hasattr(r_src, "skill") and r_src.skill)
                 else "Unknown",
                 "importance_weight": getattr(r_src, "importance_weight", 5),
-                "required_level": getattr(r_src, "required_level", "intermediate"),
+                "required_level": getattr(r_src, "required_level", "Mid-level"),
                 "years_required": getattr(r_src, "min_years_exp", 0),
                 "is_mandatory": getattr(r_src, "is_mandatory", True),
             }
@@ -296,7 +296,7 @@ Chỉ trả về JSON hợp lệ."""
         if "skill_name" not in req:
             req["skill_name"] = req.get("skill") or req.get("group_name") or "Unknown"
         if "required_level" not in req:
-            req["required_level"] = req.get("target_level", "intermediate")
+            req["required_level"] = req.get("target_level", "Mid-level")
         if "is_mandatory" not in req:
             # Default to True if neither is_mandatory nor is_primary exists or if is_primary is True
             req["is_mandatory"] = req.get("is_primary", True)

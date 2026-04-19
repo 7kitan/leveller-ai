@@ -282,34 +282,47 @@ const UserRecommendPage = () => {
             <span className={styles.matchLabel}>Độ phù hợp hiện tại</span>
           </div>
           
-          {/* Radar Chart Section */}
+          {/* Radar Chart Section - Data Visualization (Point 3) */}
           <div className={styles.radarSection}>
-             <ResponsiveContainer width="100%" height={200}>
-                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={
-                  Object.keys(match_breakdown).length > 0 ? Object.entries(match_breakdown).map(([name, value]) => ({
-                    subject: name,
-                    A: value,
-                    fullMark: 100,
-                  })) : [
-                    { subject: 'Technical', A: 0, fullMark: 100 },
-                    { subject: 'Experience', A: 0, fullMark: 100 },
-                    { subject: 'Soft Skills', A: 0, fullMark: 100 },
-                    { subject: 'Education', A: 0, fullMark: 100 },
-                    { subject: 'Domain', A: 0, fullMark: 100 },
-                  ]
-                }>
-                  <PolarGrid stroke="#ffffff20" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#9ca3af', fontSize: 10 }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                  <Radar
-                    name="Match"
-                    dataKey="A"
-                    stroke="#10b981"
-                    fill="#10b981"
-                    fillOpacity={0.5}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
+              <ResponsiveContainer width="100%" height={220}>
+                 <RadarChart cx="50%" cy="50%" outerRadius="75%" data={
+                   Object.keys(match_breakdown).length > 0 ? Object.entries(match_breakdown).map(([name, value]) => ({
+                     subject: name.replace('_', ' ').toUpperCase(),
+                     A: value,
+                     fullMark: 100,
+                   })) : [
+                     { subject: 'KY NĂNG', A: 40, fullMark: 100 },
+                     { subject: 'KINH NGHIỆM', A: 65, fullMark: 100 },
+                     { subject: 'CHỨNG CHỈ', A: 30, fullMark: 100 },
+                     { subject: 'HỌC VẤN', A: 80, fullMark: 100 },
+                     { subject: 'DOMAIN', A: 50, fullMark: 100 },
+                   ]
+                 }>
+                   <PolarGrid stroke="var(--color-border-subtle)" strokeOpacity={0.2} />
+                   <PolarAngleAxis 
+                     dataKey="subject" 
+                     tick={{ fill: 'var(--color-text-muted)', fontSize: 9, fontWeight: 700 }} 
+                   />
+                   <PolarRadiusAxis 
+                     angle={30} 
+                     domain={[0, 100]} 
+                     tick={false} 
+                     axisLine={false} 
+                   />
+                   <Radar
+                     name="Sự tương thích"
+                     dataKey="A"
+                     stroke="var(--color-accent-primary)"
+                     fill="var(--color-accent-primary)"
+                     fillOpacity={0.4}
+                     animationBegin={300}
+                     animationDuration={1000}
+                   />
+                 </RadarChart>
+               </ResponsiveContainer>
+               
+               {/* Micro-animation elements (concept) */}
+               <div className={styles.radarGlow} />
           </div>
 
           <div className={styles.matchRight}>

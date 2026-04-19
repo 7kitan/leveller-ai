@@ -11,7 +11,7 @@ class LevelMapper:
     REVERSE_MAP = {
         1: "Basic/Beginner",
         2: "Junior",
-        3: "Middle",
+        3: "Mid-level",
         4: "Senior",
         5: "Expert"
     }

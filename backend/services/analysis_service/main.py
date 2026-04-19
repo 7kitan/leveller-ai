@@ -47,6 +47,12 @@ class SimulateRequest(BaseModel):
     job_id: Optional[uuid.UUID] = None
 
 
+class SimulateBoostRequest(BaseModel):
+    cv_id: uuid.UUID
+    selected_course_ids: List[uuid.UUID]
+    job_id: Optional[uuid.UUID] = None
+
+
 # ─── 1.9 + 4.2: Gap Analysis Endpoints ─────────────────────────────────
 
 
@@ -138,7 +144,40 @@ async def get_task_status(task_id: str):
             )
         return {"status": "completed", "result": result}
 
+    if state == "PROGRESS":
+        return {
+            "status": "processing",
+            "progress": res.info.get("percent", 0),
+            "message": res.info.get("message", "Processing...")
+        }
+
     return {"status": "processing"}
+    
+    
+@app.delete("/analysis/status/{task_id}")
+async def revoke_analysis_task(task_id: str):
+    """
+    Dừng phân tích gap đang chạy.
+    """
+    logger.info(f"[ANALYSIS REVOKE] Request for task_id={task_id}")
+    res = AsyncResult(task_id, app=celery_app)
+    res.revoke(terminate=True)
+    return {"message": "Task revoked", "task_id": task_id}
+
+
+@app.post("/analysis/notify/{task_id}")
+async def register_notification(task_id: str, request: Request):
+    """
+    Đăng ký nhận thông báo khi task hoàn thành.
+    Hiện tại log lại để giả lập, sau này có thể tích hợp email/push.
+    """
+    user_id = request.headers.get("X-User-ID")
+    logger.info(f"[ANALYSIS NOTIFY] User {user_id} requested notification for task {task_id}")
+    
+    # Store in Redis or DB for the worker to check later
+    result_cache.set(f"notify_me:{task_id}", user_id, ex=3600*24)
+    
+    return {"message": "Chúng tôi sẽ thông báo cho bạn khi kết quả sẵn sàng."}
 
 
 @app.get("/analysis/user/latest")
@@ -553,6 +592,94 @@ async def simulate_roadmap(
         },
         "method": "basic_fallback",
     }
+
+
+@app.post("/analysis/simulate-boost")
+async def simulate_boost(
+    req: SimulateBoostRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Giả lập tăng trưởng (What-if): Tính toán điểm tiềm năng khi hoàn thành các khóa học.
+    """
+    user_id = request.headers.get("X-User-ID")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    # 1. Lấy analysis hiện tại
+    latest = (
+        db.query(UserAnalysis)
+        .filter(
+            UserAnalysis.user_id == uuid.UUID(user_id),
+            UserAnalysis.cv_id == req.cv_id,
+        )
+        .order_by(UserAnalysis.created_at.desc())
+        .first()
+    )
+
+    if not latest or not latest.result_json:
+        raise HTTPException(status_code=404, detail="No base analysis found to simulate boost")
+
+    from shared.models import Course, Skill
+    courses = db.query(Course).filter(Course.id.in_(req.selected_course_ids)).all()
+    
+    # Lấy tất cả skills/tags từ các khóa học được chọn
+    boost_skills = set()
+    for c in courses:
+        if c.tags:
+            for tag in c.tags:
+                boost_skills.add(tag.strip())
+
+    # Map categories for boost_skills
+    skill_entities = db.query(Skill).filter(Skill.name.in_(list(boost_skills))).all()
+    skill_to_cat = {s.name.lower(): s.category for s in skill_entities}
+
+    # Duyệt qua các gap trong analysis hiện tại và giả lập lấp đầy
+    result = latest.result_json.copy()
+    gaps = result.get("skill_gaps", [])
+    
+    virtual_gaps = []
+    filled_count = 0
+    for g in gaps:
+        skill_name = g.get("skill", "").lower()
+        is_filled = False
+        for bs in boost_skills:
+            if bs.lower() == skill_name:
+                is_filled = True
+                break
+        
+        if is_filled:
+            # Giả lập lấp đầy gap này
+            new_gap = g.copy()
+            new_gap["is_virtual_filled"] = True
+            new_gap["severity"] = "LOW" # Giảm mức độ nghiêm trọng xuống thấp nhất
+            virtual_gaps.append(new_gap)
+            filled_count += 1
+        else:
+            virtual_gaps.append(g)
+
+    # Tính toán điểm tiềm năng (Virtual Match Score)
+    base_score = float(result.get("overall_match_pct", 0))
+    boost_amount = 0
+    if gaps:
+        boost_per_gap = (100 - base_score) / max(len(gaps), 1)
+        boost_amount = filled_count * boost_per_gap * 0.8 
+
+    potential_score = min(98.5, base_score + boost_amount)
+
+    return {
+        "base_score": base_score,
+        "potential_score": round(potential_score, 1),
+        "boost_amount": round(boost_amount, 1),
+        "filled_skills": [
+            {"name": s, "category": skill_to_cat.get(s.lower(), "Technology")} 
+            for s in boost_skills
+        ],
+        "virtual_gaps": virtual_gaps,
+        "is_simulated": True
+    }
+
 
 
 # ─── Admin Taxonomy Routes ───────────────────────────────────────────────

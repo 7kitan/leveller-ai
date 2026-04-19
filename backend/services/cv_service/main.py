@@ -3,7 +3,9 @@ from sqlalchemy.orm import Session
 from shared.database import get_db
 from shared.models import User, UserCV, UserSkillProfile, Skill, UserAnalysis
 from worker.celery_app import celery_app
+from shared.redis_client import result_cache
 import uuid
+import json
 import os
 import hashlib
 import logging
@@ -14,7 +16,7 @@ from pydantic import BaseModel
 class SkillCreate(BaseModel):
     skill_name: str
     years_exp: float = 0.0
-    level: str = "Mid-level"
+    level: str = "Junior"
     category: Optional[str] = "Other"
 
 
@@ -31,8 +33,32 @@ class CVUpdate(BaseModel):
 
 class FinalizeCVRequest(BaseModel):
     id: str
-    skills: List[dict]
-    user_info: dict
+    full_name: str
+    summary: Optional[str] = ""
+    experience_years_total: float = 0.0
+    skills: List[dict] = []
+    work_history: Optional[List[dict]] = []
+    education: Optional[List[dict]] = []
+    certifications: Optional[List[str]] = []
+    seniority: Optional[str] = "Unknown"
+    
+    # ── Security Validation (Spec 5) ────────────
+    from pydantic import validator
+    
+    @validator("full_name")
+    def validate_name(cls, v):
+        if len(v) < 2:
+            raise ValueError("Tên quá ngắn")
+        if len(v) > 255:
+            raise ValueError("Tên quá dài")
+        # Simple sanitization
+        return v.strip().replace("<", "&lt;").replace(">", "&gt;")
+
+    @validator("experience_years_total")
+    def validate_exp(cls, v):
+        if v < 0 or v > 60:
+            raise ValueError("Số năm kinh nghiệm không hợp lệ (0-60)")
+        return v
 
 
 app = FastAPI(title="CV Service")
@@ -214,13 +240,28 @@ async def finalize_cv(
     if str(cv.user_id) != user_id_str:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    # Cập nhật metadata CV từ user_info
-    cv.full_name = req.user_info.get("full_name", cv.full_name)
-    cv.experience_years_total = req.user_info.get(
-        "total_exp_years", cv.experience_years_total
-    )
+    # Cập nhật metadata CV (Direct fields)
+    cv.full_name = req.full_name
+    cv.summary = req.summary.replace("<", "&lt;").replace(">", "&gt;") if req.summary else ""
+    cv.experience_years_total = req.experience_years_total
+    cv.is_verified = True
 
-    # Cập nhật danh sách skills
+    # Cập nhật cv_parsed_json để đồng bộ dữ liệu (Work history, education, certifications)
+    # Spec 3.3: Link Radar Chart data to recommended courses
+    current_json = cv.cv_parsed_json or {}
+    current_json["full_name"] = req.full_name
+    current_json["summary"] = cv.summary
+    current_json["experience_years_total"] = req.experience_years_total
+    current_json["work_history"] = req.work_history
+    current_json["education"] = req.education
+    current_json["certifications"] = req.certifications
+    current_json["seniority"] = req.seniority
+    # Sync simple skill names list if needed by other services
+    current_json["skills"] = [s.get("name") for s in req.skills]
+    
+    cv.cv_parsed_json = current_json
+
+    # Cập nhật danh sách skills (Detailed UserSkillProfile)
     # 1. Xóa skills cũ của CV này để ghi đè (Finalize)
     db.query(UserSkillProfile).filter(UserSkillProfile.cv_id == cv.id).delete()
 
@@ -230,7 +271,8 @@ async def finalize_cv(
         if not s_name:
             continue
 
-        # Chuẩn hóa tên kĩ năng
+        # Chuẩn hóa tên kĩ năng (Sanitize)
+        s_name = s_name.replace("<", "").replace(">", "")
         s_name_std = s_name.title() if len(s_name) > 3 else s_name.upper()
 
         # Tìm hoặc tạo kĩ năng trong taxonomy
@@ -251,14 +293,14 @@ async def finalize_cv(
             cv_id=cv.id,
             skill_id=skill.id,
             years_exp=float(s_data.get("experience_years", 0)),
-            level=s_data.get("level", "Mid-level"),
+            level=s_data.get("level", "Junior"),
             source="cv_parsed",
         )
         db.add(new_prof)
 
     db.commit()
-    logger.info(f"CV Finalized: {cv.id} for user {user_id_str}")
-    return {"message": "Portfolio updated successfully", "cv_id": str(cv.id)}
+    logger.info(f"CV Fully Finalized: {cv.id} for user {user_id_str}")
+    return {"message": "Portfolio updated successfully with full validation", "cv_id": str(cv.id)}
 
 
 @app.get("/cv/admin/all")
@@ -396,6 +438,7 @@ async def get_cv_detail(cv_id: str, request: Request, db: Session = Depends(get_
         "full_name": cv.full_name,
         "summary": cv.summary,
         "experience_years_total": cv.experience_years_total,
+        "is_verified": cv.is_verified,
         "status": cv.status,
         "error_message": cv.error_message,
         "user_info": {
@@ -559,7 +602,11 @@ async def delete_cv_skill(
 
 
 @app.get("/cv/status/{task_id}")
-async def get_cv_status(task_id: str, request: Request, db: Session = Depends(get_db)):
+async def get_cv_status(
+    task_id: str,
+    cv_id: Optional[str] = Query(None, description="CV ID to lookup granular progress"),
+    request: Request = None, 
+    db: Session = Depends(get_db)):
     """
     Poll Celery task status.
     Khi task SUCCESS → tự động fetch CV data từ DB và trả về đầy đủ
@@ -575,6 +622,15 @@ async def get_cv_status(task_id: str, request: Request, db: Session = Depends(ge
         status = "failed"
     else:
         status = "processing"
+
+    progress_data = None
+    if status == "processing" and cv_id:
+        try:
+            cached_progress = result_cache.get(f"cv_progress:{cv_id}")
+            if cached_progress:
+                progress_data = json.loads(cached_progress)
+        except Exception as e:
+            logger.warning(f"Failed to fetch progress from redis: {e}")
 
     result_data = None
     if task_result.ready():
@@ -602,6 +658,7 @@ async def get_cv_status(task_id: str, request: Request, db: Session = Depends(ge
                             "full_name": cv.full_name or "Parsed Candidate",
                             "summary": cv.summary or "",
                             "experience_years_total": cv.experience_years_total or 0,
+                            "is_verified": cv.is_verified,
                             "status": cv.status,
                             "skills": [
                                 {
@@ -642,8 +699,24 @@ async def get_cv_status(task_id: str, request: Request, db: Session = Depends(ge
     return {
         "task_id": task_id,
         "status": status,
+        "progress": progress_data,
         "result": result_data,
     }
+
+
+@app.delete("/cv/status/{task_id}")
+async def revoke_cv_task(task_id: str, request: Request):
+    """
+    Spec 4.1: Graceful Cancellation.
+    Dừng task đang chạy và giải phóng worker.
+    """
+    logger.info(f"[CV REVOKE] Request to revoke task_id={task_id}")
+    task_result = celery_app.AsyncResult(task_id)
+    
+    # Revoke task (terminate=True will send SIGTERM to worker child process)
+    task_result.revoke(terminate=True)
+    
+    return {"message": "Task revocation request sent", "task_id": task_id}
 
 
 # ─── 4.2 + 2.1: Analysis History ────────────────────────────────────────────

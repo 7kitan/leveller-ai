@@ -66,6 +66,11 @@ celery_app.conf.update(
     result_serializer="json",
     timezone="Asia/Ho_Chi_Minh",
     enable_utc=True,
+    task_routes={
+        "worker.tasks.analysis_tasks.*": {"queue": "analysis_queue"},
+        "worker.langgraph_agents.gap_v3.tasks.cv_parsing_v3_task.*": {"queue": "parsing_queue"},
+        "worker.tasks.crawler_tasks.*": {"queue": "crawler_queue"},
+    },
     beat_schedule={
         "auto-crawl-topcv-every-30-mins": {
             "task": "worker.tasks.crawler_tasks.crawl_topcv_jobs_task",

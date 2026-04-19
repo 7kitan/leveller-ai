@@ -1,5 +1,24 @@
 version: '3.8'
 
+x-worker-base: &worker-base
+  build:
+    context: .
+    dockerfile: Dockerfile.worker
+  env_file: .env
+  environment:
+    - REDIS_HOST=advisor_redis
+    - POSTGRES_HOST=advisor_db
+  volumes:
+    - .:/app
+    - ./data:/app/data
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  networks:
+    - advisor_net
+
 services:
   # --------------------------------------------------------------------------
   # DATA LAYER
@@ -166,25 +185,25 @@ services:
     networks:
       - advisor_net
 
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-    container_name: advisor_worker
-    env_file: .env
-    environment:
-      - REDIS_HOST=advisor_redis
-      - POSTGRES_HOST=advisor_db
-    volumes:
-      - .:/app
-      - ./data:/app/data
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - advisor_net
+  worker_analysis:
+    <<: *worker-base
+    container_name: advisor_worker_analysis
+    command: celery -A worker.celery_app worker -Q analysis_queue --loglevel=info --logfile=- --concurrency=${WORKER_ANALYSIS_CONCURRENCY:-1}
+
+  worker_parsing:
+    <<: *worker-base
+    container_name: advisor_worker_parsing
+    command: celery -A worker.celery_app worker -Q parsing_queue --loglevel=info --logfile=- --concurrency=${WORKER_PARSING_CONCURRENCY:-2}
+
+  worker_crawler:
+    <<: *worker-base
+    container_name: advisor_worker_crawler
+    command: celery -A worker.celery_app worker -Q crawler_queue --loglevel=info --logfile=- --concurrency=${WORKER_CRAWLER_CONCURRENCY:-1}
+
+  worker_default:
+    <<: *worker-base
+    container_name: advisor_worker_default
+    command: celery -A worker.celery_app worker --loglevel=info --logfile=- --concurrency=${WORKER_DEFAULT_CONCURRENCY:-1}
 
 networks:
   advisor_net:

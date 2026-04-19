@@ -13,6 +13,7 @@ from .nodes.cv_parsing_nodes import (
     normalize_cv_node,
     persist_cv_data_node,
 )
+from shared.redis_client import result_cache
 
 logger = logging.getLogger("cv_parsing_graph")
 
@@ -135,6 +136,12 @@ async def run_cv_parsing_pipeline(cv_id: str, user_id: str, db) -> dict:
 
     # ── Final result ─────────────────────────────────────────────────────────
     total_elapsed = time.monotonic() - t0
+
+    # Cleanup Redis Progress
+    try:
+        result_cache.delete(f"cv_progress:{cv_id}")
+    except Exception as e:
+        logger.warning(f"Failed to clear progress in Redis for cv_progress:{cv_id}: {e}")
 
     if state.get("cv_parsed"):
         parsed = state["cv_parsed"]

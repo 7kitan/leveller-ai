@@ -26,6 +26,8 @@ import {
   ArrowLeft,
   BarChart3,
   X,
+  Check,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import styles from "./user-cv.module.css";
@@ -42,12 +44,13 @@ interface CVHistory {
 
 interface ParsedCV {
   id: string;
-  skills: { name: string; category: string; experience_years: number; level?: string }[];
+  skills: { name: string; category: string; experience_years: number; level: string }[];
   summary: string;
   full_name?: string;
   experience_years_total?: number;
   seniority?: string;
   is_ocr?: boolean;
+  is_verified?: boolean;
   ocr_confidence?: number;
   work_history?: {
     position: string;
@@ -62,6 +65,79 @@ interface ParsedCV {
   }[];
   certifications?: string[];
 }
+
+/* -- Custom Select Component --------------------------------------------- */
+interface CustomDropdownProps {
+  value: string;
+  options: string[];
+  onChange: (val: string) => void;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+const CustomDropdown: React.FC<CustomDropdownProps> = ({
+  value,
+  options,
+  onChange,
+  className,
+  style,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className={styles.customDropdownContainer} style={style} ref={dropdownRef}>
+      <button
+        type="button"
+        className={cn(styles.customDropdownButton, className, isOpen && styles.customDropdownButtonActive)}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span>{value}</span>
+        <ChevronDown size={14} className={cn(styles.dropdownChevron, isOpen && styles.dropdownChevronRotate)} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.98 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className={styles.customDropdownMenu}
+          >
+            {options.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                className={cn(
+                  styles.customDropdownOption,
+                  value === opt && styles.customDropdownOptionActive
+                )}
+                onClick={() => {
+                  onChange(opt);
+                  setIsOpen(false);
+                }}
+              >
+                {opt}
+                {value === opt && <Check size={12} className={styles.optionCheck} />}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 const UserCVPage = () => {
   const { token } = useAuth();
@@ -202,12 +278,72 @@ const UserCVPage = () => {
     setError(null);
   };
 
+  const handleUpdateBasic = (field: string, value: any) => {
+    if (!parsedData) return;
+    setParsedData({ ...parsedData, [field]: value });
+  };
+
+  const handleUpdateWork = (idx: number, field: string, value: any) => {
+    if (!parsedData) return;
+    const next = [...(parsedData.work_history || [])];
+    if (next[idx]) {
+      next[idx] = { ...next[idx], [field]: value };
+      setParsedData({ ...parsedData, work_history: next });
+    }
+  };
+
+  const handleUpdateEdu = (idx: number, field: string, value: any) => {
+    if (!parsedData) return;
+    const next = [...(parsedData.education || [])];
+    if (next[idx]) {
+      next[idx] = { ...next[idx], [field]: value };
+      setParsedData({ ...parsedData, education: next });
+    }
+  };
+
+  const handleUpdateCert = (idx: number, value: string) => {
+    if (!parsedData) return;
+    const next = [...(parsedData.certifications || [])];
+    next[idx] = value;
+    setParsedData({ ...parsedData, certifications: next });
+  };
+
+  const handleDeleteWork = (idx: number) => {
+    if (!parsedData) return;
+    setParsedData({
+      ...parsedData,
+      work_history: (parsedData.work_history || []).filter((_, i) => i !== idx),
+    });
+  };
+
+  const handleDeleteEdu = (idx: number) => {
+    if (!parsedData) return;
+    setParsedData({
+      ...parsedData,
+      education: (parsedData.education || []).filter((_, i) => i !== idx),
+    });
+  };
+
+  const handleGoManual = () => {
+    // Spec 5: Error Handling -> Alternative Paths
+    setParsedData({
+      full_name: "Candidate Name",
+      skills: [],
+      experience_years_total: 0,
+      education: [],
+      certifications: [],
+      summary: "Manual Entry Mode"
+    });
+    setStatus("viewing");
+  };
+
   const handleManualAddSkill = () => {
     if (!parsedData) return;
     const newSkill = {
       name: "New Skill",
       category: "Technology",
       experience_years: 1,
+      level: "Junior",
     };
     setParsedData({
       ...parsedData,
@@ -215,11 +351,11 @@ const UserCVPage = () => {
     });
   };
 
-  const handleUpdateExperience = (idx: number, years: number) => {
+  const handleUpdateSkill = (idx: number, field: string, value: any) => {
     if (!parsedData) return;
     const nextSkills = [...(parsedData.skills || [])];
     if (nextSkills[idx]) {
-      nextSkills[idx] = { ...nextSkills[idx], experience_years: years };
+      nextSkills[idx] = { ...nextSkills[idx], [field]: value };
       setParsedData({ ...parsedData, skills: nextSkills });
     }
   };
@@ -235,12 +371,28 @@ const UserCVPage = () => {
   const handleSaveMatrix = async () => {
     setSaving(true);
     try {
-      await axios.post("/api/cv/finalize", parsedData, {
+      // Backend Spec 5: Payload validation
+      const payload = {
+        id: parsedData?.id,
+        full_name: parsedData?.full_name,
+        summary: parsedData?.summary,
+        experience_years_total: parsedData?.experience_years_total,
+        skills: parsedData?.skills,
+        work_history: parsedData?.work_history,
+        education: parsedData?.education,
+        certifications: parsedData?.certifications,
+        seniority: parsedData?.seniority || "Unknown"
+      };
+      await axios.post("/api/cv/finalize", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert("Portfolio đã được cập nhật thành công!");
-    } catch {
-      alert("Lỗi khi lưu Portfolio.");
+      if (parsedData) {
+        setParsedData({ ...parsedData, is_verified: true });
+      }
+      alert("Hồ sơ năng lực đã được lưu thành công!");
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || "Lỗi khi lưu Portfolio.";
+      alert(Array.isArray(msg) ? msg[0].msg : msg);
     } finally {
       setSaving(false);
     }
@@ -270,7 +422,9 @@ const UserCVPage = () => {
 
   // ── Viewing state ─────────────────────────────────────────────────────────
   if (status === "viewing" && parsedData) {
-    const groupedSkills = (parsedData.skills || []).reduce((acc: any, skill) => {
+    // Include the original index for accurate updates
+    const skillsWithIndex = (parsedData.skills || []).map((s, i) => ({ ...s, originalIndex: i }));
+    const groupedSkills = skillsWithIndex.reduce((acc: any, skill) => {
       const cat = skill.category || "Uncategorized";
       if (!acc[cat]) acc[cat] = [];
       acc[cat].push(skill);
@@ -303,6 +457,18 @@ const UserCVPage = () => {
 
         {/* ── Result Header ───────────────────────────────────────────── */}
         <div className={styles.resultHeader}>
+          {parsedData.is_ocr && !parsedData.is_verified && (
+            <div className={styles.verificationBanner}>
+              <div className={styles.bannerIcon}>
+                <AlertCircle size={20} />
+              </div>
+              <div className={styles.bannerText}>
+                <strong>Hệ thống đã đọc xong CV của bạn thông qua OCR.</strong>
+                <p>Vui lòng kiểm tra và hiệu chỉnh lại danh sách kỹ năng bên dưới để đảm bảo Lộ trình sự nghiệp được chính xác 100%.</p>
+              </div>
+            </div>
+          )}
+
           <div className={styles.resultHeaderGroup}>
             <div className={styles.userBasicInfo}>
               <div className={styles.avatar}>
@@ -310,22 +476,32 @@ const UserCVPage = () => {
               </div>
               <div>
                 <div className={styles.nameRow}>
-                  <h1 className={styles.userName}>
-                    {parsedData.full_name || "Parsed Candidate"}
-                  </h1>
-                  {parsedData.seniority && (
-                    <span
-                      className={styles.seniorityBadge}
-                      style={{ color: sc, borderColor: sc + "40", background: sc + "12" }}
-                    >
-                      {parsedData.seniority}
-                    </span>
-                  )}
+                  <input
+                    type="text"
+                    value={parsedData.full_name || ""}
+                    onChange={(e) => handleUpdateBasic("full_name", e.target.value)}
+                    className={styles.nameInput}
+                    placeholder="Họ và tên"
+                  />
+                  <CustomDropdown
+                    value={parsedData.seniority || "Unknown"}
+                    options={["Junior", "Mid-level", "Senior", "Expert", "Unknown"]}
+                    onChange={(val) => handleUpdateBasic("seniority", val)}
+                    className={styles.senioritySelect}
+                    style={{ color: sc, borderColor: sc + "40", background: sc + "12" }}
+                  />
                 </div>
                 <div className={styles.metaRow}>
                   <div className={styles.userExpBadge}>
                     <Clock size={13} />
-                    {parsedData.experience_years_total ?? 0} năm kinh nghiệm
+                    <input
+                        type="number"
+                        step="0.5"
+                        value={parsedData.experience_years_total ?? 0}
+                        onChange={(e) => handleUpdateBasic("experience_years_total", parseFloat(e.target.value) || 0)}
+                        className={styles.inlineEditInput}
+                    />
+                    năm kinh nghiệm
                   </div>
                   {parsedData.is_ocr && (
                     <div className={styles.ocrBadge}>
@@ -342,8 +518,17 @@ const UserCVPage = () => {
             </div>
 
             <div className={styles.ctaRow}>
-              <button onClick={handleBack} className={styles.reloadBtn}>
-                Tải lại CV
+              <button
+                onClick={handleSaveMatrix}
+                disabled={saving}
+                className={cn(styles.uploadBtn, styles.verifyBtnGradient)}
+              >
+                {saving ? (
+                  <Loader2 size={18} className={styles.animateSpin} />
+                ) : (
+                  <ShieldCheck size={18} />
+                )}
+                XÁC THỰC HỒ SƠ
               </button>
               <button
                 onClick={handleSaveMatrix}
@@ -360,10 +545,15 @@ const UserCVPage = () => {
             </div>
           </div>
 
-          {parsedData.summary && (
+          {parsedData.summary !== undefined && (
             <div className={styles.summarySection}>
-              <h4 className={styles.summaryTitle}>Executive Insight</h4>
-              <p className={styles.summaryText}>&ldquo;{parsedData.summary}&rdquo;</p>
+              <h4 className={styles.summaryTitle}>AI Professional Summary</h4>
+              <textarea
+                value={parsedData.summary || ""}
+                onChange={(e) => handleUpdateBasic("summary", e.target.value)}
+                className={styles.summaryTextarea}
+                placeholder="Tóm tắt mục tiêu nghề nghiệp và kinh nghiệm cốt lõi..."
+              />
             </div>
           )}
         </div>
@@ -384,32 +574,41 @@ const UserCVPage = () => {
                 <div key={cat} className={styles.catGroup}>
                   <h5 className={styles.catLabel}>{cat}</h5>
                   <div className={styles.flexWrapGap}>
-                    {groupedSkills[cat].map((skill: any, idx: number) => {
-                      const globalIdx = (parsedData.skills || []).findIndex(
-                        (s) => s.name === skill.name
-                      );
-                      return (
-                        <div key={idx} className={styles.skillItem}>
-                          <span className={styles.skillName}>{skill.name}</span>
-                          <input
-                            type="number"
-                            value={skill.experience_years ?? 0}
-                            onChange={(e) =>
-                              handleUpdateExperience(globalIdx, parseInt(e.target.value) || 0)
-                            }
-                            className={styles.editInput}
-                            min={0}
-                          />
-                          <span className={styles.yrsLabel}>YRS</span>
-                          <button
-                            onClick={() => handleDeleteSkill(globalIdx)}
-                            className={styles.deleteSkillBtn}
-                          >
-                            <X size={13} />
-                          </button>
-                        </div>
-                      );
-                    })}
+                    {groupedSkills[cat].map((skill: any, idx: number) => (
+                      <div key={idx} className={styles.skillItem}>
+                        <input
+                          type="text"
+                          value={skill.name}
+                          onChange={(e) =>
+                            handleUpdateSkill(skill.originalIndex, "name", e.target.value)
+                          }
+                          className={styles.skillNameInput}
+                          placeholder="Tên kĩ năng"
+                        />
+                        <input
+                          type="number"
+                          value={skill.experience_years ?? 0}
+                          onChange={(e) =>
+                            handleUpdateSkill(skill.originalIndex, "experience_years", parseInt(e.target.value) || 0)
+                          }
+                          className={styles.editInput}
+                          min={0}
+                        />
+                        <span className={styles.yrsLabel}>YRS</span>
+                        <CustomDropdown
+                          value={skill.level || "Junior"}
+                          options={["Junior", "Mid-level", "Senior", "Expert"]}
+                          onChange={(val) => handleUpdateSkill(skill.originalIndex, "level", val)}
+                          className={styles.skillLevelSelect}
+                        />
+                        <button
+                          onClick={() => handleDeleteSkill(skill.originalIndex)}
+                          className={styles.deleteSkillBtn}
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))
@@ -423,80 +622,152 @@ const UserCVPage = () => {
 
           {/* Middle: Work History + Education */}
           <div className={styles.middleCol}>
-            {/* Work History */}
-            {(parsedData.work_history || []).length > 0 && (
-              <div className={styles.sectionCard}>
-                <h3 className={styles.sectionTitle}>
-                  <Briefcase size={18} className={styles.sectionTitleIcon} />
-                  KINH NGHIỆM LÀM VIỆC
-                </h3>
-                <div className={styles.timelineList}>
-                  {parsedData.work_history!.map((w, idx) => (
-                    <div key={idx} className={styles.timelineItem}>
-                      <div className={styles.timelineDot} />
-                      <div className={styles.timelineContent}>
-                        <div className={styles.timelineHeader}>
-                          <span className={styles.timelinePosition}>{w.position}</span>
-                          {w.duration_years ? (
-                            <span className={styles.timelineDuration}>
-                              {w.duration_years} năm
-                            </span>
-                          ) : null}
-                        </div>
-                        <div className={styles.timelineCompany}>{w.company}</div>
-                        {w.description && (
-                          <p className={styles.timelineDesc}>{w.description}</p>
-                        )}
+            <div className={styles.sectionCard}>
+              <h3 className={styles.sectionTitle}>
+                <Briefcase size={18} className={styles.sectionTitleIcon} />
+                KINH NGHIỆM LÀM VIỆC
+              </h3>
+              <div className={styles.timelineList}>
+                {(parsedData.work_history || []).map((w, idx) => (
+                  <div key={idx} className={styles.timelineItem}>
+                    <div className={styles.timelineDot} />
+                    <div className={styles.timelineContent}>
+                      <div className={styles.timelineHeader}>
+                        <input
+                          type="text"
+                          value={w.position || ""}
+                          onChange={(e) => handleUpdateWork(idx, "position", e.target.value)}
+                          className={styles.timelineInput}
+                          placeholder="Vị trí"
+                        />
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={w.duration_years || 0}
+                          onChange={(e) => handleUpdateWork(idx, "duration_years", parseFloat(e.target.value) || 0)}
+                          className={styles.timelineSmallInput}
+                        />
+                        <span className={styles.yrsLabel}>năm</span>
+                        <button onClick={() => handleDeleteWork(idx)} className={styles.itemDeleteBtn}>
+                          <X size={14} />
+                        </button>
                       </div>
+                      <input
+                        type="text"
+                        value={w.company || ""}
+                        onChange={(e) => handleUpdateWork(idx, "company", e.target.value)}
+                        className={styles.timelineSubInput}
+                        placeholder="Công ty"
+                      />
+                      <textarea
+                        value={w.description || ""}
+                        onChange={(e) => handleUpdateWork(idx, "description", e.target.value)}
+                        className={styles.timelineDescTextarea}
+                        placeholder="Mô tả công việc..."
+                      />
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+                <button
+                  onClick={() => {
+                    const next = [...(parsedData.work_history || []), { position: "New Pos", company: "Company", duration_years: 1, description: "" }];
+                    handleUpdateBasic("work_history", next);
+                  }}
+                  className={styles.addItemBtn}
+                >
+                  <Plus size={14} /> Thêm kinh nghiệm
+                </button>
               </div>
-            )}
+            </div>
 
-            {/* Education */}
-            {(parsedData.education || []).length > 0 && (
-              <div className={styles.sectionCard}>
-                <h3 className={styles.sectionTitle}>
-                  <GraduationCap size={18} className={styles.sectionTitleIcon} />
-                  HỌC VẤN
-                </h3>
-                <div className={styles.timelineList}>
-                  {parsedData.education!.map((e, idx) => (
-                    <div key={idx} className={styles.timelineItem}>
-                      <div className={styles.timelineDot} />
-                      <div className={styles.timelineContent}>
-                        <div className={styles.timelineHeader}>
-                          <span className={styles.timelinePosition}>{e.degree}</span>
-                          {e.year && (
-                            <span className={styles.timelineDuration}>{e.year}</span>
-                          )}
-                        </div>
-                        <div className={styles.timelineCompany}>{e.institution}</div>
+            <div className={styles.sectionCard}>
+              <h3 className={styles.sectionTitle}>
+                <GraduationCap size={18} className={styles.sectionTitleIcon} />
+                HỌC VẤN
+              </h3>
+              <div className={styles.timelineList}>
+                {(parsedData.education || []).map((e, idx) => (
+                  <div key={idx} className={styles.timelineItem}>
+                    <div className={styles.timelineDot} />
+                    <div className={styles.timelineContent}>
+                      <div className={styles.timelineHeader}>
+                        <input
+                          type="text"
+                          value={e.degree || ""}
+                          onChange={(e) => handleUpdateEdu(idx, "degree", e.target.value)}
+                          className={styles.timelineInput}
+                          placeholder="Bằng cấp"
+                        />
+                        <input
+                          type="text"
+                          value={e.year || ""}
+                          onChange={(e) => handleUpdateEdu(idx, "year", e.target.value)}
+                          className={styles.timelineSmallInput}
+                          placeholder="Năm"
+                        />
+                        <button onClick={() => handleDeleteEdu(idx)} className={styles.itemDeleteBtn}>
+                          <X size={14} />
+                        </button>
                       </div>
+                      <input
+                        type="text"
+                        value={e.institution || ""}
+                        onChange={(e) => handleUpdateEdu(idx, "institution", e.target.value)}
+                        className={styles.timelineSubInput}
+                        placeholder="Trường / Cơ sở đào tạo"
+                      />
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+                <button
+                  onClick={() => {
+                    const next = [...(parsedData.education || []), { degree: "Degree", institution: "University", year: "2024" }];
+                    handleUpdateBasic("education", next);
+                  }}
+                  className={styles.addItemBtn}
+                >
+                  <Plus size={14} /> Thêm học vấn
+                </button>
               </div>
-            )}
+            </div>
 
-            {/* Certifications */}
-            {(parsedData.certifications || []).length > 0 && (
-              <div className={styles.sectionCard}>
-                <h3 className={styles.sectionTitle}>
-                  <Award size={18} className={styles.sectionTitleIcon} />
-                  CHỨNG CHỈ
-                </h3>
-                <div className={styles.certList}>
-                  {parsedData.certifications!.map((cert, idx) => (
-                    <div key={idx} className={styles.certItem}>
-                      <BadgeCheck size={16} className={styles.certIcon} />
-                      {cert}
-                    </div>
-                  ))}
-                </div>
+            <div className={styles.sectionCard}>
+              <h3 className={styles.sectionTitle}>
+                <Award size={18} className={styles.sectionTitleIcon} />
+                CHỨNG CHỈ
+              </h3>
+              <div className={styles.certList}>
+                {(parsedData.certifications || []).map((cert, idx) => (
+                  <div key={idx} className={styles.certItemEditable}>
+                    <BadgeCheck size={16} className={styles.certIcon} />
+                    <input
+                      type="text"
+                      value={cert || ""}
+                      onChange={(e) => handleUpdateCert(idx, e.target.value)}
+                      className={styles.certInput}
+                    />
+                    <button
+                      onClick={() => {
+                        const next = (parsedData.certifications || []).filter((_, i) => i !== idx);
+                        handleUpdateBasic("certifications", next);
+                      }}
+                      className={styles.certDeleteBtn}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={() => {
+                    const next = [...(parsedData.certifications || []), "Chứng chỉ mới"];
+                    handleUpdateBasic("certifications", next);
+                  }}
+                  className={styles.addItemBtn}
+                >
+                  <Plus size={14} /> Thêm chứng chỉ
+                </button>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Right: Sidebar */}
@@ -629,9 +900,15 @@ const UserCVPage = () => {
               </div>
 
               {error && (
-                <div className={styles.errorBox}>
-                  <AlertCircle size={18} className={styles.errorIcon} />
-                  {error}
+                <div className={styles.errorStack}>
+                  <div className={styles.errorBox}>
+                    <AlertCircle size={18} className={styles.errorIcon} />
+                    {error}
+                  </div>
+                  <button onClick={handleGoManual} className={styles.manualEntryBtn}>
+                    <Plus size={14} />
+                    TỰ NHẬP KỸ NĂNG (BỎ QUA AI)
+                  </button>
                 </div>
               )}
 

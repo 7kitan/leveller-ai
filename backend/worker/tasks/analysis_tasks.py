@@ -41,8 +41,8 @@ def _fallback_to_legacy(calculator, user_id, cv_id, requirements, loop):
     return report
 
 
-@celery_app.task(name="worker.tasks.analysis_tasks.run_gap_analysis")
-def run_gap_analysis(user_id: str, cv_id: str, job_id: str = None, jd_text: str = None):
+@celery_app.task(bind=True, name="worker.tasks.analysis_tasks.run_gap_analysis")
+def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text: str = None):
     """
     Gap Analysis Celery Task.
     Flow:
@@ -51,6 +51,7 @@ def run_gap_analysis(user_id: str, cv_id: str, job_id: str = None, jd_text: str 
       [STEP 3] Run gap analysis (v3 or legacy)
       [STEP 4] Persist result to UserAnalysis table
     """
+    self.update_state(state='PROGRESS', meta={'message': 'Đang khởi tạo engine phân tích...', 'percent': 5})
     t0 = time.monotonic()
     db = SessionLocal()
     calculator = GapCalculator(db)
@@ -73,6 +74,7 @@ def run_gap_analysis(user_id: str, cv_id: str, job_id: str = None, jd_text: str 
 
     try:
         # ── STEP 1: Validate CV ───────────────────────────────────────────────
+        self.update_state(state='PROGRESS', meta={'message': 'Đang đọc và xác thực dữ liệu CV...', 'percent': 15})
         logger.info(f"[ANALYSIS STEP 1/4] Validate CV | cv_id={cv_id}")
         from shared.models import UserCV
 
@@ -128,6 +130,7 @@ def run_gap_analysis(user_id: str, cv_id: str, job_id: str = None, jd_text: str 
         )
 
         # ── STEP 2: Resolve job requirements ───────────────────────────────────
+        self.update_state(state='PROGRESS', meta={'message': 'Đang bóc tách yêu cầu công việc (JD)...', 'percent': 30})
         logger.info(
             f"[ANALYSIS STEP 2/4] Resolve job requirements | mode={'job_id' if job_id else ('jd_text' if jd_text else 'inference')}"
         )
@@ -217,6 +220,7 @@ def run_gap_analysis(user_id: str, cv_id: str, job_id: str = None, jd_text: str 
         )
 
         # ── STEP 3: Run gap analysis ─────────────────────────────────────────
+        self.update_state(state='PROGRESS', meta={'message': 'AI đang phân tích khoảng cách kỹ năng...', 'percent': 50})
         logger.info(
             f"[ANALYSIS STEP 3/4] Run gap analysis | engine={'Gap v3 LLM' if USE_LLM_GAP_AGENT else 'Legacy Vector'}"
         )
@@ -281,6 +285,7 @@ def run_gap_analysis(user_id: str, cv_id: str, job_id: str = None, jd_text: str 
             )
 
         # ── STEP 4: Persist to DB ──────────────────────────────────────────────
+        self.update_state(state='PROGRESS', meta={'message': 'Đang tổng hợp lộ trình và lưu kết quả...', 'percent': 90})
         logger.info(f"[ANALYSIS STEP 4/4] Persist to UserAnalysis table")
         job_uuid = None
         if job_id:

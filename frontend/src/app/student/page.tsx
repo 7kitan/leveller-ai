@@ -15,7 +15,10 @@ import {
   Compass,
   Layers,
   Sparkles,
-  Zap
+  Zap,
+  AlertCircle,
+  ShieldCheck,
+  CheckCircle2
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -25,11 +28,95 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 
+const DashboardSkeleton = () => (
+  <div className={styles.pageRoot}>
+    <section className={styles.welcomeSection}>
+      <div className={styles.headerInfo}>
+        <div className={cn(styles.skeleton)} style={{ width: '120px', height: '24px', borderRadius: '1.25rem' }} />
+        <div className={cn(styles.skeleton)} style={{ width: '300px', height: '80px', margin: '1rem 0' }} />
+        <div className={cn(styles.skeleton)} style={{ width: '400px', height: '40px' }} />
+      </div>
+      <div className={styles.quickStats}>
+        <div className={styles.statItem}>
+           <div className={cn(styles.skeleton)} style={{ width: '60px', height: '40px' }} />
+           <div className={cn(styles.skeleton)} style={{ width: '80px', height: '12px' }} />
+        </div>
+        <div className={styles.statItem}>
+           <div className={cn(styles.skeleton)} style={{ width: '60px', height: '40px' }} />
+           <div className={cn(styles.skeleton)} style={{ width: '80px', height: '12px' }} />
+        </div>
+      </div>
+    </section>
+
+    <div className={styles.mainGrid}>
+      <div className={styles.mainContentArea}>
+        <div className={styles.sectionHeader}>
+           <div className={cn(styles.skeleton)} style={{ width: '200px', height: '32px' }} />
+        </div>
+        <div className={styles.skillGrid}>
+          {[1, 2, 3].map(i => (
+            <div key={i} className={cn(styles.skillCard, styles.skeleton)} style={{ height: '240px' }} />
+          ))}
+        </div>
+      </div>
+      <div className={styles.sidebarStack}>
+        <div className={cn(styles.sphereWidget, styles.skeleton)} style={{ height: '300px' }} />
+        <div className={cn(styles.roadmapPanel, styles.skeleton)} style={{ height: '400px' }} />
+      </div>
+    </div>
+  </div>
+);
+
+// Radar Chart Component (SVG based)
+const RadarChart = ({ currentData, potentialData, labels }: { currentData: number[], potentialData?: number[], labels: string[] }) => {
+  const size = 300;
+  const center = size / 2;
+  const radius = size * 0.35;
+  const angleStep = (Math.PI * 2) / labels.length;
+
+  const getPath = (data: number[]) => {
+    return data.map((val, i) => {
+      const x = center + radius * (val / 100) * Math.cos(angleStep * i - Math.PI / 2);
+      const y = center + radius * (val / 100) * Math.sin(angleStep * i - Math.PI / 2);
+      return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+    }).join(' ') + ' Z';
+  };
+
+  return (
+    <div className={styles.radarContainer}>
+      <svg viewBox={`0 0 ${size} ${size}`} className={styles.radarSvg}>
+        {/* Grid Circles */}
+        {[0.2, 0.4, 0.6, 0.8, 1].map(r => (
+          <circle key={r} cx={center} cy={center} r={radius * r} className={styles.radarGrid} />
+        ))}
+        {/* Axes */}
+        {labels.map((label, i) => {
+          const x = center + radius * Math.cos(angleStep * i - Math.PI / 2);
+          const y = center + radius * Math.sin(angleStep * i - Math.PI / 2);
+          const labelX = center + (radius + 20) * Math.cos(angleStep * i - Math.PI / 2);
+          const labelY = center + (radius + 20) * Math.sin(angleStep * i - Math.PI / 2);
+          return (
+            <g key={i}>
+              <line x1={center} y1={center} x2={x} y2={y} className={styles.radarAxis} />
+              <text x={labelX} y={labelY} className={styles.radarLabel}>{label}</text>
+            </g>
+          );
+        })}
+        {/* Data Polygons */}
+        {potentialData && <path d={getPath(potentialData)} className={styles.radarPolygonPotential} />}
+        <path d={getPath(currentData)} className={styles.radarPolygonCurrent} />
+      </svg>
+    </div>
+  );
+};
+
 const StudentDashboard = () => {
   const router = useRouter();
   const [activeSkill, setActiveSkill] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [simData, setSimData] = useState<any>(null);
+  const [simulating, setSimulating] = useState(false);
   const { user, token } = useAuth();
 
   useEffect(() => {
@@ -52,22 +139,42 @@ const StudentDashboard = () => {
         console.error("Failed to fetch latest analysis:", err);
         setAnalysis(null);
       } finally {
-        setLoading(false);
+        setTimeout(() => setLoading(false), 800);
       }
     };
 
     fetchLatestAnalysis();
   }, [token, user]);
 
+  const handleSimulate = async (courseId: string) => {
+    if (!analysis || !token || !user) return;
+    setSimulating(true);
+    try {
+      const cv_id = analysis.cv_id || analysis.cv_parsed_json?.id;
+      const resp = await axios.post("/api/analysis/simulate-boost", {
+          cv_id: cv_id,
+          selected_course_ids: [courseId],
+          job_id: analysis.job_id
+      }, {
+          headers: {
+              "Authorization": `Bearer ${token}`,
+              "X-User-ID": user.id
+          }
+      });
+      setSimData(resp.data);
+    } catch (err) {
+      console.error("Simulation failed:", err);
+    } finally {
+      setSimulating(false);
+    }
+  };
+
+  const clearSimulation = () => setSimData(null);
+
   if (loading) {
     return (
       <AuthGuard>
-        <div className={styles.pageRoot}>
-          <div className={styles.loadingContainer}>
-            <div className={styles.spinner}></div>
-            <p>Đang tải ma trận tri thức...</p>
-          </div>
-        </div>
+        <DashboardSkeleton />
       </AuthGuard>
     );
   }
@@ -110,7 +217,7 @@ const StudentDashboard = () => {
               </div>
 
               <button 
-                onClick={() => router.push("/user/analysis")}
+                onClick={() => router.push("/user/cv")}
                 className={styles.ctaButton}
               >
                 BẮT ĐẦU PHÂN TÍCH CV <ArrowUpRight size={24} />
@@ -139,6 +246,34 @@ const StudentDashboard = () => {
     progress: s.level === "Expert" ? 95 : (s.level === "Advanced" ? 80 : (s.level === "Intermediate" ? 60 : 30))
   }));
   const matchPct = analysis?.overall_match_pct || 0;
+  const potentialMatchPct = simData?.potential_score || matchPct;
+  
+  const isCvVerified = cvParsed.is_verified || false;
+  const skillCount = (cvParsed.skills || []).length;
+
+  // Skills by Category (for Radar Chart and Progress Bars)
+  const categories = ["Technology", "Soft Skills", "Business", "Design", "Management"];
+  const catMatch = categories.map(cat => {
+    // Current match in this category (using CV skills)
+    const catSkills = (cvParsed.skills || []).filter((s: any) => s.category?.toLowerCase() === cat.toLowerCase());
+    // Basic logic: base 30% if any skill exists, plus 10% per skill, capped at 100%
+    if (catSkills.length === 0) return 20; 
+    return Math.min(100, 30 + catSkills.length * 15);
+  });
+  
+  // Potential match (if simulation data exists)
+  const potentialCatMatch = categories.map((cat, i) => {
+    if (!simData) return catMatch[i];
+    
+    // Check if any filled skill belongs to this category
+    const filledInCat = (simData.filled_skills || []).filter((s: any) => 
+       (s.category || "Technology").toLowerCase() === cat.toLowerCase()
+    );
+    
+    if (filledInCat.length === 0) return catMatch[i];
+    // Boost based on number of filled skills in this category
+    return Math.min(98, catMatch[i] + filledInCat.length * 12);
+  });
 
   return (
     <AuthGuard>
@@ -161,8 +296,11 @@ const StudentDashboard = () => {
 
           <div className={styles.quickStats}>
              <div className={styles.statItem}>
-                <div className={styles.statValue}>{Math.round(matchPct)}</div>
-                <div className={styles.statLabel}>MARKET FIT %</div>
+                <div className={styles.statValue}>
+                   {simData ? simData.potential_score : Math.round(matchPct)}
+                   {simData && <span className={styles.statBoost}> (+{simData.boost_amount})</span>}
+                </div>
+                <div className={styles.statLabel}>{simData ? "POTENTIAL MATCH %" : "MARKET FIT %"}</div>
              </div>
              <div className={styles.statItem}>
                 <div className={styles.statValueAmber}>{analysis?.skill_gaps?.length || 0}</div>
@@ -180,6 +318,33 @@ const StudentDashboard = () => {
                       </h2>
                       <div className={styles.sectionSubtitle}>
                          <Database size={12} /> Semantic Map Sync: Live
+                      </div>
+                   </div>
+
+                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '3rem', alignItems: 'center', marginBottom: '3rem' }}>
+                      <RadarChart 
+                        labels={categories} 
+                        currentData={catMatch} 
+                        potentialData={simData ? potentialCatMatch : undefined} 
+                      />
+                      
+                      <div className={styles.categorySection}>
+                         {categories.map((cat, i) => (
+                            <div key={cat} className={styles.categoryGroup}>
+                               <div className={styles.categoryHeader}>
+                                  <span className={styles.categoryTitle}>{cat}</span>
+                                  <span className={styles.categoryTitle}>{catMatch[i]}%</span>
+                               </div>
+                               <div className={styles.progressBarTrack} style={{ height: '0.25rem' }}>
+                                  <motion.div 
+                                    className={styles.progressBarFill}
+                                    style={{ background: i % 2 === 0 ? 'linear-gradient(to right, #fbbf24, #f59e0b)' : 'linear-gradient(to right, #06b6d4, #0891b2)' }}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${catMatch[i]}%` }}
+                                  />
+                               </div>
+                            </div>
+                         ))}
                       </div>
                    </div>
 
@@ -229,6 +394,44 @@ const StudentDashboard = () => {
                                            </span>
                                         ))}
                                      </div>
+
+                                       {/* AI CV Suggester */}
+                                      {analysis.skill_gaps?.find((g: any) => g.skill.toLowerCase() === skill.name.toLowerCase()) && (
+                                        <div className={styles.aiSuggesterBox}>
+                                          <div className={styles.aiSuggesterTitle}>
+                                            <Sparkles size={12} />
+                                            <span>AI CV Suggester</span>
+                                          </div>
+                                          <p className={styles.aiSuggesterText}>
+                                            {analysis.skill_gaps.find((g: any) => g.skill.toLowerCase() === skill.name.toLowerCase()).learning_path || 
+                                             `Tối ưu hóa kinh nghiệm với ${skill.name} để lấp đầy khoảng cách kỹ năng trong lộ trình nghề nghiệp.`}
+                                          </p>
+                                          <button 
+                                            onClick={() => {
+                                              const text = analysis.skill_gaps.find((g: any) => g.skill.toLowerCase() === skill.name.toLowerCase()).learning_path;
+                                              navigator.clipboard.writeText(text);
+                                            }}
+                                            className={styles.copySuggesterBtn}
+                                          >
+                                            Copy to Clipboard
+                                          </button>
+                                        </div>
+                                      )}
+
+                                      {/* AI Explainability / Reasoning */}
+
+                                      {analysis.skill_gaps?.find((g: any) => g.skill.toLowerCase() === skill.name.toLowerCase())?.reasoning && (
+                                        <div className={styles.aiReasoningBox}>
+                                          <div className={styles.aiReasoningHeader}>
+                                            <Sparkles size={12} className={styles.sparkleIcon} />
+                                            <span>AI INSIGHT</span>
+                                          </div>
+                                          <p className={styles.aiReasoningText}>
+                                            {analysis.skill_gaps.find((g: any) => g.skill.toLowerCase() === skill.name.toLowerCase()).reasoning}
+                                          </p>
+                                        </div>
+                                      )}
+
                                       <Link href="/student/courses" className={styles.courseItem}>
                                          <span className={styles.nodeOptimizeLink}>Optimize this node</span>
                                          <ChevronRight size={14} className={styles.iconAmberSmall} />
@@ -257,7 +460,12 @@ const StudentDashboard = () => {
 
                      <div className={styles.coursesWrapper}>
                         {analysis?.course_recommendations?.slice(0, 2).map((course: any, idx: number) => (
-                           <div key={idx} className={styles.courseCardSmall}>
+                           <div 
+                              key={idx} 
+                              className={styles.courseCardSmall}
+                              onMouseEnter={() => handleSimulate(course.course_id || course.id)}
+                              onMouseLeave={clearSimulation}
+                           >
                                <div className={styles.courseHeaderSmall}>
                                   <span className={styles.complexityBadge}>{course.level}</span>
                                   <span className={styles.coursePlatform}>{course.platform}</span>
@@ -280,26 +488,8 @@ const StudentDashboard = () => {
                 </div>
             </div>
 
-             <div className={styles.sidebarStack}>
-               <div className={styles.sphereWidget}>
-                  <div className={styles.sphereContainer}>
-                     <div className={styles.outerRing}></div>
-                     <div className={styles.innerRing}></div>
-                      <div className={styles.sphereCore}>
-                         <Zap size={32} className={styles.zapIconCore} />
-                      </div>
-                      <div className={cn(styles.graphPoint, styles.graphPointFrontend)}>
-                         <span className={cn(styles.contextLabel, styles.contextLabelTop)}>Foundations</span>
-                      </div>
-                      <div className={cn(styles.graphPoint, styles.graphPointAI)}>
-                         <span className={cn(styles.contextLabel, styles.contextLabelBottom)}>Expertise</span>
-                      </div>
-                  </div>
-                   <div>
-                     <h3 className={styles.graphSyncTitle}>Graph Sync</h3>
-                     <p className={styles.graphSyncDesc}>Hồ sơ của bạn đang đồng bộ với <b>8,421</b> node tri thức thực tế của ngành AI.</p>
-                   </div>
-               </div>
+              <div className={styles.sidebarStack}>
+                {/* Readiness Score removed per user request */}
 
                <div className={styles.roadmapPanel}>
                    <h3 className={cn(styles.sectionTitle, styles.roadmapTitle)}>

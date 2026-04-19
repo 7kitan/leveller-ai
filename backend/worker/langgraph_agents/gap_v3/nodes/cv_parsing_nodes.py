@@ -14,9 +14,18 @@ from ..utils.pii_masker import mask_pii, mask_work_history
 from ..utils.llm_helpers import llm_json_completion
 from ..utils.ocr_client import ocr_client
 from shared.models import UserCV, UserSkillProfile, Skill
+import json
+from shared.redis_client import result_cache
 
 logger = logging.getLogger("cv_parsing_v3")
 
+def _update_cv_progress(cv_id: str, step_message: str, percent: int):
+    """Ghi nhận tiến độ hiện tại vào Redis để Frontend có thể polling."""
+    try:
+        data = json.dumps({"step": step_message, "percent": percent})
+        result_cache.set(f"cv_progress:{cv_id}", data, ex=3600)
+    except Exception as e:
+        logger.warning(f"Failed to update progress in Redis: {e}")
 
 # ─── Node 1: Text Extraction ─────────────────────────────────────────────
 
@@ -37,6 +46,7 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
         f"[STEP 1] extract_text_node | cv_id={cv_id_str}\n"
         f"  DB session : {db}"
     )
+    _update_cv_progress(cv_id_str, "Đang trích xuất nội dung văn bản (OCR/PDF)...", 10)
 
     # ── Validate cv_id ───────────────────────────────────────────────────────
     try:
@@ -243,6 +253,10 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
         f"  is_ocr          : {is_ocr}\n"
         f"  text preview    : {repr(raw_text[:200])}"
     )
+    _update_cv_progress(cv_id_str, "Hệ thống AI đang phân tích cấu trúc CV (Bước này mất 1-3 phút)...", 30)
+
+    from datetime import datetime
+    current_date = datetime.now().strftime("%Y-%m-%d")
 
     if not raw_text or len(raw_text) < 50:
         logger.error(
@@ -280,9 +294,8 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
     3. LANGUAGE: All summaries and descriptions must be translated into English.
     4. NO NORMALIZATION: Keep 'raw_name' for technical skills (e.g., "Py" remains "Py").
     5. CONTEXTUAL SENIORITY: 
-       - Evaluate seniority based on RELEVANT experience to the target role.
-       - Career shift: count only years in the new/relevant field. 
-       - Junior (< 2 yrs), Mid-level (2-5 yrs), Senior (5-10 yrs), Lead (> 10 yrs).
+       - Evaluated seniority based on RELEVANT experience to the target role.
+       - Junior (< 2 yrs), Mid-level (2-5 yrs), Senior (5-10 yrs), Expert (> 10 yrs).
     6. MESSY TEXT PROTOCOL: Use "Visual Block Anchor" to link dates to job titles within the same logical section.
 
     INTERNAL MONOLOGUE:
@@ -301,7 +314,7 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
       "error_message": "Reason if fail, else null",
       "full_name": "Full Name or null",
       "summary": "Professional summary in English or null",
-      "seniority": "Junior | Mid-level | Senior | Lead | null",
+      "seniority": "Junior | Mid-level | Senior | Expert | null",
       "experience_years_total": 0.0,
       "skills": [
         {{
@@ -355,6 +368,16 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
         return {
             **state,
             "error": f"LLM parsing returned empty result (took {elapsed_llm:.1f}s)",
+            "status": "failed",
+        }
+
+    # ── Validation: Check if the document is actually a CV ────────────────────
+    if result.get("status") == "fail":
+        error_msg = result.get("error_message") or "Document is not a valid CV/Resume"
+        logger.warning(f"[STEP 2] ✗ VALIDATION FAILED — {error_msg}")
+        return {
+            **state,
+            "error": f"Validation failed: {error_msg}",
             "status": "failed",
         }
 
@@ -417,6 +440,7 @@ async def normalize_cv_node(state: CVParsingState) -> CVParsingState:
         f"[STEP 3] normalize_cv_node | cv_id={cv_id_str}\n"
         f"  cv_parsed keys : {list(cv_parsed.keys()) if cv_parsed else 'None'}"
     )
+    _update_cv_progress(cv_id_str, "Đang chuẩn hóa và sàng lọc bộ kỹ năng...", 80)
 
     if not cv_parsed:
         logger.error(f"[STEP 3] ✗ FAIL — cv_parsed is None/empty")
@@ -425,19 +449,23 @@ async def normalize_cv_node(state: CVParsingState) -> CVParsingState:
     # ── Normalize Skills ──────────────────────────────────────────────────────
     level_map = {
         "beginner": "Junior",
+        "intern": "Junior",
         "intermediate": "Mid-level",
         "mid": "Mid-level",
         "advanced": "Senior",
         "expert": "Expert",
         "senior": "Senior",
         "junior": "Junior",
+        "lead": "Expert",
     }
     seniority_map = {
         "junior": "Junior",
         "mid": "Mid-level",
         "mid-level": "Mid-level",
+        "middle": "Mid-level",
         "senior": "Senior",
         "expert": "Expert",
+        "lead": "Expert",
     }
 
     normalized_skills = []
@@ -518,6 +546,7 @@ async def persist_cv_data_node(state: CVParsingState) -> CVParsingState:
         f"[STEP 4] persist_cv_data_node | cv_id={cv_id_str}\n"
         f"  cv_parsed available: {bool(cv_parsed)}"
     )
+    _update_cv_progress(cv_id_str, "Đang lưu trữ dữ liệu vào cơ sở dữ liệu...", 90)
 
     if not cv_parsed:
         logger.error(f"[STEP 4] ✗ FAIL — cv_parsed is None")
