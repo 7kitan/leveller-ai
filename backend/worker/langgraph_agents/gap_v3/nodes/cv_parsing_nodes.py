@@ -3,6 +3,7 @@ gap_v3 nodes: CV Parsing Pipeline (Pipeline 1).
 5 nodes: extract_text → llm_parse → normalize → pii_mask → persist.
 """
 
+from ast import Return
 import uuid
 import os
 import logging
@@ -259,18 +260,32 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
 
     # ── Build prompt ──────────────────────────────────────────────────────────
     prompt = f"""
-    Parse the CV text below into a structured JSON format. Translate all summaries and descriptions into English.
+    SYSTEM ROLE:
+    You are a Precision HR Data Architect. Your task is to transform unstructured CV text into a high-fidelity JSON schema for a Skill Gap Analysis system.
+
+    TODAY'S DATE: {current_date}
+
+    STRICT RULES:
+    1. FACTUAL INTEGRITY: Extract ONLY information explicitly present. Do not infer skills.
+    2. DATE PRECISION: 
+       - Use {current_date} for any "Present", "Now", or "Current" end dates.
+       - MERGE OVERLAPS: If two work periods overlap, calculate the unique duration to avoid double-counting in 'experience_years_total'.
+    3. LANGUAGE: All summaries and descriptions must be translated into English.
+    4. NO NORMALIZATION: Keep the 'raw_name' for technical skills (e.g., "Py" remains "Py", "TF" remains "TF").
+    5. SENIORITY LOGIC: 
+       - Junior (< 2 yrs), Mid-level (2-5 yrs), Senior (5-10 yrs), Lead (> 10 yrs).
+       - *Note: If a career shift is detected in the summary, prioritize relevance to the target role for seniority.*
+
+    INTERNAL MONOLOGUE (Reasoning Step):
+    Before generating the JSON, mentally:
+    - List all date ranges and subtract overlaps.
+    - Match each skill to the roles where it was used to estimate 'experience_years' for that skill.
+    - Determine 'ocr_confidence' (1.0 for clean layout, 0.5 for messy/column-mixed text).
 
     ## CV TEXT:
     {masked_text}
 
-    ## RULES:
-    1. EXHAUSTIVE: Extract all work history, skills, and education.
-    2. ENGLISH: All descriptions and summaries must be in English.
-    3. SKILLS: Extract skill name, category, and total years of experience. Do not perform deep level analysis.
-    4. EXPERIENCE: Calculate total years of experience accurately.
-
-    ## OUTPUT SCHEMA:
+    ## OUTPUT SCHEMA (DO NOT CHANGE ANY KEYS):
     {{
       "full_name": "Full Name",
       "summary": "Professional summary in English",
