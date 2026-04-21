@@ -9,7 +9,7 @@ from shared.config_utils import config_manager
 
 logger = logging.getLogger("ai_service")
 
-def get_active_model_id(override_model: Optional[str] = None) -> str:
+def get_active_model_id(override_model: Optional[str] = None, setting_key: str = "ai_model") -> str:
     """
     Resolve the model ID to use.
     Hierarchy: 
@@ -21,9 +21,15 @@ def get_active_model_id(override_model: Optional[str] = None) -> str:
     if override_model:
         return override_model
     
-    db_setting = config_manager.get_setting("ai_model")
+    db_setting = config_manager.get_setting(setting_key)
     if db_setting:
         return db_setting
+
+    if setting_key != "ai_model":
+        # Fallback to general ai_model if specific purpose model not set
+        general_setting = config_manager.get_setting("ai_model")
+        if general_setting:
+            return general_setting
         
     return os.getenv("LLM_MODEL", "gpt-4o-mini")
 
@@ -31,6 +37,7 @@ def generate_completion(
     prompt: str,
     system_prompt: str = "You are a helpful assistant.",
     model: Optional[str] = None,
+    model_key: str = "ai_model",
     json_mode: bool = False,
     temperature: float = 0.1,
     call_name: str = "ai_service_call"
@@ -39,7 +46,7 @@ def generate_completion(
     Unified entry point for AI text/JSON completions.
     Handles routing, logging, and performance tracking.
     """
-    model_id = get_active_model_id(model)
+    model_id = get_active_model_id(model, setting_key=model_key)
     model_info = get_model_info(model_id)
     
     # Simple fallback if model not in registry (assume OpenAI-compatible)

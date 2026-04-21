@@ -266,8 +266,18 @@ async def finalize_cv(
     # 1. Xóa skills cũ của CV này để ghi đè (Finalize)
     db.query(UserSkillProfile).filter(UserSkillProfile.cv_id == cv.id).delete()
 
-    # 2. Thêm skills mới
+    # 2. Lọc duplicate skills trước khi thêm (Server-side validation)
+    seen_skills = set()
+    unique_skills = []
     for s_data in req.skills:
+        s_name_raw = s_data.get("name", "").strip().lower()
+        if not s_name_raw or s_name_raw in seen_skills:
+            continue
+        seen_skills.add(s_name_raw)
+        unique_skills.append(s_data)
+
+    # 3. Thêm skills mới
+    for s_data in unique_skills:
         s_name = s_data.get("name", "").strip()
         if not s_name:
             continue

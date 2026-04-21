@@ -1,4 +1,4 @@
-﻿"""
+"""
 JD Service â€” Job Description management + Hybrid search.
 Spec: 1.6 JD Parsing, 1.8 Advanced Job Search, 5.1+5.2 Market Analytics.
 """
@@ -400,6 +400,40 @@ def admin_delete_job(
     db.delete(job)
     db.commit()
     return {"message": "Job deleted successfully"}
+
+
+@app.post("/jd/admin", response_model=JobResponse)
+def admin_create_job(job_in: JobCreate, request: Request, db: Session = Depends(get_db)):
+    """Admin only: Táº¡o má»›i Job thá»§ cÃ´ng."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    source_id = f"manual_{uuid.uuid4()}"
+
+    # Generate Embedding
+    embedding_ctx = f"{job_in.title_raw} at {job_in.company_name}. {job_in.location_raw}. {job_in.raw_text[:1000]}"
+    vector = get_embedding(embedding_ctx)
+
+    new_job = Job(
+        source_id=source_id,
+        title_raw=job_in.title_raw,
+        raw_text=job_in.raw_text,
+        company_name=job_in.company_name,
+        source_url=job_in.source_url,
+        source_label=job_in.source_label or "manual",
+        min_salary_vnd=job_in.min_salary_vnd,
+        max_salary_vnd=job_in.max_salary_vnd,
+        location_raw=job_in.location_raw,
+        employment_type=job_in.employment_type,
+        status="active",
+        embedding_context=embedding_ctx,
+        vector=vector
+    )
+    db.add(new_job)
+    db.commit()
+    db.refresh(new_job)
+
+    return _job_to_response(new_job)
 
 
 @app.post("/jd/admin/crawl")

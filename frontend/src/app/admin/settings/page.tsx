@@ -137,7 +137,14 @@ const AdminSettingsPage = () => {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className={cn(styles.settingCard, isModified("similarity_threshold") || isModified("ai_model") ? styles.settingCardModified : "")}
+              className={cn(
+                styles.settingCard, 
+                isModified("similarity_threshold") || 
+                isModified("embedding_model") || 
+                isModified("cv_parsing_model") || 
+                isModified("gap_analysis_model") || 
+                isModified("career_advisor_model") ? styles.settingCardModified : ""
+              )}
             >
               <div className={styles.cardHeader}>
                 <Cpu className={styles.cardIcon} size={24} />
@@ -164,27 +171,70 @@ const AdminSettingsPage = () => {
                     />
                   </div>
                 </div>
-                <div className={cn(styles.field, isModified("ai_model") ? styles.fieldModified : "")}>
+
+                {/* 2. CV Parsing Model */}
+                <div className={cn(styles.field, isModified("cv_parsing_model") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
-                        AI Model Chính
-                        {isModified("ai_model") && <span className={styles.fieldModifiedDot} />}
+                        CV Parsing Model
+                        {isModified("cv_parsing_model") && <span className={styles.fieldModifiedDot} />}
                     </label>
-                    <span className={styles.desc}>Model sử dụng cho Gap Analysis và Career Advisor.</span>
+                    <span className={styles.desc}>Model chuyên trách bóc tách thông tin từ CV (PDF/OCR).</span>
                   </div>
                   <select 
                     className={styles.input}
-                    value={getValue("ai_model", "gpt-4o-mini")}
-                    onChange={(e) => handleFieldChange("ai_model", e.target.value)}
+                    value={getValue("cv_parsing_model", getValue("ai_model", "gpt-4o-mini"))}
+                    onChange={(e) => handleFieldChange("cv_parsing_model", e.target.value)}
                   >
-                    {availableModels.map((model) => (
+                    {availableModels.filter(m => m.type === 'chat').map((model) => (
                       <option key={model.id} value={model.id}>
                         {model.name || model.id} ({model.provider?.toUpperCase()})
                       </option>
                     ))}
-                    {!availableModels.length && (
-                         <option value="gpt-4o-mini">GPT-4o Mini (OPENAI)</option>
-                    )}
+                  </select>
+                </div>
+
+                {/* 3. Gap Analysis Model */}
+                <div className={cn(styles.field, isModified("gap_analysis_model") ? styles.fieldModified : "")}>
+                  <div className={styles.labelArea}>
+                    <label className={styles.label}>
+                        Gap Analysis Model
+                        {isModified("gap_analysis_model") && <span className={styles.fieldModifiedDot} />}
+                    </label>
+                    <span className={styles.desc}>Model thực hiện tính toán độ lệch kỹ năng và gợi ý khóa học.</span>
+                  </div>
+                  <select 
+                    className={styles.input}
+                    value={getValue("gap_analysis_model", getValue("ai_model", "gpt-4o-mini"))}
+                    onChange={(e) => handleFieldChange("gap_analysis_model", e.target.value)}
+                  >
+                    {availableModels.filter(m => m.type === 'chat').map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name || model.id} ({model.provider?.toUpperCase()})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 4. Career Advisor Model */}
+                <div className={cn(styles.field, isModified("career_advisor_model") ? styles.fieldModified : "")}>
+                  <div className={styles.labelArea}>
+                    <label className={styles.label}>
+                        Career Advisor Model (Chat)
+                        {isModified("career_advisor_model") && <span className={styles.fieldModifiedDot} />}
+                    </label>
+                    <span className={styles.desc}>Model sử dụng cho giao diện Chat tư vấn trực tiếp với User.</span>
+                  </div>
+                  <select 
+                    className={styles.input}
+                    value={getValue("career_advisor_model", getValue("ai_model", "gpt-4o-mini"))}
+                    onChange={(e) => handleFieldChange("career_advisor_model", e.target.value)}
+                  >
+                    {availableModels.filter(m => m.type === 'chat').map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name || model.id} ({model.provider?.toUpperCase()})
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

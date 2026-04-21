@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 import {
   UploadCloud,
   FileText,
@@ -96,11 +97,12 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   }, []);
 
   return (
-    <div className={styles.customDropdownContainer} style={style} ref={dropdownRef}>
+    <div className={cn(styles.customDropdownContainer, isOpen && styles.customDropdownContainerActive)} ref={dropdownRef}>
       <button
         type="button"
         className={cn(styles.customDropdownButton, className, isOpen && styles.customDropdownButtonActive)}
         onClick={() => setIsOpen(!isOpen)}
+        style={style}
       >
         <span>{value}</span>
         <ChevronDown size={14} className={cn(styles.dropdownChevron, isOpen && styles.dropdownChevronRotate)} />
@@ -150,6 +152,15 @@ const UserCVPage = () => {
   const [saving, setSaving] = useState(false);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
 
+  // --- Change Tracking ---
+  const [isDirty, setIsDirty] = useState(false);
+  const [showRerunModal, setShowRerunModal] = useState(false);
+
+  // --- Gap Analysis Integration ---
+  const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
+  const [analysisContext, setAnalysisContext] = useState<any>(null);
+  const router = useRouter();
+
   const fetchHistory = async () => {
     try {
       const resp = await axios.get("/api/cv/list", {
@@ -162,8 +173,57 @@ const UserCVPage = () => {
   };
 
   useEffect(() => {
-    if (token) fetchHistory();
+    if (token) {
+      fetchHistory();
+      
+      // Load context (including suggested skills) from Gap Analysis
+      const storedContext = sessionStorage.getItem("analysis_context");
+      const targetCvId = sessionStorage.getItem("target_cv_id");
+
+      if (storedContext) {
+        const context = JSON.parse(storedContext);
+        setAnalysisContext(context);
+        if (context.suggested_skills) {
+          setSuggestedSkills(context.suggested_skills);
+        }
+      }
+      
+      // Auto-load targeted CV for editing
+      if (targetCvId) {
+        handleLoadSpecificCV(targetCvId);
+        sessionStorage.removeItem("target_cv_id");
+      }
+    }
   }, [token]);
+
+  const handleAddSuggestedSkill = (skillName: string) => {
+    if (!parsedData) return;
+    const newSkill = {
+      name: skillName,
+      category: "Technology", // Default
+      experience_years: 1,
+      level: "Junior",
+    };
+    setParsedData({
+      ...parsedData,
+      skills: [...(parsedData.skills || []), newSkill],
+    });
+    // Remove from local state
+    const remaining = suggestedSkills.filter(s => s !== skillName);
+    setSuggestedSkills(remaining);
+    setIsDirty(true);
+  };
+
+  const handleRerunAnalysis = () => {
+    if (!analysisContext) return;
+
+    // Clear the context to avoid showing the banner again later
+    sessionStorage.removeItem("suggested_skills");
+    sessionStorage.removeItem("analysis_context");
+    
+    // Redirect back to analysis engine
+    router.push(`/user/analysis?job_id=${analysisContext.jd_id}&job_title=${encodeURIComponent(analysisContext.jd_title)}&auto_run=true`);
+  };
 
   const handleUpload = async () => {
     if (!file) return;
@@ -250,6 +310,24 @@ const UserCVPage = () => {
       }
     }, 3000);
   };
+  
+  const handleLoadSpecificCV = async (cvId: string) => {
+    setStatus("processing");
+    setError(null);
+    setSelectedHistoryId(cvId);
+    try {
+      const resp = await axios.get(`/api/cv/${cvId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setParsedData(resp.data);
+      setStatus("viewing");
+    } catch (err) {
+      console.error("Auto-load CV detail error:", err);
+      setError("Không thể tự động tải chi tiết CV.");
+      setStatus("idle");
+      setSelectedHistoryId(null);
+    }
+  };
 
   // ── Load CV from history click ────────────────────────────────────────────
   const handleHistoryClick = async (item: CVHistory) => {
@@ -281,6 +359,7 @@ const UserCVPage = () => {
   const handleUpdateBasic = (field: string, value: any) => {
     if (!parsedData) return;
     setParsedData({ ...parsedData, [field]: value });
+    setIsDirty(true);
   };
 
   const handleUpdateWork = (idx: number, field: string, value: any) => {
@@ -289,6 +368,7 @@ const UserCVPage = () => {
     if (next[idx]) {
       next[idx] = { ...next[idx], [field]: value };
       setParsedData({ ...parsedData, work_history: next });
+      setIsDirty(true);
     }
   };
 
@@ -298,6 +378,7 @@ const UserCVPage = () => {
     if (next[idx]) {
       next[idx] = { ...next[idx], [field]: value };
       setParsedData({ ...parsedData, education: next });
+      setIsDirty(true);
     }
   };
 
@@ -306,6 +387,7 @@ const UserCVPage = () => {
     const next = [...(parsedData.certifications || [])];
     next[idx] = value;
     setParsedData({ ...parsedData, certifications: next });
+    setIsDirty(true);
   };
 
   const handleDeleteWork = (idx: number) => {
@@ -314,6 +396,7 @@ const UserCVPage = () => {
       ...parsedData,
       work_history: (parsedData.work_history || []).filter((_, i) => i !== idx),
     });
+    setIsDirty(true);
   };
 
   const handleDeleteEdu = (idx: number) => {
@@ -322,6 +405,7 @@ const UserCVPage = () => {
       ...parsedData,
       education: (parsedData.education || []).filter((_, i) => i !== idx),
     });
+    setIsDirty(true);
   };
 
   const handleGoManual = () => {
@@ -334,6 +418,7 @@ const UserCVPage = () => {
       certifications: [],
       summary: "Manual Entry Mode"
     });
+    setIsDirty(true);
     setStatus("viewing");
   };
 
@@ -349,6 +434,7 @@ const UserCVPage = () => {
       ...parsedData,
       skills: [...(parsedData.skills || []), newSkill],
     });
+    setIsDirty(true);
   };
 
   const handleUpdateSkill = (idx: number, field: string, value: any) => {
@@ -357,6 +443,7 @@ const UserCVPage = () => {
     if (nextSkills[idx]) {
       nextSkills[idx] = { ...nextSkills[idx], [field]: value };
       setParsedData({ ...parsedData, skills: nextSkills });
+      setIsDirty(true);
     }
   };
 
@@ -366,10 +453,22 @@ const UserCVPage = () => {
       ...parsedData,
       skills: (parsedData.skills || []).filter((_, i) => i !== idx),
     });
+    setIsDirty(true);
   };
 
   const handleSaveMatrix = async () => {
     setSaving(true);
+    
+    // Duplicate check
+    const skillNames = (parsedData?.skills || []).map(s => s.name.toLowerCase().trim());
+    const duplicateSkills = skillNames.filter((name, index) => skillNames.indexOf(name) !== index);
+    if (duplicateSkills.length > 0) {
+      const uniqueDupes = Array.from(new Set(duplicateSkills));
+      alert(`Phát hiện kĩ năng bị trùng lặp: ${uniqueDupes.join(", ")}. Vui lòng xóa hoặc sửa tên kĩ năng trước khi lưu.`);
+      setSaving(false);
+      return;
+    }
+
     try {
       // Backend Spec 5: Payload validation
       const payload = {
@@ -389,7 +488,22 @@ const UserCVPage = () => {
       if (parsedData) {
         setParsedData({ ...parsedData, is_verified: true });
       }
-      alert("Hồ sơ năng lực đã được lưu thành công!");
+
+      const wasDirty = isDirty;
+      setIsDirty(false);
+      
+      // Update sessionStorage inside analysis_context to reflect removed skills
+      if (analysisContext) {
+        const updatedContext = { ...analysisContext, suggested_skills: suggestedSkills };
+        sessionStorage.setItem("analysis_context", JSON.stringify(updatedContext));
+        setAnalysisContext(updatedContext);
+      }
+
+      if (wasDirty && analysisContext) {
+        setShowRerunModal(true);
+      } else {
+        alert("Hồ sơ năng lực đã được lưu thành công!");
+      }
     } catch (err: any) {
       const msg = err.response?.data?.detail || "Lỗi khi lưu Portfolio.";
       alert(Array.isArray(msg) ? msg[0].msg : msg);
@@ -431,6 +545,13 @@ const UserCVPage = () => {
       return acc;
     }, {});
 
+    // Filter out suggestions that are already present in the CV (case-insensitive)
+    const filteredSuggestions = suggestedSkills.filter(s => 
+      !parsedData.skills?.some(existing => 
+        existing.name.toLowerCase().trim() === s.toLowerCase().trim()
+      )
+    );
+
     const seniorityColor = {
       Junior: "#22c55e",
       "Mid-level": "#3b82f6",
@@ -454,6 +575,45 @@ const UserCVPage = () => {
             Quay lại kho hồ sơ
           </button>
         </div>
+
+        {/* ── Smart Suggestions Banner ───────────────────────────────── */}
+        {filteredSuggestions.length > 0 && parsedData.id === analysisContext?.cv_id && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className={styles.suggestionBanner}
+          >
+            <div className={styles.bannerIcon}>
+              <Sparkles size={20} color="#f59e0b" />
+            </div>
+            <div className={styles.bannerContent}>
+               <div className={styles.bannerTitle}>
+                  Gợi ý tối ưu CV cho: <strong>{analysisContext?.jd_title || "Vị trí đã chọn"}</strong>
+               </div>
+               <p className={styles.bannerSubtitle}>
+                  Dựa trên phân tích Gap, bạn nên bổ sung các kỹ năng sau để tăng điểm tương thích:
+               </p>
+               <div className={styles.suggestedTagsGrid}>
+                  {filteredSuggestions.map(skill => (
+                    <button 
+                      key={skill} 
+                      onClick={() => handleAddSuggestedSkill(skill)}
+                      className={styles.suggestedTagBtn}
+                    >
+                      <Plus size={12} />
+                      {skill}
+                    </button>
+                  ))}
+               </div>
+            </div>
+            <button 
+              className={styles.closeBannerBtn} 
+              onClick={() => setSuggestedSkills([])}
+            >
+              <X size={16} />
+            </button>
+          </motion.div>
+        )}
 
         {/* ── Result Header ───────────────────────────────────────────── */}
         <div className={styles.resultHeader}>
@@ -518,18 +678,20 @@ const UserCVPage = () => {
             </div>
 
             <div className={styles.ctaRow}>
-              <button
-                onClick={handleSaveMatrix}
-                disabled={saving}
-                className={cn(styles.uploadBtn, styles.verifyBtnGradient)}
-              >
-                {saving ? (
-                  <Loader2 size={18} className={styles.animateSpin} />
-                ) : (
-                  <ShieldCheck size={18} />
-                )}
-                XÁC THỰC HỒ SƠ
-              </button>
+              {!parsedData.is_verified && (
+                <button
+                  onClick={handleSaveMatrix}
+                  disabled={saving}
+                  className={cn(styles.uploadBtn, styles.verifyBtnGradient)}
+                >
+                  {saving ? (
+                    <Loader2 size={18} className={styles.animateSpin} />
+                  ) : (
+                    <ShieldCheck size={18} />
+                  )}
+                  XÁC THỰC HỒ SƠ
+                </button>
+              )}
               <button
                 onClick={handleSaveMatrix}
                 disabled={saving}
@@ -819,6 +981,49 @@ const UserCVPage = () => {
             </div>
           </div>
         </div>
+
+        {/* ── Rerun Confirmation Modal ───────────────────────────────── */}
+        <AnimatePresence>
+          {showRerunModal && (
+            <div className={styles.modalBackdrop}>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className={styles.modalCard}
+              >
+                <div className={styles.modalGlow} />
+                <div className={styles.modalHeader}>
+                  <div className={styles.modalIconBox}>
+                    <Zap size={24} className={styles.modalZap} />
+                  </div>
+                  <h2 className={styles.modalTitle}>Cập nhật CV thành công!</h2>
+                </div>
+                <div className={styles.modalBody}>
+                  <p>
+                    Bạn vừa thay đổi thông tin CV. Bạn có muốn chạy lại <strong>Phân tích Gap</strong> 
+                    cho vị trí <strong>{analysisContext?.jd_title || "đã chọn"}</strong> để cập nhật điểm tương thích mới nhất không?
+                  </p>
+                </div>
+                <div className={styles.modalFooter}>
+                  <button onClick={() => setShowRerunModal(false)} className={styles.modalCancelBtn}>
+                    ĐỂ SAU
+                  </button>
+                  <button 
+                    onClick={() => {
+                        setShowRerunModal(false);
+                        handleRerunAnalysis();
+                    }} 
+                    className={styles.modalConfirmBtn}
+                  >
+                    CHẠY LẠI NGAY
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </motion.div>
     );
   }

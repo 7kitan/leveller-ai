@@ -354,7 +354,7 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
         f"input chars={len(prompt)} | is_ocr={is_ocr}"
     )
     t_llm = __import__("time").monotonic()
-    result = await llm_json_completion(prompt, context=f"is_ocr={is_ocr}")
+    result = await llm_json_completion(prompt, context=f"is_ocr={is_ocr}", model_key="cv_parsing_model")
     elapsed_llm = __import__("time").monotonic() - t_llm
     logger.info(
         f"[STEP 2] LLM returned in {elapsed_llm:.1f}s | result keys={list(result.keys()) if result else 'EMPTY'}"

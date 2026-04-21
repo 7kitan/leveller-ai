@@ -89,14 +89,17 @@ def get_embeddings_batch(texts: List[str]) -> List[List[float]]:
         return []
         
     try:
+        # Resolve embedding model from environment variable (hardcoded per dev request)
+        model_id = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+        
         # Làm sạch text nhẹ nhàng
         clean_texts = [t.replace("\n", " ").strip() for t in texts if t]
         if not clean_texts: return []
 
-        logger.info(f"[LLM BATCH EMBED] Sending {len(clean_texts)} texts to OpenAI...")
+        logger.info(f"[LLM BATCH EMBED] Sending {len(clean_texts)} texts to OpenAI... | model={model_id}")
         response = client.embeddings.create(
             input=clean_texts,
-            model="text-embedding-3-small"
+            model=model_id
         )
         logger.info(f"[LLM BATCH EMBED] ✓ Success | vectors={len(response.data)}")
         return [d.embedding for d in response.data]
@@ -116,12 +119,16 @@ def get_chat_completion(
     [LEGACY] Wrapper for the new AI Service completion core.
     This function is maintained for backward compatibility.
     """
+    # Use career_advisor_model as default for general chat completions if model is not override
+    m_key = "ai_model" if model else "career_advisor_model"
+    
     return generate_completion(
         prompt=prompt,
         system_prompt=system_prompt,
         json_mode=json_mode,
         model=model,
-        call_name="legacy_llm_utils"
+        model_key=m_key,
+        call_name=call_name
     )
 
 # ─── Utility Functions ───────────────────────────────────────────────────────

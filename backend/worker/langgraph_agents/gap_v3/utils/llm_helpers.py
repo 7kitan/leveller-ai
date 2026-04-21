@@ -24,6 +24,7 @@ async def llm_json_completion(
     context: str = "",
     system_prompt: Optional[str] = None,
     model: Optional[str] = None,
+    model_key: Optional[str] = None,
     temperature: float = 0.1,
     call_name: str = "llm_json_completion",
 ) -> Dict[str, Any]:
@@ -32,9 +33,10 @@ async def llm_json_completion(
     Hỗ trợ đa provider (OpenAI, Gemini) và cấu hình động từ DB.
     """
     # 1. Xác định Model: Ưu tiên tham số -> Setting DB -> Env -> Default
+    m_key = model_key or "ai_model"
     effective_model = (
         model or 
-        config_manager.get_setting("ai_model") or 
+        config_manager.get_setting(m_key) or 
         os.getenv("GAP_LLM_MODEL", os.getenv("LLM_MODEL", "gpt-4o-mini"))
     )
     
@@ -229,13 +231,16 @@ async def llm_text_completion(
     context: str = "",
     system_prompt: Optional[str] = None,
     model: Optional[str] = None,
+    model_key: Optional[str] = None,
     temperature: float = 0.3,
     call_name: str = "llm_text_completion",
 ) -> str:
     """Wrapper cho LLM text (non-JSON) completion with full logging."""
+    # 1. Xác định Model: Ưu tiên tham số -> Setting DB -> Env -> Default
+    m_key = model_key or "career_advisor_model"
     effective_model = (
         model or 
-        config_manager.get_setting("ai_model") or 
+        config_manager.get_setting(m_key) or 
         os.getenv("GAP_LLM_MODEL", os.getenv("LLM_MODEL", "gpt-4o-mini"))
     )
     

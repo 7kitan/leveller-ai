@@ -253,6 +253,7 @@ class RequirementRetriever:
                 prompt=prompt,
                 system_prompt="YOU ARE A SENIOR TECHNICAL RECRUITMENT EXPERT.",
                 json_mode=True,
+                model_key="gap_analysis_model",
                 call_name="requirement_extraction"
             )
             if not raw_content:

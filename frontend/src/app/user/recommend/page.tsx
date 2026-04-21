@@ -22,6 +22,7 @@ import {
   AlertCircle,
   Sparkles,
   ExternalLink,
+  Save,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -64,6 +65,8 @@ interface SkillGap {
 }
 
 interface GapResult {
+  cv_id?: string;
+  job_id?: string;
   overall_match_pct: number;
   overall_assessment: string;
   strengths: string[];
@@ -264,6 +267,26 @@ const UserRecommendPage = () => {
             </p>
           </div>
           <div className={styles.controlBar}>
+            <button 
+              onClick={() => {
+                const suggestedSkills = skill_gaps.map(g => g.skill);
+                const context = {
+                  cv_id: gapResult.cv_id,
+                  jd_id: gapResult.job_id || '', 
+                  jd_title: gapResult.jd_context?.split('|')[1]?.trim() || gapResult.jd_context || 'Vị trí hiện tại',
+                  suggested_skills: suggestedSkills,
+                };
+                sessionStorage.setItem("analysis_context", JSON.stringify(context));
+                if (gapResult.cv_id) {
+                  sessionStorage.setItem("target_cv_id", gapResult.cv_id);
+                }
+                router.push("/user/cv");
+              }} 
+              className={cn(styles.refreshBtn, styles.accentBtn)}
+            >
+              <Save size={16} />
+              Cập nhật CV
+            </button>
             <button onClick={fetchLatest} className={styles.refreshBtn}>
               <RefreshCcw size={16} />
               Làm mới

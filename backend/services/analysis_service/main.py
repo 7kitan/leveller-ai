@@ -199,7 +199,13 @@ async def get_latest_analysis(request: Request, db: Session = Depends(get_db)):
     if not analysis:
         return None
 
-    return analysis.result_json or {}
+    # Inject cv_id and job_id into the result for frontend redirection/auto-loading
+    result = analysis.result_json or {}
+    if isinstance(result, dict):
+        result["cv_id"] = str(analysis.cv_id)
+        result["job_id"] = str(analysis.job_id) if analysis.job_id else None
+
+    return result
 
 
 @app.get("/analysis/user/history")

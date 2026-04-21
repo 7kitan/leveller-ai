@@ -327,6 +327,11 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
             f"  courses      : {len(report.get('recommended_courses', []))}\n"
             f"  gap_context  : {jd_context}\n" + "=" * 60
         )
+        # Ensure cv_id and job_id are in the report for frontend redirection
+        if isinstance(report, dict):
+            report["cv_id"] = str(cv_id)
+            report["job_id"] = str(job_id) if job_id else None
+
         return report
 
     except Exception as e:

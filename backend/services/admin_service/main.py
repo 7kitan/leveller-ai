@@ -40,19 +40,43 @@ def admin_list_settings(request: Request, db: Session = Depends(get_db)):
     settings = db.query(SystemSetting).all()
     return settings
 
-@app.patch("/admin/settings/{key}", response_model=SettingResponse)
-def admin_update_setting(
-    key: str, setting_in: SettingUpdate, request: Request, db: Session = Depends(get_db)
-):
-    """Admin only: Cập nhật một setting."""
+@app.get("/admin/settings/{key}", response_model=SettingResponse)
+def admin_get_setting(key: str, request: Request, db: Session = Depends(get_db)):
+    """Admin only: Lấy một setting cụ thể."""
     if request.headers.get("X-Is-Admin") != "true":
         raise HTTPException(status_code=403, detail="Admin privileges required")
     
     setting = db.query(SystemSetting).filter(SystemSetting.key == key).first()
     if not setting:
+        # Fallback check in config_manager (env/default)
+        val = config_manager.get_setting(key)
+        if val is not None:
+            # Return a transient response or create it?
+            # Let's return a virtual setting for the UI to show
+            return {
+                "key": key,
+                "value": val,
+                "description": "Default from System / Env",
+                "updated_at": datetime.now()
+            }
         raise HTTPException(status_code=404, detail="Setting not found")
+    return setting
+
+@app.patch("/admin/settings/{key}", response_model=SettingResponse)
+def admin_update_setting(
+    key: str, setting_in: SettingUpdate, request: Request, db: Session = Depends(get_db)
+):
+    """Admin only: Cập nhật hoặc tạo một setting."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
     
-    setting.value = setting_in.value
+    setting = db.query(SystemSetting).filter(SystemSetting.key == key).first()
+    if not setting:
+        setting = SystemSetting(key=key, value=setting_in.value)
+        db.add(setting)
+    else:
+        setting.value = setting_in.value
+    
     db.commit()
     db.refresh(setting)
     
