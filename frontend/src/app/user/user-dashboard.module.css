@@ -269,6 +269,9 @@
   left: 50%;
   transform: translate(-50%, -50%);
   color: var(--color-accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .bowArrowIcon svg {

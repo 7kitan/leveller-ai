@@ -10,6 +10,10 @@ import {
   Award,
   BowArrow,
   ArrowRight,
+  AppWindow,
+  Layers,
+  Rocket,
+  Network,
   ChevronRight as ChevronRightIcon,
   Target,
 } from "lucide-react";
@@ -18,10 +22,20 @@ import { cn } from "@/lib/utils";
 import styles from "./user-dashboard.module.css";
 import { motion } from "framer-motion";
 
+const icons = [BowArrow, AppWindow, Layers, Rocket, Network];
+
 const UserDashboard = () => {
   const { token } = useAuth();
   const [marketData, setMarketData] = useState<any>(null);
   const [loadingMarket, setLoadingMarket] = useState(true);
+  const [iconIndex, setIconIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIconIndex((prev) => (prev + 1) % icons.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -198,7 +212,15 @@ const UserDashboard = () => {
           <div className={styles.radarContainer}>
             <div className={styles.radarScan} />
             <div className={styles.bowArrowIcon}>
-              <BowArrow />
+              <motion.div
+                key={iconIndex}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.5 }}
+              >
+                {React.createElement(icons[iconIndex])}
+              </motion.div>
             </div>
           </div>
         </div>
