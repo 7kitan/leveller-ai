@@ -28,6 +28,200 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 
+/* ========================================
+ * CONSTANTS
+ * Magic numbers and configuration values
+ * ======================================== */
+
+const SKILL_LEVELS = {
+  Expert: { progress: 95, label: "Expert" },
+  Advanced: { progress: 80, label: "Advanced" },
+  Intermediate: { progress: 60, label: "Intermediate" },
+  Beginner: { progress: 30, label: "Beginner" },
+} as const;
+
+const SKILL_MATCH_CONFIG = {
+  basePercentage: 30,
+  perSkillBonus: 15,
+  maxPercentage: 100,
+  emptySkillsDefault: 20,
+} as const;
+
+const SIMULATION_CONFIG = {
+  boostPerSkill: 12,
+  maxBoostCap: 98,
+} as const;
+
+const RADAR_CHART = {
+  size: 300,
+  radiusMultiplier: 0.35,
+  labelOffset: 20,
+} as const;
+
+const CATEGORIES = ["Technology", "Soft Skills", "Business", "Design", "Management"] as const;
+
+const LOADING_DELAY_MS = 800;
+
+/* ========================================
+ * TYPE DEFINITIONS
+ * For better type safety
+ * ======================================== */
+
+interface SkillData {
+  name: string;
+  level: string;
+  progress: number;
+}
+
+interface CategoryMatch {
+  category: string;
+  current: number;
+  potential: number;
+}
+
+interface CareerStage {
+  step: string;
+  status: "In-Progress" | "Upcoming";
+  icon: React.ElementType;
+  summary: string;
+}
+
+interface AnalysisData {
+  cv_id?: string;
+  cv_parsed?: SkillSourceData;
+  cv_parsed_json?: SkillSourceData;
+  job_id?: string;
+  career_roadmap?: CareerRoadmap;
+  skill_gaps?: SkillGap[];
+  target_roles?: string[];
+  overall_match_pct?: number;
+  course_recommendations?: CourseRecommendation[];
+}
+
+interface SkillSourceData {
+  id?: string;
+  skills?: SkillSource[];
+  is_verified?: boolean;
+}
+
+interface SkillSource {
+  name: string;
+  level?: string;
+  category?: string;
+}
+
+interface CareerRoadmap {
+  stages?: CareerStageData[];
+  summary?: string;
+}
+
+interface CareerStageData {
+  focus?: string;
+  stage_name?: string;
+  stage?: number;
+  summary?: string;
+}
+
+interface SkillGap {
+  skill: string;
+  reasoning?: string;
+  learning_path?: string;
+}
+
+interface CareerRoadmapData {
+  stages?: CareerStage[];
+}
+
+interface CourseRecommendation {
+  course_id?: string;
+  id?: string;
+  title: string;
+  level: string;
+  platform: string;
+  url: string;
+  similarity: number;
+}
+
+interface SimulationResult {
+  potential_score?: number;
+  boost_amount?: number;
+  filled_skills?: { category?: string }[];
+}
+
+/* ========================================
+ * HELPER FUNCTIONS
+ * Data transformations and utilities
+ * ======================================== */
+
+function getSkillProgressLevel(level: string | undefined): number {
+  const levelConfig = SKILL_LEVELS[level as keyof typeof SKILL_LEVELS];
+  return levelConfig?.progress ?? SKILL_LEVELS.Beginner.progress;
+}
+
+function calculateCategoryMatch(skills: SkillSource[], category: string): number {
+  const normalizedCategory = category.toLowerCase();
+  
+  const categorySkills = skills.filter(s => {
+    const skillCategory = s.category?.toLowerCase();
+    // Only match skills that explicitly have this category
+    // Skills without category are excluded (not auto-assigned to Technology)
+    return skillCategory === normalizedCategory;
+  });
+  
+  if (categorySkills.length === 0) return SKILL_MATCH_CONFIG.emptySkillsDefault;
+  
+  return Math.min(
+    SKILL_MATCH_CONFIG.maxPercentage,
+    SKILL_MATCH_CONFIG.basePercentage + categorySkills.length * SKILL_MATCH_CONFIG.perSkillBonus
+  );
+}
+
+function calculatePotentialCategoryMatch(
+  currentMatch: number, 
+  filledSkills: { category?: string }[], 
+  category: string
+): number {
+  const normalizedCategory = category.toLowerCase();
+  
+  const filledInCategory = filledSkills.filter(s => {
+    const skillCategory = s.category?.toLowerCase();
+    return skillCategory === normalizedCategory;
+  });
+  
+  if (filledInCategory.length === 0) return currentMatch;
+  
+  return Math.min(
+    SIMULATION_CONFIG.maxBoostCap,
+    currentMatch + filledInCategory.length * SIMULATION_CONFIG.boostPerSkill
+  );
+}
+
+function transformRoadmapStages(stages: CareerStageData[]): CareerStage[] {
+  return stages.map((stage, idx) => ({
+    step: stage.focus ?? stage.stage_name ?? `Giai đoạn ${stage.stage}`,
+    status: idx === 0 ? "In-Progress" : "Upcoming",
+    icon: idx === 0 ? Workflow : (idx === 1 ? Cpu : Box),
+    summary: stage.summary ?? ""
+  }));
+}
+
+function transformSkills(skills: SkillSource[]): SkillData[] {
+  return skills.slice(0, 3).map(s => ({
+    name: s.name,
+    level: s.level ?? "Beginner",
+    progress: getSkillProgressLevel(s.level)
+  }));
+}
+
+function extractCvData(analysis: AnalysisData): SkillSourceData {
+  return analysis.cv_parsed ?? analysis.cv_parsed_json ?? {};
+}
+
+/* ========================================
+ * SKELETON COMPONENT
+ * Loading state placeholder
+ * ======================================== */
+
 const DashboardSkeleton = () => (
   <div className={styles.pageRoot}>
     <section className={styles.welcomeSection}>
@@ -67,14 +261,26 @@ const DashboardSkeleton = () => (
   </div>
 );
 
-// Radar Chart Component (SVG based)
-const RadarChart = ({ currentData, potentialData, labels }: { currentData: number[], potentialData?: number[], labels: string[] }) => {
-  const size = 300;
+/* ========================================
+ * RADAR CHART COMPONENT
+ * Extracted for reusability and clarity
+ * ======================================== */
+
+function RadarChart({ 
+  currentData, 
+  potentialData, 
+  labels 
+}: { 
+  currentData: number[]; 
+  potentialData?: number[]; 
+  labels: readonly string[]; 
+}) {
+  const { size, radiusMultiplier, labelOffset } = RADAR_CHART;
   const center = size / 2;
-  const radius = size * 0.35;
+  const radius = size * radiusMultiplier;
   const angleStep = (Math.PI * 2) / labels.length;
 
-  const getPath = (data: number[]) => {
+  const getPath = (data: number[]): string => {
     return data.map((val, i) => {
       const x = center + radius * (val / 100) * Math.cos(angleStep * i - Math.PI / 2);
       const y = center + radius * (val / 100) * Math.sin(angleStep * i - Math.PI / 2);
@@ -93,8 +299,8 @@ const RadarChart = ({ currentData, potentialData, labels }: { currentData: numbe
         {labels.map((label, i) => {
           const x = center + radius * Math.cos(angleStep * i - Math.PI / 2);
           const y = center + radius * Math.sin(angleStep * i - Math.PI / 2);
-          const labelX = center + (radius + 20) * Math.cos(angleStep * i - Math.PI / 2);
-          const labelY = center + (radius + 20) * Math.sin(angleStep * i - Math.PI / 2);
+          const labelX = center + (radius + labelOffset) * Math.cos(angleStep * i - Math.PI / 2);
+          const labelY = center + (radius + labelOffset) * Math.sin(angleStep * i - Math.PI / 2);
           return (
             <g key={i}>
               <line x1={center} y1={center} x2={x} y2={y} className={styles.radarAxis} />
@@ -108,7 +314,11 @@ const RadarChart = ({ currentData, potentialData, labels }: { currentData: numbe
       </svg>
     </div>
   );
-};
+}
+
+/* ========================================
+ * MAIN DASHBOARD COMPONENT
+ * ======================================== */
 
 const StudentDashboard = () => {
   const router = useRouter();
@@ -139,7 +349,7 @@ const StudentDashboard = () => {
         console.error("Failed to fetch latest analysis:", err);
         setAnalysis(null);
       } finally {
-        setTimeout(() => setLoading(false), 800);
+        setTimeout(() => setLoading(false), LOADING_DELAY_MS);
       }
     };
 
@@ -229,50 +439,36 @@ const StudentDashboard = () => {
     );
   }
 
-  // Data processing for normal state
-  const roadmapStages = analysis?.career_roadmap?.stages || [];
-  const growthPath = roadmapStages.map((stage: any, idx: number) => ({
-    step: stage.focus || stage.stage_name || `Giai đoạn ${stage.stage}`,
-    status: idx === 0 ? "In-Progress" : "Upcoming",
-    icon: idx === 0 ? Workflow : (idx === 1 ? Cpu : Box),
-    summary: stage.summary || ""
-  }));
-
-  const roles = analysis?.target_roles || ["AI Solutions Architect", "Full-Stack Tech Lead"];
-  const cvParsed = analysis?.cv_parsed || analysis?.cv_parsed_json || {};
-  const currentSkills = (cvParsed.skills || []).slice(0, 3).map((s: any) => ({
-    name: s.name,
-    level: s.level || "Beginner",
-    progress: s.level === "Expert" ? 95 : (s.level === "Advanced" ? 80 : (s.level === "Intermediate" ? 60 : 30))
-  }));
-  const matchPct = analysis?.overall_match_pct || 0;
-  const potentialMatchPct = simData?.potential_score || matchPct;
+  // ----- DATA TRANSFORMATIONS USING HELPER FUNCTIONS -----
   
-  const isCvVerified = cvParsed.is_verified || false;
+  // Transform career roadmap into display-friendly format
+  const roadmapStages = analysis?.career_roadmap?.stages || [];
+  const growthPath = transformRoadmapStages(roadmapStages);
+
+  // Get target roles with defaults
+  const roles = analysis?.target_roles || ["AI Solutions Architect", "Full-Stack Tech Lead"];
+  
+  // Extract CV data from analysis response
+  const cvParsed = extractCvData(analysis);
+  
+  // Transform skills for display
+  const currentSkills = transformSkills(cvParsed.skills || []);
+  
+  // Match percentages
+  const matchPct = analysis?.overall_match_pct ?? 0;
+  const potentialMatchPct = simData?.potential_score ?? matchPct;
+  
+  const isCvVerified = cvParsed.is_verified ?? false;
   const skillCount = (cvParsed.skills || []).length;
 
-  // Skills by Category (for Radar Chart and Progress Bars)
-  const categories = ["Technology", "Soft Skills", "Business", "Design", "Management"];
-  const catMatch = categories.map(cat => {
-    // Current match in this category (using CV skills)
-    const catSkills = (cvParsed.skills || []).filter((s: any) => s.category?.toLowerCase() === cat.toLowerCase());
-    // Basic logic: base 30% if any skill exists, plus 10% per skill, capped at 100%
-    if (catSkills.length === 0) return 20; 
-    return Math.min(100, 30 + catSkills.length * 15);
-  });
+  // Calculate category match percentages for Radar Chart
+  const cvSkills = cvParsed.skills || [];
+  const catMatch = CATEGORIES.map(cat => calculateCategoryMatch(cvSkills, cat));
   
-  // Potential match (if simulation data exists)
-  const potentialCatMatch = categories.map((cat, i) => {
+  // Calculate potential category match (with simulation boost)
+  const potentialCatMatch = CATEGORIES.map((cat, i) => {
     if (!simData) return catMatch[i];
-    
-    // Check if any filled skill belongs to this category
-    const filledInCat = (simData.filled_skills || []).filter((s: any) => 
-       (s.category || "Technology").toLowerCase() === cat.toLowerCase()
-    );
-    
-    if (filledInCat.length === 0) return catMatch[i];
-    // Boost based on number of filled skills in this category
-    return Math.min(98, catMatch[i] + filledInCat.length * 12);
+    return calculatePotentialCategoryMatch(catMatch[i], simData.filled_skills || [], cat);
   });
 
   return (
