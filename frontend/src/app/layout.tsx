@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Open_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import "../light-mode.css";
 import { AuthProvider } from "@/context/AuthContext";
@@ -10,8 +10,15 @@ import MaintenanceOverlay from "@/components/shared/MaintenanceOverlay";
 
 import { LanguageProvider } from "@/context/LanguageContext";
 
-const openSans = Open_Sans({ subsets: ["latin", "latin-ext"], variable: "--font-sans" });
-const ibmPlexMono = IBM_Plex_Mono({ weight: ["400", "600", "700"], subsets: ["latin", "latin-ext"], variable: "--font-mono" });
+const jakarta = Plus_Jakarta_Sans({ 
+  subsets: ["latin", "vietnamese"], 
+  variable: "--font-jakarta" 
+});
+
+const bricolage = Bricolage_Grotesque({ 
+  subsets: ["latin", "vietnamese"], 
+  variable: "--font-bricolage" 
+});
 
 export const metadata: Metadata = {
   title: "Lumix AI | Career Nexus & Knowledge Graph",
@@ -25,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${openSans.variable} ${ibmPlexMono.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${jakarta.variable} ${bricolage.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <LanguageProvider>
           <ThemeProvider>

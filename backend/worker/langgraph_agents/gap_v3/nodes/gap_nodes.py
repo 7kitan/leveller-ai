@@ -79,6 +79,9 @@ async def load_cv_parsed_data_node(state: GapAnalysisStateV3) -> GapAnalysisStat
             return {**state, "error": f"CV not found: {cv_id_str}", "status": "failed"}
 
         parsed = getattr(cv_record, "cv_parsed_json", None)
+        # Use updated_at as it catches manual edits too
+        cv_updated_at = getattr(cv_record, "updated_at", None) or getattr(cv_record, "cv_parsed_at", None)
+        cv_timestamp = cv_updated_at.isoformat() if cv_updated_at else "none"
 
         if parsed:
             # Sync direct columns from UserCV (Source of truth for manual edits)
@@ -124,13 +127,13 @@ async def load_cv_parsed_data_node(state: GapAnalysisStateV3) -> GapAnalysisStat
 
         # Cache miss → trigger CV parsing
         logger.warning(f"[STEP 1] No cv_parsed_json — triggering re-parse fallback")
-        parsed = await _run_cv_parsing_fallback(cv_id_str, state["user_id"], db)
+        fallback_result = await _run_cv_parsing_fallback(cv_id_str, state["user_id"], db)
 
-        if parsed:
+        if fallback_result:
             logger.info(f"[STEP 1] ✓ Fallback CV parsing succeeded")
             return {
                 **state, 
-                "cv_parsed": parsed, 
+                "cv_parsed": fallback_result, 
                 "cv_timestamp": int(__import__("time").time()),
                 "status": "cv_loaded"
             }

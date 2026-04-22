@@ -246,6 +246,10 @@ async def finalize_cv(
     cv.summary = req.summary.replace("<", "&lt;").replace(">", "&gt;") if req.summary else ""
     cv.experience_years_total = req.experience_years_total
     cv.is_verified = True
+    
+    # Explicitly update timestamp to invalidate gap analysis cache
+    from sqlalchemy import func
+    cv.cv_parsed_at = func.now()
 
     # Cập nhật cv_parsed_json để đồng bộ dữ liệu (Work history, education, certifications)
     # Spec 3.3: Link Radar Chart data to recommended courses

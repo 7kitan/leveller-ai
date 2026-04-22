@@ -23,6 +23,10 @@
     --color-apple-link-blue: #0066cc;
     --color-apple-bright-blue: #2997ff;
 
+    /* Fonts */
+    --font-sans: var(--font-jakarta), -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-display: var(--font-bricolage), -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
     /* Text & Surface */
     --color-text-primary-light: #1d1d1f;
     --color-text-secondary-light: rgba(0, 0, 0, 0.8);
