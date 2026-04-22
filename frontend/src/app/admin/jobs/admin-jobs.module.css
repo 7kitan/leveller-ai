@@ -11,7 +11,7 @@
 .header {
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 3rem;
+  border-radius: var(--radius-md);
   padding: 3rem;
   display: flex;
   flex-direction: column;
@@ -131,7 +131,7 @@
   padding: 1.5rem 2rem;
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 2rem;
+  border-radius: var(--radius-md);
 }
 
 .searchContainer {
@@ -172,7 +172,7 @@
 .tableContainer {
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 3rem;
+  border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
 }
@@ -308,7 +308,7 @@
   max-width: 32rem;
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 2.5rem;
+  border-radius: var(--radius-md);
   padding: 2.5rem;
 }
 
@@ -469,40 +469,4 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-.formFieldFull {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
-}
-
-.textarea {
-  width: 100%;
-  padding: 1rem;
-  background-color: rgba(0, 0, 0, 0.02);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 1rem;
-  color: var(--color-text-main);
-  font-weight: 600;
-  outline: none;
-  resize: vertical;
-  font-family: inherit;
-}
-
-.cancelBtn {
-  padding: 1rem 2rem;
-  background-color: transparent;
-  color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  border-radius: 1rem;
-  transition: all 0.2s ease;
-}
-
-.cancelBtn:hover {
-  background-color: rgba(0, 0, 0, 0.03);
-  color: var(--color-text-main);
 }
