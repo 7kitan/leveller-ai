@@ -20,11 +20,18 @@
 
 
 
-
     /* Elevation & Effects */
     --shadow-apple-card: 0 3px 5px 30px rgba(0, 0, 0, 0.22);
     --glass-blur: blur(20px);
     --glass-saturate: saturate(180%);
+
+    /* Radius Scale */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+    --radius-2xl: 24px;
+    --radius-full: 9999px;
 }
 
 @layer base {
@@ -116,7 +123,7 @@
     }
 
     .pill-button {
-        border-radius: 980px;
+        border-radius: var(--radius-full);
         padding: 8px 15px;
         transition: all 0.3s ease;
     }
@@ -129,13 +136,13 @@
         padding: 1.5rem 2rem;
         background-color: var(--bg-secondary);
         border: 1px solid var(--border-subtle);
-        border-radius: 2rem;
+        border-radius: var(--radius-xl);
     }
 
     .premium-panel {
         background-color: var(--bg-secondary);
         border: 1px solid var(--border-subtle);
-        border-radius: 1.5rem;
+        border-radius: var(--radius-lg);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 

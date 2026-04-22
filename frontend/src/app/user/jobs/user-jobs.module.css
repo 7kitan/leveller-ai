@@ -4,7 +4,7 @@
 .pageRoot {
   display: flex;
   flex-direction: column;
-  gap: 3rem;
+  gap: 2rem;
   padding-bottom: 5rem;
   animation: fadeIn 0.5s ease-out forwards;
 }
@@ -12,7 +12,16 @@
 .header {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+@media (min-width: 1024px) {
+  .header {
+    flex-direction: row;
+    align-items: center;
+  }
 }
 
 .title {
@@ -20,8 +29,6 @@
   font-weight: 900;
   letter-spacing: -0.05em;
   color: var(--color-text-main);
-  margin-bottom: 0.5rem;
-  font-style: italic;
   text-transform: uppercase;
 }
 
@@ -30,6 +37,7 @@
   font-size: 1rem;
   font-weight: 500;
   max-width: 32rem;
+  margin-top: 0.5rem;
 }
 
 
@@ -37,24 +45,22 @@
   background: linear-gradient(to right, #06b6d4, #0891b2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-style: italic;
 }
 
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem;
   background-color: rgba(245, 158, 11, 0.05);
   border: 1px solid rgba(245, 158, 11, 0.1);
-  border-radius: 1.25rem;
+  border-radius: var(--radius-md);
   font-size: 10px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.2em;
   color: #fbbf24;
   width: fit-content;
-  margin-bottom: 2rem;
 }
 
 .badgeLabel {
@@ -68,10 +74,10 @@
 .searchContainer {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   background-color: var(--color-panel-bg);
-  padding: 2rem;
-  border-radius: 3rem;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-subtle);
   backdrop-filter: blur(40px);
   box-shadow: 0 20px 80px rgba(0, 0, 0, 0.05);
@@ -80,8 +86,8 @@
 @media (min-width: 1024px) {
   .searchContainer {
     flex-direction: row;
-    padding: 1rem;
-    gap: 1rem;
+    padding: 0.75rem;
+    gap: 0.75rem;
   }
 }
 
@@ -112,8 +118,8 @@
   width: 100%;
   background-color: rgba(0, 0, 0, 0.02);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 1.5rem;
-  padding: 1.25rem 1.5rem 1.25rem 3.75rem;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.25rem 0.75rem 3rem;
   color: var(--color-text-main);
   font-weight: 600;
   font-size: 0.9rem;
@@ -135,7 +141,7 @@
   background: linear-gradient(135deg, #0891b2, #06b6d4);
   color: white;
   padding: 1rem 3rem;
-  border-radius: 1.5rem;
+  border-radius: var(--radius-md);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
@@ -172,7 +178,7 @@
 .card {
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 2rem;
+  border-radius: var(--radius-md);
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -215,7 +221,7 @@
   height: 3.5rem;
   background-color: rgba(6, 182, 212, 0.05);
   border: 1px solid rgba(6, 182, 212, 0.15);
-  border-radius: 1.25rem;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -311,7 +317,7 @@
   padding: 1rem;
   background-color: var(--color-accent-primary);
   border: 1px solid var(--color-accent-primary);
-  border-radius: 1.25rem;
+  border-radius: var(--radius-md);
   color: white;
   font-weight: 900;
   font-size: 11px;
@@ -358,7 +364,7 @@
   text-align: center;
   background-color: var(--color-panel-bg);
   border: 1px dashed var(--color-border-subtle);
-  border-radius: 3rem;
+  border-radius: var(--radius-lg);
   gap: 1rem;
 }
 

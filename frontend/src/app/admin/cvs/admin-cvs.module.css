@@ -11,7 +11,7 @@
 .header {
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 3rem;
+  border-radius: var(--radius-md);
   padding: 3rem;
   display: flex;
   flex-direction: column;
@@ -65,7 +65,7 @@
 .statCard {
   background-color: rgba(0, 0, 0, 0.02);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 2rem;
+  border-radius: var(--radius-md);
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -114,7 +114,7 @@
   padding: 1.5rem 2rem;
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 2rem;
+  border-radius: var(--radius-md);
 }
 
 .searchContainer {
@@ -165,7 +165,7 @@
 .tableContainer {
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 3rem;
+  border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
 }

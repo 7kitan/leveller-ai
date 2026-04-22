@@ -35,7 +35,7 @@
 .profileCard {
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 3rem;
+  border-radius: var(--radius-md);
   padding: 4rem;
   max-width: 48rem;
   display: flex;

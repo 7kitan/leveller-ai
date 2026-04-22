@@ -23,6 +23,13 @@
   }
 }
 
+@media (min-width: 1024px) {
+  .header {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
 .title {
   display: flex;
   align-items: center;
@@ -30,7 +37,6 @@
   font-size: 2.5rem;
   font-weight: 900;
   color: var(--color-text-main);
-  font-style: italic;
   letter-spacing: -0.05em;
 }
 
@@ -100,7 +106,7 @@
   position: relative;
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 4rem;
+  border-radius: var(--radius-lg);
   padding: 5rem 3rem;
   overflow: hidden;
   display: flex;
@@ -127,7 +133,7 @@
   width: 100%;
   max-width: 40rem;
   border: 4px dashed var(--color-border-subtle);
-  border-radius: 3rem;
+  border-radius: var(--radius-md);
   padding: 5rem 3rem;
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
@@ -153,7 +159,7 @@
   height: 6rem;
   background-color: rgba(0, 0, 0, 0.02);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 2rem;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -228,7 +234,7 @@
 .historySection {
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 3rem;
+  border-radius: var(--radius-md);
   padding: 2.5rem;
   display: flex;
   flex-direction: column;
@@ -435,7 +441,7 @@
 .sectionCard {
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 2.5rem;
+  border-radius: var(--radius-md);
   padding: 2.5rem;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
 }
@@ -543,7 +549,7 @@
   margin-top: 0.75rem;
   line-height: 1.7;
   opacity: 0.5;
-  font-style: italic;
+  
 }
 
 /* ── Certifications ──────────────────────────────────────────────── */
@@ -597,7 +603,7 @@
   font-size: 0.9rem;
   font-weight: 900;
   color: var(--color-text-main);
-  font-style: italic;
+  
 }
 
 /* ── Empty text ─────────────────────────────────────────────────── */
@@ -605,7 +611,7 @@
   font-size: 0.85rem;
   color: var(--color-text-muted);
   opacity: 0.4;
-  font-style: italic;
+  
   padding: 1rem 0;
 }
 
@@ -655,7 +661,7 @@
   font-size: 2rem;
   font-weight: 900;
   color: var(--color-text-main);
-  font-style: italic;
+  
   margin-bottom: 1rem;
 }
 
@@ -779,7 +785,7 @@
 .resultHeader {
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 4rem;
+  border-radius: var(--radius-lg);
   padding: 4rem;
   box-shadow: 0 20px 80px rgba(0, 0, 0, 0.03);
 }
@@ -789,7 +795,7 @@
   height: 6rem;
   background-color: #0891b2;
   color: white;
-  border-radius: 2rem;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -800,7 +806,7 @@
   font-size: 2.5rem;
   font-weight: 900;
   color: var(--color-text-main);
-  font-style: italic;
+  
   letter-spacing: -0.05em;
 }
 
@@ -828,7 +834,7 @@
     width: 6rem;
     font-weight: 900;
     outline: none;
-    font-style: italic;
+    
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
@@ -892,7 +898,7 @@
   margin-top: 4rem;
   padding: 3rem;
   background-color: var(--color-panel-bg);
-  border-radius: 2.5rem;
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-border-subtle);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.02);
 }
@@ -912,7 +918,7 @@
   font-weight: 500;
   line-height: 1.8;
   color: var(--color-text-main);
-  font-style: italic;
+  
   opacity: 0.7;
 }
 
@@ -931,7 +937,7 @@
 .matrixPanel {
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 3rem;
+  border-radius: var(--radius-md);
   padding: 4rem;
   box-shadow: 0 20px 80px rgba(0, 0, 0, 0.03);
 }
@@ -942,7 +948,7 @@
   font-size: 1.5rem;
   font-weight: 900;
   color: var(--color-text-main);
-  font-style: italic;
+  
   letter-spacing: -0.025em;
   margin-bottom: 4rem;
 }
@@ -1063,7 +1069,7 @@
 .verifyPanel {
   background-color: rgba(8, 145, 178, 0.03);
   border: 1px solid rgba(8, 145, 178, 0.1);
-  border-radius: 2.5rem;
+  border-radius: var(--radius-md);
   padding: 3rem;
   display: flex;
   flex-direction: column;
@@ -1094,7 +1100,7 @@
 .scoringPercent {
   font-size: 2rem;
   font-weight: 900;
-  font-style: italic;
+  
   color: var(--color-text-main);
 }
 
@@ -1213,7 +1219,7 @@
   padding: 1.5rem 2rem;
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(244, 63, 94, 0.05));
   border: 1px solid rgba(245, 158, 11, 0.2);
-  border-radius: 2rem;
+  border-radius: var(--radius-md);
   margin-bottom: 3rem;
   animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

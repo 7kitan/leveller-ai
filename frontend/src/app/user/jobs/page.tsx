@@ -77,58 +77,57 @@ export default function JobsPage() {
     <div className={styles.pageRoot}>
       <div className={styles.header}>
         <div>
-           <div className={styles.badge}>
-              <Sparkles size={12} />
-              <span className={styles.badgeLabel}>Global Opportunity Index v3.1</span>
-           </div>
-           <h1 className={styles.title}>
-              KHÁM PHÁ<br />
-              <span className={styles.gradientText}>CƠ HỘI.</span>
-           </h1>
-           <p className={styles.subtitle}>Tìm kiếm và phân tích độ phù hợp với các vị trí hàng đầu trên quy mô toàn cầu.</p>
+            <h1 className={styles.title}>
+               KHÁM PHÁ<span className={styles.gradientText}> CƠ HỘI</span>.
+            </h1>
+            <p className={styles.subtitle}>Tìm kiếm và phân tích độ phù hợp với các vị trí hàng đầu trên quy mô toàn cầu.</p>
         </div>
-        
-        <form onSubmit={handleSearch} className={styles.searchForm}>
-            <div className={styles.searchContainer}>
-                <div className={styles.inputWrapper}>
-                    <Search size={18} className={styles.inputIcon} />
-                    <input 
-                        type="text"
-                        placeholder="Từ khóa (Vị trí, Công ty...)"
-                        className={styles.input}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <div className={styles.inputWrapper}>
-                    <MapPin size={18} className={styles.inputIcon} />
-                    <input 
-                        type="text"
-                        placeholder="Địa điểm"
-                        className={styles.input}
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                    />
-                </div>
-                <div className={styles.inputWrapper}>
-                    <Briefcase size={18} className={styles.inputIcon} />
-                    <input 
-                        type="text"
-                        placeholder="Lương tối thiểu"
-                        className={styles.input}
-                        value={minSalary}
-                        onChange={(e) => setMinSalary(e.target.value)}
-                    />
-                </div>
-                <button 
-                    type="submit"
-                    className={styles.searchBtn}
-                >
-                    TÌM KIẾM
-                </button>
-            </div>
-        </form>
+        <div className={styles.badge}>
+           <Sparkles size={12} />
+           <span className={styles.badgeLabel}>Global Opportunity Index v3.1</span>
+        </div>
       </div>
+      
+      <form onSubmit={handleSearch} className={styles.searchForm}>
+          <div className={styles.searchContainer}>
+              <div className={styles.inputWrapper}>
+                  <Search size={18} className={styles.inputIcon} />
+                  <input 
+                      type="text"
+                      placeholder="Từ khóa (Vị trí, Công ty...)"
+                      className={styles.input}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+              </div>
+              <div className={styles.inputWrapper}>
+                  <MapPin size={18} className={styles.inputIcon} />
+                  <input 
+                      type="text"
+                      placeholder="Địa điểm"
+                      className={styles.input}
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                  />
+              </div>
+              <div className={styles.inputWrapper}>
+                  <Briefcase size={18} className={styles.inputIcon} />
+                  <input 
+                      type="text"
+                      placeholder="Lương tối thiểu"
+                      className={styles.input}
+                      value={minSalary}
+                      onChange={(e) => setMinSalary(e.target.value)}
+                  />
+              </div>
+              <button 
+                  type="submit"
+                  className={styles.searchBtn}
+              >
+                  TÌM KIẾM
+              </button>
+          </div>
+      </form>
 
       <AnimatePresence mode="wait">
         {loading ? (

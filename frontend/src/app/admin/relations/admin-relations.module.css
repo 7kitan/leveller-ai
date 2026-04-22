@@ -77,7 +77,7 @@
   padding: 2.5rem;
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 2.5rem;
+  border-radius: var(--radius-md);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
@@ -158,7 +158,7 @@
 .groupCard {
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 2rem;
+  border-radius: var(--radius-md);
   overflow: hidden;
   transition: all 0.4s ease;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
@@ -368,7 +368,7 @@
     gap: 1.5rem;
     opacity: 0.1;
     border: 1px solid var(--color-border-subtle);
-    border-radius: 3rem;
+    border-radius: var(--radius-md);
     background: rgba(0, 0, 0, 0.01);
 }
 
@@ -388,7 +388,7 @@
   align-items: center;
   gap: 1.5rem;
   padding: 1.25rem 2.5rem;
-  border-radius: 2rem;
+  border-radius: var(--radius-md);
   backdrop-filter: blur(20px);
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
   z-index: 1000;
@@ -438,7 +438,7 @@
   max-width: 32rem;
   background-color: white;
   border: 1px solid var(--color-border-subtle);
-  border-radius: 3rem;
+  border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: 0 40px 80px rgba(0, 0, 0, 0.1);
 }

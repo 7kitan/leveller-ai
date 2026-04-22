@@ -8,7 +8,7 @@ import {
   UploadCloud,
   TrendingUp,
   Award,
-  Sparkles,
+  BowArrow,
   ArrowRight,
   ChevronRight as ChevronRightIcon,
   Target,
@@ -197,13 +197,11 @@ const UserDashboard = () => {
 
           <div className={styles.radarContainer}>
             <div className={styles.radarScan} />
-            <motion.div
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ repeat: Infinity, duration: 4 }}
-              style={{ color: "var(--color-accent-primary)" }}
+            <div
+              className={styles.bowArrowIcon}
             >
-              <Sparkles size={120} />
-            </motion.div>
+              <BowArrow />
+            </div>
           </div>
         </div>
       </div>
