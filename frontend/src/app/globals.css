@@ -1,167 +1,195 @@
 @import "tailwindcss";
 
 @theme {
-  /* Apple Design System Palette */
-  --color-apple-black: #000000;
-  --color-apple-light-gray: #f5f5f7;
-  --color-apple-near-black: #1d1d1f;
-  --color-apple-blue: #0071e3;
-  --color-apple-link-blue: #0066cc;
-  --color-apple-bright-blue: #2997ff;
-  
-  /* Text & Surface */
-  --color-text-primary-light: #1d1d1f;
-  --color-text-secondary-light: rgba(0, 0, 0, 0.8);
-  --color-text-tertiary-light: rgba(0, 0, 0, 0.48);
-  
-  --color-surface-dark-1: #272729;
-  --color-surface-dark-2: #262628;
-  --color-surface-dark-3: #28282a;
+    /* Apple Design System Palette */
+    --color-apple-black: #000000;
+    --color-apple-light-gray: #f5f5f7;
+    --color-apple-near-black: #1d1d1f;
+    --color-apple-blue: #0071e3;
+    --color-apple-link-blue: #0066cc;
+    --color-apple-bright-blue: #2997ff;
 
-  /* Fonts */
-  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-display: var(--font-outfit), -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    /* Text & Surface */
+    --color-text-primary-light: #1d1d1f;
+    --color-text-secondary-light: rgba(0, 0, 0, 0.8);
+    --color-text-tertiary-light: rgba(0, 0, 0, 0.48);
 
-  /* Elevation & Effects */
-  --shadow-apple-card: 0 3px 5px 30px rgba(0, 0, 0, 0.22);
-  --glass-blur: blur(20px);
-  --glass-saturate: saturate(180%);
+    --color-surface-dark-1: #272729;
+    --color-surface-dark-2: #262628;
+    --color-surface-dark-3: #28282a;
+
+
+
+
+    /* Elevation & Effects */
+    --shadow-apple-card: 0 3px 5px 30px rgba(0, 0, 0, 0.22);
+    --glass-blur: blur(20px);
+    --glass-saturate: saturate(180%);
 }
 
 @layer base {
-  :root {
-    --bg-primary: #ffffff;
-    --bg-secondary: #fbfbfd;
-    --text-primary: var(--color-text-primary-light);
-    --text-secondary: var(--color-text-secondary-light);
-    --accent-color: var(--color-apple-blue);
-    --border-subtle: rgba(0, 0, 0, 0.05);
+    :root {
+        /* Fonts */
+        --font-sans: var(--font-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-display: var(--font-sans), -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
 
-    /* Compatibility Aliases */
-    --color-bg-light: var(--bg-primary);
-    --color-bg-dark: var(--color-apple-black);
-    --color-text-main: var(--text-primary);
-    --color-text-muted: var(--text-secondary);
-    --color-border-subtle: var(--border-subtle);
-    --color-panel-bg: var(--bg-secondary);
-    --color-accent-primary: var(--accent-color);
-    --color-accent-secondary: var(--color-apple-bright-blue);
-  }
 
-  [data-theme="dark"] {
-    --bg-primary: var(--color-apple-black);
-    --bg-secondary: var(--color-surface-dark-1);
-    --text-primary: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.8);
-    --accent-color: var(--color-apple-bright-blue);
-    --border-subtle: rgba(255, 255, 255, 0.1);
+        --bg-primary: #ffffff;
+        --bg-secondary: #fbfbfd;
+        --text-primary: var(--color-text-primary-light);
+        --text-secondary: var(--color-text-secondary-light);
+        --accent-color: var(--color-apple-blue);
+        --border-subtle: rgba(0, 0, 0, 0.05);
 
-    /* Compatibility Aliases */
-    --color-bg-light: var(--bg-primary);
-    --color-bg-dark: var(--color-apple-black);
-    --color-text-main: var(--text-primary);
-    --color-text-muted: var(--text-secondary);
-    --color-border-subtle: var(--border-subtle);
-    --color-panel-bg: var(--bg-secondary);
-    --color-accent-primary: var(--accent-color);
-    --color-accent-secondary: var(--color-apple-bright-blue);
-  }
+        /* Compatibility Aliases */
+        --color-bg-light: var(--bg-primary);
+        --color-bg-dark: var(--color-apple-black);
+        --color-text-main: var(--text-primary);
+        --color-text-muted: var(--text-secondary);
+        --color-border-subtle: var(--border-subtle);
+        --color-panel-bg: var(--bg-secondary);
+        --color-accent-primary: var(--accent-color);
+        --color-accent-secondary: var(--color-apple-bright-blue);
+    }
 
-  html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    scroll-behavior: smooth;
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-    transition: background-color 0.5s ease, color 0.5s ease;
-  }
+    [data-theme="dark"] {
+        --bg-primary: var(--color-apple-black);
+        --bg-secondary: var(--color-surface-dark-1);
+        --text-primary: #ffffff;
+        --text-secondary: rgba(255, 255, 255, 0.8);
+        --accent-color: var(--color-apple-bright-blue);
+        --border-subtle: rgba(255, 255, 255, 0.1);
 
-  h1, h2, h3, h4, .font-display {
-    font-family: var(--font-display);
-    letter-spacing: -0.019em;
-  }
+        /* Compatibility Aliases */
+        --color-bg-light: var(--bg-primary);
+        --color-bg-dark: var(--color-apple-black);
+        --color-text-main: var(--text-primary);
+        --color-text-muted: var(--text-secondary);
+        --color-border-subtle: var(--border-subtle);
+        --color-panel-bg: var(--bg-secondary);
+        --color-accent-primary: var(--accent-color);
+        --color-accent-secondary: var(--color-apple-bright-blue);
+    }
+
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        scroll-behavior: smooth;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+        transition: background-color 0.5s ease, color 0.5s ease;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    .font-display {
+        font-family: var(--font-display);
+        letter-spacing: -0.019em;
+    }
 }
 
 /* Apple Pro Typography Utilities */
 @layer utilities {
-  .text-display-hero {
-    font-size: 56px;
-    font-weight: 600;
-    line-height: 1.07;
-    letter-spacing: -0.015em;
-  }
+    .text-display-hero {
+        font-size: 56px;
+        font-weight: 600;
+        line-height: 1.07;
+        letter-spacing: -0.015em;
+    }
 
-  .text-section-heading {
-    font-size: 40px;
-    font-weight: 600;
-    line-height: 1.10;
-  }
+    .text-section-heading {
+        font-size: 40px;
+        font-weight: 600;
+        line-height: 1.10;
+    }
 
-  .apple-glass {
-    background-color: rgba(0, 0, 0, 0.8);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-  }
+    .apple-glass {
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: saturate(180%) blur(20px);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+    }
 
-  .pill-button {
-    border-radius: 980px;
-    padding: 8px 15px;
-    transition: all 0.3s ease;
-  }
+    .pill-button {
+        border-radius: 980px;
+        padding: 8px 15px;
+        transition: all 0.3s ease;
+    }
 
-  /* Legacy Compatibility Utilities */
-  .admin-control-bar {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1.5rem 2rem;
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--border-subtle);
-    border-radius: 2rem;
-  }
+    /* Legacy Compatibility Utilities */
+    .admin-control-bar {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.5rem 2rem;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 2rem;
+    }
 
-  .premium-panel {
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--border-subtle);
-    border-radius: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  }
+    .premium-panel {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
 
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
-  }
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
 
-  .text-premium-gradient {
-    background: linear-gradient(180deg, var(--text-primary) 0%, rgba(255, 255, 255, 0.4) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+    .text-premium-gradient {
+        background: linear-gradient(180deg, var(--text-primary) 0%, rgba(255, 255, 255, 0.4) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 
-  .luminous-bg {
-    background: radial-gradient(circle at 10% 20%, rgba(0, 113, 227, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 90% 80%, rgba(41, 151, 255, 0.03) 0%, transparent 50%),
-                #ffffff;
-  }
+    .luminous-bg {
+        background: radial-gradient(circle at 10% 20%, rgba(0, 113, 227, 0.03) 0%, transparent 50%),
+            radial-gradient(circle at 90% 80%, rgba(41, 151, 255, 0.03) 0%, transparent 50%),
+            #ffffff;
+    }
 }
 
 /* Custom Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
 }
+
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.2); }
-[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
 
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
