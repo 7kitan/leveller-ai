@@ -110,7 +110,7 @@ export default function Sidebar({
       <nav className={styles.nav}>
         {items.map((item) => {
           const isActive = pathname === item.path;
-          const translatedName = t(item.key as any);
+          const translatedName = t(item.key as any) || (item as any).name || item.key;
           return (
             <Link
               key={item.path}

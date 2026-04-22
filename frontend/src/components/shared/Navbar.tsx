@@ -29,7 +29,7 @@ export default function Navbar({
 }) {
   const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const pathname = usePathname();
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
   const userMenuRef = React.useRef<HTMLDivElement>(null);
@@ -99,7 +99,7 @@ export default function Navbar({
               <svg className={styles.inputIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
               </svg>
-              <input type="text" placeholder="Quick search..." className={styles.input} />
+              <input type="text" placeholder={t("search_placeholder")} className={styles.input} />
             </div>
           </div>
         </div>
@@ -173,21 +173,23 @@ export default function Navbar({
                   <div className={styles.dropdownDivider} />
                   
                   <div className={styles.dropdownBody}>
-                    <Link href="/user/profile" className={styles.dropdownItem}>
+                    <Link href={user.role === 'admin' ? '/admin/profile' : '/user/profile'} className={styles.dropdownItem}>
                       <UserCircle width={18} height={18} />
-                      <span>Thông tin cá nhân</span>
+                      <span>{t("profile_info")}</span>
                     </Link>
-                    <Link href="/user/settings" className={styles.dropdownItem}>
-                      <Settings width={18} height={18} />
-                      <span>Cài đặt bảo mật</span>
-                    </Link>
+                    {user.role === 'admin' && (
+                      <Link href="/admin/settings" className={styles.dropdownItem}>
+                        <Settings width={18} height={18} />
+                        <span>{t("nav_settings")}</span>
+                      </Link>
+                    )}
                   </div>
 
                   <div className={styles.dropdownDivider} />
                   
                   <button onClick={logout} className={cn(styles.dropdownItem, styles.logoutAction)}>
                     <LogOut width={18} height={18} />
-                    <span>Đăng xuất</span>
+                    <span>{t("logout")}</span>
                   </button>
                 </motion.div>
               )}

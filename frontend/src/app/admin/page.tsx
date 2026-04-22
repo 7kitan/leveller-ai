@@ -20,9 +20,11 @@ import {
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import styles from "./admin-dashboard.module.css";
+import { useLanguage } from "@/context/LanguageContext";
 
 const AdminDashboard = () => {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const [stats, setStats] = useState({
     users: 0,
     cvs: 0,
@@ -46,43 +48,43 @@ const AdminDashboard = () => {
 
   const dashboardModules = [
     { 
-      title: "User Control", 
-      desc: "Quản lý quyền truy cập và phân vai người dùng hệ thống.", 
+      title: t("admin_dash_module_users_title"), 
+      desc: t("admin_dash_module_users_desc"), 
       icon: Users, 
       path: "/admin/users",
       color: "#818cf8"
     },
     { 
-      title: "CV Repository", 
-      desc: "Kho lưu trữ và quản lý CV của toàn bộ người dùng.", 
+      title: t("admin_dash_module_cvs_title"), 
+      desc: t("admin_dash_module_cvs_desc"), 
       icon: FileText, 
       path: "/admin/cvs",
       color: "#ec4899"
     },
     { 
-      title: "Job Portal", 
-      desc: "Quản trị tin tuyển dụng, trạng thái và cập nhật thị trường.", 
+      title: t("admin_dash_module_jobs_title"), 
+      desc: t("admin_dash_module_jobs_desc"), 
       icon: Layers, 
       path: "/admin/jobs",
       color: "#f59e0b"
     },
     { 
-      title: "Course Catalog", 
-      desc: "Quản lý dữ liệu khóa học và vector embedding tri thức.", 
+      title: t("admin_dash_module_courses_title"), 
+      desc: t("admin_dash_module_courses_desc"), 
       icon: BookOpen, 
       path: "/admin/courses",
       color: "#0ea5e9"
     },
     { 
-      title: "Market Insight", 
-      desc: "Giám sát chỉ số khớp lệnh thị trường và phân tích Gap.", 
+      title: t("admin_dash_module_market_title"), 
+      desc: t("admin_dash_module_market_desc"), 
       icon: TrendingUp, 
       path: "/admin/market",
       color: "#a78bfa"
     },
     { 
-      title: "System Settings", 
-      desc: "Cấu hình tham số hệ thống và các thiết lập chung.", 
+      title: t("admin_dash_module_settings_title"), 
+      desc: t("admin_dash_module_settings_desc"), 
       icon: Settings, 
       path: "/admin/settings",
       color: "#64748b"
@@ -95,22 +97,22 @@ const AdminDashboard = () => {
         {/* Header Section */}
         <div className={styles.headerWrapper}>
           <div>
-            <h1 className={styles.headerTitle}>System Oversight</h1>
-            <p className={styles.headerSubtitle}>Bảng điều khiển quản trị tập trung cho Knowledge Graph & User AI.</p>
+            <h1 className={styles.headerTitle}>{t("admin_dash_title")}</h1>
+            <p className={styles.headerSubtitle}>{t("admin_dash_subtitle")}</p>
           </div>
           <div className={styles.statusIndicator}>
             <div className={cn(styles.badgeDot, styles.indicatorSuccess)} />
-            <span className={styles.statusLabel}>AI Intelligence Online</span>
+            <span className={styles.statusLabel}>{t("admin_dash_status_online")}</span>
           </div>
         </div>
 
         {/* Quick Stats Grid */}
         <div className={styles.statsGrid}>
           {[
-            { label: "Active Users", value: stats.users, icon: Users },
-            { label: "Total CVs", value: stats.cvs || 0, icon: FileText },
-            { label: "Active Jobs", value: stats.jobs || 0, icon: Layers },
-            { label: "Avg Market Fit", value: `${stats.marketFits}%`, icon: Zap },
+            { label: t("admin_dash_users_label"), value: stats.users, icon: Users },
+            { label: t("admin_dash_cvs_label"), value: stats.cvs || 0, icon: FileText },
+            { label: t("admin_dash_jobs_label"), value: stats.jobs || 0, icon: Layers },
+            { label: t("admin_dash_market_fit_label"), value: `${stats.marketFits}%`, icon: Zap },
           ].map((stat) => (
             <div key={stat.label} className={styles.statCard}>
               <stat.icon className={cn(styles.statIcon, styles.statIconDecorative)} />
@@ -144,7 +146,7 @@ const AdminDashboard = () => {
 
                <div className={styles.footerWrapper}>
                    <div className={styles.linkText}>
-                     Access Module <ChevronRight size={14} />
+                     {t("admin_dash_access_module")} <ChevronRight size={14} />
                    </div>
                    <div className={styles.hoverIcon}>
                      <ArrowUpRight size={20} className={styles.iconWithAccent} />
@@ -163,20 +165,19 @@ const AdminDashboard = () => {
           <TrendingUp size={400} className={styles.bgDecoration} />
            <div className={styles.relativeZ10}>
             <h2 className={styles.insightTitle}>
-               <ShieldCheck size={24} className={styles.insightIcon} /> System Intelligence Health
+               <ShieldCheck size={24} className={styles.insightIcon} /> {t("admin_dash_health_title")}
             </h2>
             <p className={styles.insightText}>
-               Hệ thống đang hoạt động ổn định. Cơ sở dữ liệu tri thức được cập nhật theo thời gian thực.
-               Không có xung đột logic nào được phát hiện trong quá trình phân tích kĩ năng người dùng.
+               {t("admin_dash_health_desc")}
             </p>
             <div className={styles.badgeGroup}>
                <div className={styles.badge}>
                   <div className={cn(styles.badgeDot, styles.indicatorSuccess)} />
-                  <span className={styles.badgeLabel}>Live Graph Sync</span>
+                  <span className={styles.badgeLabel}>{t("admin_dash_badge_graph_sync")}</span>
                </div>
                <div className={styles.badge}>
                   <div className={cn(styles.badgeDot, styles.indicatorPrimary)} />
-                  <span className={styles.badgeLabel}>Semantic Cache Clear</span>
+                  <span className={styles.badgeLabel}>{t("admin_dash_badge_cache_clear")}</span>
                </div>
             </div>
           </div>

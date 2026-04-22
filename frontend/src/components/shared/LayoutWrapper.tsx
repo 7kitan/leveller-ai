@@ -4,6 +4,9 @@ import React from "react";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import { usePathname } from "next/navigation";
+import dynamic from "next/dynamic";
+
+const AuthGuard = dynamic(() => import("@/components/auth/AuthGuard"), { ssr: false });
 
 import styles from "./layout.module.css";
 import { cn } from "@/lib/utils";
@@ -77,13 +80,15 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         )}
 
         <main className={showChrome ? styles.pageContainer : ""}>
-          {showChrome ? (
-            <div className={styles.animateIn}>
-              {children}
-            </div>
-          ) : (
-            children
-          )}
+          <AuthGuard>
+            {showChrome ? (
+              <div className={styles.animateIn}>
+                {children}
+              </div>
+            ) : (
+              children
+            )}
+          </AuthGuard>
         </main>
 
         {showChrome && (

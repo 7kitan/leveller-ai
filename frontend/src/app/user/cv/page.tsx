@@ -33,6 +33,7 @@ import {
 import { cn } from "@/lib/utils";
 import styles from "./user-cv.module.css";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface CVHistory {
   id: string;
@@ -141,8 +142,23 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   );
 };
 
+const SENIORITY_LEVELS = ["Junior", "Mid-level", "Senior", "Expert", "Unknown"];
+const SKILL_LEVELS = ["Junior", "Mid-level", "Senior", "Expert"];
+
 const UserCVPage = () => {
   const { token } = useAuth();
+  const { t, language } = useLanguage();
+
+  const getSeniorityLabel = (val: string) => {
+    switch(val) {
+      case "Junior": return t("cv_level_junior");
+      case "Mid-level": return t("cv_level_mid");
+      case "Senior": return t("cv_level_senior");
+      case "Expert": return t("cv_level_expert");
+      case "Unknown": return t("cv_level_unknown");
+      default: return val;
+    }
+  };
   const [file, setFile] = useState<File | null>(null);
   const [history, setHistory] = useState<CVHistory[]>([]);
   const [status, setStatus] = useState<"idle" | "uploading" | "processing" | "viewing">("idle");
@@ -200,7 +216,7 @@ const UserCVPage = () => {
     if (!parsedData) return;
     const newSkill = {
       name: skillName,
-      category: "Technology", // Default
+      category: t("cv_skill_default_cat"),
       experience_years: 1,
       level: "Junior",
     };
@@ -262,14 +278,14 @@ const UserCVPage = () => {
           fetchHistory();
         } catch (err) {
           console.error("Lỗi khi lấy chi tiết CV cũ:", err);
-          setError("Không thể lấy dữ liệu CV đã tồn tại.");
+          setError(t("error"));
           setStatus("idle");
         }
       } else if (parser_id) {
         pollStatus(parser_id, cv_id);
       } else {
         console.error("Backend did not return parser_id or completed status", resp.data);
-        setError("Không nhận được ID xử lý từ hệ thống.");
+        setError(t("error"));
         setStatus("idle");
       }
     } catch (err: any) {
@@ -301,7 +317,7 @@ const UserCVPage = () => {
           fetchHistory();
         } else if (taskStatus === "failed") {
           clearInterval(interval);
-          setError("AI gặp sự cố khi bóc tách hồ sơ này.");
+          setError(t("cv_processing_ai_sub")); // Or specific error
           setStatus("idle");
         }
       } catch {
@@ -323,7 +339,7 @@ const UserCVPage = () => {
       setStatus("viewing");
     } catch (err) {
       console.error("Auto-load CV detail error:", err);
-      setError("Không thể tự động tải chi tiết CV.");
+      setError(t("error"));
       setStatus("idle");
       setSelectedHistoryId(null);
     }
@@ -343,7 +359,7 @@ const UserCVPage = () => {
       setStatus("viewing");
     } catch (err) {
       console.error("Load CV detail error:", err);
-      setError("Không thể tải chi tiết CV.");
+      setError(t("error"));
       setStatus("idle");
       setSelectedHistoryId(null);
     }
@@ -412,12 +428,12 @@ const UserCVPage = () => {
     // Spec 5: Error Handling -> Alternative Paths
     setParsedData({
       id: "manual-" + Date.now(),
-      full_name: "Candidate Name",
+      full_name: t("cv_candidate_name_placeholder"),
       skills: [],
       experience_years_total: 0,
       education: [],
       certifications: [],
-      summary: "Manual Entry Mode"
+      summary: t("cv_manual_entry_mode")
     });
     setIsDirty(true);
     setStatus("viewing");
@@ -426,8 +442,8 @@ const UserCVPage = () => {
   const handleManualAddSkill = () => {
     if (!parsedData) return;
     const newSkill = {
-      name: "New Skill",
-      category: "Technology",
+      name: t("cv_skill_default_name"),
+      category: t("cv_skill_default_cat"),
       experience_years: 1,
       level: "Junior",
     };
@@ -465,7 +481,7 @@ const UserCVPage = () => {
     const duplicateSkills = skillNames.filter((name, index) => skillNames.indexOf(name) !== index);
     if (duplicateSkills.length > 0) {
       const uniqueDupes = Array.from(new Set(duplicateSkills));
-      alert(`Phát hiện kĩ năng bị trùng lặp: ${uniqueDupes.join(", ")}. Vui lòng xóa hoặc sửa tên kĩ năng trước khi lưu.`);
+      alert(t("cv_duplicate_skill_error"));
       setSaving(false);
       return;
     }
@@ -503,10 +519,10 @@ const UserCVPage = () => {
       if (wasDirty && analysisContext) {
         setShowRerunModal(true);
       } else {
-        alert("Hồ sơ năng lực đã được lưu thành công!");
+        alert(t("cv_save_success"));
       }
     } catch (err: any) {
-      const msg = err.response?.data?.detail || "Lỗi khi lưu Portfolio.";
+      const msg = err.response?.data?.detail || t("error");
       alert(Array.isArray(msg) ? msg[0].msg : msg);
     } finally {
       setSaving(false);
@@ -523,12 +539,12 @@ const UserCVPage = () => {
         </div>
         <div>
           <h2 className={styles.processingTitle}>
-            {selectedHistoryId ? "Đang tải chi tiết CV..." : "ĐANG PHÂN TÍCH CV..."}
+            {selectedHistoryId ? t("cv_processing_detail") : t("cv_processing_ai")}
           </h2>
           <p className={styles.processingDesc}>
             {selectedHistoryId
-              ? "AI đang tải dữ liệu hồ sơ từ hệ thống."
-              : "AI đang trích xuất kỹ năng từ CV của bạn."}
+              ? t("cv_processing_detail_sub")
+              : t("cv_processing_ai_sub")}
           </p>
         </div>
       </div>
@@ -573,7 +589,7 @@ const UserCVPage = () => {
         <div className={styles.backRow}>
           <button onClick={handleBack} className={styles.backBtn}>
             <ArrowLeft size={16} />
-            Quay lại kho hồ sơ
+            {t("cv_back_to_history")}
           </button>
         </div>
 
@@ -589,10 +605,10 @@ const UserCVPage = () => {
             </div>
             <div className={styles.bannerContent}>
                <div className={styles.bannerTitle}>
-                  Gợi ý tối ưu CV cho: <strong>{analysisContext?.jd_title || "Vị trí đã chọn"}</strong>
+                  {t("cv_optimization_suggestion")}: <strong>{analysisContext?.jd_title || t("select_job")}</strong>
                </div>
                <p className={styles.bannerSubtitle}>
-                  Dựa trên phân tích Gap, bạn nên bổ sung các kỹ năng sau để tăng điểm tương thích:
+                  {t("cv_optimization_sub")}
                </p>
                <div className={styles.suggestedTagsGrid}>
                   {filteredSuggestions.map(skill => (
@@ -624,8 +640,8 @@ const UserCVPage = () => {
                 <AlertCircle size={20} />
               </div>
               <div className={styles.bannerText}>
-                <strong>Hệ thống đã đọc xong CV của bạn thông qua OCR.</strong>
-                <p>Vui lòng kiểm tra và hiệu chỉnh lại danh sách kỹ năng bên dưới để đảm bảo Lộ trình sự nghiệp được chính xác 100%.</p>
+                <strong>{t("cv_ocr_banner_title")}</strong>
+                <p>{t("cv_ocr_banner_sub")}</p>
               </div>
             </div>
           )}
@@ -642,12 +658,15 @@ const UserCVPage = () => {
                     value={parsedData.full_name || ""}
                     onChange={(e) => handleUpdateBasic("full_name", e.target.value)}
                     className={styles.nameInput}
-                    placeholder="Họ và tên"
+                    placeholder={t("cv_full_name_placeholder")}
                   />
                   <CustomDropdown
-                    value={parsedData.seniority || "Unknown"}
-                    options={["Junior", "Mid-level", "Senior", "Expert", "Unknown"]}
-                    onChange={(val) => handleUpdateBasic("seniority", val)}
+                    value={getSeniorityLabel(parsedData.seniority || "Unknown")}
+                    options={SENIORITY_LEVELS.map(getSeniorityLabel)}
+                    onChange={(val) => {
+                      const key = SENIORITY_LEVELS.find(k => getSeniorityLabel(k) === val);
+                      if (key) handleUpdateBasic("seniority", key);
+                    }}
                     className={styles.senioritySelect}
                     style={{ color: sc, borderColor: sc + "40", background: sc + "12" }}
                   />
@@ -662,7 +681,7 @@ const UserCVPage = () => {
                         onChange={(e) => handleUpdateBasic("experience_years_total", parseFloat(e.target.value) || 0)}
                         className={styles.inlineEditInput}
                     />
-                    năm kinh nghiệm
+                    {t("cv_years_exp")}
                   </div>
                   {parsedData.is_ocr && (
                     <div className={styles.ocrBadge}>
@@ -672,7 +691,7 @@ const UserCVPage = () => {
                   )}
                   <div className={cn(styles.secureBadge, styles.secureBadgeVerified)}>
                     <ShieldCheck size={13} />
-                    <span className={styles.secureTextVerified}>AI Verified</span>
+                    <span className={styles.secureTextVerified}>{t("cv_ai_verified")}</span>
                   </div>
                 </div>
               </div>
@@ -690,7 +709,7 @@ const UserCVPage = () => {
                   ) : (
                     <ShieldCheck size={18} />
                   )}
-                  XÁC THỰC HỒ SƠ
+                  {t("cv_verify_profile")}
                 </button>
               )}
               <button
@@ -703,19 +722,19 @@ const UserCVPage = () => {
                 ) : (
                   <Save size={18} />
                 )}
-                LƯU THAY ĐỔI
+                {t("cv_save_changes")}
               </button>
             </div>
           </div>
 
           {parsedData.summary !== undefined && (
             <div className={styles.summarySection}>
-              <h4 className={styles.summaryTitle}>AI Professional Summary</h4>
+              <h4 className={styles.summaryTitle}>{t("cv_professional_summary")}</h4>
               <textarea
                 value={parsedData.summary || ""}
                 onChange={(e) => handleUpdateBasic("summary", e.target.value)}
                 className={styles.summaryTextarea}
-                placeholder="Tóm tắt mục tiêu nghề nghiệp và kinh nghiệm cốt lõi..."
+                placeholder={t("cv_summary_placeholder")}
               />
             </div>
           )}
@@ -727,11 +746,11 @@ const UserCVPage = () => {
           <div className={styles.matrixPanel}>
             <h2 className={styles.matrixTitle}>
               <Sparkles size={20} className={styles.matrixTitleIcon} />
-              COMPETENCY MATRIX
+              {t("cv_competency_matrix")}
             </h2>
 
             {Object.keys(groupedSkills).length === 0 ? (
-              <p className={styles.emptyText}>Chưa có kỹ năng nào được trích xuất.</p>
+              <p className={styles.emptyText}>{t("cv_no_skills")}</p>
             ) : (
               Object.keys(groupedSkills).map((cat) => (
                 <div key={cat} className={styles.catGroup}>
@@ -746,7 +765,7 @@ const UserCVPage = () => {
                             handleUpdateSkill(skill.originalIndex, "name", e.target.value)
                           }
                           className={styles.skillNameInput}
-                          placeholder="Tên kĩ năng"
+                          placeholder={t("cv_skill_name_placeholder")}
                         />
                         <input
                           type="number"
@@ -757,11 +776,14 @@ const UserCVPage = () => {
                           className={styles.editInput}
                           min={0}
                         />
-                        <span className={styles.yrsLabel}>YRS</span>
+                        <span className={styles.yrsLabel}>{t("cv_years_short")}</span>
                         <CustomDropdown
-                          value={skill.level || "Junior"}
-                          options={["Junior", "Mid-level", "Senior", "Expert"]}
-                          onChange={(val) => handleUpdateSkill(skill.originalIndex, "level", val)}
+                          value={getSeniorityLabel(skill.level || "Junior")}
+                          options={SKILL_LEVELS.map(getSeniorityLabel)}
+                          onChange={(val) => {
+                            const key = SKILL_LEVELS.find(k => getSeniorityLabel(k) === val);
+                            if (key) handleUpdateSkill(skill.originalIndex, "level", key);
+                          }}
                           className={styles.skillLevelSelect}
                         />
                         <button
@@ -779,7 +801,7 @@ const UserCVPage = () => {
 
             <button onClick={handleManualAddSkill} className={styles.addSkillBtn}>
               <Plus size={14} />
-              Bổ sung kỹ năng
+              {t("cv_add_skill")}
             </button>
           </div>
 
@@ -788,7 +810,7 @@ const UserCVPage = () => {
             <div className={styles.sectionCard}>
               <h3 className={styles.sectionTitle}>
                 <Briefcase size={18} className={styles.sectionTitleIcon} />
-                KINH NGHIỆM LÀM VIỆC
+                {t("cv_work_history")}
               </h3>
               <div className={styles.timelineList}>
                 {(parsedData.work_history || []).map((w, idx) => (
@@ -801,7 +823,7 @@ const UserCVPage = () => {
                           value={w.position || ""}
                           onChange={(e) => handleUpdateWork(idx, "position", e.target.value)}
                           className={styles.timelineInput}
-                          placeholder="Vị trí"
+                          placeholder={t("cv_position_placeholder")}
                         />
                         <input
                           type="number"
@@ -810,7 +832,7 @@ const UserCVPage = () => {
                           onChange={(e) => handleUpdateWork(idx, "duration_years", parseFloat(e.target.value) || 0)}
                           className={styles.timelineSmallInput}
                         />
-                        <span className={styles.yrsLabel}>năm</span>
+                        <span className={styles.yrsLabel}>{t("cv_years_short")}</span>
                         <button onClick={() => handleDeleteWork(idx)} className={styles.itemDeleteBtn}>
                           <X size={14} />
                         </button>
@@ -820,25 +842,25 @@ const UserCVPage = () => {
                         value={w.company || ""}
                         onChange={(e) => handleUpdateWork(idx, "company", e.target.value)}
                         className={styles.timelineSubInput}
-                        placeholder="Công ty"
+                        placeholder={t("cv_company_placeholder")}
                       />
                       <textarea
                         value={w.description || ""}
                         onChange={(e) => handleUpdateWork(idx, "description", e.target.value)}
                         className={styles.timelineDescTextarea}
-                        placeholder="Mô tả công việc..."
+                        placeholder={t("cv_work_desc_placeholder")}
                       />
                     </div>
                   </div>
                 ))}
                 <button
                   onClick={() => {
-                    const next = [...(parsedData.work_history || []), { position: "New Pos", company: "Company", duration_years: 1, description: "" }];
+                    const next = [...(parsedData.work_history || []), { position: t("cv_new_pos"), company: t("cv_new_company"), duration_years: 1, description: "" }];
                     handleUpdateBasic("work_history", next);
                   }}
                   className={styles.addItemBtn}
                 >
-                  <Plus size={14} /> Thêm kinh nghiệm
+                  <Plus size={14} /> {t("cv_add_exp")}
                 </button>
               </div>
             </div>
@@ -846,7 +868,7 @@ const UserCVPage = () => {
             <div className={styles.sectionCard}>
               <h3 className={styles.sectionTitle}>
                 <GraduationCap size={18} className={styles.sectionTitleIcon} />
-                HỌC VẤN
+                {t("cv_education")}
               </h3>
               <div className={styles.timelineList}>
                 {(parsedData.education || []).map((e, idx) => (
@@ -859,14 +881,14 @@ const UserCVPage = () => {
                           value={e.degree || ""}
                           onChange={(e) => handleUpdateEdu(idx, "degree", e.target.value)}
                           className={styles.timelineInput}
-                          placeholder="Bằng cấp"
+                          placeholder={t("cv_degree_placeholder")}
                         />
                         <input
                           type="text"
                           value={e.year || ""}
                           onChange={(e) => handleUpdateEdu(idx, "year", e.target.value)}
                           className={styles.timelineSmallInput}
-                          placeholder="Năm"
+                          placeholder={t("cv_year_placeholder")}
                         />
                         <button onClick={() => handleDeleteEdu(idx)} className={styles.itemDeleteBtn}>
                           <X size={14} />
@@ -877,19 +899,19 @@ const UserCVPage = () => {
                         value={e.institution || ""}
                         onChange={(e) => handleUpdateEdu(idx, "institution", e.target.value)}
                         className={styles.timelineSubInput}
-                        placeholder="Trường / Cơ sở đào tạo"
+                        placeholder={t("cv_institution_placeholder")}
                       />
                     </div>
                   </div>
                 ))}
                 <button
                   onClick={() => {
-                    const next = [...(parsedData.education || []), { degree: "Degree", institution: "University", year: "2024" }];
+                    const next = [...(parsedData.education || []), { degree: t("cv_new_degree"), institution: t("cv_new_institution"), year: "2024" }];
                     handleUpdateBasic("education", next);
                   }}
                   className={styles.addItemBtn}
                 >
-                  <Plus size={14} /> Thêm học vấn
+                  <Plus size={14} /> {t("cv_add_edu")}
                 </button>
               </div>
             </div>
@@ -897,7 +919,7 @@ const UserCVPage = () => {
             <div className={styles.sectionCard}>
               <h3 className={styles.sectionTitle}>
                 <Award size={18} className={styles.sectionTitleIcon} />
-                CHỨNG CHỈ
+                {t("cv_certifications")}
               </h3>
               <div className={styles.certList}>
                 {(parsedData.certifications || []).map((cert, idx) => (
@@ -922,12 +944,12 @@ const UserCVPage = () => {
                 ))}
                 <button
                   onClick={() => {
-                    const next = [...(parsedData.certifications || []), "Chứng chỉ mới"];
+                    const next = [...(parsedData.certifications || []), t("cv_new_cert")];
                     handleUpdateBasic("certifications", next);
                   }}
                   className={styles.addItemBtn}
                 >
-                  <Plus size={14} /> Thêm chứng chỉ
+                  <Plus size={14} /> {t("cv_add_cert")}
                 </button>
               </div>
             </div>
@@ -935,38 +957,37 @@ const UserCVPage = () => {
 
           {/* Right: Sidebar */}
           <div className={styles.verifyPanel}>
-            <h4 className={styles.scoringTitle}>Tổng quan</h4>
+            <h4 className={styles.scoringTitle}>{t("cv_overview")}</h4>
             <div className={styles.stackTight}>
               <div className={styles.statRow}>
-                <span className={styles.statLabel}>Kỹ năng</span>
+                <span className={styles.statLabel}>{t("nav_skills")}</span>
                 <span className={styles.statValue}>
                   {(parsedData.skills || []).length}
                 </span>
               </div>
               <div className={styles.statRow}>
-                <span className={styles.statLabel}>Kinh nghiệm</span>
+                <span className={styles.statLabel}>{t("cv_experience")}</span>
                 <span className={styles.statValue}>
-                  {parsedData.experience_years_total ?? 0} năm
+                  {parsedData.experience_years_total ?? 0} {t("cv_years_short")}
                 </span>
               </div>
               <div className={styles.statRow}>
-                <span className={styles.statLabel}>Học vấn</span>
+                <span className={styles.statLabel}>{t("cv_education")}</span>
                 <span className={styles.statValue}>
-                  {(parsedData.education || []).length} bậc
+                  {(parsedData.education || []).length} {t("cv_stages")}
                 </span>
               </div>
               <div className={styles.statRow}>
-                <span className={styles.statLabel}>Chứng chỉ</span>
+                <span className={styles.statLabel}>{t("cv_certifications")}</span>
                 <span className={styles.statValue}>
-                  {(parsedData.certifications || []).length} cái
+                  {(parsedData.certifications || []).length} {t("cv_items")}
                 </span>
               </div>
             </div>
 
             <div className={styles.infoBox}>
               <p className={styles.infoText}>
-                Các kỹ năng được bóc tách sẽ được sử dụng để chạy Gap Analysis trên
-                5,000+ vị trí công việc.
+                {t("cv_save_matrix_desc")}
               </p>
               <button
                 onClick={handleSaveMatrix}
@@ -977,7 +998,7 @@ const UserCVPage = () => {
                 ) : (
                   <CheckCircle2 size={20} />
                 )}
-                Lưu thay đổi
+                {t("save_changes")}
               </button>
             </div>
           </div>
@@ -998,17 +1019,16 @@ const UserCVPage = () => {
                   <div className={styles.modalIconBox}>
                     <Zap size={24} className={styles.modalZap} />
                   </div>
-                  <h2 className={styles.modalTitle}>Cập nhật CV thành công!</h2>
+                  <h2 className={styles.modalTitle}>{t("cv_update_success")}</h2>
                 </div>
                 <div className={styles.modalBody}>
                   <p>
-                    Bạn vừa thay đổi thông tin CV. Bạn có muốn chạy lại <strong>Phân tích Gap</strong> 
-                    cho vị trí <strong>{analysisContext?.jd_title || "đã chọn"}</strong> để cập nhật điểm tương thích mới nhất không?
+                    {t("cv_rerun_desc").replace('{title}', analysisContext?.jd_title || t("selected_job"))}
                   </p>
                 </div>
                 <div className={styles.modalFooter}>
                   <button onClick={() => setShowRerunModal(false)} className={styles.modalCancelBtn}>
-                    ĐỂ SAU
+                    {t("later")}
                   </button>
                   <button 
                     onClick={() => {
@@ -1017,7 +1037,7 @@ const UserCVPage = () => {
                     }} 
                     className={styles.modalConfirmBtn}
                   >
-                    CHẠY LẠI NGAY
+                    {t("rerun_now")}
                     <ArrowRight size={16} />
                   </button>
                 </div>
@@ -1038,16 +1058,15 @@ const UserCVPage = () => {
           <div>
             <h1 className={styles.title}>
               <Zap size={40} className={styles.zapIcon} />
-              KHO HỒ SƠ CÁ NHÂN
+              {t("cv_repository_title")}
             </h1>
             <p className={styles.subtitle}>
-              Tải lên CV (PDF/Images) để AI tự động trích xuất và tối ưu lộ trình kỹ
-              năng.
+              {t("cv_repository_subtitle")}
             </p>
           </div>
           <div className={styles.secureBadge}>
             <ShieldCheck size={18} className={styles.shieldIcon} />
-            <span className={styles.secureText}>ISO 27001 SECURE ENCRYPTION</span>
+            <span className={styles.secureText}>{t("cv_secure_iso")}</span>
           </div>
         </div>
 
@@ -1084,10 +1103,10 @@ const UserCVPage = () => {
 
                 <div className={styles.uploadTextCenter}>
                   <h3 className={styles.uploadH3}>
-                    {file ? file.name : "Kéo thả hồ sơ vào đây"}
+                    {file ? file.name : t("cv_dropzone_idle")}
                   </h3>
                   <p className={styles.uploadP}>
-                    Chấp nhận định dạng .pdf, .png, .jpg (Tối đa 10MB)
+                    {t("cv_dropzone_hint")}
                   </p>
                 </div>
 
@@ -1100,7 +1119,7 @@ const UserCVPage = () => {
                     accept=".pdf,image/*"
                   />
                   <label htmlFor="cv-upload" className={styles.browseLabel}>
-                    Hoặc duyệt từ máy tính
+                    {t("cv_browse_files")}
                   </label>
                 </div>
               </div>
@@ -1113,7 +1132,7 @@ const UserCVPage = () => {
                   </div>
                   <button onClick={handleGoManual} className={styles.manualEntryBtn}>
                     <Plus size={14} />
-                    TỰ NHẬP KỸ NĂNG (BỎ QUA AI)
+                    {t("cv_manual_entry")}
                   </button>
                 </div>
               )}
@@ -1128,7 +1147,7 @@ const UserCVPage = () => {
                 ) : (
                   <Sparkles size={20} />
                 )}
-                {status === "uploading" ? "AI ĐANG PHÂN TÍCH..." : "BẮT ĐẦU TRÍCH XUẤT AI"}
+                {status === "uploading" ? t("cv_analyzing") : t("cv_start_extract")}
               </button>
             </div>
           </div>
@@ -1136,7 +1155,7 @@ const UserCVPage = () => {
           {/* Right: History */}
           <div className={styles.historySection}>
             <div className={styles.historyTitle}>
-              LỊCH SỬ HỒ SƠ
+              {t("cv_history_title")}
               <div className={styles.historyTitleLine} />
             </div>
 
@@ -1177,10 +1196,10 @@ const UserCVPage = () => {
                       </h4>
                       <p className={styles.historyDate}>
                         {item.status === "completed"
-                          ? `Đã phân tích · ${new Date(item.created_at).toLocaleString("vi-VN")}`
+                          ? `${t("cv_analyzed")} · ${new Date(item.created_at).toLocaleString(language === 'vi' ? "vi-VN" : "en-US")}`
                           : item.status === "failed"
-                          ? `Lỗi phân tích · ${new Date(item.created_at).toLocaleString("vi-VN")}`
-                          : `Đang xử lý · ${new Date(item.created_at).toLocaleString("vi-VN")}`}
+                          ? `${t("cv_analysis_error")} · ${new Date(item.created_at).toLocaleString(language === 'vi' ? "vi-VN" : "en-US")}`
+                          : `${t("cv_processing")} · ${new Date(item.created_at).toLocaleString(language === 'vi' ? "vi-VN" : "en-US")}`}
                       </p>
                       {item.status === "failed" && item.error_message && (
                         <div className={styles.historyErrorText}>
@@ -1200,7 +1219,7 @@ const UserCVPage = () => {
             {history.length === 0 && (
               <div className={styles.historyEmptyState}>
                 <Clock size={48} className={styles.historyEmptyIcon} />
-                <p className={styles.historyEmptyText}>Chưa có lịch sử</p>
+                <p className={styles.historyEmptyText}>{t("cv_no_history")}</p>
               </div>
             )}
           </div>

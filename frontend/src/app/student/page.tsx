@@ -27,6 +27,7 @@ import styles from "./student.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 /* ========================================
  * CONSTANTS
@@ -328,6 +329,7 @@ const StudentDashboard = () => {
   const [simData, setSimData] = useState<any>(null);
   const [simulating, setSimulating] = useState(false);
   const { user, token } = useAuth();
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     const fetchLatestAnalysis = async () => {
@@ -404,34 +406,34 @@ const StudentDashboard = () => {
               <div className={styles.emptyStateText}>
                 <h1 className={styles.emptyStateTitle}>
                   THE<br />
-                  <span className={styles.nexusText}>GENOME WAITS.</span>
+                  <span className={styles.nexusText}>{t("student_empty_title").split('.')[0]}</span>
                 </h1>
                 <p className={styles.emptyStateSub}>
-                  Lộ trình nghề nghiệp của bạn đang được ẩn giấu. Hãy để AI của Lumix giải mã bộ kỹ năng và ánh xạ tương lai của bạn ngay bây giờ.
+                  {t("student_empty_sub")}
                 </p>
               </div>
 
               <div className={styles.emptySteps}>
                 <div className={styles.emptyStepItem}>
-                  <div className={styles.emptyStepIcon}>01</div>
-                  <span className={styles.emptyStepLabel}>Tải lên CV</span>
+                   <div className={styles.emptyStepIcon}>01</div>
+                   <span className={styles.emptyStepLabel}>{t("student_step_upload")}</span>
                 </div>
                 <div className={styles.emptyStepItem}>
-                  <div className={styles.emptyStepIcon}>02</div>
-                  <span className={styles.emptyStepLabel}>AI Đánh giá Gap</span>
+                   <div className={styles.emptyStepIcon}>02</div>
+                   <span className={styles.emptyStepLabel}>{t("student_step_gap")}</span>
                 </div>
                 <div className={styles.emptyStepItem}>
-                   <div className={styles.emptyStepIcon}>03</div>
-                   <span className={styles.emptyStepLabel}>Nhận lộ trình</span>
+                    <div className={styles.emptyStepIcon}>03</div>
+                    <span className={styles.emptyStepLabel}>{t("student_step_roadmap")}</span>
                 </div>
               </div>
 
               <button 
                 onClick={() => router.push("/user/cv")}
-                className={styles.ctaButton}
-              >
-                BẮT ĐẦU PHÂN TÍCH CV <ArrowUpRight size={24} />
-              </button>
+                 className={styles.ctaButton}
+               >
+                 {t("student_btn_start")} <ArrowUpRight size={24} />
+               </button>
             </div>
           </div>
         </div>
@@ -480,14 +482,15 @@ const StudentDashboard = () => {
                 <Target size={14} />
                 <span>Career Logic v3.0</span>
             </div>
-            <h1 className={styles.headerTitle}>
-              THE<br />
-              <span className={styles.nexusText}>NEXUS</span>
-            </h1>
-            <p className={styles.headerSubtitle}>
-               Chào mừng trở lại. AI đã phân tích sự phù hợp của bạn với thị trường.
-               Hệ thống phát hiện <b>{analysis.skill_gaps?.length || 0}</b> khoảng trống tri thức trong lộ trình lên <b>{roles[0]}</b>.
-            </p>
+             <h1 className={styles.headerTitle}>
+               THE<br />
+               <span className={styles.nexusText}>NEXUS</span>
+             </h1>
+             <p className={styles.headerSubtitle}>
+                {t("student_welcome_back")}
+                <br/>
+                {t("student_detected_gaps").replace('các khoảng trống', (analysis.skill_gaps?.length || 0).toString() + ' khoảng trống')} <b>{roles[0]}</b>.
+             </p>
           </div>
 
           <div className={styles.quickStats}>
@@ -496,7 +499,7 @@ const StudentDashboard = () => {
                    {simData ? simData.potential_score : Math.round(matchPct)}
                    {simData && <span className={styles.statBoost}> (+{simData.boost_amount})</span>}
                 </div>
-                <div className={styles.statLabel}>{simData ? "POTENTIAL MATCH %" : "MARKET FIT %"}</div>
+                 <div className={styles.statLabel}>{simData ? t("student_potential_match") : t("student_fit_market")}</div>
              </div>
              <div className={styles.statItem}>
                 <div className={styles.statValueAmber}>{analysis?.skill_gaps?.length || 0}</div>
@@ -509,12 +512,12 @@ const StudentDashboard = () => {
             <div className={styles.mainContentArea}>
                 <div>
                    <div className={styles.sectionHeader}>
-                      <h2 className={styles.sectionTitle}>
-                        <Terminal size={24} className={styles.titleIconMuted} /> Core Matrix
-                      </h2>
-                      <div className={styles.sectionSubtitle}>
-                         <Database size={12} /> Semantic Map Sync: Live
-                      </div>
+                       <h2 className={styles.sectionTitle}>
+                         <Terminal size={24} className={styles.titleIconMuted} /> {t("student_core_matrix")}
+                       </h2>
+                       <div className={styles.sectionSubtitle}>
+                          <Database size={12} /> {t("student_semantic_map")}
+                       </div>
                    </div>
 
                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '3rem', alignItems: 'center', marginBottom: '3rem' }}>
@@ -562,8 +565,8 @@ const StudentDashboard = () => {
 
                             <div className={styles.progressContainer}>
                                <div className={styles.progressLabel}>
-                                  <span>Expertise Level</span>
-                                  <span>{skill.progress}%</span>
+                                   <span>{t("student_expertise_level")}</span>
+                                   <span>{skill.progress}%</span>
                                </div>
                                <div className={styles.progressBarTrack}>
                                   <motion.div 
@@ -582,7 +585,7 @@ const StudentDashboard = () => {
                                     exit={{ height: 0, opacity: 0 }}
                                     className={styles.drillDownPanel}
                                   >
-                                     <div className={styles.drillDownTitle}>Target Roles requiring this</div>
+                                      <div className={styles.drillDownTitle}>{t("student_target_roles_req")}</div>
                                      <div className={styles.roleBadgeGroup}>
                                         {roles.map((r: any) => (
                                            <span key={r} className={styles.roleBadge}>
@@ -594,10 +597,10 @@ const StudentDashboard = () => {
                                        {/* AI CV Suggester */}
                                       {analysis.skill_gaps?.find((g: any) => g.skill.toLowerCase() === skill.name.toLowerCase()) && (
                                         <div className={styles.aiSuggesterBox}>
-                                          <div className={styles.aiSuggesterTitle}>
-                                            <Sparkles size={12} />
-                                            <span>AI CV Suggester</span>
-                                          </div>
+                                           <div className={styles.aiSuggesterTitle}>
+                                             <Sparkles size={12} />
+                                             <span>{t("student_ai_suggester")}</span>
+                                           </div>
                                           <p className={styles.aiSuggesterText}>
                                             {analysis.skill_gaps.find((g: any) => g.skill.toLowerCase() === skill.name.toLowerCase()).learning_path || 
                                              `Tối ưu hóa kinh nghiệm với ${skill.name} để lấp đầy khoảng cách kỹ năng trong lộ trình nghề nghiệp.`}
@@ -609,7 +612,7 @@ const StudentDashboard = () => {
                                             }}
                                             className={styles.copySuggesterBtn}
                                           >
-                                            Copy to Clipboard
+                                           {t("copy_to_clipboard") || "Copy to Clipboard"}
                                           </button>
                                         </div>
                                       )}
@@ -618,40 +621,40 @@ const StudentDashboard = () => {
 
                                       {analysis.skill_gaps?.find((g: any) => g.skill.toLowerCase() === skill.name.toLowerCase())?.reasoning && (
                                         <div className={styles.aiReasoningBox}>
-                                          <div className={styles.aiReasoningHeader}>
-                                            <Sparkles size={12} className={styles.sparkleIcon} />
-                                            <span>AI INSIGHT</span>
-                                          </div>
+                                           <div className={styles.aiReasoningHeader}>
+                                             <Sparkles size={12} className={styles.sparkleIcon} />
+                                             <span>{t("student_ai_insight")}</span>
+                                           </div>
                                           <p className={styles.aiReasoningText}>
                                             {analysis.skill_gaps.find((g: any) => g.skill.toLowerCase() === skill.name.toLowerCase()).reasoning}
                                           </p>
                                         </div>
                                       )}
 
-                                      <Link href="/student/courses" className={styles.courseItem}>
-                                         <span className={styles.nodeOptimizeLink}>Optimize this node</span>
-                                         <ChevronRight size={14} className={styles.iconAmberSmall} />
-                                      </Link>
+                                       <Link href="/student/courses" className={styles.courseItem}>
+                                          <span className={styles.nodeOptimizeLink}>{t("student_optimize_node")}</span>
+                                          <ChevronRight size={14} className={styles.iconAmberSmall} />
+                                       </Link>
                                   </motion.div>
                                )}
                             </AnimatePresence>
                          </div>
                       )) : (
-                        <div className={styles.emptyCard}>
-                           <p>Chưa có dữ liệu kỹ năng. Hãy bắt đầu phân tích Gap để thấy Core Matrix của bạn.</p>
-                        </div>
+                         <div className={styles.emptyCard}>
+                            <p>{t("cv_no_skills")}</p>
+                         </div>
                       )}
                    </div>
                 </div>
 
                 <div>
                     <div className={styles.sectionHeader}>
-                        <h2 className={styles.sectionTitle}>
-                          <Sparkles size={24} className={styles.titleIconCyan} /> Knowledge Booster
-                        </h2>
-                       <Link href="/student/courses" className={styles.sectionSubtitle}>
-                          VIEW ALL <ArrowUpRight size={12} />
-                       </Link>
+                         <h2 className={styles.sectionTitle}>
+                           <Sparkles size={24} className={styles.titleIconCyan} /> {t("student_knowledge_booster")}
+                         </h2>
+                        <Link href="/student/courses" className={styles.sectionSubtitle}>
+                           {t("student_view_all_courses")} <ArrowUpRight size={12} />
+                        </Link>
                     </div>
 
                      <div className={styles.coursesWrapper}>
@@ -669,16 +672,16 @@ const StudentDashboard = () => {
                               <h3 className={styles.courseTitleSmall}>{course.title}</h3>
                                <div className={styles.courseFooter}>
                                   <div className={styles.badge}>
-                                     <div className={cn(styles.badgeDot, styles.badgeDotCyan)} />
-                                     <span className={styles.badgeLabel}>Boost Fit +{Math.round(course.similarity * 20)}%</span>
-                                  </div>
-                                 <button onClick={() => window.open(course.url, '_blank')} className={styles.enrollBtn}>Enroll Now <ArrowUpRight size={14} /></button>
-                              </div>
+                                      <div className={cn(styles.badgeDot, styles.badgeDotCyan)} />
+                                      <span className={styles.badgeLabel}>{t("student_boost_fit")} +{Math.round(course.similarity * 20)}%</span>
+                                   </div>
+                                  <button onClick={() => window.open(course.url, '_blank')} className={styles.enrollBtn}>{t("student_enroll_now")} <ArrowUpRight size={14} /></button>
+                               </div>
                            </div>
                         )) || (
-                          <div className={styles.emptyCourses}>
-                             <p>Tải CV lên để nhận gợi ý khóa học tối ưu lộ trình.</p>
-                          </div>
+                           <div className={styles.emptyCourses}>
+                              <p>{t("dash_no_gaps")}</p>
+                           </div>
                         )}
                     </div>
                 </div>
@@ -688,9 +691,9 @@ const StudentDashboard = () => {
                 {/* Readiness Score removed per user request */}
 
                <div className={styles.roadmapPanel}>
-                   <h3 className={cn(styles.sectionTitle, styles.roadmapTitle)}>
-                     <Compass size={20} className={styles.compassIcon} /> Learning Path
-                   </h3>
+                    <h3 className={cn(styles.sectionTitle, styles.roadmapTitle)}>
+                      <Compass size={20} className={styles.compassIcon} /> {t("student_learning_path")}
+                    </h3>
                   
                   <div className={styles.roadmapLine} />
 
@@ -712,16 +715,16 @@ const StudentDashboard = () => {
                             </div>
                          </div>
                      )) : (
-                       <p className={styles.emptyRoadmap}>Chưa có lộ trình học tập.</p>
+                        <p className={styles.emptyRoadmap}>{t("roadmap_empty")}</p>
                      )}
                   </div>
 
                    {analysis?.career_roadmap?.stages?.[0] && (
                      <div className={styles.milestoneCard}>
                         <div className={styles.milestoneHeader}>
-                           <Layers size={16} className={styles.layersIcon} />
-                           <span className={styles.milestoneLabel}>Current Focus</span>
-                        </div>
+                            <Layers size={16} className={styles.layersIcon} />
+                            <span className={styles.milestoneLabel}>{t("student_current_focus")}</span>
+                         </div>
                         <p className={styles.milestoneText}>{analysis.career_roadmap.stages[0].summary || analysis.career_roadmap.summary}</p>
                      </div>
                    )}

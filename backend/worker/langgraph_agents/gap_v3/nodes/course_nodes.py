@@ -18,7 +18,8 @@ from typing import Dict, Any, List
 
 from ..states import GapAnalysisStateV3
 from ..utils.llm_helpers import llm_json_completion
-from ..config import VECTOR_SIM_THRESHOLD
+from ..config import get_vector_sim_threshold
+from shared.config_utils import config_manager
 
 logger = logging.getLogger("course_agent_v3")
 
@@ -107,9 +108,10 @@ async def course_recommendation_llm_node(
             logger.warning("[STEP 4] No courses found for gap: " + gap_skill)
             continue
 
+        sim_threshold = config_manager.get_setting("gap_vector_sim_threshold", default=0.35, cast=float)
         logger.info(
             f"[STEP 4] {len(course_candidates)} candidates for '{gap_skill}' | "
-            f"sim_threshold={VECTOR_SIM_THRESHOLD}"
+            f"sim_threshold={sim_threshold}"
         )
         for c in course_candidates[:5]:
             logger.info(
@@ -330,6 +332,7 @@ async def _vector_search_courses(
         return _search_courses_ilike(skill_name, target_level, db, limit)
 
     # ── pgvector search: fetch skills_raw + modules for ranking ────────────────
+    sim_threshold = config_manager.get_setting("gap_vector_sim_threshold", default=0.35, cast=float)
     query = text("""
         SELECT id, title, platform, url, level, provider, source_platform,
                duration_hours, is_certification, cost_usd, tags,
@@ -347,7 +350,7 @@ async def _vector_search_courses(
             query,
             {
                 "vec": skill_vector,
-                "sim_threshold": VECTOR_SIM_THRESHOLD,
+                "sim_threshold": sim_threshold,
                 "limit_val": limit,
             },
         ).fetchall()
@@ -379,7 +382,7 @@ async def _vector_search_courses(
     # ── Log vector search results ─────────────────────────────────────────────
     logger.info(
         f"[STEP 4/Search] {len(courses)} courses found for '{skill_name}' | "
-        f"sim_threshold={VECTOR_SIM_THRESHOLD}"
+        f"sim_threshold={sim_threshold}"
     )
     for c in courses[:5]:
         logger.info(

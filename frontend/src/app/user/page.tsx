@@ -22,11 +22,13 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import styles from "./user-dashboard.module.css";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/context/LanguageContext";
 
 const icons = [BowArrow, AppWindow, Layers, Rocket, Network];
 
 const UserDashboard = () => {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const [marketData, setMarketData] = useState<any>(null);
   const [latestAnalysis, setLatestAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -70,7 +72,7 @@ const UserDashboard = () => {
   // Map API courses to job card format
   const courses = (marketData?.courses || []).map((c: any, i: number) => ({
     id: i + 1,
-    title: c.title || "Khóa học kỹ năng",
+    title: c.title || t("nav_courses"),
     platform: c.platform || "E-learning",
     match: c.rank_score
       ? `${Math.round(parseFloat(c.rank_score) * 100)}%`
@@ -81,17 +83,17 @@ const UserDashboard = () => {
 
   const stats = [
     {
-      label: "Khóa học gợi ý",
+      label: t("dash_suggested_courses"),
       value: loading ? "..." : String(marketData?.matched_jobs ?? "0"),
       icon: Target,
     },
     {
-      label: "CV Match Score",
+      label: t("cv_match_score"),
       value: loading ? "..." : `${marketData?.market_fit_pct || 0}%`,
       icon: TrendingUp,
     },
     {
-      label: "Tổng việc làm",
+      label: t("nav_jobs"),
       value: loading ? "..." : String(marketData?.total_jobs || "0"),
       icon: Award,
     },
@@ -108,9 +110,9 @@ const UserDashboard = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h1 className={styles.headerTitle}>User Hub</h1>
+            <h1 className={styles.headerTitle}>{t("dash_hub_title")}</h1>
             <p className={styles.headerSubtitle}>
-              Hành trình làm chủ kỹ năng và chinh phục thị trường lao động toàn cầu.
+              {t("dash_hub_subtitle")}
             </p>
           </motion.div>
         </div>
@@ -123,19 +125,19 @@ const UserDashboard = () => {
               <UploadCloud size={32} />
             </div>
             <p className={styles.headerSubtitle} style={{ textAlign: "center", marginBottom: "1rem" }}>
-              Cập nhật hồ sơ để nhận gợi ý phân tích kỹ năng phù hợp.
+              {t("dash_cv_subtitle")}
             </p>
             <Link href="/user/cv" className={styles.uploadBtn}>
-              QUẢN LÝ CV
+              {t("dash_cv_btn")}
             </Link>
           </div>
 
           {/* Gap Analysis Summary */}
           <div className={cn(styles.card, styles.statsSection)} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 className="text-subheading">Phân tích Gap hiện tại</h3>
+              <h3 className="text-subheading">{t("dash_gap_analysis_title")}</h3>
               <Link href="/user/analysis" className={styles.viewAllLink}>
-                Chi tiết <ArrowRight size={16} />
+                {t("dash_view_details")} <ArrowRight size={16} />
               </Link>
             </div>
 
@@ -148,7 +150,7 @@ const UserDashboard = () => {
                       <span style={{ color: gap.severity === 'HIGH' ? 'var(--color-danger)' : 'var(--color-warning)' }}>
                         ● {gap.severity}
                       </span>
-                      <span>· {gap.learning_effort} effort</span>
+                      <span>· {gap.learning_effort} {t("learning_effort")}</span>
                     </div>
                   </div>
                 ))}
@@ -156,7 +158,7 @@ const UserDashboard = () => {
             ) : (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', opacity: 0.5 }}>
                 <Target size={40} style={{ marginBottom: '1rem' }} />
-                <p>Hãy bắt đầu phân tích để xem các kỹ năng còn thiếu.</p>
+                <p>{t("dash_no_gaps")}</p>
               </div>
             )}
 
@@ -174,9 +176,9 @@ const UserDashboard = () => {
         {/* Course Grid Layer */}
         <div className={styles.verticalStack8}>
           <div className={styles.jobListHeader}>
-            <h2 className={styles.jobListTitle}>Khóa học gợi ý</h2>
+            <h2 className={styles.jobListTitle}>{t("dash_suggested_courses")}</h2>
             <Link href="/user/recommend" className={styles.viewAllLink}>
-              Xem tất cả <ArrowRight size={16} />
+              {t("dash_view_all")} <ArrowRight size={16} />
             </Link>
           </div>
 
@@ -195,12 +197,12 @@ const UserDashboard = () => {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span className="font-micro">MATCH SCORE</span>
+                      <span className="font-micro">{t("dash_match_score")}</span>
                       <span style={{ color: 'var(--color-success)', fontWeight: 800 }} className="text-subheading">{course.match}</span>
                     </div>
                     {course.url && (
                       <a href={course.url} target="_blank" rel="noopener noreferrer" className={styles.viewAllLink} style={{ color: 'inherit' }}>
-                        Học ngay <ArrowRight size={14} />
+                        {t("dash_learn_now")} <ArrowRight size={14} />
                       </a>
                     )}
                   </div>
@@ -208,7 +210,7 @@ const UserDashboard = () => {
               ))
             ) : (
               <div className={styles.jobCard} style={{ gridColumn: 'span 3', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
-                <p>Chưa có khóa học gợi ý. Vui lòng phân tích CV.</p>
+                <p>{t("dash_no_courses")}</p>
               </div>
             )
             }
@@ -219,14 +221,14 @@ const UserDashboard = () => {
         <div className={cn(styles.card, styles.ctaCard)}>
           <div className={styles.ctaContent}>
             <h2 className={styles.ctaTitle}>
-              Phân tích Gap.<br />Chinh phục cơ hội.
+              {t("dash_cta_title")}
             </h2>
             <p className={styles.headerSubtitle} style={{ color: "inherit", opacity: 0.8 }}>
-              AI sẽ so sánh hàng nghìn tham số giữa hồ sơ của bạn và yêu cầu thực tế từ thị trường để tìm ra lộ trình ngắn nhất.
+              {t("dash_cta_sub")}
             </p>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
               <Link href="/user/analysis" className={styles.ctaMainBtn}>
-                BẮT ĐẦU PHÂN TÍCH GAP <ArrowRight size={20} />
+                {t("dash_cta_btn")} <ArrowRight size={20} />
               </Link>
             </div>
           </div>

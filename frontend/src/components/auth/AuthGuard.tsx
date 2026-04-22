@@ -18,8 +18,10 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin, requireRo
   const router = useRouter();
   const pathname = usePathname();
 
+  // ── 1. Redirection & Authorization Logic ────────────────────────────
   useEffect(() => {
-    if (!loading) {
+    // Only run redirection logic if NOT in maintenance
+    if (!loading && !maintenanceMode) {
       if (!user) {
         // Unauthenticated users can only view public routes
         const publicRoutes = ["/", "/login", "/register", "/auth/login", "/auth/register", "/auth"];
@@ -56,8 +58,9 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin, requireRo
         }
       }
     }
-  }, [user, loading, router, pathname, requireRole, requireAdmin]);
+  }, [user, loading, router, pathname, requireRole, requireAdmin, maintenanceMode]);
 
+  // ── 2. Loading State ───────────────────────────────────────────────
   if (loading) {
     return (
       <div className={styles.loadingOverlay}>
@@ -69,21 +72,26 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin, requireRo
     );
   }
 
+  // ── 3. Rendering ───────────────────────────────────────────────────
+  const isAdmin = user?.role === "admin";
+  const isCriticalPath = ["/auth/login", "/login"].includes(pathname);
+  const showMaintenance = maintenanceMode && !isAdmin && !isCriticalPath;
+
   // Hide protected content if redirects are about to happen
   const publicRoutes = ["/", "/login", "/register", "/auth/login", "/auth/register", "/auth"];
   const isAuthorized = !user ? publicRoutes.includes(pathname) : true;
-  if (!isAuthorized && !loading) return null;
-
-  // ── Maintenance Mode Gate ──────────────────────────────────────────
-  // Allow admins and critical paths during maintenance
-  const isCriticalPath = ["/auth/login", "/login"].includes(pathname);
-  const isAdmin = user?.role === "admin";
   
-  if (maintenanceMode && !isAdmin && !isCriticalPath) {
-    return <MaintenanceOverlay isAdmin={!!user} duration={maintenanceDuration} />;
-  }
+  if (!isAuthorized && !showMaintenance) return null;
 
-  return <>{children}</>;
+  return (
+    <>
+      {showMaintenance ? (
+        <MaintenanceOverlay />
+      ) : (
+        children
+      )}
+    </>
+  );
 };
 
 export default AuthGuard;

@@ -156,12 +156,12 @@ const UserRecommendPage = () => {
           setGapResult(r.data as GapResult);
         } else {
           console.log("[RECOMMEND] No analysis found (null response)");
-          setError("Không tìm thấy kết quả phân tích. Vui lòng chạy Gap Analysis trước.");
+          setError(t("error") + ": No analysis found");
         }
       })
       .catch((e) => {
         console.error("[RECOMMEND] API Error:", e);
-        setError("Không thể kết nối đến hệ thống phân tích.");
+        setError(t("error") + ": Connection failed");
       })
       .finally(() => setLoading(false));
   }, [token]);
@@ -177,7 +177,7 @@ const UserRecommendPage = () => {
       .then((r) => setGapResult(r.data as GapResult))
       .catch((e) => {
         console.error("[RECOMMEND] Refresh failed:", e);
-        setError("Không thể tải lại kết quả phân tích.");
+        setError(t("error") + ": Refresh failed");
       })
       .finally(() => setLoading(false));
   };
@@ -187,7 +187,7 @@ const UserRecommendPage = () => {
     return (
       <div className={styles.loadingWrapper}>
         <div className={styles.spinner} />
-        <p className={styles.loadingText}>Đang tải kết quả phân tích...</p>
+        <p className={styles.loadingText}>{t("loading")}</p>
       </div>
     );
   }
@@ -200,21 +200,21 @@ const UserRecommendPage = () => {
           <div className={styles.header}>
             <button onClick={() => router.push("/user/jobs")} className={styles.backLink}>
               <ChevronLeft size={16} />
-              Quay lại trang việc làm
+              {t("back")}
             </button>
           </div>
           <div className={styles.emptyState}>
             <AlertCircle size={48} className={styles.emptyIcon} />
             <h3 className={styles.emptyTitle}>{error}</h3>
             <p className={styles.emptySub}>
-              Vui lòng chọn một CV đã hoàn tất và một vị trí công việc để chạy phân tích gap.
+              {t("roadmap_empty")}
             </p>
             <button
               onClick={() => router.push("/user/jobs")}
               className={styles.startBtn}
             >
               <Zap size={16} />
-              Bắt đầu phân tích
+              {t("start_analysis")}
             </button>
           </div>
         </div>
@@ -259,14 +259,14 @@ const UserRecommendPage = () => {
           <div className={styles.titleSection}>
             <div className={styles.badge}>
               <Globe size={12} />
-              <span className={styles.badgeLabel}>Career Genome Results</span>
+              <span className={styles.badgeLabel}>{t("analysis_results_badge")}</span>
             </div>
             <h1 className={styles.titleMain}>
-              KẾT QUẢ{" "}
-              <span className={styles.gradientText}>PHÂN TÍCH.</span>
+              {t("analysis_results_title_1")}{" "}
+              <span className={styles.gradientText}>{t("analysis_results_title_2")}</span>
             </h1>
             <p className={styles.headerSubtitle}>
-              Dựa trên phân tích gap — đây là lộ trình tối ưu để bạn đạt được vị trí mong muốn.
+              {t("analysis_subtitle")}
             </p>
           </div>
           <div className={styles.controlBar}>
@@ -288,11 +288,11 @@ const UserRecommendPage = () => {
               className={cn(styles.refreshBtn, styles.accentBtn)}
             >
               <Save size={16} />
-              Cập nhật CV
+              {t("update_cv")}
             </button>
             <button onClick={fetchLatest} className={styles.refreshBtn}>
               <RefreshCcw size={16} />
-              Làm mới
+              {t("refresh")}
             </button>
             <button 
               onClick={() => {
@@ -348,15 +348,15 @@ const UserRecommendPage = () => {
                      tick={false} 
                      axisLine={false} 
                    />
-                   <Radar
-                     name="Sự tương thích"
-                     dataKey="A"
-                     stroke="var(--color-accent-primary)"
-                     fill="var(--color-accent-primary)"
-                     fillOpacity={0.4}
-                     animationBegin={300}
-                     animationDuration={1000}
-                   />
+                    <Radar
+                      name={t("compatibility_label")}
+                      dataKey="A"
+                      stroke="var(--color-accent-primary)"
+                      fill="var(--color-accent-primary)"
+                      fillOpacity={0.4}
+                      animationBegin={300}
+                      animationDuration={1000}
+                    />
                  </RadarChart>
                </ResponsiveContainer>
                
@@ -365,19 +365,19 @@ const UserRecommendPage = () => {
           </div>
 
           <div className={styles.matchRight}>
-            <span className={styles.matchAssessment}>&ldquo;{overall_assessment || "Chưa có đánh giá tổng quan."}&rdquo;</span>
+            <span className={styles.matchAssessment}>&ldquo;{overall_assessment || t("no_assessment_available")}&rdquo;</span>
             <div className={styles.matchStats}>
               <div className={styles.matchStat}>
                 <span className={styles.matchStatValue}>{skill_gaps.length}</span>
-                <span className={styles.matchStatLabel}>Kỹ năng cần bổ sung</span>
+                <span className={styles.matchStatLabel}>{t("gap_skill_needed")}</span>
               </div>
               <div className={styles.matchStat}>
                 <span className={styles.matchStatValue}>{course_recommendations.length}</span>
-                <span className={styles.matchStatLabel}>Khóa học gợi ý</span>
+                <span className={styles.matchStatLabel}>{t("suggested_course_count")}</span>
               </div>
               <div className={styles.matchStat}>
                 <span className={styles.matchStatValue}>{totalHours.toFixed(1)}h</span>
-                <span className={styles.matchStatLabel}>Tổng thời lượng</span>
+                <span className={styles.matchStatLabel}>{t("total_duration")}</span>
               </div>
             </div>
           </div>
@@ -394,7 +394,7 @@ const UserRecommendPage = () => {
               {strengths.map((s, i) => (
                 <li key={i}>{s}</li>
               ))}
-              {strengths.length === 0 && <li>Đang phân tích dữ liệu...</li>}
+              {strengths.length === 0 && <li>{t("analyzing_data")}</li>}
             </ul>
           </div>
           <div className={styles.infoCard}>
@@ -406,7 +406,7 @@ const UserRecommendPage = () => {
               {weaknesses.map((w, i) => (
                 <li key={i}>{w}</li>
               ))}
-              {weaknesses.length === 0 && <li>Tất cả kỹ năng đều ổn.</li>}
+              {weaknesses.length === 0 && <li>{t("all_skills_ok")}</li>}
             </ul>
           </div>
         </div>
@@ -416,7 +416,7 @@ const UserRecommendPage = () => {
           <div className={styles.insightBox}>
             <h4 className={styles.insightTitle}>
               <Sparkles size={16} />
-              Gợi ý chuyển đổi (Transferable Skills)
+              {t("transferable_skills")}
             </h4>
             <div className={styles.insightContent}>
               {gapResult.transferable_insights.map((ins, i) => (
@@ -465,7 +465,7 @@ const UserRecommendPage = () => {
             {skill_gaps.length === 0 ? (
               <div className={styles.emptySection}>
                 <CheckCircle2 size={40} className={styles.emptyIcon} />
-                <p>Không có khoảng cách kỹ năng nào được phát hiện!</p>
+                <p>{t("success")} - {t("no_gaps_detected")}</p>
               </div>
             ) : (
               skill_gaps.map((gap, idx) => (
@@ -498,7 +498,7 @@ const UserRecommendPage = () => {
                     )}
                     <span className={styles.gapMonths}>
                       <Clock size={12} />
-                      ~{gap.estimated_months ?? 1} tháng
+                      ~{gap.estimated_months ?? 1} {t("months_short")}
                     </span>
                     {gap.gap_type && <span className={styles.gapType}>{gap.gap_type}</span>}
                     {gap.is_critical && <span className={styles.criticalTag}>Critical</span>}
@@ -522,7 +522,7 @@ const UserRecommendPage = () => {
             {course_recommendations.length === 0 ? (
               <div className={styles.emptySection}>
                 <BookOpen size={40} className={styles.emptyIcon} />
-                <p>Chưa có khóa học nào được đề xuất.</p>
+                <p>{t("no_cv_msg")}</p>
               </div>
             ) : (
               course_recommendations.map((course, idx) => (
@@ -538,7 +538,7 @@ const UserRecommendPage = () => {
                     {course.is_certification && (
                       <span className={styles.certBadge}>
                         <Award size={12} />
-                        CERT
+                        {t("cert_label")}
                       </span>
                     )}
                   </div>
@@ -552,13 +552,13 @@ const UserRecommendPage = () => {
                     <span>·</span>
                     <span>{(course.duration_hours || 0).toFixed(1)}h</span>
                     <span>·</span>
-                    <span>{course.cost_usd === 0 ? "Miễn phí" : `$${course.cost_usd}`}</span>
+                    <span>{course.cost_usd === 0 ? t("free") : `$${course.cost_usd}`}</span>
                   </div>
 
                   {course.gap_skill && (
                     <div className={styles.courseGapTag}>
                       <Zap size={12} />
-                      Bổ sung: {course.gap_skill} ({course.gap_severity})
+                      {t("nav_skills")}: {course.gap_skill} ({course.gap_severity})
                     </div>
                   )}
 
@@ -577,12 +577,12 @@ const UserRecommendPage = () => {
                         className={styles.courseLink}
                       >
                         <ExternalLink size={14} />
-                        Xem khóa học
+                        {t("view_course")}
                       </a>
                     )}
                     {course.similarity && (
                       <span className={styles.similarityScore}>
-                         Confidence: {Math.round(course.similarity * 100)}%
+                         {t("confidence")}: {Math.round(course.similarity * 100)}%
                       </span>
                     )}
                   </div>
@@ -606,11 +606,11 @@ const UserRecommendPage = () => {
                     <div key={idx} className={styles.roadmapStage}>
                       <div className={styles.roadmapDot} />
                       <div className={styles.roadmapContent}>
-                        <div className={styles.roadmapStageNum}>Giai đoạn {stage.stage}</div>
+                        <div className={styles.roadmapStageNum}>{t("roadmap_stage")} {stage.stage}</div>
                         <div className={styles.roadmapFocus}>{stage.focus}</div>
                         <div className={styles.roadmapWeeks}>
                           <Clock size={12} />
-                          {stage.duration_weeks} tuần
+                          {stage.duration_weeks} {t("roadmap_weeks")}
                         </div>
                         
                         {(stage.skills_acquired || []).length > 0 && (
@@ -646,10 +646,10 @@ const UserRecommendPage = () => {
             ) : (
               <div className={styles.emptySection}>
                 <Target size={40} className={styles.emptyIcon} />
-                <p>Chưa có lộ trình học tập. Hãy chạy phân tích để nhận lộ trình cá nhân hóa.</p>
+                <p>{t("roadmap_empty")}</p>
                 <button onClick={() => router.push("/user/jobs")} className={styles.startBtn}>
                   <Zap size={16} />
-                  Phân tích ngay
+                  {t("start_analysis")}
                 </button>
               </div>
             )}
@@ -660,10 +660,10 @@ const UserRecommendPage = () => {
         <div className={styles.footer}>
           <h4 className={styles.footerTitle}>
             <TrendingUp size={20} className={styles.footerIcon} />
-            Gợi ý từ AI
+            {t("ai_suggestions")}
           </h4>
           <p className={styles.footerText}>
-            Tập trung vào các kỹ năng có severity CAO trước để tối đa hóa điểm match trong 3-6 tháng tới.
+            {t("ai_suggestion_text")}
           </p>
         </div>
       </div>

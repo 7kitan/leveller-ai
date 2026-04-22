@@ -16,6 +16,7 @@ from ..utils.ocr_client import ocr_client
 from shared.models import UserCV, UserSkillProfile, Skill
 import json
 from shared.redis_client import result_cache
+from shared.config_utils import config_manager
 
 logger = logging.getLogger("cv_parsing_v3")
 
@@ -90,7 +91,7 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
         upload_dir = os.getenv("CV_UPLOAD_DIR", "data/cv_uploads")
         
         # Strategy Detection
-        strategy = os.getenv("CV_PARSER_STRATEGY", "direct").lower()
+        strategy = config_manager.get_setting("cv_parser_strategy", default="direct").lower()
         logger.info(f"[STEP 1] Selected Strategy: {strategy.upper()}")
 
         # Robust File Discovery
@@ -195,7 +196,7 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
             
             if is_pdf:
                 import pdf2image
-                dpi = int(os.getenv("OCR_DPI", "200"))
+                dpi = config_manager.get_setting("ocr_dpi", default=200, cast=int)
                 logger.info(f"[STEP 1] pdf2image converting PDF at dpi={dpi} ...")
                 images = pdf2image.convert_from_path(file_path, dpi=dpi)
                 logger.info(f"[STEP 1] Converted {len(images)} images from PDF pages")
@@ -276,10 +277,15 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
         return {**state, "error": "Raw text too short or empty", "status": "failed"}
 
     # ── PII Masking ───────────────────────────────────────────────────────────
-    logger.info("[STEP 2] Masking PII before sending to LLM...")
-    masked_text = mask_pii(raw_text)
+    if ENABLE_PII_MASKING:
+        logger.info("[STEP 2] Masking PII before sending to LLM...")
+        masked_text = mask_pii(raw_text)
+    else:
+        logger.info("[STEP 2] PII Masking is DISABLED. Sending raw text to LLM.")
+        masked_text = raw_text
+
     logger.info(
-        f"[STEP 2] PII masked | before={len(raw_text)} chars | "
+        f"[STEP 2] PII masking complete | before={len(raw_text)} chars | "
         f"after={len(masked_text)} chars"
     )
 
@@ -358,7 +364,7 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
     """
 
     # ── LLM call ───────────────────────────────────────────────────────────────
-    from ..config import GAP_LLM_MODEL as LLM_MODEL
+    from ..config import GAP_LLM_MODEL as LLM_MODEL, ENABLE_PII_MASKING
 
     logger.info(
         f"[STEP 2] Calling LLM: model={LLM_MODEL} | "

@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import AuthGuard from "@/components/auth/AuthGuard";
 import styles from "./admin-users.module.css";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface AdminUser {
   id: string;
@@ -33,6 +34,7 @@ interface AdminUser {
 
 const AdminUsersPage = () => {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -73,7 +75,7 @@ const AdminUsersPage = () => {
       setCurrentPage(page);
     } catch (err) {
       console.error(err);
-      toast.error("Không thể tải danh sách người dùng");
+      toast.error(t("error"));
     } finally {
       setLoading(false);
     }
@@ -131,7 +133,7 @@ const AdminUsersPage = () => {
       
       if (password) payload.password = password;
       if (modalMode === "create" && !password) {
-          toast.error("Vui lòng nhập mật khẩu cho người dùng mới");
+          toast.error(t("admin_users_password_hint"));
           setSubmitting(false);
           return;
       }
@@ -147,15 +149,15 @@ const AdminUsersPage = () => {
       });
 
       if (res.ok) {
-        toast.success(modalMode === "create" ? "Tạo người dùng thành công" : "Cập nhật thành công");
+        toast.success(modalMode === "create" ? t("admin_users_create_success") : t("admin_users_update_success"));
         setShowModal(false);
         fetchUsers();
       } else {
         const err = await res.json();
-        toast.error(err.detail || "Đã có lỗi xảy ra");
+        toast.error(err.detail || t("error"));
       }
     } catch (err) {
-      toast.error("Lỗi kết nối Server");
+      toast.error(t("error"));
     } finally {
       setSubmitting(false);
     }
@@ -175,14 +177,14 @@ const AdminUsersPage = () => {
       });
 
       if (res.ok) {
-        toast.success("Đã xóa người dùng");
+        toast.success(t("admin_users_delete_success"));
         setShowDeleteConfirm(false);
         fetchUsers();
       } else {
-        toast.error("Không thể xóa người dùng");
+        toast.error(t("error"));
       }
     } catch (err) {
-      toast.error("Lỗi kết nối Server");
+      toast.error(t("error"));
     } finally {
       setSubmitting(false);
     }
@@ -197,10 +199,9 @@ const AdminUsersPage = () => {
         <div className={styles.header}>
           <div>
             <h1 className={styles.title}>
-              <UsersIcon size={32} /> 
-              <span>Quản trị Người dùng</span>
+              <span>{t("admin_users_title")}</span>
             </h1>
-            <p className={styles.subtitle}>Quản lý tài khoản, phân quyền và giám sát hoạt động hệ thống.</p>
+            <p className={styles.subtitle}>{t("admin_users_subtitle")}</p>
           </div>
           
           <button 
@@ -208,7 +209,7 @@ const AdminUsersPage = () => {
             className={styles.addBtn}
           >
             <UserPlus size={18} /> 
-            <span>Thêm tài khoản</span>
+            <span>{t("admin_users_add_btn")}</span>
           </button>
         </div>
 
@@ -218,7 +219,7 @@ const AdminUsersPage = () => {
             <Search className={styles.searchIcon} />
             <input 
               type="text"
-              placeholder="Tìm kiếm theo email, tên..."
+              placeholder={t("admin_users_search_placeholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={styles.searchInput}
@@ -234,11 +235,11 @@ const AdminUsersPage = () => {
           <table className={styles.table}>
             <thead>
               <tr className={styles.tableHeader}>
-                <th className={styles.th}>Người dùng</th>
-                <th className={styles.th}>Vai trò</th>
-                <th className={styles.th}>Trạng thái</th>
-                <th className={styles.th}>Ngày tham gia</th>
-                <th className={cn(styles.th, styles.thRight)}>Thao tác</th>
+                <th className={styles.th}>{t("admin_users_table_user")}</th>
+                <th className={styles.th}>{t("admin_users_table_role")}</th>
+                <th className={styles.th}>{t("admin_users_table_status")}</th>
+                <th className={styles.th}>{t("admin_users_table_date")}</th>
+                <th className={cn(styles.th, styles.thRight)}>{t("admin_users_table_actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -247,7 +248,7 @@ const AdminUsersPage = () => {
                   <td colSpan={5}>
                     <div className={styles.skeletonRow}>
                       <div className={styles.spinner}></div>
-                      <span className={styles.skeletonText}>Synchronizing...</span>
+                      <span className={styles.skeletonText}>{t("syncing_dots")}</span>
                     </div>
                   </td>
                 </tr>
@@ -256,7 +257,7 @@ const AdminUsersPage = () => {
                   <td colSpan={5}>
                      <div className={styles.emptyState}>
                         <UsersIcon size={48} className={styles.emptyStateIcon} />
-                        <p className={styles.emptyStateText}>Không tìm thấy người dùng</p>
+                        <p className={styles.emptyStateText}>{t("jobs_no_results")}</p>
                      </div>
                   </td>
                 </tr>
@@ -269,7 +270,7 @@ const AdminUsersPage = () => {
                           {(user.full_name?.[0] || user.email[0]).toUpperCase()}
                         </div>
                         <div>
-                          <div className={styles.userName}>{user.full_name || "Chưa cập nhật tên"}</div>
+                          <div className={styles.userName}>{user.full_name || t("fail")}</div>
                           <div className={styles.userEmail}>{user.email}</div>
                         </div>
                       </div>
@@ -279,7 +280,7 @@ const AdminUsersPage = () => {
                         styles.roleBadge,
                         user.is_admin ? styles.roleAdmin : styles.roleUser
                       )}>
-                        {user.is_admin ? "ADMIN" : "USER"}
+                        {user.is_admin ? t("admin_users_role_admin") : t("admin_users_role_user")}
                       </span>
                     </td>
                     <td className={styles.td}>
@@ -287,12 +288,12 @@ const AdminUsersPage = () => {
                         styles.statusBadge,
                         user.is_active ? styles.statusActive : styles.statusBanned
                       )}>
-                        {user.is_active ? "Hoạt động" : "Bị khóa"}
+                        {user.is_active ? t("admin_users_status_active") : t("admin_users_status_banned")}
                       </span>
                     </td>
                     <td className={styles.td}>
                       <div className={styles.userDate}>
-                        {user.created_at ? format(new Date(user.created_at), "dd/MM/yyyy") : "N/A"}
+                        {user.created_at ? format(new Date(user.created_at), "dd/MM/yyyy") : t("not_available")}
                       </div>
                     </td>
                     <td className={styles.td}>
@@ -310,14 +311,14 @@ const AdminUsersPage = () => {
                                 body: JSON.stringify({ is_active: !user.is_active })
                               });
                               if (res.ok) {
-                                toast.success(user.is_active ? "Đã khóa người dùng" : "Đã kích hoạt người dùng");
+                                toast.success(user.is_active ? t("admin_users_status_banned") : t("admin_users_status_active"));
                                 fetchUsers(currentPage);
                               } else {
-                                toast.error("Không thể cập nhật trạng thái");
+                                toast.error(t("error"));
                               }
                             }}
                             className={styles.actionBtn}
-                            title={user.is_active ? "Khóa người dùng" : "Kích hoạt"}
+                            title={user.is_active ? t("admin_users_status_banned") : t("admin_users_status_active")}
                           >
                             {user.is_active ? <UserX size={16} /> : <UserCheck size={16} />}
                           </button>
@@ -361,13 +362,13 @@ const AdminUsersPage = () => {
                 <div className={styles.modalHeader}>
                     <h3 className={styles.modalTitle}>
                         <UsersIcon size={24} /> 
-                        <span>{modalMode === "create" ? "Cấp phép Tài khoản" : "Hiệu chỉnh Profile"}</span>
+                        <span>{modalMode === "create" ? t("admin_users_create_modal_title") : t("admin_users_edit_modal_title")}</span>
                     </h3>
                 </div>
                 <form onSubmit={handleSubmit} className={styles.modalForm}>
                     <div className={styles.formFieldGroup}>
                         <div className={styles.formField}>
-                            <label className={styles.inputLabel}>Địa chỉ Email</label>
+                            <label className={styles.inputLabel}>{t("admin_users_email_label")}</label>
                             <input 
                                 required
                                 type="email"
@@ -377,7 +378,7 @@ const AdminUsersPage = () => {
                             />
                         </div>
                         <div className={styles.formField}>
-                            <label className={styles.inputLabel}>Họ và tên</label>
+                            <label className={styles.inputLabel}>{t("admin_users_name_label")}</label>
                             <input 
                                 type="text"
                                 value={currentUser.full_name || ""}
@@ -386,7 +387,7 @@ const AdminUsersPage = () => {
                             />
                         </div>
                         <div className={styles.formField}>
-                            <label className={styles.inputLabel}>Mật khẩu {modalMode === "edit" && "(Bỏ trống nếu không đổi)"}</label>
+                            <label className={styles.inputLabel}>{t("admin_users_password_label")} {modalMode === "edit" && t("admin_users_password_hint")}</label>
                             <input 
                                 type="password"
                                 value={password}
@@ -396,8 +397,8 @@ const AdminUsersPage = () => {
                         </div>
                         <div className={styles.checkboxGroup}>
                             <div className={styles.checkboxLabelArea}>
-                                <span className={styles.checkboxTitle}>Quyền Quản trị viên</span>
-                                <span className={styles.checkboxDesc}>Truy cập Dashboard cấu hình hệ thống.</span>
+                                <span className={styles.checkboxTitle}>{t("admin_users_is_admin_label")}</span>
+                                <span className={styles.checkboxDesc}>{t("admin_users_is_admin_desc")}</span>
                             </div>
                             <input 
                                 type="checkbox"
@@ -408,8 +409,8 @@ const AdminUsersPage = () => {
                         </div>
                         <div className={styles.checkboxGroup}>
                             <div className={styles.checkboxLabelArea}>
-                                <span className={styles.checkboxTitle}>Trạng thái Hoạt động</span>
-                                <span className={styles.checkboxDesc}>Cho phép người dùng đăng nhập hệ thống.</span>
+                                <span className={styles.checkboxTitle}>{t("admin_users_is_active_label")}</span>
+                                <span className={styles.checkboxDesc}>{t("admin_users_is_active_desc")}</span>
                             </div>
                             <input 
                                 type="checkbox"
@@ -422,10 +423,10 @@ const AdminUsersPage = () => {
 
                     <div className={styles.formActions}>
                         <button type="button" onClick={() => setShowModal(false)} className={styles.cancelBtn}>
-                          Hủy
+                          {t("cancel")}
                         </button>
                         <button type="submit" disabled={submitting} className={styles.submitBtn}>
-                            {submitting ? "Đang xử lý..." : "Lưu cấu hình"}
+                            {submitting ? t("processing") : t("admin_users_save_btn")}
                         </button>
                     </div>
                 </form>
@@ -448,15 +449,15 @@ const AdminUsersPage = () => {
                         <AlertTriangle size={32} className={styles.deleteIcon} />
                     </div>
                     <div>
-                      <h3 className={styles.deleteConfirmTitle}>Xác nhận xóa?</h3>
-                      <p className={styles.deleteConfirmDesc}>Tài khoản <span className={styles.deleteConfirmTarget}>{userToDelete?.full_name || userToDelete?.email}</span> sẽ bị xóa vĩnh viễn khỏi hệ thống.</p>
+                      <h3 className={styles.deleteConfirmTitle}>{t("admin_users_delete_title")}</h3>
+                      <p className={styles.deleteConfirmDesc}>{t("admin_users_table_user")} <span className={styles.deleteConfirmTarget}>{userToDelete?.full_name || userToDelete?.email}</span> {t("admin_users_delete_desc")}</p>
                     </div>
                     <div className={styles.deleteActions}>
                         <button onClick={() => setShowDeleteConfirm(false)} className={styles.cancelDeleteBtn}>
-                          Hủy
+                          {t("cancel")}
                         </button>
                         <button onClick={handleDelete} className={styles.confirmDeleteBtn}>
-                          Xác nhận xóa
+                          {t("admin_users_delete_confirm")}
                         </button>
                     </div>
                 </motion.div>

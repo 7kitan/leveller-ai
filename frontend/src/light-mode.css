@@ -52,6 +52,14 @@
   --scrollbar-track: transparent;
   --scrollbar-thumb: hsl(214 32% 91%);
   --scrollbar-hover: hsl(214 32% 85%);
+
+  /* Compatibility Aliases for Lumix AI v6 */
+  --color-text-main: hsl(var(--text));
+  --color-text-muted: hsl(var(--text-secondary));
+  --color-panel-bg: hsl(var(--bg-elevated));
+  --color-bg-light: hsl(var(--bg));
+  --color-border-subtle: var(--glass-border);
+  --color-accent-primary: hsl(var(--accent));
 }
 
 /* ── 2. BASE ───────────────────────────────────────────────────────────── */

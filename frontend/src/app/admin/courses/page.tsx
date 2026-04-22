@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import styles from "./admin-courses.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Course {
   id: string;
@@ -100,6 +101,7 @@ const TagInput = ({ tags, setTags, placeholder = "Thêm thẻ..." }: { tags: str
 
 const AdminCoursesPage = () => {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const [courses, setCourses] = useState<Course[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -268,15 +270,15 @@ const AdminCoursesPage = () => {
           <div>
             <h1 className={styles.title}>
               <BookOpen size={40} className={styles.headerIcon} /> 
-              <span>Course Catalog Catalog</span>
+              <span>{t("admin_courses_title")}</span>
             </h1>
-            <p className={styles.subtitle}>Quản lý thư viện khóa học và cấu hình Knowledge Embedding.</p>
+            <p className={styles.subtitle}>{t("admin_courses_sub")}</p>
           </div>
           <div className="flex gap-3">
             <Link href="/admin/courses/import">
               <button className={cn(styles.addBtn, "bg-blue-600 hover:bg-blue-700")}>
                 <Globe size={18} /> 
-                Import từ URL
+                {t("import_url")}
               </button>
             </Link>
             <button 
@@ -307,7 +309,7 @@ const AdminCoursesPage = () => {
               className={styles.addBtn}
             >
               <Plus size={18} /> 
-              Thêm khóa học
+              {t("add_course")}
             </button>
           </div>
         </div>
@@ -318,7 +320,7 @@ const AdminCoursesPage = () => {
               <Search className={styles.searchIcon} />
               <input 
                 type="text" 
-                placeholder="Tìm tên khóa học, nền tảng..." 
+                placeholder={t("search_course_placeholder")}
                 className={styles.searchInput}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -333,12 +335,12 @@ const AdminCoursesPage = () => {
             <table className={styles.table}>
               <thead>
                 <tr className={styles.tableHeader}>
-                  <th className={styles.th}>Khóa học / Nền tảng</th>
-                  <th className={styles.th}>Nhà cung cấp</th>
-                  <th className={styles.th}>Thời lượng / Giá</th>
-                  <th className={styles.th}>Cấp độ</th>
-                  <th className={styles.th}>Tags</th>
-                  <th className={cn(styles.th, styles.thRight)}>Thao tác</th>
+                  <th className={styles.th}>{t("table_course_platform")}</th>
+                  <th className={styles.th}>{t("table_provider")}</th>
+                  <th className={styles.th}>{t("table_duration_price")}</th>
+                  <th className={styles.th}>{t("table_level")}</th>
+                  <th className={styles.th}>{t("table_tags")}</th>
+                  <th className={cn(styles.th, styles.thRight)}>{t("table_actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -417,13 +419,13 @@ const AdminCoursesPage = () => {
                 className={styles.modalContent}
               >
                 <div className={styles.modalHeader}>
-                    <h2 className={styles.modalTitle}>{editingCourse ? "Cập nhật khóa học" : "Thêm khóa học mới"}</h2>
+                    <h2 className={styles.modalTitle}>{editingCourse ? t("edit_course") : t("create_course")}</h2>
                 </div>
                 <div className={styles.modalBody}>
                    <div className={styles.formGrid}>
-                      <div className={styles.sectionTitle}>Thông tin chính</div>
+                      <div className={styles.sectionTitle}>{t("modal_main_info")}</div>
                       <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>Tên khóa học</label>
+                         <label>{t("modal_course_name")}</label>
                          <input 
                            value={formData.title}
                            onChange={e => setFormData({...formData, title: e.target.value})}
@@ -431,7 +433,7 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>Mô tả ngắn</label>
+                         <label>{t("modal_short_desc")}</label>
                          <textarea 
                            value={formData.description}
                            onChange={e => setFormData({...formData, description: e.target.value})}
@@ -439,7 +441,7 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       <div className={styles.formField}>
-                         <label>Nền tảng</label>
+                         <label>{t("modal_platform")}</label>
                          <input 
                            value={formData.platform}
                            onChange={e => setFormData({...formData, platform: e.target.value})}
@@ -447,7 +449,7 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       <div className={styles.formField}>
-                         <label>Nhà cung cấp (Provider)</label>
+                         <label>{t("modal_provider")}</label>
                          <input 
                            value={formData.provider}
                            onChange={e => setFormData({...formData, provider: e.target.value})}
@@ -455,7 +457,7 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       <div className={styles.formField}>
-                         <label>Nền tảng gốc (Source)</label>
+                         <label>{t("modal_source")}</label>
                          <input 
                            value={formData.source_platform}
                            onChange={e => setFormData({...formData, source_platform: e.target.value})}
@@ -463,7 +465,7 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       <div className={styles.formField}>
-                         <label>Mã ID gốc (Source ID)</label>
+                         <label>{t("modal_source_id")}</label>
                          <input 
                            value={formData.source_id}
                            onChange={e => setFormData({...formData, source_id: e.target.value})}
@@ -471,7 +473,7 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       <div className={styles.formField}>
-                         <label>UUID Hệ thống gốc</label>
+                         <label>{t("modal_external_uuid")}</label>
                          <input 
                            value={formData.external_uuid}
                            onChange={e => setFormData({...formData, external_uuid: e.target.value})}
@@ -479,7 +481,7 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>URL</label>
+                         <label>{t("modal_url")}</label>
                          <input 
                            value={formData.url}
                            onChange={e => setFormData({...formData, url: e.target.value})}
@@ -487,9 +489,9 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       
-                      <div className={styles.sectionTitle}>Chi tiết & Giá</div>
+                      <div className={styles.sectionTitle}>{t("modal_details_price")}</div>
                       <div className={styles.formField}>
-                         <label>Cấp độ</label>
+                         <label>{t("modal_level")}</label>
                          <select 
                            value={formData.level}
                            onChange={e => setFormData({...formData, level: e.target.value})}
@@ -500,7 +502,7 @@ const AdminCoursesPage = () => {
                          </select>
                       </div>
                       <div className={styles.formField}>
-                         <label>Giá (USD)</label>
+                         <label>{t("modal_price")}</label>
                          <input 
                            type="number"
                            value={formData.cost_usd}
@@ -508,7 +510,7 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       <div className={styles.formField}>
-                         <label>Thời lượng (giờ)</label>
+                         <label>{t("modal_duration_hr")}</label>
                          <input 
                            type="number"
                            value={formData.duration_hours}
@@ -516,7 +518,7 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       <div className={styles.formField}>
-                         <label>Thời lượng (text)</label>
+                         <label>{t("modal_duration_text")}</label>
                          <input 
                            value={formData.duration_raw}
                            onChange={e => setFormData({...formData, duration_raw: e.target.value})}
@@ -531,13 +533,13 @@ const AdminCoursesPage = () => {
                             checked={formData.is_certification}
                             onChange={e => setFormData({...formData, is_certification: e.target.checked})}
                           />
-                          <span>Khóa học có chứng chỉ (Certification)</span>
+                           <span>{t("modal_is_cert")}</span>
                         </label>
                       </div>
 
-                      <div className={styles.sectionTitle}>Nội dung học tập</div>
+                      <div className={styles.sectionTitle}>{t("modal_learning_content")}</div>
                       <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>Kỹ năng (Skills)</label>
+                         <label>{t("modal_skills")}</label>
                          <TagInput 
                             tags={formData.skills}
                             setTags={(skills) => setFormData({...formData, skills})}
@@ -545,7 +547,7 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>Kết quả (Outcomes)</label>
+                         <label>{t("modal_outcomes")}</label>
                          <TagInput 
                             tags={formData.outcomes}
                             setTags={(outcomes) => setFormData({...formData, outcomes})}
@@ -553,7 +555,7 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>Ngôn ngữ (Languages)</label>
+                         <label>{t("modal_languages")}</label>
                          <TagInput 
                             tags={formData.languages}
                             setTags={(languages) => setFormData({...formData, languages})}
@@ -561,7 +563,7 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>Modules (Danh sách bài học - mỗi dòng một bài)</label>
+                         <label>{t("modal_modules")}</label>
                          <textarea 
                            className="h-32"
                            value={formData.modules}
@@ -570,7 +572,7 @@ const AdminCoursesPage = () => {
                          />
                       </div>
                       <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>Tags (#tag)</label>
+                         <label>{t("modal_tags_input")}</label>
                          <TagInput 
                             tags={formData.tags}
                             setTags={(tags) => setFormData({...formData, tags})}
@@ -579,12 +581,12 @@ const AdminCoursesPage = () => {
                       </div>
                    </div>
                 </div>
-                <div className={styles.modalFooter}>
-                   <button onClick={() => setIsModalOpen(false)}>Hủy</button>
-                   <button onClick={handleSave} className={styles.submitBtn}>
-                      {editingCourse ? "Cập nhật" : "Tạo khóa học"}
-                   </button>
-                </div>
+                 <div className={styles.modalFooter}>
+                    <button onClick={() => setIsModalOpen(false)}>{t("cancel")}</button>
+                    <button onClick={handleSave} className={styles.submitBtn}>
+                       {editingCourse ? t("save") : t("save")}
+                    </button>
+                 </div>
               </motion.div>
             </div>
           )}

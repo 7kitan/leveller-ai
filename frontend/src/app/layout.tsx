@@ -5,9 +5,6 @@ import "../light-mode.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
-import AuthGuard from "@/components/auth/AuthGuard";
-import MaintenanceOverlay from "@/components/shared/MaintenanceOverlay";
-
 import { LanguageProvider } from "@/context/LanguageContext";
 
 const jakarta = Plus_Jakarta_Sans({ 
@@ -37,11 +34,8 @@ export default function RootLayout({
         <LanguageProvider>
           <ThemeProvider>
             <AuthProvider>
-              <MaintenanceOverlay />
               <LayoutWrapper>
-                <AuthGuard>
-                  {children}
-                </AuthGuard>
+                {children}
               </LayoutWrapper>
             </AuthProvider>
           </ThemeProvider>

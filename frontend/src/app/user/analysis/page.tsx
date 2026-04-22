@@ -42,10 +42,10 @@ type Phase = "setup" | "processing" | "completed" | "failed";
 
 /* -- Step labels -------------------------------------------------------- */
 const PIPELINE_STEPS = [
-  { label: "Bóc tách JD & CV", key: "extract" },
-  { label: "Phân tích Gap", key: "analyze" },
-  { label: "Tìm khóa học", key: "courses" },
-  { label: "Xây lộ trình", key: "roadmap" },
+  { label: "step_extract", key: "extract" },
+  { label: "step_analyze", key: "analyze" },
+  { label: "step_courses", key: "courses" },
+  { label: "step_roadmap", key: "roadmap" },
 ];
 
 function stepProgress(stepIdx: number): number {
@@ -63,6 +63,7 @@ function AnalysisPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { token } = useAuth();
+  const { language, t } = useLanguage();
   
   const initialJobId = searchParams.get("job_id");
   const initialJobTitle = searchParams.get("job_title");
@@ -88,7 +89,7 @@ function AnalysisPageContent() {
   const [taskId, setTaskId] = useState<string>("");
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
-  const [processMessage, setProcessMessage] = useState<string>("Đang khởi tạo...");
+  const [processMessage, setProcessMessage] = useState<string>(t("init_message"));
 
   /* -- Handle URL Params ---------------------------------------------- */
   useEffect(() => {
@@ -168,7 +169,7 @@ function AnalysisPageContent() {
   const startAnalysis = async () => {
     setError("");
     if (!isValid) {
-      setError("Vui lòng chọn đủ CV và JD để phân tích.");
+      setError(t("analysis_missing_inputs"));
       return;
     }
 
@@ -182,8 +183,6 @@ function AnalysisPageContent() {
           ? `jd_text length=${pastedJdText.length}`
           : `job_id=${selectedJobId}`)
     );
-
-    const { language } = useLanguage();
 
     try {
       const payload: Record<string, unknown> = { 
@@ -237,7 +236,7 @@ function AnalysisPageContent() {
 
         if (status === "failed") {
           clearInterval(interval);
-          setError(String((result as { error?: string })?.error || "Phân tích thất bại."));
+          setError(String((result as { error?: string })?.error || t("analysis_failed")));
           setPhase("failed");
           return;
         }
@@ -276,7 +275,7 @@ function AnalysisPageContent() {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log(`[ANALYSIS] Revoke request sent — task_id=${taskId}`);
-      setError("Phân tích đã bị hủy theo yêu cầu của người dùng.");
+      setError(t("analysis_cancelled"));
       setPhase("setup");
     } catch (err) {
       console.error("[ANALYSIS] Revoke failed:", err);
@@ -320,13 +319,13 @@ function AnalysisPageContent() {
           <div className={styles.setupHeader}>
             <div className={styles.badge}>
               <Sparkles size={12} />
-              <span className={styles.badgeLabel}>Career Genome Engine v2</span>
+              <span className={styles.badgeLabel}>{t("analysis_engine_badge")}</span>
             </div>
             <h1 className={styles.setupTitle}>
               GAP <span className={styles.gradientText}>ANALYSIS</span>
             </h1>
             <p className={styles.setupSub}>
-              Chọn JD và CV để AI phân tích khoảng cách kỹ năng và đề xuất lộ trình học tập.
+              {t("analysis_subtitle")}
             </p>
           </div>
 
@@ -335,8 +334,8 @@ function AnalysisPageContent() {
             <div className={styles.sectionHeader}>
               <Target size={18} className={styles.sectionIcon} />
               <div>
-                <div className={styles.sectionTitle}>Mô tả công việc (JD)</div>
-                <div className={styles.sectionSub}>Chọn 1 trong 2 cách để xác định JD mục tiêu</div>
+                <div className={styles.sectionTitle}>{t("jd_section_title")}</div>
+                <div className={styles.sectionSub}>{t("jd_section_sub")}</div>
               </div>
             </div>
 
@@ -347,14 +346,14 @@ function AnalysisPageContent() {
                 onClick={() => { setJdMode("select"); clearJob(); setPastedJdText(""); }}
               >
                 <Search size={14} />
-                Chọn từ danh sách JD
+                {t("jd_mode_select")}
               </button>
               <button
                 className={cn(styles.jdModeTab, jdMode === "paste" && styles.jdModeTabActive)}
                 onClick={() => { setJdMode("paste"); setSelectedJobId(""); setSelectedJob(null); setJobResults([]); }}
               >
                 <FileText size={14} />
-                Dán JD trực tiếp
+                {t("jd_mode_paste")}
               </button>
             </div>
 
@@ -369,7 +368,7 @@ function AnalysisPageContent() {
                         {selectedJob.company_name && <span>{selectedJob.company_name}</span>}
                         {selectedJob.location && <span>· {selectedJob.location}</span>}
                         {selectedJob.salary_min && (
-                          <span>· ${selectedJob.salary_min.toLocaleString()}/năm</span>
+                          <span>· ${selectedJob.salary_min.toLocaleString()}{t("per_year")}</span>
                         )}
                       </div>
                     </div>
@@ -383,7 +382,7 @@ function AnalysisPageContent() {
                       <Search size={16} className={styles.jobSearchIcon} />
                       <input
                         type="text"
-                        placeholder="Tìm kiếm vị trí JD..."
+                        placeholder={t("jd_search_placeholder")}
                         value={jobSearch}
                         onChange={(e) => setJobSearch(e.target.value)}
                         className={styles.jobSearchField}
@@ -412,7 +411,7 @@ function AnalysisPageContent() {
                     )}
 
                     {searchingJobs && (
-                      <div className={styles.jobSearching}>Đang tìm...</div>
+                      <div className={styles.jobSearching}>{t("loading")}</div>
                     )}
                   </div>
                 )}
@@ -424,14 +423,14 @@ function AnalysisPageContent() {
               <div className={styles.jdPasteSection}>
                 <textarea
                   className={styles.jdTextarea}
-                  placeholder={"Dán mô tả công việc (JD) vào đây...\n\nVí dụ: We are hiring a Senior Python Engineer with 5+ years of experience in Django, PostgreSQL, Docker..."}
+                  placeholder={t("jd_paste_placeholder")}
                   value={pastedJdText}
                   onChange={(e) => setPastedJdText(e.target.value)}
                   rows={8}
                 />
                 <div className={styles.charCount}>
-                  {pastedJdText.length} ký tự
-                  {pastedJdText.length < 20 && pastedJdText.length > 0 && " · Cần ít nhất 20 ký tự"}
+                  {pastedJdText.length} {t("char_count")}
+                  {pastedJdText.length < 20 && pastedJdText.length > 0 && ` · ${t("min_char_required")}`}
                 </div>
               </div>
             )}
@@ -442,17 +441,17 @@ function AnalysisPageContent() {
             <div className={styles.sectionHeader}>
               <FileText size={18} className={styles.sectionIcon} />
               <div>
-                <div className={styles.sectionTitle}>Hồ sơ CV của bạn</div>
-                <div className={styles.sectionSub}>Chọn CV đã phân tích để so sánh với JD</div>
+                <div className={styles.sectionTitle}>{t("cv_section_title")}</div>
+                <div className={styles.sectionSub}>{t("cv_section_sub")}</div>
               </div>
             </div>
 
             {cvs.length === 0 ? (
               <div className={styles.noCvBox}>
                 <AlertCircle size={16} />
-                Bạn chưa có CV nào đã phân tích.
+                {t("no_cv_msg")}
                 <a href="/user/cv" className={styles.uploadLink}>
-                  Upload CV ngay
+                  {t("upload_cv_now")}
                 </a>
               </div>
             ) : (
@@ -472,7 +471,7 @@ function AnalysisPageContent() {
                         {cv.full_name || `CV ${cv.id.slice(0, 8)}`}
                       </div>
                       <div className={styles.cvDate}>
-                        Uploaded {new Date(cv.created_at).toLocaleDateString("vi-VN")}
+                        {t("uploaded_at")} {new Date(cv.created_at).toLocaleDateString(language === 'vi' ? "vi-VN" : "en-US")}
                       </div>
                     </div>
                     {selectedCvId === cv.id && (
@@ -499,7 +498,7 @@ function AnalysisPageContent() {
               className={styles.backBtn}
             >
               <ChevronLeft size={16} />
-              Quay lại
+              {t("back")}
             </button>
             <button
               onClick={startAnalysis}
@@ -507,7 +506,7 @@ function AnalysisPageContent() {
               className={styles.startBtn}
             >
               <Zap size={16} />
-              BẮT ĐẦU PHÂN TÍCH GAP
+              {t("start_analysis")}
             </button>
           </div>
         </div>
@@ -528,7 +527,7 @@ function AnalysisPageContent() {
         <div className={styles.processingCard}>
           <div className={styles.processingBadge}>
             <Sparkles size={12} />
-            <span>Career Genome Engine v2</span>
+            <span>{t("analysis_engine_badge")}</span>
           </div>
           <h1 className={styles.processingTitle}>
             CAREER <span className={styles.gradientText}>GENOME.</span>
@@ -551,7 +550,7 @@ function AnalysisPageContent() {
                     currentStep === i && styles.stepDotActive
                   )}
                 />
-                <span className={styles.stepLabel}>{s.label}</span>
+                <span className={styles.stepLabel}>{t(s.label as any)}</span>
                 {currentStep > i && (
                   <CheckCircle2 size={14} className={styles.stepCheck} />
                 )}
@@ -573,7 +572,7 @@ function AnalysisPageContent() {
           </div>
 
           <p className={styles.processingSub}>
-            Task ID: <code>{taskId}</code>
+            {t("task_id_label")}: <code>{taskId}</code>
           </p>
 
           <div className={styles.asyncActions}>
@@ -583,16 +582,16 @@ function AnalysisPageContent() {
               className={cn(styles.notifyBtn, notified && styles.notifyBtnDone)}
             >
               {notified ? <CheckCircle2 size={16} /> : <Zap size={16} />}
-              {notified ? "SẼ THÔNG BÁO CHO BẠN" : "THÔNG BÁO KHI XONG"}
+              {notified ? t("will_notify") : t("notify_me")}
             </button>
             <button onClick={handleCancel} className={styles.cancelBtn}>
               <X size={16} />
-              DỪNG PHÂN TÍCH
+              {t("stop_analysis")}
             </button>
           </div>
 
           <div className={styles.leaveHint}>
-            <p>Phân tích chuyên sâu có thể mất 2-3 phút. Bạn có thể an tâm đóng trình duyệt, hệ thống sẽ lưu kết quả vào tài khoản của bạn.</p>
+            <p>{t("processing_hint")}</p>
           </div>
         </div>
       </div>
@@ -609,18 +608,18 @@ function AnalysisPageContent() {
       <div className={styles.doneCard}>
         <CheckCircle2 size={56} className={styles.doneIcon} />
         <h1 className={styles.doneTitle}>
-          PHÂN TÍCH{" "}
-          <span className={styles.gradientText}>HOÀN TẤT!</span>
+          {t("analysis_done")}
         </h1>
-        <p className={styles.doneSub}>Đang chuyển sang trang đề xuất...</p>
+        <p className={styles.doneSub}>{t("redirecting_recommend")}</p>
       </div>
     </div>
   );
 }
 
 export default function AnalysisPage() {
+  const { t } = useLanguage();
   return (
-    <Suspense fallback={<div>Đang tải trình điều khiển phân tích...</div>}>
+    <Suspense fallback={<div>{t("loading")}</div>}>
       <AnalysisPageContent />
     </Suspense>
   );

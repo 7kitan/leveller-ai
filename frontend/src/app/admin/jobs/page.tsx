@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import styles from "./admin-jobs.module.css";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Job {
   id: string;
@@ -44,6 +45,7 @@ interface SystemSetting {
 
 const AdminJobsPage = () => {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -85,7 +87,7 @@ const AdminJobsPage = () => {
       setTotalPages(resp.data.pages);
       setCurrentPage(page);
     } catch (err) {
-      showNotification("Không thể tải danh sách công việc", "error");
+      showNotification(t("error"), "error");
     } finally {
       setIsLoading(false);
     }
@@ -122,9 +124,9 @@ const AdminJobsPage = () => {
         }
       );
       setCrawlEnabled(newValue);
-      showNotification(newValue ? "Đã bật tự động cào tin" : "Đã tắt tự động cào tin");
+      showNotification(newValue ? t("admin_jobs_crawl_success") : t("admin_jobs_status_inactive"));
     } catch (err) {
-      showNotification("Không thể cập nhật cấu hình", "error");
+      showNotification(t("error"), "error");
     } finally {
       setIsUpdatingSetting(false);
     }
@@ -167,7 +169,7 @@ const AdminJobsPage = () => {
             "X-Is-Admin": "true"
           }
         });
-        showNotification("Đã cập nhật công việc");
+        showNotification(t("admin_jobs_save_success"));
       } else {
         await axios.post("/api/jd/admin", payload, {
           headers: { 
@@ -175,17 +177,17 @@ const AdminJobsPage = () => {
             "X-Is-Admin": "true"
           }
         });
-        showNotification("Đã tạo tin tuyển dụng mới");
+        showNotification(t("admin_jobs_save_success"));
       }
       setIsModalOpen(false);
       fetchJobs(currentPage);
     } catch (err) {
-      showNotification("Lỗi khi lưu công việc", "error");
+      showNotification(t("error"), "error");
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Xóa tin tuyển dụng này?")) return;
+    if (!confirm(t("admin_jobs_delete_confirm"))) return;
     try {
       await axios.delete(`/api/jd/admin/${id}`, {
         headers: { 
@@ -193,10 +195,10 @@ const AdminJobsPage = () => {
           "X-Is-Admin": "true"
         }
       });
-      showNotification("Đã xóa tin tuyển dụng");
+      showNotification(t("admin_jobs_delete_success"));
       fetchJobs();
     } catch (err) {
-      showNotification("Lỗi khi xóa", "error");
+      showNotification(t("error"), "error");
     }
   };
 
@@ -225,7 +227,7 @@ const AdminJobsPage = () => {
   };
 
   const handleCrawl = async () => {
-    if (!confirm("Kích hoạt crawler lấy 20 tin Tech mới nhất từ TopCV?")) return;
+    if (!confirm(t("admin_jobs_crawl_success"))) return;
     setIsLoading(true);
     try {
       await axios.post("/api/jd/admin/crawl", {}, {
@@ -234,11 +236,11 @@ const AdminJobsPage = () => {
           "X-Is-Admin": "true"
         }
       });
-      showNotification("Đã kích hoạt Crawler. Vui lòng đợi vài phút...");
+      showNotification(t("admin_jobs_crawl_success"));
       // Refresh sau 5s để xem có tin mới chưa
       setTimeout(() => fetchJobs(1), 5000);
     } catch (err) {
-      showNotification("Lỗi khi kích hoạt crawler", "error");
+      showNotification(t("admin_jobs_crawl_error"), "error");
     } finally {
       setIsLoading(false);
     }
@@ -257,13 +259,13 @@ const AdminJobsPage = () => {
           <div>
             <h1 className={styles.title}>
               <Briefcase size={40} className={styles.headerIcon} /> 
-              <span>Job Hub Manager</span>
+              <span>{t("admin_jobs_title")}</span>
             </h1>
-            <p className={styles.subtitle}>Quản trị hệ thống tin tuyển dụng và trạng thái listing.</p>
+            <p className={styles.subtitle}>{t("admin_jobs_subtitle")}</p>
           </div>
           <div className="flex gap-4">
             <div className={styles.settingToggle}>
-               <div className={styles.toggleLabel}>Auto Crawl (30m)</div>
+               <div className={styles.toggleLabel}>{t("admin_jobs_auto_crawl")}</div>
                <button 
                  onClick={toggleCrawlSetting} 
                  disabled={isUpdatingSetting}
@@ -278,7 +280,7 @@ const AdminJobsPage = () => {
               className={cn(styles.addBtn, "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200")}
             >
               <Plus size={18} /> 
-              Thêm công việc
+              {t("admin_jobs_add_btn")}
             </button>
             
             <button 
@@ -286,7 +288,7 @@ const AdminJobsPage = () => {
               className={cn(styles.addBtn, "bg-blue-600 hover:bg-blue-700")}
             >
               <Globe size={18} /> 
-              Import từ URL
+              {t("admin_jobs_import_btn")}
             </button>
             
             <button 
@@ -294,7 +296,7 @@ const AdminJobsPage = () => {
               className={cn(styles.addBtn, "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200")}
             >
               <RefreshCcw size={18} className={cn(isLoading && "animate-spin")} /> 
-              Crawl Now
+              {t("admin_jobs_crawl_now")}
             </button>
           </div>
         </div>
@@ -305,7 +307,7 @@ const AdminJobsPage = () => {
               <Search className={styles.searchIcon} />
               <input 
                 type="text" 
-                placeholder="Tìm tên công việc, công ty..." 
+                placeholder={t("admin_jobs_search_placeholder")}
                 className={styles.searchInput}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -320,12 +322,12 @@ const AdminJobsPage = () => {
             <table className={styles.table}>
               <thead>
                 <tr className={styles.tableHeader}>
-                  <th className={styles.th}>Công việc / Công ty</th>
-                  <th className={styles.th}>Nguồn</th>
-                  <th className={styles.th}>Địa điểm</th>
-                  <th className={styles.th}>Lương</th>
-                  <th className={styles.th}>Trạng thái</th>
-                  <th className={cn(styles.th, styles.thRight)}>Sửa</th>
+                  <th className={styles.th}>{t("admin_jobs_table_job_company")}</th>
+                  <th className={styles.th}>{t("admin_jobs_table_source")}</th>
+                  <th className={styles.th}>{t("admin_jobs_table_location")}</th>
+                  <th className={styles.th}>{t("admin_jobs_table_salary")}</th>
+                  <th className={styles.th}>{t("admin_jobs_table_status")}</th>
+                  <th className={cn(styles.th, styles.thRight)}>{t("admin_jobs_table_edit")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -357,9 +359,9 @@ const AdminJobsPage = () => {
                        </div>
                     </td>
                     <td className={styles.td}>
-                       <div className={styles.metaInfo}>
+                        <div className={styles.metaInfo}>
                           <DollarSign size={14} />
-                          {job.max_salary_vnd ? `${(job.max_salary_vnd/1000000).toFixed(0)}M` : "Thỏa thuận"}
+                          {job.max_salary_vnd ? `${(job.max_salary_vnd/1000000).toFixed(0)}M` : t("jobs_salary_negotiable")}
                        </div>
                     </td>
                     <td className={styles.td}>
@@ -403,36 +405,36 @@ const AdminJobsPage = () => {
                 className={styles.modalContent}
               >
                 <div className={styles.modalHeader}>
-                    <h3 className={styles.modalTitle}>{editingJob ? "Cập nhật tin tuyển dụng" : "Thêm tin tuyển dụng mới"}</h3>
+                    <h3 className={styles.modalTitle}>{editingJob ? t("admin_jobs_modal_edit_title") : t("admin_jobs_modal_create_title")}</h3>
                 </div>
                 <div className={styles.modalBody}>
                    <div className={styles.formGrid}>
                       <div className={styles.formFieldFull}>
-                         <label>Mô tả công việc (Raw Text)</label>
+                         <label>{t("admin_jobs_modal_desc_label")}</label>
                          <textarea 
                            className={styles.textarea}
                            rows={6}
-                           placeholder="Dán toàn bộ nội dung tin tuyển dụng vào đây..."
+                           placeholder={t("admin_jobs_modal_desc_placeholder")}
                            value={formData.description}
                            onChange={e => setFormData({...formData, description: e.target.value})}
                          />
                       </div>
                       <div className={styles.formField}>
-                         <label>Tiêu đề công việc</label>
+                         <label>{t("admin_jobs_modal_title_label")}</label>
                          <input 
                            value={formData.title}
                            onChange={e => setFormData({...formData, title: e.target.value})}
                          />
                       </div>
                       <div className={styles.formField}>
-                         <label>Công ty</label>
+                         <label>{t("admin_jobs_modal_company_label")}</label>
                          <input 
                            value={formData.company_name}
                            onChange={e => setFormData({...formData, company_name: e.target.value})}
                          />
                       </div>
                       <div className={styles.formField}>
-                         <label>Trạng thái</label>
+                         <label>{t("admin_jobs_modal_status_label")}</label>
                          <select 
                            value={formData.status}
                            onChange={e => setFormData({...formData, status: e.target.value})}
@@ -444,9 +446,9 @@ const AdminJobsPage = () => {
                    </div>
                 </div>
                 <div className={styles.modalFooter}>
-                   <button onClick={() => setIsModalOpen(false)} className={styles.cancelBtn}>Hủy</button>
+                   <button onClick={() => setIsModalOpen(false)} className={styles.cancelBtn}>{t("cancel")}</button>
                    <button onClick={handleSave} className={styles.submitBtn}>
-                     {editingJob ? "Cập nhật công việc" : "Lưu tin mới"}
+                     {editingJob ? t("admin_jobs_modal_edit_title") : t("admin_jobs_save_btn")}
                    </button>
                 </div>
               </motion.div>

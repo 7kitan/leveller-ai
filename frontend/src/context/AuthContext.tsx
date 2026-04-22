@@ -28,11 +28,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [maintenanceDuration, setMaintenanceDuration] = useState("");
 
+  // 1. Global Axios interceptor to handle 503 Maintenance Mode silently
+  // Setup this BEFORE initializeAuth to catch errors during startup
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        // Catch 503 Service Unavailable with maintenance flag
+        if (error.response?.status === 503 && error.response?.data?.maintenance) {
+          setMaintenanceMode(true);
+          const duration = error.response.data.duration;
+          if (duration) setMaintenanceDuration(duration);
+          
+          return Promise.reject({ ...error, _silent: true });
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => axios.interceptors.response.eject(interceptor);
+  }, []);
+
+  // 2. Initialize Auth & Detect Maintenance
   useEffect(() => {
     const initializeAuth = async () => {
       const storedToken = localStorage.getItem("auth_token");
-      if (storedToken) {
-        try {
+      
+      try {
+        if (storedToken) {
           // Verify token with backend - retrieves user data AND maintenance status
           const res = await axios.get("/api/auth/verify", {
             params: { token: storedToken },
@@ -51,50 +74,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Sync localStorage
             localStorage.setItem("auth_user", JSON.stringify(userData));
           }
-        } catch (e: any) {
-          // If it's the silent maintenance error from our interceptor, do nothing
-          if (e._silent) return;
-          
+        } else {
+          // Even if not logged in, we should check if system is under maintenance
+          // We can do a lightweight check to a public endpoint
+          try {
+            await axios.get("/api/auth/verify"); // This will 503 if maintenance is ON
+          } catch (e) {
+            // Interceptor handles the state update
+          }
+        }
+      } catch (e: any) {
+        // If it's the silent maintenance error from our interceptor, do nothing
+        if (e._silent) {
+          setMaintenanceMode(true);
+        } else {
           console.error("Session verification failed", e.message);
           logout();
         }
-      } else {
-        // Even if not logged in, check if system is under maintenance for non-auth pages
-        try {
-          // Public check if possible, or just fail silently
-          // For now, let AuthGuard handle public path logic
-        } catch (e) {}
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     initializeAuth();
   }, []);
-
-  // Global Axios interceptor to handle 503 Maintenance Mode silently
-  useEffect(() => {
-    const interceptor = axios.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        // Catch 503 Service Unavailable with maintenance flag
-        if (error.response?.status === 503 && error.response?.data?.maintenance) {
-          // Sync maintenance state quietly
-          if (!maintenanceMode) {
-            setMaintenanceMode(true);
-            const duration = error.response.data.duration;
-            if (duration) setMaintenanceDuration(duration);
-          }
-          
-          // Return a custom silent error object instead of a full AxiosError
-          // This prevents standard "Request failed with status code 503" logs in many environments
-          return Promise.reject({ ...error, _silent: true });
-        }
-        return Promise.reject(error);
-      }
-    );
-
-    return () => axios.interceptors.response.eject(interceptor);
-  }, [maintenanceMode]);
 
   const login = (newToken: string, userData: User) => {
     // Ensure role exists during login

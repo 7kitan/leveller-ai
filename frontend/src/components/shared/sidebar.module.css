@@ -101,7 +101,7 @@
 
 .item {
   @apply flex items-center gap-3.5 px-4 py-3 rounded-2xl font-semibold transition-all relative overflow-hidden;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--color-text-muted);
   font-size: 0.9rem;
 }
 
@@ -114,17 +114,17 @@
 }
 
 [data-theme="dark"] .item {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-text-muted);
 }
 
 .item:hover {
   background: rgba(0, 0, 0, 0.03);
-  color: #000;
+  color: var(--color-text-main);
 }
 
 [data-theme="dark"] .item:hover {
   background: rgba(255, 255, 255, 0.05);
-  color: #fff;
+  color: var(--color-text-main);
 }
 
 .active {

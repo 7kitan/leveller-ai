@@ -8,12 +8,23 @@ from typing import Dict, Any, Optional
 
 logger = logging.getLogger("cv_parsing_v3.ocr_client")
 
+from shared.config_utils import config_manager
+
 class ChandraOCRClient:
     def __init__(self):
-        self.api_url = os.getenv("CHANDRA_API_URL")
-        self.api_key = os.getenv("CHANDRA_API_KEY")
+        # We'll fetch these dynamically in each call to ensure they're up-to-date
+        self.default_api_url = os.getenv("CHANDRA_API_URL")
+        self.default_api_key = os.getenv("CHANDRA_API_KEY")
         self.timeout = float(os.getenv("OCR_TIMEOUT", "300.0"))
         self.poll_interval = 5.0
+
+    @property
+    def api_url(self):
+        return config_manager.get_setting("chandra_api_url") or self.default_api_url
+
+    @property
+    def api_key(self):
+        return config_manager.get_setting("chandra_api_key") or self.default_api_key
 
     async def ocr_file(self, file_path: str) -> Dict[str, Any]:
         """

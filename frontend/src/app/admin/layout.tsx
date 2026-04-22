@@ -21,12 +21,13 @@ import styles from "@/components/shared/layout.module.css";
 import { cn } from "@/lib/utils";
 
 const ADMIN_NAV_ITEMS = [
-  { name: "Dashboard",            icon: LayoutDashboard, path: "/admin" },
-  { name: "User Control",          icon: UserCircle,      path: "/admin/users" },
-  { name: "CV Repository",         icon: FileText,        path: "/admin/cvs" },
-  { name: "Course Catalog",        icon: BookOpen,        path: "/admin/courses" },
-  { name: "Job Portal",            icon: Layers,          path: "/admin/jobs" },
-  { name: "System Settings",       icon: Settings,        path: "/admin/settings" },
+  { key: "nav_dashboard", icon: LayoutDashboard, path: "/admin" },
+  { key: "nav_users",     icon: UserCircle,      path: "/admin/users" },
+  { key: "nav_cv",        icon: FileText,        path: "/admin/cvs" },
+  { key: "nav_courses",   icon: BookOpen,        path: "/admin/courses" },
+  { key: "nav_jobs",      icon: Layers,          path: "/admin/jobs" },
+  { key: "nav_profile",   icon: UserCircle,      path: "/admin/profile" },
+  { key: "nav_settings",  icon: Settings,        path: "/admin/settings" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

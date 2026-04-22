@@ -9,8 +9,9 @@ import { Briefcase, MapPin, Search, Loader2, Info, Sparkles, Building2, DollarSi
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import Pagination from "@/components/shared/Pagination";
+import { useLanguage } from "@/context/LanguageContext";
 import { formatDistanceToNow } from 'date-fns';
-import { vi } from 'date-fns/locale';
+import { vi, enUS } from 'date-fns/locale';
 
 interface Job {
   id: string;
@@ -26,6 +27,7 @@ interface Job {
 }
 
 export default function JobsPage() {
+  const { t, language } = useLanguage();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -78,13 +80,13 @@ export default function JobsPage() {
       <div className={styles.header}>
         <div>
             <h1 className={styles.title}>
-               KHÁM PHÁ<span className={styles.gradientText}> CƠ HỘI</span>
+               {language === 'vi' ? <>KHÁM PHÁ<span className={styles.gradientText}> CƠ HỘI</span></> : <>EXPLORE<span className={styles.gradientText}> OPPORTUNITIES</span></>}
             </h1>
-            <p className={styles.subtitle}>Tìm kiếm và phân tích độ phù hợp với các vị trí hàng đầu trên quy mô toàn cầu.</p>
+            <p className={styles.subtitle}>{t("jobs_subtitle")}</p>
         </div>
         <div className={styles.badge}>
            <Sparkles size={12} />
-           <span className={styles.badgeLabel}>Global Opportunity Index v3.1</span>
+           <span className={styles.badgeLabel}>{t("opportunity_index_badge")}</span>
         </div>
       </div>
       
@@ -92,40 +94,40 @@ export default function JobsPage() {
           <div className={styles.searchContainer}>
               <div className={styles.inputWrapper}>
                   <Search size={18} className={styles.inputIcon} />
-                  <input 
-                      type="text"
-                      placeholder="Từ khóa (Vị trí, Công ty...)"
-                      className={styles.input}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+                   <input 
+                       type="text"
+                       placeholder={t("jobs_search_keyword")}
+                       className={styles.input}
+                       value={searchTerm}
+                       onChange={(e) => setSearchTerm(e.target.value)}
+                   />
               </div>
               <div className={styles.inputWrapper}>
                   <MapPin size={18} className={styles.inputIcon} />
-                  <input 
-                      type="text"
-                      placeholder="Địa điểm"
-                      className={styles.input}
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                  />
+                   <input 
+                       type="text"
+                       placeholder={t("jobs_search_location")}
+                       className={styles.input}
+                       value={location}
+                       onChange={(e) => setLocation(e.target.value)}
+                   />
               </div>
               <div className={styles.inputWrapper}>
                   <Briefcase size={18} className={styles.inputIcon} />
-                  <input 
-                      type="text"
-                      placeholder="Lương tối thiểu"
-                      className={styles.input}
-                      value={minSalary}
-                      onChange={(e) => setMinSalary(e.target.value)}
-                  />
+                   <input 
+                       type="text"
+                       placeholder={t("jobs_search_salary")}
+                       className={styles.input}
+                       value={minSalary}
+                       onChange={(e) => setMinSalary(e.target.value)}
+                   />
               </div>
-              <button 
-                  type="submit"
-                  className={styles.searchBtn}
-              >
-                  TÌM KIẾM
-              </button>
+               <button 
+                   type="submit"
+                   className={styles.searchBtn}
+               >
+                   {t("jobs_search_btn")}
+               </button>
           </div>
       </form>
 
@@ -137,8 +139,8 @@ export default function JobsPage() {
             exit={{ opacity: 0 }}
             className={styles.loadingWrapper}
           >
-            <Loader2 size={40} className={cn("animate-spin", styles.loadingIcon)} />
-            <p className={styles.loadingText}>Đang đồng bộ cơ sở dữ liệu...</p>
+             <Loader2 size={40} className={cn("animate-spin", styles.loadingIcon)} />
+             <p className={styles.loadingText}>{t("jobs_loading_db")}</p>
           </motion.div>
         ) : jobs.length > 0 ? (
           <motion.div 
@@ -156,9 +158,9 @@ export default function JobsPage() {
             animate={{ opacity: 1 }}
             className={styles.emptyState}
           >
-            <Info size={48} className={styles.emptyIcon} />
-            <h3 className={styles.emptyTitle}>Không tìm thấy kết quả</h3>
-            <p className={styles.emptySub}>Hệ thống không tìm thấy công việc phù hợp với tiêu chí của bạn.</p>
+             <Info size={48} className={styles.emptyIcon} />
+             <h3 className={styles.emptyTitle}>{t("jobs_no_results")}</h3>
+             <p className={styles.emptySub}>{t("jobs_no_results_sub")}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -174,20 +176,25 @@ export default function JobsPage() {
 }
 
 function JobCard({ job }: { job: Job }) {
+  const { t, language } = useLanguage();
+  
   const formatSalary = (min?: number, max?: number) => {
-    if (!min && !max) return "Thỏa thuận";
+    if (!min && !max) return t("jobs_salary_negotiable");
     const format = (val: number) => `${(val / 1000000).toFixed(0)}M`;
-    if (min && !max) return `Từ ${format(min)}`;
-    if (!min && max) return `Lên tới ${format(max)}`;
+    if (min && !max) return `${t("jobs_salary_from")} ${format(min)}`;
+    if (!min && max) return `${t("jobs_salary_up_to")} ${format(max)}`;
     return `${format(min!)} - ${format(max!)}`;
   };
 
   const getRelativeTime = (dateString?: string) => {
-    if (!dateString) return "Mới đây";
+    if (!dateString) return t("jobs_time_just_now");
     try {
-      return formatDistanceToNow(new Date(dateString), { locale: vi, addSuffix: true });
+      return formatDistanceToNow(new Date(dateString), { 
+        locale: language === 'vi' ? vi : enUS, 
+        addSuffix: true 
+      });
     } catch {
-      return "Gần đây";
+      return t("jobs_time_recently");
     }
   };
 
@@ -206,7 +213,7 @@ function JobCard({ job }: { job: Job }) {
               styles.statusBadge,
               job.status?.toLowerCase() === "active" ? styles.statusActive : styles.statusOther
             )}>
-              {job.status || "Closed"}
+              {job.status || t("status_closed")}
             </span>
             {job.source_label && (
                 <span className={cn(
@@ -225,13 +232,13 @@ function JobCard({ job }: { job: Job }) {
           </h3>
           <div className={styles.companyName}>
             <Building2 size={14} style={{ marginRight: '6px', opacity: 0.6 }} />
-            <span className="truncate" title={job.company_name}>{job.company_name || "Công ty bảo mật"}</span>
+            <span className="truncate" title={job.company_name}>{job.company_name || t("jobs_company_confidential")}</span>
           </div>
 
           <div className={styles.metaGrid}>
             <div className={styles.cardMeta} title={job.location_raw}>
                 <MapPin size={14} style={{ opacity: 0.6 }} /> 
-                <span className="truncate">{job.location_raw || "Toàn quốc"}</span>
+                <span className="truncate">{job.location_raw || t("jobs_location_nationwide")}</span>
             </div>
             <div className={styles.cardMeta}>
                 <DollarSign size={14} style={{ opacity: 0.6 }} /> 
@@ -245,7 +252,7 @@ function JobCard({ job }: { job: Job }) {
             </div>
             <div className={styles.cardMeta}>
                 <Briefcase size={14} style={{ opacity: 0.6 }} /> 
-                <span>{job.employment_type || "Toàn thời gian"}</span>
+                <span>{job.employment_type || t("jobs_employment_fulltime")}</span>
             </div>
           </div>
       </div>
@@ -254,7 +261,7 @@ function JobCard({ job }: { job: Job }) {
         href={`/user/analysis?job_id=${job.id}&job_title=${encodeURIComponent(job.title_raw || "")}`}
         className={styles.actionBtn}
       >
-        Khởi chạy Phân tích <Sparkles size={14} style={{ marginLeft: '8px' }} />
+        {t("jobs_run_analysis")} <Sparkles size={14} style={{ marginLeft: '8px' }} />
       </Link>
     </motion.div>
   );
