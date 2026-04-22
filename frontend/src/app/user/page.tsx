@@ -197,9 +197,7 @@ const UserDashboard = () => {
 
           <div className={styles.radarContainer}>
             <div className={styles.radarScan} />
-            <div
-              className={styles.bowArrowIcon}
-            >
+            <div className={styles.bowArrowIcon}>
               <BowArrow />
             </div>
           </div>
