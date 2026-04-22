@@ -199,7 +199,7 @@ const UserDashboard = () => {
                       <span style={{ color: 'var(--color-success)', fontWeight: 800 }} className="text-subheading">{course.match}</span>
                     </div>
                     {course.url && (
-                      <a href={course.url} target="_blank" className={styles.viewAllLink} style={{ color: 'inherit' }}>
+                      <a href={course.url} target="_blank" rel="noopener noreferrer" className={styles.viewAllLink} style={{ color: 'inherit' }}>
                         Học ngay <ArrowRight size={14} />
                       </a>
                     )}
