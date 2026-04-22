@@ -194,8 +194,7 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
             total_elapsed = time.monotonic() - t0
             logger.warning(
                 f"[TASK PIPELINE FAILED] cv_id={cv_id} | elapsed={total_elapsed:.1f}s\n"
-                f"  error: {error}\n"
-                f"  → scheduling retry {self.request.retries + 1}/{self.max_retries} (countdown=60s)"
+                f"  error: {error}"
             )
             raise Exception(error)
 
@@ -208,11 +207,19 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
             f"  message  : {e}\n"
             f"  retry    : {retry_count}/{self.max_retries}"
         )
-        # Last retry → propagate to on_failure
-        if self.request.retries < self.max_retries - 1:
+        
+        # Decide if we should retry
+        # Logic: Don't retry if it's a validation error (e.g. Not a CV) or if it's the last attempt
+        non_retryable_msgs = ["Validation failed", "Invalid cv_id", "CV not found", "Raw text too short", "is empty or unreadable"]
+        is_retryable = not any(msg in str(e) for msg in non_retryable_msgs)
+
+        if is_retryable and self.request.retries < self.max_retries - 1:
+            logger.info(f"[TASK] Scheduling retry {retry_count}/{self.max_retries} in 60s...")
             raise self.retry(exc=e, countdown=60)
         else:
-            raise
+            if not is_retryable:
+                logger.warning(f"[TASK] Skipping retry due to non-retryable error: {e}")
+            raise e
 
     finally:
         db.close()

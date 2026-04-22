@@ -13,6 +13,7 @@ import uuid
 from typing import Dict, Any, Optional
 from shared.config_utils import config_manager
 from shared.ai_service import generate_completion
+from worker.langgraph_agents.gap_v3.config import GAP_LLM_MODEL as LLM_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ async def llm_json_completion(
     effective_model = (
         model or 
         config_manager.get_setting(m_key) or 
-        os.getenv("GAP_LLM_MODEL", os.getenv("LLM_MODEL", "gpt-4o-mini"))
+        LLM_MODEL
     )
     
     call_id = str(uuid.uuid4())[:8]
@@ -241,7 +242,7 @@ async def llm_text_completion(
     effective_model = (
         model or 
         config_manager.get_setting(m_key) or 
-        os.getenv("GAP_LLM_MODEL", os.getenv("LLM_MODEL", "gpt-4o-mini"))
+        LLM_MODEL
     )
     
     call_id = str(uuid.uuid4())[:8]

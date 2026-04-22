@@ -13,7 +13,7 @@ class ChandraOCRClient:
         self.api_url = os.getenv("CHANDRA_API_URL")
         self.api_key = os.getenv("CHANDRA_API_KEY")
         self.timeout = float(os.getenv("OCR_TIMEOUT", "300.0"))
-        self.poll_interval = 2.0
+        self.poll_interval = 5.0
 
     async def ocr_file(self, file_path: str) -> Dict[str, Any]:
         """

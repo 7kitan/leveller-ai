@@ -42,7 +42,7 @@ def _fallback_to_legacy(calculator, user_id, cv_id, requirements, loop):
 
 
 @celery_app.task(bind=True, name="worker.tasks.analysis_tasks.run_gap_analysis")
-def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text: str = None):
+def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text: str = None, force: bool = False):
     """
     Gap Analysis Celery Task.
     Flow:
@@ -147,7 +147,7 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
                     )
                     if job.raw_text:
                         requirements = loop.run_until_complete(
-                            calculator.extract_requirements_from_text(job.raw_text)
+                            calculator.extract_requirements_from_text(job.raw_text, job_id=job_id)
                         )
                         jd_context = (
                             f"{job.title_raw or ''} @ {job.company_name or ''}".strip(
@@ -252,6 +252,7 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
                         job_id=job_id,
                         db=db,
                         jd_context=jd_context,
+                        force=force,
                     )
                 )
                 elapsed_v3 = time.monotonic() - t3

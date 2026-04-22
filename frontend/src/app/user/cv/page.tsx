@@ -1177,15 +1177,17 @@ const UserCVPage = () => {
                       </h4>
                       <p className={styles.historyDate}>
                         {item.status === "completed"
-                          ? `Đã phân tích · ${new Date(
-                              item.created_at
-                            ).toLocaleDateString("vi-VN")}`
+                          ? `Đã phân tích · ${new Date(item.created_at).toLocaleString("vi-VN")}`
                           : item.status === "failed"
-                          ? "Phân tích thất bại"
-                          : `Đang xử lý · ${new Date(
-                              item.created_at
-                            ).toLocaleDateString("vi-VN")}`}
+                          ? `Lỗi phân tích · ${new Date(item.created_at).toLocaleString("vi-VN")}`
+                          : `Đang xử lý · ${new Date(item.created_at).toLocaleString("vi-VN")}`}
                       </p>
+                      {item.status === "failed" && item.error_message && (
+                        <div className={styles.historyErrorText}>
+                          <AlertCircle size={12} />
+                          <span>{item.error_message}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   {item.status === "completed" && (

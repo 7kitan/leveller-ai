@@ -19,74 +19,77 @@ class RequirementRetriever:
     def __init__(self, db: Session):
         self.db = db
 
-    async def extract(self, jd_text: str) -> List[Dict[str, Any]]:
+    async def extract(self, jd_text: str, job_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """AI Trích xuất JD với cơ chế 4-Layer Knowledge Retrieval (Hybrid)."""
         jd_text = jd_text.strip()
         jd_embedding = None
 
-        # Layer 1: Exact Hit (Hash-based)
-        text_hash = hashlib.sha256(jd_text.encode()).hexdigest()[:16]
-        exact_id = f"cache_{text_hash}"
-        exact_hit = self.db.query(Job).filter(Job.source_id == exact_id).first()
-        if exact_hit and exact_hit.extracted_requirements_json:
-            # DIRTY CACHE DETECTION:
-            # 1. Skip if contains generic placeholders
-            reqs = exact_hit.extracted_requirements_json
-            reqs_str = json.dumps(reqs).lower()
-            dirty_keywords = [
-                "technologies",
-                "alternative",
-                "category",
-                "required",
-                "optional",
-                "generic",
-            ]
-            is_dirty = any(
-                f'"{kw}' in reqs_str or f" {kw}" in reqs_str for kw in dirty_keywords
-            )
+        # Layer 1: Exact Hit (Hash-based) - SKIP if job_id is provided as we want to update THAT job
+        if not job_id:
+            text_hash = hashlib.sha256(jd_text.encode()).hexdigest()[:16]
+            exact_id = f"cache_{text_hash}"
+            exact_hit = self.db.query(Job).filter(Job.source_id == exact_id).first()
+            if exact_hit and exact_hit.extracted_requirements_json:
+                # DIRTY CACHE DETECTION:
+                # 1. Skip if contains generic placeholders
+                reqs = exact_hit.extracted_requirements_json
+                reqs_str = json.dumps(reqs).lower()
+                dirty_keywords = [
+                    "technologies",
+                    "alternative",
+                    "category",
+                    "required",
+                    "optional",
+                    "generic",
+                ]
+                is_dirty = any(
+                    f'"{kw}' in reqs_str or f" {kw}" in reqs_str for kw in dirty_keywords
+                )
 
-            # 2. Skip if it looks like the old "2-year default" extraction (heuristic)
-            if not is_dirty and isinstance(reqs, list):
-                years_list = []
-                for r in reqs:
-                    if r.get("type") == "skill":
-                        years_list.append(r.get("years_required"))
-                    elif r.get("type") == "group":
-                        for s in r.get("skills", []):
-                            years_list.append(s.get("years_required"))
+                # 2. Skip if it looks like the old "2-year default" extraction (heuristic)
+                if not is_dirty and isinstance(reqs, list):
+                    years_list = []
+                    for r in reqs:
+                        if r.get("type") == "skill":
+                            years_list.append(r.get("years_required"))
+                        elif r.get("type") == "group":
+                            for s in r.get("skills", []):
+                                years_list.append(s.get("years_required"))
 
-                # If everything is exactly 2 years, it's likely a legacy extraction using the old forced default
-                if len(years_list) > 2 and all(y == 2 for y in years_list):
-                    is_dirty = True
-                    logger.info(
-                        "LAYER 1 DIRTY CACHE: Detected legacy 2-year default pattern."
-                    )
+                    # If everything is exactly 2 years, it's likely a legacy extraction using the old forced default
+                    if len(years_list) > 2 and all(y == 2 for y in years_list):
+                        is_dirty = True
+                        logger.info(
+                            "LAYER 1 DIRTY CACHE: Detected legacy 2-year default pattern."
+                        )
 
-            if not is_dirty:
-                logger.info(f"LAYER 1 HIT: Exact hash match {text_hash}")
-                return exact_hit.extracted_requirements_json
-            logger.info(f"LAYER 1 DIRTY CACHE: Forcing re-extraction.")
+                if not is_dirty:
+                    logger.info(f"LAYER 1 HIT: Exact hash match {text_hash}")
+                    return exact_hit.extracted_requirements_json
+                logger.info(f"LAYER 1 DIRTY CACHE: Forcing re-extraction.")
 
         # Layer 2: Keyword Hit (Postgres FTS)
-        keyword_hit = self._find_keyword_cache(jd_text)
-        if keyword_hit:
-            logger.info("LAYER 2 HIT: Semantic match via Keywords")
-            return keyword_hit
+        if not job_id:
+            keyword_hit = self._find_keyword_cache(jd_text)
+            if keyword_hit:
+                logger.info("LAYER 2 HIT: Semantic match via Keywords")
+                return keyword_hit
 
         # Layer 3: Semantic Hit (Vector Similarity)
-        logger.info("No text-based hits. Transitioning to Semantic Search (Vector)...")
-        jd_embedding = get_embedding(jd_text)
-        cached_reqs = self._find_semantic_cache(jd_text, jd_embedding)
-        if cached_reqs:
-            logger.info("LAYER 3 HIT: Matched via Vector Similarity")
-            return cached_reqs
+        if not job_id:
+            logger.info("No text-based hits. Transitioning to Semantic Search (Vector)...")
+            jd_embedding = get_embedding(jd_text)
+            cached_reqs = self._find_semantic_cache(jd_text, jd_embedding)
+            if cached_reqs:
+                logger.info("LAYER 3 HIT: Matched via Vector Similarity")
+                return cached_reqs
 
         # Layer 4: AI Extraction (Chat Completion)
-        logger.info("Knowledge Retrieval failed. Executing AI Extraction (GPT)...")
+        logger.info(f"Executing AI Extraction (GPT) | job_id={job_id}...")
         requirements = await self._ai_extract(jd_text)
 
         if requirements:
-            self._save_to_cache(jd_text, jd_embedding, requirements)
+            self._save_to_cache(jd_text, jd_embedding, requirements, job_id)
 
         return requirements
 
@@ -147,7 +150,7 @@ class RequirementRetriever:
             return None
 
     def _save_to_cache(
-        self, jd_text: str, embedding: List[float], requirements: List[Dict[str, Any]]
+        self, jd_text: str, embedding: List[float], requirements: List[Dict[str, Any]], job_id: Optional[str] = None
     ):
         try:
             # Reset any aborted transaction
@@ -156,16 +159,28 @@ class RequirementRetriever:
             except Exception:
                 pass
 
-            text_hash = hashlib.sha256(jd_text.encode()).hexdigest()[:16]
-            source_id = f"cache_{text_hash}"
-            existing = self.db.query(Job).filter(Job.source_id == source_id).first()
+            existing = None
+            if job_id:
+                try:
+                    job_uuid = uuid.UUID(str(job_id))
+                    existing = self.db.query(Job).filter(Job.id == job_uuid).first()
+                except Exception:
+                    logger.warning(f"Invalid job_id provided to cache: {job_id}")
+
+            if not existing:
+                text_hash = hashlib.sha256(jd_text.encode()).hexdigest()[:16]
+                source_id = f"cache_{text_hash}"
+                existing = self.db.query(Job).filter(Job.source_id == source_id).first()
 
             if existing:
                 existing.extracted_requirements_json = requirements
                 existing.last_analyzed_at = datetime.now()
                 if embedding:
                     existing.vector = embedding
+                logger.info(f"Updated requirements for Job ID: {existing.id} (source: {existing.source_id})")
             else:
+                text_hash = hashlib.sha256(jd_text.encode()).hexdigest()[:16]
+                source_id = f"cache_{text_hash}"
                 new_job = Job(
                     id=uuid.uuid4(),
                     source_id=source_id,
@@ -177,6 +192,7 @@ class RequirementRetriever:
                     status="cache",
                 )
                 self.db.add(new_job)
+                logger.info(f"Created new cache Job record for hash: {text_hash}")
             self.db.commit()
         except Exception as e:
             self.db.rollback()

@@ -46,6 +46,7 @@ class AIWorker:
                 # Execute the specific processor for this task type
                 processor = processors.get(task_type)
                 if processor:
+                    logger.info(f"DEBUG WORKER: [Task {task_id}] EXECUTING {task_type}...")
                     result = await processor(payload)
                     self.results[task_id].update({
                         "status": "completed",
@@ -56,16 +57,22 @@ class AIWorker:
                     self.results[task_id].update({"status": "failed", "error": f"Unknown task type: {task_type}"})
 
             except Exception as e:
-                logger.error(f"Error processing task {task_id}: {e}")
+                import traceback
+                logger.error(f"DEBUG WORKER: [Task {task_id}] CRITICAL ERROR: {e}\n{traceback.format_exc()}")
                 self.results[task_id].update({"status": "failed", "error": str(e)})
             finally:
                 # CRITICAL: Clean up memory after each task to avoid leaks on 8GB VPS
-                gc.collect()
                 if torch.cuda.is_available():
+                    vram_before = torch.cuda.memory_allocated() / 1024**2
                     torch.cuda.empty_cache()
+                    gc.collect()
+                    vram_after = torch.cuda.memory_allocated() / 1024**2
+                    logger.info(f"DEBUG WORKER: [Task {task_id}] DONE. VRAM: {vram_before:.1f}MB -> {vram_after:.1f}MB. Queue left: {self.queue.qsize()}")
+                else:
+                    gc.collect()
+                    logger.info(f"DEBUG WORKER: [Task {task_id}] DONE. CPU Memory cleaned. Queue left: {self.queue.qsize()}")
                     
                 self.queue.task_done()
-                logger.info(f"DEBUG WORKER: [Task {task_id}] FINISHED at {datetime.now().isoformat()}. Memory cleaned.")
 
 # Global Worker Instance
 worker = AIWorker()

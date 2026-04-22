@@ -557,6 +557,9 @@ async def add_cv_skill(
         )
         db.add(new_prof)
 
+    # Invalidate cache by updating UserCV timestamp
+    cv.updated_at = func.now()
+
     db.commit()
     return {"message": "Skill added successfully"}
 
@@ -595,6 +598,9 @@ async def update_cv_skill(
     if payload.level:
         prof.level = payload.level
 
+    # Invalidate cache by updating UserCV timestamp
+    cv.updated_at = func.now()
+    
     db.commit()
     return {"message": "Skill updated successfully"}
 
@@ -625,6 +631,10 @@ async def delete_cv_skill(
         raise HTTPException(status_code=404, detail="Skill profile not found")
 
     db.delete(prof)
+    
+    # Invalidate cache by updating UserCV timestamp
+    cv.updated_at = func.now()
+
     db.commit()
     return {"message": "Skill deleted successfully"}
 
@@ -721,14 +731,29 @@ async def get_cv_status(
                     logger.warning(f"get_cv_status: failed to fetch CV data: {e}")
 
         elif celery_status == "FAILURE":
-            error_msg = str(raw) if raw else "Unknown error"
             status = "failed"
+
+    # If failed, try to get error_message from DB if we have cv_id
+    error_message = None
+    if status == "failed":
+        if celery_status == "FAILURE" and task_result.result:
+            error_message = str(task_result.result)
+        
+        if cv_id:
+            try:
+                cv_uuid = uuid.UUID(cv_id)
+                cv = db.query(UserCV).filter(UserCV.id == cv_uuid).first()
+                if cv and cv.error_message:
+                    error_message = cv.error_message
+            except:
+                pass
 
     return {
         "task_id": task_id,
         "status": status,
         "progress": progress_data,
         "result": result_data,
+        "error_message": error_message,
     }
 
 

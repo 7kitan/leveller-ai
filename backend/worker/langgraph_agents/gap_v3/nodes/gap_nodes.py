@@ -9,6 +9,7 @@ import json
 import hashlib
 import logging
 import uuid as _uuid
+from datetime import datetime as _datetime
 from typing import Dict, Any, Optional, List
 
 from ..states import GapAnalysisStateV3, GapAnalysisResult
@@ -62,6 +63,24 @@ async def load_cv_parsed_data_node(state: GapAnalysisStateV3) -> GapAnalysisStat
         parsed = getattr(cv_record, "cv_parsed_json", None)
 
         if parsed:
+            # Refresh skills from DB to ensure we use the latest edits (ignoring the potentially stale JSON blob)
+            from shared.models import UserSkillProfile, Skill
+            db_skills = (
+                db.query(UserSkillProfile, Skill.name)
+                .join(Skill, UserSkillProfile.skill_id == Skill.id)
+                .filter(UserSkillProfile.cv_id == cv_record.id)
+                .all()
+            )
+            if db_skills:
+                updated_skills = []
+                for sp, name in db_skills:
+                    updated_skills.append({
+                        "name": name,
+                        "level": sp.level,
+                        "years_exp": sp.years_exp
+                    })
+                parsed["skills"] = updated_skills
+                logger.info(f"[STEP 1] Refreshed {len(updated_skills)} skills from UserSkillProfile table.")
             skills_count = len(parsed.get("skills") or [])
             work_count  = len(parsed.get("work_history") or [])
             edu_count  = len(parsed.get("education") or [])
@@ -71,7 +90,13 @@ async def load_cv_parsed_data_node(state: GapAnalysisStateV3) -> GapAnalysisStat
                 f"  seniority={parsed.get('seniority')} | "
                 f"experience={parsed.get('experience_years_total')} yrs"
             )
-            return {**state, "cv_parsed": parsed, "status": "cv_loaded"}
+            cv_timestamp = int(cv_record.updated_at.timestamp()) if cv_record.updated_at else 0
+            return {
+                **state, 
+                "cv_parsed": parsed, 
+                "cv_timestamp": cv_timestamp,
+                "status": "cv_loaded"
+            }
 
         # Cache miss → trigger CV parsing
         logger.warning(f"[STEP 1] No cv_parsed_json — triggering re-parse fallback")
@@ -79,7 +104,12 @@ async def load_cv_parsed_data_node(state: GapAnalysisStateV3) -> GapAnalysisStat
 
         if parsed:
             logger.info(f"[STEP 1] ✓ Fallback CV parsing succeeded")
-            return {**state, "cv_parsed": parsed, "status": "cv_loaded"}
+            return {
+                **state, 
+                "cv_parsed": parsed, 
+                "cv_timestamp": int(__import__("time").time()),
+                "status": "cv_loaded"
+            }
 
         logger.error(f"[STEP 1] ✗ Fallback CV parsing also failed")
         return {**state, "error": "CV not parsed and re-parse fallback failed", "status": "failed"}
@@ -191,6 +221,31 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
         jd_parsed_info = pre_jd_parsed or {}
         job_title = jd_parsed_info.get("job_title") or jd_context
 
+        # Redis cache check (Path A)
+        from shared.redis_client import result_cache
+        from ..config import GAP_CACHE_TTL
+        
+        cv_ts = state.get("cv_timestamp") or 0
+        jd_ts = state.get("jd_timestamp") or 0
+        # Hash requirements to detect changes in extracted data
+        jd_req_hash = hashlib.md5(json.dumps(pre_jd_requirements).encode()).hexdigest()[:16]
+        cache_key = f"gap_v3_path_a:{cv_id}:{job_id}:{jd_req_hash}:cv{cv_ts}:jd{jd_ts}"
+        
+        force_recompute = state.get("force_recompute", False)
+        cached_raw = result_cache.get(cache_key) if not force_recompute else None
+        
+        if cached_raw:
+            try:
+                cached_data = json.loads(cached_raw)
+                logger.info(f"[STEP 3] ✓ Redis CACHE HIT (Path A) | key={cache_key}")
+                return {
+                    **state,
+                    "gap_analysis": cached_data["gap_analysis"],
+                    "status": "gap_analyzed",
+                }
+            except Exception as e:
+                logger.warning(f"[STEP 3/Path_A] Cache parse failed: {e}")
+
         # Build gap-analysis prompt WITHOUT JD text (JD already extracted)
         prompt = _build_gap_only_prompt(cv_text, pre_jd_requirements, job_title)
         system = (
@@ -253,6 +308,16 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
             "requirements": pre_jd_requirements,
         }
 
+        # Cache result (Path A)
+        try:
+            combined_result = {
+                "gap_analysis": gap_analysis,
+            }
+            result_cache.setex(cache_key, GAP_CACHE_TTL, json.dumps(combined_result))
+            logger.info(f"[STEP 3/PATH_A] ✓ Cached analysis | key={cache_key}")
+        except Exception as e:
+            logger.warning(f"[STEP 3/PATH_A] Caching failed: {e}")
+
         logger.info(f"[STEP 3] PATH A DONE | match={gap_analysis.get('overall_match_pct')}%")
 
         return {
@@ -274,13 +339,20 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
         from ..config import GAP_CACHE_TTL
 
         jd_hash = hashlib.md5(jd_text.encode()).hexdigest()[:16]
-        cache_key = f"gap_v3_combined:{cv_id}:{jd_hash}"
+        cv_ts = state.get("cv_timestamp") or 0
+        jd_ts = state.get("jd_timestamp") or 0
+        
+        # Cache key includes cv_id, jd_hash, and timestamps for CV and JD
+        # This ensures cache is bypassed if either CV or JD is updated
+        cache_key = f"gap_v3_combined:{cv_id}:{jd_hash}:cv{cv_ts}:jd{jd_ts}"
 
-        cached_raw = result_cache.get(cache_key)
+        force_recompute = state.get("force_recompute", False)
+        cached_raw = result_cache.get(cache_key) if not force_recompute else None
+        
         if cached_raw:
             try:
                 cached_data = json.loads(cached_raw)
-                logger.info(f"[STEP 3] ✓ Redis CACHE HIT | key={cache_key}")
+                logger.info(f"[STEP 3] ✓ Redis CACHE HIT (Path B) | key={cache_key}")
                 return {
                     **state,
                     "jd_parsed": cached_data["jd_parsed"],
@@ -353,16 +425,32 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
             "top_gaps": top_gaps,
         }
 
-        # Cache result
+        # Cache result to Redis
         try:
             combined_result = {
                 "jd_parsed": jd_parsed,
                 "gap_analysis": gap_analysis,
             }
             result_cache.setex(cache_key, GAP_CACHE_TTL, json.dumps(combined_result))
-            logger.info(f"[STEP 3/PATH_B] ✓ Cached combined result | key={cache_key}")
+            logger.info(f"[STEP 3/PATH_B] ✓ Cached combined result to Redis | key={cache_key}")
         except Exception as e:
-            logger.warning(f"[STEP 3/PATH_B] Caching failed: {e}")
+            logger.warning(f"[STEP 3/PATH_B] Redis caching failed: {e}")
+
+        # Persistent DB update: If we have a job_id, save the extraction back to the Job record
+        # so next time it goes through Path A.
+        if job_id and jd_parsed and "requirements" in jd_parsed:
+            try:
+                from shared.models import Job
+                db = state["db"]
+                job_uuid = _uuid.UUID(str(job_id))
+                job_rec = db.query(Job).filter(Job.id == job_uuid).first()
+                if job_rec:
+                    job_rec.extracted_requirements_json = jd_parsed["requirements"]
+                    job_rec.last_analyzed_at = _datetime.now()
+                    db.commit()
+                    logger.info(f"[STEP 3/PATH_B] ✓ Persisted JD extraction to Job record in DB (job_id={job_id})")
+            except Exception as e:
+                logger.warning(f"[STEP 3/PATH_B] Failed to persist JD extraction to DB: {e}")
 
         logger.info(f"[STEP 3/PATH_B] DONE | match={gap_analysis.get('overall_match_pct')}%")
 
@@ -387,7 +475,7 @@ def _format_cv_for_llm(cv_parsed: dict) -> str:
     for s in skills:
         nm   = s.get("name") or "?"
         lvl  = s.get("level") or "Unknown"
-        yrs  = float(s.get("years_exp") or 0)
+        yrs  = float(s.get("years_exp") or s.get("experience_years") or 0)
         skill_lines.append(f"  - {nm} | {lvl} | {yrs:.1f} yrs")
     skills_text = "\n".join(skill_lines) or "  (no skills)"
 
@@ -461,7 +549,7 @@ def _build_merged_gap_prompt(cv_text: str, jd_text: str) -> str:
         + cv_text +
         "\n\n"
         "## MISSION:\n"
-        "1. EXTRACT: Analyze the raw JD text to identify the Job Title and structured Technical Requirements (skills, levels, years).\n"
+        "1. EXTRACT: Analyze the raw JD text to identify the Job Title and structured Technical Requirements (skills, levels, years). FOCUS ONLY on the 'Requirements', 'Qualifications', or 'Candidate Profile' sections for skill extraction. Ignore irrelevant sections like 'Benefits', 'Company Overview', or general 'Responsibility' lists unless they explicitly define required skills.\n"
         "2. ANALYZE: Compare the candidate's CV against the extracted requirements and the overall job context.\n"
         "3. EVALUATE: Provide a holistic match score, breakdown of skill matches, strengths, weaknesses, and a detailed list of gaps.\n"
         "4. PRIORITIZE: From the skill_gaps list, select TOP 3 gaps that should be addressed FIRST.\n\n"

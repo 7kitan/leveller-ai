@@ -146,35 +146,41 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
             # Continue to direct logic
 
     # ── Extract text via pymupdf (DIRECT) ────────────────────────────────────
-    try:
-        doc = fitz.open(file_path)
-        num_pages = len(doc)
-        logger.info(f"[STEP 1] Opening PDF with pymupdf | pages={num_pages}")
+    raw_text = ""
+    file_ext = os.path.splitext(file_path)[1].lower()
+    is_pdf = file_ext in (".pdf", "pdf")
 
-        text_pages = []
-        for page_num in range(num_pages):
-            page = doc[page_num]
-            text = page.get_text("text")
-            text_len = len(text.strip()) if text else 0
+    if is_pdf:
+        try:
+            doc = fitz.open(file_path)
+            num_pages = len(doc)
+            logger.info(f"[STEP 1] Opening PDF with pymupdf | pages={num_pages}")
+
+            text_pages = []
+            for page_num in range(num_pages):
+                page = doc[page_num]
+                text = page.get_text("text")
+                text_len = len(text.strip()) if text else 0
+                logger.info(
+                    f"  page {page_num + 1}/{num_pages}: {text_len} chars extracted"
+                )
+                if text and text_len > 50:
+                    text_pages.append(text)
+
+            doc.close()
+            raw_text = "\n\n".join(text_pages)
+
             logger.info(
-                f"  page {page_num + 1}/{num_pages}: {text_len} chars extracted"
+                f"[STEP 1] Text extraction complete:\n"
+                f"  pages with text  : {len(text_pages)}/{num_pages}\n"
+                f"  total raw_text   : {len(raw_text)} chars\n"
+                f"  first 120 chars  : {repr(raw_text[:120])}"
             )
-            if text and text_len > 50:
-                text_pages.append(text)
-
-        doc.close()
-        raw_text = "\n\n".join(text_pages)
-
-        logger.info(
-            f"[STEP 1] Text extraction complete:\n"
-            f"  pages with text  : {len(text_pages)}/{num_pages}\n"
-            f"  total raw_text   : {len(raw_text)} chars\n"
-            f"  first 120 chars  : {repr(raw_text[:120])}"
-        )
-
-    except Exception as e:
-        logger.error(f"[STEP 1] pymupdf extraction error: {e}", exc_info=True)
-        return {**state, "error": f"pymupdf extraction failed: {e}", "status": "failed"}
+        except Exception as e:
+            logger.warning(f"[STEP 1] pymupdf extraction failed (will try OCR fallback): {e}")
+            raw_text = ""
+    else:
+        logger.info(f"[STEP 1] File is not PDF ({file_ext}), skipping pymupdf, going to OCR fallback.")
 
     # ── OCR fallback: text too short → scan pages ────────────────────────────
     is_ocr = False
@@ -184,13 +190,18 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
             f"attempting OCR fallback..."
         )
         try:
-            import pdf2image
-
-            dpi = int(os.getenv("OCR_DPI", "200"))
-            logger.info(f"[STEP 1] pdf2image converting at dpi={dpi} ...")
-
-            images = pdf2image.convert_from_path(file_path, dpi=dpi)
-            logger.info(f"[STEP 1] Converted {len(images)} images from PDF pages")
+            from PIL import Image
+            images = []
+            
+            if is_pdf:
+                import pdf2image
+                dpi = int(os.getenv("OCR_DPI", "200"))
+                logger.info(f"[STEP 1] pdf2image converting PDF at dpi={dpi} ...")
+                images = pdf2image.convert_from_path(file_path, dpi=dpi)
+                logger.info(f"[STEP 1] Converted {len(images)} images from PDF pages")
+            else:
+                logger.info(f"[STEP 1] Opening image file directly for OCR: {file_path}")
+                images = [Image.open(file_path)]
 
             ocr_parts = []
             for idx, img in enumerate(images, 1):
@@ -200,7 +211,7 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
             raw_text = "\n\n".join(ocr_parts) + "\n\n" + raw_text
             is_ocr = True
             logger.info(
-                f"[STEP 1] OCR fallback applied | is_ocr=True | "
+                f"[STEP 1] OCR metadata markers applied | is_ocr=True | "
                 f"final text length={len(raw_text)} chars"
             )
 
@@ -216,7 +227,7 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
         logger.error(f"[STEP 1] ✗ FAIL — CV file is empty or unreadable: {file_path}")
         return {
             **state,
-            "error": f"CV file is empty or unreadable: {file_path}",
+            "error": "CV file is empty or unreadable. Please check your file and try again.",
             "status": "failed",
         }
 
@@ -347,7 +358,7 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
     """
 
     # ── LLM call ───────────────────────────────────────────────────────────────
-    from ..utils.llm_helpers import LLM_MODEL
+    from ..config import GAP_LLM_MODEL as LLM_MODEL
 
     logger.info(
         f"[STEP 2] Calling LLM: model={LLM_MODEL} | "
@@ -491,7 +502,7 @@ async def normalize_cv_node(state: CVParsingState) -> CVParsingState:
             {
                 "name": raw_name,
                 "category": skill.get("category") or "Technology",
-                "experience_years": max(0.0, float(skill.get("experience_years") or 0)),
+                "years_exp": max(0.0, float(skill.get("experience_years") or skill.get("years_exp") or 0)),
                 "level": normalized,
             }
         )

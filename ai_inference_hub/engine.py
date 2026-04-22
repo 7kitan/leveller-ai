@@ -19,6 +19,16 @@ from chandra.model.hf import generate_hf
 from chandra.model.schema import BatchInputItem
 from chandra.output import parse_markdown
 
+def ensure_safe_image_size(image: Image.Image, max_dim: int = 1536) -> Image.Image:
+    """Resize image if its largest dimension exceeds max_dim, preserving aspect ratio."""
+    width, height = image.size
+    if max(width, height) > max_dim:
+        scale = max_dim / max(width, height)
+        new_size = (int(width * scale), int(height * scale))
+        logger.info(f"DEBUG ENGINE: Resizing large image from {image.size} to {new_size}")
+        return image.resize(new_size, Image.Resampling.LANCZOS)
+    return image
+
 
 async def run_chandra_on_image(image: Image.Image) -> str:
     """Run Chandra OCR 2 inference on a single PIL Image.
@@ -107,6 +117,7 @@ async def process_ocr_task(payload: dict):
                 images_to_process.append(Image.open(io.BytesIO(file_bytes)))
 
         if not images_to_process:
+            logger.error("DEBUG ENGINE: [TASK-OCR] No images extracted from payload.")
             return {"error": "Failed to extract images from provided data"}
 
         total_pages = len(images_to_process)
@@ -116,6 +127,9 @@ async def process_ocr_task(payload: dict):
         for i, img in enumerate(images_to_process):
             logger.info(f"DEBUG ENGINE: [TASK-OCR] Starting Page {i+1}/{total_pages}...")
             page_start = time.time()
+            
+            # Safety: Ensure image size is manageable to avoid OOM/Segfault
+            img = ensure_safe_image_size(img)
             
             # Explicitly log memory before heavy page
             if torch.cuda.is_available():

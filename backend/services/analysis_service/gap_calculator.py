@@ -25,10 +25,10 @@ class GapCalculator:
         self.advanced_engine = AdvancedGapEngine()
 
     async def extract_requirements_from_text(
-        self, jd_text: str
+        self, jd_text: str, job_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """AI Trích xuất JD (Delegated to Retriever)."""
-        return await self.retriever.extract(jd_text)
+        return await self.retriever.extract(jd_text, job_id)
 
     def _normalize_name(self, name: str) -> str:
         return self.matcher._normalize_name(name)

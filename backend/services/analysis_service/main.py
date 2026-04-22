@@ -31,6 +31,7 @@ class GapRequest(BaseModel):
     cv_id: uuid.UUID
     job_id: Optional[uuid.UUID] = None
     jd_text: Optional[str] = None
+    force: bool = False  # If true, bypass ALL caches and recompute
 
 
 class FeedbackRequest(BaseModel):
@@ -109,6 +110,7 @@ async def start_gap_analysis(
             str(req.job_id) if req.job_id else None,
             req.jd_text,
         ],
+        kwargs={"force": req.force}
     )
     logger.info(
         f"[ANALYSIS GAP] Task dispatched — task_id={task.id} | "

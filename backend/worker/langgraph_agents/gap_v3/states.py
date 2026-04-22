@@ -130,6 +130,8 @@ class GapAnalysisStateV3(TypedDict):
 
     # Stage 1: CV loaded from DB
     cv_parsed: Optional[CVParsedData]
+    cv_timestamp: Optional[int]  # Unix timestamp for cache invalidation
+    jd_timestamp: Optional[int]  # Unix timestamp for cache invalidation
 
     # Stage 2: JD extracted
     jd_requirements: Optional[List[Dict]]

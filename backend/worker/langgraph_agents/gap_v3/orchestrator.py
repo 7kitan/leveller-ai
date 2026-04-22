@@ -62,6 +62,7 @@ async def run_gap_analysis_v3(
     job_id: str = None,
     db=None,
     jd_context: str = "Vị trí chưa xác định",
+    force: bool = False,
 ) -> dict:
     """
     Entry point cho toàn bộ Gap Analysis v3 pipeline.
@@ -103,29 +104,69 @@ async def run_gap_analysis_v3(
             job_uuid = _uuid.UUID(job_id)
             job_record = db.query(Job).filter(Job.id == job_uuid).first()
             if job_record:
+                # Always load jd_timestamp if record exists
+                jd_timestamp = int(job_record.updated_at.timestamp()) if job_record.updated_at else int(job_record.created_at.timestamp())
+                
+                # 1. Try JSON blob first
                 if job_record.extracted_requirements_json:
-                    # Use pre-extracted requirements from DB — SKIP LLM extraction
                     pre_jd_requirements = job_record.extracted_requirements_json
+                    _logger.info(f"[ORCHESTRATOR] ✓ Using extracted_requirements_json from job_id={job_id}")
+                
+                # 2. Fallback to JobSkillRequirement table (the "separate columns" the user mentioned)
+                elif job_record.skills_required:
+                    _logger.info(f"[ORCHESTRATOR] Found {len(job_record.skills_required)} items in JobSkillRequirement table. Assembling...")
+                    assembled_reqs = []
+                    for jsr in job_record.skills_required:
+                        # Join with Skill to get the name
+                        skill_name = jsr.skill.name if jsr.skill else "Unknown Skill"
+                        assembled_reqs.append({
+                            "type": "skill",
+                            "skill": skill_name,
+                            "target_level": jsr.required_level or "Junior",
+                            "years_required": jsr.min_years_exp or 0,
+                            "is_mandatory": jsr.is_mandatory,
+                            "importance_weight": jsr.importance_weight or 5
+                        })
+                    pre_jd_requirements = assembled_reqs
+                    _logger.info(f"[ORCHESTRATOR] ✓ Assembled {len(pre_jd_requirements)} requirements from separate DB columns.")
+
+                if pre_jd_requirements:
+                    # Successfully loaded requirements (from JSON or Table)
                     pre_jd_parsed = {
                         "job_title": job_record.title_raw or "Unknown",
                         "requirements": pre_jd_requirements,
                     }
                     _logger.info(
-                        f"[ORCHESTRATOR] ✓ Pre-populated from job_id={job_id}\n"
-                        f"  title        : {job_record.title_raw}\n"
-                        f"  requirements  : {len(pre_jd_requirements)} skills\n"
+                        f"[ORCHESTRATOR] Path A READY | title={job_record.title_raw} | ts={jd_timestamp}\n"
                         f"  → SKIPPING LLM extraction in gap_analysis_llm_node"
                     )
                 elif job_record.raw_text:
                     # Fallback: use raw_text if not yet extracted
                     jd_text = job_record.raw_text
                     _logger.info(
-                        f"[ORCHESTRATOR] job_id={job_id} has raw_text but no extracted_requirements_json"
+                        f"[ORCHESTRATOR] job_id={job_id} has raw_text but no extracted_requirements_json. ts={jd_timestamp}"
                     )
                 else:
                     _logger.warning(f"[ORCHESTRATOR] job_id={job_id} has no raw_text either")
         except Exception as e:
             _logger.warning(f"[ORCHESTRATOR] Failed to pre-populate from job_id: {e}")
+            import traceback
+            _logger.warning(traceback.format_exc())
+
+    # ── Load CV metadata (timestamp) ──────────────────────────────────────────
+    cv_timestamp = 0
+    if cv_id and db:
+        try:
+            import uuid as _uuid
+            from shared.models import UserCV
+            cv_record = db.query(UserCV).filter(UserCV.id == _uuid.UUID(cv_id)).first()
+            if cv_record:
+                cv_timestamp = int(cv_record.updated_at.timestamp()) if cv_record.updated_at else int(cv_record.created_at.timestamp())
+                _logger.info(f"[ORCHESTRATOR] CV timestamp loaded: {cv_timestamp}")
+        except Exception as e:
+            _logger.warning(f"[ORCHESTRATOR] Failed to load CV timestamp: {e}")
+
+    final_jd_timestamp = locals().get("jd_timestamp") or 0
 
     initial_state: GapAnalysisStateV3 = {
         "cv_id": cv_id,
@@ -138,6 +179,9 @@ async def run_gap_analysis_v3(
         # ── Pre-populated from job_id (SKIP LLM extraction) ────────────────────
         "jd_requirements": pre_jd_requirements,
         "jd_parsed": pre_jd_parsed,
+        "cv_timestamp": cv_timestamp,
+        "jd_timestamp": final_jd_timestamp,
+        "force_recompute": force,
         # ─────────────────────────────────────────────────────────────────────
         "gap_analysis": None,
         "course_recommendations": None,

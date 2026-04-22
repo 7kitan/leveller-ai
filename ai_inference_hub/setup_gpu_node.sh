@@ -7,7 +7,7 @@ echo "--- Starting Setup for AI Inference Hub ---"
 
 # 1. Update System
 echo "📦 Installing system dependencies..."
-apt-get update && apt-get install -y poppler-utils git
+apt-get update && apt-get install -y poppler-utils git coreutils
 
 # 2. Virtual Environment
 echo "🐍 Setting up virtual environment..."
@@ -27,7 +27,7 @@ if [ ! -f .env ]; then
     mkdir -p models_cache
     cat <<EOT > .env
 AI_INFERENCE_API_KEY=your_secure_api_key_here
-PORT=8080
+PORT=8081
 CHANDRA_MODEL_PATH=datalab-to/chandra-ocr-2
 BERTSCORE_MODEL_NAME=roberta-large
 HF_HOME=./models_cache
@@ -39,6 +39,8 @@ echo "--- Setup Complete ---"
 echo ""
 echo "Instructions:"
 echo "1. Edit the .env file with your AI_INFERENCE_API_KEY."
-echo "2. Run the service: uvicorn main:app --host 0.0.0.0 --port 8080"
-echo "3. Remember to map local port 8080 to a public port on your GPU provider's dashboard."
+echo "2. Run the service (Foreground): uvicorn main:app --host 0.0.0.0 --port 8081"
+echo "3. Run the service (Background): nohup uvicorn main:app --host 0.0.0.0 --port 8081 > server.log 2>&1 &"
+echo "4. Monitor logs: tail -f server.log"
+echo "5. Remember to map local port 8081 to a public port on your GPU provider's dashboard."
 echo ""

@@ -63,6 +63,7 @@ services:
     environment:
     - APP_MODULE=gateway.main:app
     - REDIS_HOST=advisor_redis
+    - POSTGRES_HOST=advisor_db
     ports:
     - 8000:8000
     env_file: .env
