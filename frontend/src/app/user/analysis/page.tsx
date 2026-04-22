@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import axios from "axios";
 import {
   Zap,
@@ -182,8 +183,13 @@ function AnalysisPageContent() {
           : `job_id=${selectedJobId}`)
     );
 
+    const { language } = useLanguage();
+
     try {
-      const payload: Record<string, unknown> = { cv_id: selectedCvId };
+      const payload: Record<string, unknown> = { 
+        cv_id: selectedCvId,
+        lang: language 
+      };
       if (jdMode === "paste") {
         payload.jd_text = pastedJdText;
       } else {

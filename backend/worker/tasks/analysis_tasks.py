@@ -42,7 +42,7 @@ def _fallback_to_legacy(calculator, user_id, cv_id, requirements, loop):
 
 
 @celery_app.task(bind=True, name="worker.tasks.analysis_tasks.run_gap_analysis")
-def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text: str = None, force: bool = False):
+def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text: str = None, force: bool = False, lang: str = "vi"):
     """
     Gap Analysis Celery Task.
     Flow:
@@ -145,24 +145,41 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
                     logger.info(
                         f"[ANALYSIS STEP 2] Found job in DB — id={job_id} title='{job.title_raw}'"
                     )
-                    if job.raw_text:
-                        requirements = loop.run_until_complete(
-                            calculator.extract_requirements_from_text(job.raw_text, job_id=job_id)
-                        )
-                        jd_context = (
-                            f"{job.title_raw or ''} @ {job.company_name or ''}".strip(
-                                " @"
+                    
+                    # ── OPTIMIZATION: Check for existing extraction first ──
+                    if job.extracted_requirements_json:
+                        requirements = job.extracted_requirements_json
+                        logger.info(f"[ANALYSIS STEP 2] ✓ Using existing extracted_requirements_json from DB")
+                    elif job.skills_required:
+                        # Fallback to separate SkillRequirement table
+                        assembled = []
+                        for jsr in job.skills_required:
+                            assembled.append({
+                                "skill": jsr.skill.name if jsr.skill else "Unknown",
+                                "target_level": jsr.required_level or "Junior",
+                                "years_required": jsr.min_years_exp or 0,
+                                "is_mandatory": jsr.is_mandatory
+                            })
+                        requirements = assembled
+                        logger.info(f"[ANALYSIS STEP 2] ✓ Assembled {len(requirements)} requirements from DB skill table")
+                    
+                    if not requirements:
+                        if job.raw_text:
+                            logger.info(f"[ANALYSIS STEP 2] No extraction found. Triggering AI extraction...")
+                            requirements = loop.run_until_complete(
+                                calculator.extract_requirements_from_text(job.raw_text, job_id=job_id)
                             )
+                            logger.info(f"[ANALYSIS STEP 2] Extracted {len(requirements)} requirements via AI")
+                        else:
+                            logger.warning(f"[ANALYSIS STEP 2] Job has no raw_text — id={job_id}")
+
+                    jd_context = (
+                        f"{job.title_raw or ''} @ {job.company_name or ''}".strip(
+                            " @"
                         )
-                        # ── FIX: pass raw_text as jd_text so v3 orchestrator has it ──
-                        jd_text = job.raw_text
-                        logger.info(
-                            f"[ANALYSIS STEP 2] Extracted {len(requirements)} requirements from job text"
-                        )
-                    else:
-                        logger.warning(
-                            f"[ANALYSIS STEP 2] Job has no raw_text — id={job_id}"
-                        )
+                    )
+                    # ── Pass raw_text as jd_text so v3 orchestrator has it ──
+                    jd_text = job.raw_text
                 else:
                     logger.warning(
                         f"[ANALYSIS STEP 2] Job not found in DB — id={job_id}"
@@ -253,6 +270,7 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
                         db=db,
                         jd_context=jd_context,
                         force=force,
+                        lang=lang,
                     )
                 )
                 elapsed_v3 = time.monotonic() - t3

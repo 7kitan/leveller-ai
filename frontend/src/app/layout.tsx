@@ -8,6 +8,8 @@ import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import AuthGuard from "@/components/auth/AuthGuard";
 import MaintenanceOverlay from "@/components/shared/MaintenanceOverlay";
 
+import { LanguageProvider } from "@/context/LanguageContext";
+
 const openSans = Open_Sans({ subsets: ["latin", "latin-ext"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
@@ -24,16 +26,18 @@ export default function RootLayout({
   return (
     <html lang="en" className={openSans.variable} suppressHydrationWarning>
       <body className="antialiased">
-        <ThemeProvider>
-          <AuthProvider>
-            <MaintenanceOverlay />
-            <LayoutWrapper>
-              <AuthGuard>
-                {children}
-              </AuthGuard>
-            </LayoutWrapper>
-          </AuthProvider>
-        </ThemeProvider>
+        <LanguageProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <MaintenanceOverlay />
+              <LayoutWrapper>
+                <AuthGuard>
+                  {children}
+                </AuthGuard>
+              </LayoutWrapper>
+            </AuthProvider>
+          </ThemeProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

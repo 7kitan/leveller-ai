@@ -114,9 +114,12 @@ function levelColor(level: string) {
   return map[level] || "#9ca3af";
 }
 
+import { useLanguage } from "@/context/LanguageContext";
+
 const UserRecommendPage = () => {
   const { token } = useAuth();
   const router = useRouter();
+  const { t } = useLanguage();
 
   const [gapResult, setGapResult] = useState<GapResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -232,9 +235,9 @@ const UserRecommendPage = () => {
     match_breakdown = {}
   } = gapResult;
 
-  const highGaps = skill_gaps.filter((g) => g.severity === "HIGH");
-  const mediumGaps = skill_gaps.filter((g) => g.severity === "MEDIUM");
-  const lowGaps = skill_gaps.filter((g) => g.severity === "LOW");
+  const highGaps = skill_gaps.filter((g) => g.severity?.toUpperCase() === "HIGH");
+  const mediumGaps = skill_gaps.filter((g) => g.severity?.toUpperCase() === "MEDIUM");
+  const lowGaps = skill_gaps.filter((g) => g.severity?.toUpperCase() === "LOW");
 
   const totalHours = course_recommendations.reduce((s, c) => s + (c.duration_hours || 0), 0);
   const certCourses = course_recommendations.filter((c) => c.is_certification);
@@ -242,9 +245,9 @@ const UserRecommendPage = () => {
 
   /* ── Tabs ──────────────────────────────────────────────────────────────── */
   const tabs = [
-    { key: "gaps", label: "Khoảng cách kỹ năng", icon: Layers, count: skill_gaps.length },
-    { key: "courses", label: "Khóa học đề xuất", icon: BookOpen, count: course_recommendations.length },
-    { key: "roadmap", label: "Lộ trình học tập", icon: Target, count: career_roadmap?.stages?.length ?? 0 },
+    { key: "gaps", label: t("skill_gaps"), icon: Layers, count: skill_gaps.length },
+    { key: "courses", label: t("suggested_courses"), icon: BookOpen, count: course_recommendations.length },
+    { key: "roadmap", label: t("career_roadmap"), icon: Target, count: career_roadmap?.stages?.length ?? 0 },
   ] as const;
 
   return (
@@ -291,9 +294,22 @@ const UserRecommendPage = () => {
               <RefreshCcw size={16} />
               Làm mới
             </button>
+            <button 
+              onClick={() => {
+                if (gapResult.job_id) {
+                  router.push(`/user/analysis?job_id=${gapResult.job_id}&auto_run=true`);
+                } else {
+                  router.push(`/user/analysis`);
+                }
+              }} 
+              className={styles.refreshBtn}
+            >
+              <Zap size={16} />
+              {t("re_analyze")}
+            </button>
             <button onClick={() => router.push("/user/jobs")} className={styles.refreshBtn}>
               <ChevronLeft size={16} />
-              Chọn vị trí khác
+              {t("select_other")}
             </button>
           </div>
         </div>
@@ -302,7 +318,7 @@ const UserRecommendPage = () => {
         <div className={styles.matchBanner}>
           <div className={styles.matchScoreBlock}>
             <span className={styles.matchScore}>{overall_match_pct ?? 0}%</span>
-            <span className={styles.matchLabel}>Độ phù hợp hiện tại</span>
+            <span className={styles.matchLabel}>{t("current_match")}</span>
           </div>
           
           {/* Radar Chart Section - Data Visualization (Point 3) */}
@@ -372,7 +388,7 @@ const UserRecommendPage = () => {
           <div className={styles.infoCard}>
             <h3 className={styles.infoTitle}>
               <CheckCircle2 size={18} className={styles.successIcon} />
-              Điểm mạnh nổi bật
+              {t("strengths")}
             </h3>
             <ul className={styles.infoList}>
               {strengths.map((s, i) => (
@@ -384,7 +400,7 @@ const UserRecommendPage = () => {
           <div className={styles.infoCard}>
             <h3 className={styles.infoTitle}>
               <AlertCircle size={18} className={styles.warningIcon} />
-              Điểm cần cải thiện
+              {t("weaknesses")}
             </h3>
             <ul className={styles.infoList}>
               {weaknesses.map((w, i) => (
@@ -416,15 +432,15 @@ const UserRecommendPage = () => {
         <div className={styles.severityRow}>
           <div className={styles.severityPill} style={{ color: severityColor("HIGH"), borderColor: severityColor("HIGH") + "40", background: severityColor("HIGH") + "12" }}>
             <AlertCircle size={14} />
-            Cao ({highGaps.length})
+            {t("severity_high")} ({highGaps.length})
           </div>
           <div className={styles.severityPill} style={{ color: severityColor("MEDIUM"), borderColor: severityColor("MEDIUM") + "40", background: severityColor("MEDIUM") + "12" }}>
             <Target size={14} />
-            Trung bình ({mediumGaps.length})
+            {t("severity_medium")} ({mediumGaps.length})
           </div>
           <div className={styles.severityPill} style={{ color: severityColor("LOW"), borderColor: severityColor("LOW") + "40", background: severityColor("LOW") + "12" }}>
             <CheckCircle2 size={14} />
-            Thấp ({lowGaps.length})
+            {t("severity_low")} ({lowGaps.length})
           </div>
         </div>
 
@@ -471,7 +487,7 @@ const UserRecommendPage = () => {
                         borderColor: severityColor(gap.severity) + "30",
                       }}
                     >
-                      {gap.severity}
+                      {gap.severity?.toUpperCase()}
                     </span>
                   </div>
                   <div className={styles.gapCardMeta}>

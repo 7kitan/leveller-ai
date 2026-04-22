@@ -63,6 +63,7 @@ async def run_gap_analysis_v3(
     db=None,
     jd_context: str = "Vị trí chưa xác định",
     force: bool = False,
+    lang: str = "vi",
 ) -> dict:
     """
     Entry point cho toàn bộ Gap Analysis v3 pipeline.
@@ -174,6 +175,7 @@ async def run_gap_analysis_v3(
         "jd_text": jd_text,
         "job_id": job_id,
         "jd_context": jd_context,
+        "lang": lang,
         "db": db,
         "cv_parsed": None,
         # ── Pre-populated from job_id (SKIP LLM extraction) ────────────────────

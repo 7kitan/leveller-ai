@@ -15,7 +15,25 @@ from typing import Dict, Any, Optional, List
 from ..states import GapAnalysisStateV3, GapAnalysisResult
 from ..utils.llm_helpers import llm_json_completion
 
+
 logger = logging.getLogger("gap_analysis_v3")
+
+
+def _compute_cv_hash(cv_parsed: dict) -> str:
+    """Compute a stable hash of CV skills and summary for cache invalidation."""
+    skills = cv_parsed.get("skills") or []
+    summary = cv_parsed.get("summary") or ""
+    exp_total = cv_parsed.get("experience_years_total") or 0
+    
+    # Sort skills by name for stability
+    skill_data = sorted([
+        f"{s.get('name')}:{s.get('level')}:{s.get('years_exp') or s.get('experience_years')}" 
+        for s in skills
+    ])
+    
+    cv_fingerprint = f"summary:{summary}|exp:{exp_total}|skills:{'|'.join(skill_data)}"
+    return hashlib.md5(cv_fingerprint.encode()).hexdigest()[:16]
+
 
 
 def _indent_data(text: str) -> str:
@@ -63,6 +81,12 @@ async def load_cv_parsed_data_node(state: GapAnalysisStateV3) -> GapAnalysisStat
         parsed = getattr(cv_record, "cv_parsed_json", None)
 
         if parsed:
+            # Sync direct columns from UserCV (Source of truth for manual edits)
+            parsed["full_name"] = cv_record.full_name or parsed.get("full_name")
+            parsed["summary"] = cv_record.summary or parsed.get("summary")
+            if cv_record.experience_years_total is not None:
+                parsed["experience_years_total"] = cv_record.experience_years_total
+
             # Refresh skills from DB to ensure we use the latest edits (ignoring the potentially stale JSON blob)
             from shared.models import UserSkillProfile, Skill
             db_skills = (
@@ -81,14 +105,14 @@ async def load_cv_parsed_data_node(state: GapAnalysisStateV3) -> GapAnalysisStat
                     })
                 parsed["skills"] = updated_skills
                 logger.info(f"[STEP 1] Refreshed {len(updated_skills)} skills from UserSkillProfile table.")
+            
             skills_count = len(parsed.get("skills") or [])
             work_count  = len(parsed.get("work_history") or [])
             edu_count  = len(parsed.get("education") or [])
             logger.info(
-                f"[STEP 1] ✓ Cache HIT — cv_parsed_json loaded\n"
-                f"  skills={skills_count} | work={work_count} | education={edu_count}\n"
-                f"  seniority={parsed.get('seniority')} | "
-                f"experience={parsed.get('experience_years_total')} yrs"
+                f"[STEP 1] ✓ CV data loaded & synced\n"
+                f"  name={parsed.get('full_name')} | skills={skills_count}\n"
+                f"  experience={parsed.get('experience_years_total')} yrs"
             )
             cv_timestamp = int(cv_record.updated_at.timestamp()) if cv_record.updated_at else 0
             return {
@@ -225,11 +249,12 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
         from shared.redis_client import result_cache
         from ..config import GAP_CACHE_TTL
         
-        cv_ts = state.get("cv_timestamp") or 0
-        jd_ts = state.get("jd_timestamp") or 0
+        cv_hash = _compute_cv_hash(cv_parsed)
         # Hash requirements to detect changes in extracted data
         jd_req_hash = hashlib.md5(json.dumps(pre_jd_requirements).encode()).hexdigest()[:16]
-        cache_key = f"gap_v3_path_a:{cv_id}:{job_id}:{jd_req_hash}:cv{cv_ts}:jd{jd_ts}"
+        
+        # Path A cache key: includes job_id and content hashes
+        cache_key = f"gap_v3_path_a:{cv_id}:{job_id or 'nojob'}:{jd_req_hash}:cvh_{cv_hash}"
         
         force_recompute = state.get("force_recompute", False)
         cached_raw = result_cache.get(cache_key) if not force_recompute else None
@@ -247,11 +272,16 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
                 logger.warning(f"[STEP 3/Path_A] Cache parse failed: {e}")
 
         # Build gap-analysis prompt WITHOUT JD text (JD already extracted)
-        prompt = _build_gap_only_prompt(cv_text, pre_jd_requirements, job_title)
+        cv_json_str = json.dumps(cv_parsed, ensure_ascii=False, indent=2)
+        reqs_json_str = json.dumps(pre_jd_requirements, ensure_ascii=False, indent=2)
+        target_lang = "English" if state.get("lang") == "en" else "Vietnamese"
+        
+        prompt = _build_gap_only_prompt(cv_json_str, reqs_json_str, job_title, language=target_lang)
         system = (
             "You are a Senior Career Match Analyst. Analyze the candidate's CV "
-            "against the EXTRACTED job requirements provided below. "
-            "Write assessment and learning paths in Vietnamese. "
+            "against the structured job requirements JSON provided. "
+            "Perform step-by-step reasoning (Chain of Thought) before outputting the final JSON. "
+            "Write assessment and learning paths in " + target_lang + ". "
             "Keep technical skill names in English."
         )
 
@@ -338,13 +368,11 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
         from shared.redis_client import result_cache
         from ..config import GAP_CACHE_TTL
 
+        cv_hash = _compute_cv_hash(cv_parsed)
         jd_hash = hashlib.md5(jd_text.encode()).hexdigest()[:16]
-        cv_ts = state.get("cv_timestamp") or 0
-        jd_ts = state.get("jd_timestamp") or 0
         
-        # Cache key includes cv_id, jd_hash, and timestamps for CV and JD
-        # This ensures cache is bypassed if either CV or JD is updated
-        cache_key = f"gap_v3_combined:{cv_id}:{jd_hash}:cv{cv_ts}:jd{jd_ts}"
+        # Path B cache key: includes job_id (if any) and content hashes
+        cache_key = f"gap_v3_combined:{cv_id}:{job_id or 'nojob'}:{jd_hash}:cvh_{cv_hash}"
 
         force_recompute = state.get("force_recompute", False)
         cached_raw = result_cache.get(cache_key) if not force_recompute else None
@@ -364,16 +392,18 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
                 logger.warning(f"[STEP 3] Cache parse failed: {e}")
 
         # ── Format for LLM ────────────────────────────────────────────────
-        cv_text = _format_cv_for_llm(cv_parsed)
+        cv_json_str = json.dumps(cv_parsed, ensure_ascii=False, indent=2)
+        target_lang = "English" if state.get("lang") == "en" else "Vietnamese"
 
         logger.info(
-            f"[STEP 3/PATH_B] Calling Combined LLM | jd_chars={len(jd_text)} | cv_chars={len(cv_text)}"
+            f"[STEP 3/PATH_B] Calling Combined LLM | jd_chars={len(jd_text)} | cv_json_chars={len(cv_json_str)} | lang={target_lang}"
         )
 
-        prompt = _build_merged_gap_prompt(cv_text, jd_text)
+        prompt = _build_merged_gap_prompt(cv_json_str, jd_text, language=target_lang)
         system = (
             "You are a Senior Career Match Analyst. Conduct a thorough JD extraction and "
-            "holistic gap analysis. Write assessment and learning paths in Vietnamese. "
+            "holistic gap analysis using Chain of Thought reasoning. "
+            "Write assessment and learning paths in " + target_lang + ". "
             "Keep technical skill names in English."
         )
 
@@ -534,7 +564,7 @@ def _format_jd_for_llm(requirements: list) -> str:
     return "\n".join(lines)
 
 
-def _build_merged_gap_prompt(cv_text: str, jd_text: str) -> str:
+def _build_merged_gap_prompt(cv_text: str, jd_text: str, language: str = "Vietnamese") -> str:
     """
     Optimized v3: Merges JD extraction + Gap analysis + Gap prioritization into ONE LLM call.
 
@@ -545,52 +575,41 @@ def _build_merged_gap_prompt(cv_text: str, jd_text: str) -> str:
         "You are a Senior Career Match Analyst. Your task is to perform a deep analysis of a candidate's CV against a Job Description (JD).\n\n"
         "## JD RAW TEXT:\n"
         + jd_text +
-        "\n\n## CANDIDATE CV (PARSED):\n"
+        "\n\n## CANDIDATE CV JSON:\n"
         + cv_text +
         "\n\n"
         "## MISSION:\n"
-        "1. EXTRACT: Analyze the raw JD text to identify the Job Title and structured Technical Requirements (skills, levels, years). FOCUS ONLY on the 'Requirements', 'Qualifications', or 'Candidate Profile' sections for skill extraction. Ignore irrelevant sections like 'Benefits', 'Company Overview', or general 'Responsibility' lists unless they explicitly define required skills.\n"
-        "2. ANALYZE: Compare the candidate's CV against the extracted requirements and the overall job context.\n"
-        "3. EVALUATE: Provide a holistic match score, breakdown of skill matches, strengths, weaknesses, and a detailed list of gaps.\n"
-        "4. PRIORITIZE: From the skill_gaps list, select TOP 3 gaps that should be addressed FIRST.\n\n"
-        "## PRIORITIZATION RULES (for top_gaps):\n"
-        "  - HIGH severity + is_critical=True → highest priority\n"
-        "  - transferable (bridge_from not null) → fast ROI, prefer these\n"
-        "  - estimated_months <= 3 → quick wins, elevate priority\n"
-        "  - LOW severity + not is_critical → skip (do NOT include in top_gaps)\n"
-        "  - If fewer than 3 gaps exist, return only what is available.\n\n"
+        "1. EXTRACT: Analyze JD to identify requirements.\n"
+        "2. CHAIN OF THOUGHT (CoT):\n"
+        "   - Step 1: List all extracted JD requirements.\n"
+        "   - Step 2: For each requirement, search the 'skills', 'summary', and 'work_history' in the CV JSON for evidence.\n"
+        "   - Step 3: Compare candidate level/years vs requirement level/years.\n"
+        "   - Step 4: Finalize MATCH vs GAP decision based on STRICT evidence.\n"
+        "3. ANALYZE & MATCH (STRICT RULES):\n"
+        "   - NO HALLUCINATIONS: If evidence exists in CV, it is a MATCH.\n"
+        "   - NO LEVEL UPSCALING: If JD asks for Junior, Junior is a MATCH.\n"
+        "4. OUTPUT: Provide the result in the specified JSON format.\n\n"
         "## OUTPUT JSON SCHEMA:\n"
         "{\n"
+        '  "thought_process": "Your step-by-step analytical reasoning in English",\n'
         '  "jd_parsed": {\n'
         '    "job_title": "...",\n'
         '    "requirements": [\n'
-        '      {\n'
-        '        "skill": "SkillName (English)",\n'
-        '        "target_level": "Junior | Mid-level | Senior | Expert",\n'
-        '        "years_required": number,\n'
-        '        "is_mandatory": boolean,\n'
-        '        "importance_weight": score 1-10\n'
-        '      }\n'
+        '      { "skill": "...", "target_level": "...", "years_required": number, "is_mandatory": boolean, "importance_weight": number }\n'
         '    ]\n'
         '  },\n'
         '  "gap_analysis": {\n'
         '    "overall_match_pct": score 0-100,\n'
         '    "overall_assessment": "summary in Vietnamese",\n'
-        '    "match_breakdown": {\n'
-        '      "Technical Skills": 0-100,\n'
-        '      "Experience": 0-100,\n'
-        '      "Soft Skills": 0-100,\n'
-        '      "Education": 0-100,\n'
-        '      "Domain Knowledge": 0-100\n'
-        '    },\n'
+        '    "match_breakdown": { "Technical Skills": 0-100, "Experience": 0-100, "Soft Skills": 0-100, "Education": 0-100, "Domain Knowledge": 0-100 },\n'
         '    "strengths": ["..."],\n'
         '    "weaknesses": ["..."],\n'
         '    "skill_gaps": [\n'
-        '       { "skill": "English Name", "required_level": "Mid-level", "severity": "HIGH | MEDIUM | LOW", "is_critical": boolean, "estimated_months": number, "reasoning": "Explain why this skill is missing or important in 1-2 sentences in Vietnamese", "learning_path": "Vietnamese description" }\n'
+        '       { "skill": "...", "required_level": "...", "severity": "...", "is_critical": boolean, "estimated_months": number, "reasoning": "Vietnamese", "learning_path": "Vietnamese" }\n'
         '    ],\n'
         '    "transferable_insights": ["..."],\n'
         '    "top_gaps": [\n'
-        '       { "skill": "English Name", "required_level": "Mid-level", "severity": "HIGH | MEDIUM | LOW", "is_critical": boolean, "estimated_months": number, "reasoning": "Explain why this skill is missing or important in 1-2 sentences in Vietnamese", "learning_path": "Vietnamese description" }\n'
+        '       { "skill": "...", "required_level": "...", "severity": "...", "is_critical": boolean, "estimated_months": number, "learning_path": "Vietnamese" }\n'
         '    ]\n'
         '  }\n'
         "}\n\n"
@@ -599,80 +618,45 @@ def _build_merged_gap_prompt(cv_text: str, jd_text: str) -> str:
 
 
 def _build_gap_only_prompt(
-    cv_text: str,
-    pre_jd_requirements: list,
+    cv_json_str: str,
+    requirements_json: str,
     job_title: str,
+    language: str = "Vietnamese",
 ) -> str:
     """
     OPTIMIZED PATH A: Gap analysis WITHOUT JD raw text.
-
-    Used when job_id is provided and extracted_requirements_json already exists in DB.
-    The JD text has already been processed — just analyze CV against the structured requirements.
+    Uses JSON inputs for both CV and JD requirements to enable CoT reasoning.
     """
-    # Format requirements as structured list
-    req_lines = []
-    for i, req in enumerate(pre_jd_requirements):
-        if req.get("type") == "group":
-            group_name = req.get("group_name") or "Skill Group"
-            strategy = req.get("group_strategy") or "exclusive"
-            sub_skills = req.get("skills") or []
-            skills_str = ", ".join(
-                f"{s.get('skill')} ({s.get('target_level')}, {s.get('years_required', 0)} yrs)"
-                for s in sub_skills
-            )
-            req_lines.append(
-                f"  [{i + 1}] GROUP: {group_name} [{strategy.upper()}]\n"
-                f"      Skills: {skills_str}"
-            )
-        else:
-            skill_name = req.get("skill") or req.get("name") or "?"
-            target_level = req.get("target_level") or "Junior"
-            years = req.get("years_required", 0)
-            mandatory = "REQUIRED" if req.get("is_mandatory") else "OPTIONAL"
-            weight = req.get("importance_weight") or 5
-            req_lines.append(
-                f"  [{i + 1}] [{mandatory}] {skill_name} | level={target_level} | "
-                f"yrs={years} | weight={weight}"
-            )
-    requirements_text = "\n".join(req_lines) if req_lines else "  (no requirements)"
-
     return (
-        "You are a Senior Career Match Analyst. Your task is to analyze a candidate's CV "
-        "against the EXTRACTED job requirements provided below.\n\n"
+        "You are a Senior Career Match Analyst. Your task is to analyze a candidate's CV against structured Job Requirements JSON.\n\n"
         "## JOB TITLE: " + job_title + "\n\n"
-        "## EXTRACTED JOB REQUIREMENTS:\n" + requirements_text + "\n\n"
-        "## CANDIDATE CV (PARSED):\n" + cv_text + "\n\n"
+        "## JOB REQUIREMENTS JSON:\n" + requirements_json + "\n\n"
+        "## CANDIDATE CV JSON:\n" + cv_json_str + "\n\n"
         "## MISSION:\n"
-        "1. ANALYZE: Compare the candidate's CV against the extracted requirements.\n"
-        "2. EVALUATE: Provide a holistic match score, breakdown of skill matches, "
-        "strengths, weaknesses, and a detailed list of gaps.\n"
-        "3. PRIORITIZE: From the skill_gaps list, select TOP 3 gaps that should be "
-        "addressed FIRST.\n\n"
-        "## PRIORITIZATION RULES (for top_gaps):\n"
-        "  - HIGH severity + is_critical=True → highest priority\n"
-        "  - transferable (bridge_from not null) → fast ROI, prefer these\n"
-        "  - estimated_months <= 3 → quick wins, elevate priority\n"
-        "  - LOW severity + not is_critical → skip (do NOT include in top_gaps)\n\n"
+        "1. CHAIN OF THOUGHT (CoT):\n"
+        "   - Step 1: List all JD requirements from the JSON.\n"
+        "   - Step 2: For each requirement, perform an exhaustive search in the CV JSON (check 'skills', 'summary', 'work_history').\n"
+        "   - Step 3: Compare candidate's years/level against requirement. Match synonyms (e.g. 'Cisco' matches 'Cisco Router').\n"
+        "   - Step 4: Make a strict MATCH/GAP decision. If skill is in CV JSON, it is NOT a gap.\n"
+        "2. ANALYZE & MATCH (STRICT RULES):\n"
+        "   - NO HALLUCINATIONS: Do not invent gaps. If CV lists the skill, it's a match.\n"
+        "   - NO LEVEL UPSCALING: Match Junior to Junior. Do not demand higher levels.\n"
+        "3. OUTPUT: Provide the result in the specified JSON format.\n\n"
         "## OUTPUT JSON SCHEMA:\n"
         "{\n"
+        '  "thought_process": "Your step-by-step analytical reasoning in English",\n'
         '  "gap_analysis": {\n'
         '    "overall_match_pct": score 0-100,\n'
         '    "overall_assessment": "summary in Vietnamese",\n'
-        '    "match_breakdown": {\n'
-        '      "Technical Skills": 0-100,\n'
-        '      "Experience": 0-100,\n'
-        '      "Soft Skills": 0-100,\n'
-        '      "Education": 0-100,\n'
-        '      "Domain Knowledge": 0-100\n'
-        '    },\n'
+        '    "match_breakdown": { "Technical Skills": 0-100, "Experience": 0-100, "Soft Skills": 0-100, "Education": 0-100, "Domain Knowledge": 0-100 },\n'
         '    "strengths": ["..."],\n'
         '    "weaknesses": ["..."],\n'
         '    "skill_gaps": [\n'
-        '       { "skill": "English Name", "required_level": "Mid-level", "severity": "HIGH | MEDIUM | LOW", "is_critical": boolean, "estimated_months": number, "reasoning": "Explain why this skill is missing or important in 1-2 sentences in Vietnamese", "learning_path": "Vietnamese description" }\n'
+        '       { "skill": "...", "required_level": "...", "severity": "...", "is_critical": boolean, "estimated_months": number, "reasoning": "Vietnamese", "learning_path": "Vietnamese" }\n'
         '    ],\n'
         '    "transferable_insights": ["..."],\n'
         '    "top_gaps": [\n'
-        '       { "skill": "English Name", "required_level": "Mid-level", "severity": "HIGH | MEDIUM | LOW", "is_critical": boolean, "estimated_months": number, "learning_path": "Vietnamese description" }\n'
+        '       { "skill": "...", "required_level": "...", "severity": "...", "is_critical": boolean, "estimated_months": number, "learning_path": "Vietnamese" }\n'
         '    ]\n'
         '  }\n'
         "}\n\n"

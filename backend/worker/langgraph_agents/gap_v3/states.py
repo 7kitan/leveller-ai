@@ -126,6 +126,7 @@ class GapAnalysisStateV3(TypedDict):
     jd_text: Optional[str]
     job_id: Optional[str]
     jd_context: str
+    lang: str # 'vi' or 'en'
     db: Any
 
     # Stage 1: CV loaded from DB

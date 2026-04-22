@@ -24,12 +24,22 @@ class RequirementRetriever:
         jd_text = jd_text.strip()
         jd_embedding = None
 
-        # Layer 1: Exact Hit (Hash-based) - SKIP if job_id is provided as we want to update THAT job
-        if not job_id:
+        # Layer 1: Exact Hit (Hash-based or Job-ID based)
+        exact_hit = None
+        if job_id:
+            # Check if this specific job already has requirements
+            exact_hit = self.db.query(Job).filter(Job.id == job_id).first()
+            if exact_hit and exact_hit.extracted_requirements_json:
+                logger.info(f"LAYER 1 HIT: Found existing extraction for job_id={job_id}")
+            else:
+                exact_hit = None # Reset if no requirements found
+        
+        if not exact_hit and not job_id:
             text_hash = hashlib.sha256(jd_text.encode()).hexdigest()[:16]
             exact_id = f"cache_{text_hash}"
             exact_hit = self.db.query(Job).filter(Job.source_id == exact_id).first()
-            if exact_hit and exact_hit.extracted_requirements_json:
+
+        if exact_hit and exact_hit.extracted_requirements_json:
                 # DIRTY CACHE DETECTION:
                 # 1. Skip if contains generic placeholders
                 reqs = exact_hit.extracted_requirements_json
