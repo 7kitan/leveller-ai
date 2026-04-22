@@ -110,7 +110,7 @@ const UserDashboard = () => {
           >
             <h1 className={styles.headerTitle}>User Hub</h1>
             <p className={styles.headerSubtitle}>
-               Hành trình làm chủ kỹ năng và chinh phục thị trường lao động toàn cầu.
+              Hành trình làm chủ kỹ năng và chinh phục thị trường lao động toàn cầu.
             </p>
           </motion.div>
         </div>
@@ -122,9 +122,8 @@ const UserDashboard = () => {
             <div className={styles.uploadIcon}>
               <UploadCloud size={32} />
             </div>
-            <h3 className={styles.uploadTitle}>CV Genome</h3>
-            <p className={styles.headerSubtitle} style={{ fontSize: "0.9rem", textAlign: "center", marginBottom: "1rem" }}>
-              Cập nhật hồ sơ để AI giải mã gene nghề nghiệp của bạn.
+            <p className={styles.headerSubtitle} style={{ textAlign: "center", marginBottom: "1rem" }}>
+              Cập nhật hồ sơ để nhận gợi ý phân tích kỹ năng phù hợp.
             </p>
             <Link href="/user/cv" className={styles.uploadBtn}>
               QUẢN LÝ CV
@@ -133,42 +132,42 @@ const UserDashboard = () => {
 
           {/* Gap Analysis Summary */}
           <div className={cn(styles.card, styles.statsSection)} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Phân tích Gap hiện tại</h3>
-                <Link href="/user/analysis" className={styles.viewAllLink}>
-                    Chi tiết <ArrowRight size={14} />
-                </Link>
-             </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 className="text-subheading">Phân tích Gap hiện tại</h3>
+              <Link href="/user/analysis" className={styles.viewAllLink}>
+                Chi tiết <ArrowRight size={16} />
+              </Link>
+            </div>
 
-             {topGaps.length > 0 ? (
-               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-                  {topGaps.map((gap: any) => (
-                    <div key={gap.skill} style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '1rem', border: '1px solid var(--color-border-subtle)' }}>
-                       <div style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.25rem' }}>{gap.skill}</div>
-                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', opacity: 0.6 }}>
-                          <span style={{ color: gap.severity === 'HIGH' ? 'var(--color-danger)' : 'var(--color-warning)' }}>
-                             ● {gap.severity}
-                          </span>
-                          <span>· {gap.learning_effort} effort</span>
-                       </div>
+            {topGaps.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                {topGaps.map((gap: any) => (
+                  <div key={gap.skill} style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '1rem', border: '1px solid var(--color-border-subtle)' }}>
+                    <div className="font-label" style={{ marginBottom: '0.25rem' }}>{gap.skill}</div>
+                    <div className="font-meta">
+                      <span style={{ color: gap.severity === 'HIGH' ? 'var(--color-danger)' : 'var(--color-warning)' }}>
+                        ● {gap.severity}
+                      </span>
+                      <span>· {gap.learning_effort} effort</span>
                     </div>
-                  ))}
-               </div>
-             ) : (
-               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', opacity: 0.5 }}>
-                  <Target size={40} style={{ marginBottom: '1rem' }} />
-                  <p>Hãy bắt đầu phân tích để xem các kỹ năng còn thiếu.</p>
-               </div>
-             )}
-
-             <div className={styles.statsGrid}>
-                {stats.map((stat) => (
-                  <div key={stat.label} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div className={styles.statValue} style={{ fontSize: '1.5rem' }}>{stat.value}</div>
-                    <div className={styles.statLabel} style={{ fontSize: '0.65rem' }}>{stat.label}</div>
                   </div>
                 ))}
-             </div>
+              </div>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', opacity: 0.5 }}>
+                <Target size={40} style={{ marginBottom: '1rem' }} />
+                <p>Hãy bắt đầu phân tích để xem các kỹ năng còn thiếu.</p>
+              </div>
+            )}
+
+            <div className={styles.statsGrid}>
+              {stats.map((stat) => (
+                <div key={stat.label} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div className={styles.statValue}>{stat.value}</div>
+                  <div className={styles.statLabel}>{stat.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -177,7 +176,7 @@ const UserDashboard = () => {
           <div className={styles.jobListHeader}>
             <h2 className={styles.jobListTitle}>Khóa học gợi ý</h2>
             <Link href="/user/recommend" className={styles.viewAllLink}>
-              Xem tất cả <ChevronRightIcon size={16} />
+              Xem tất cả <ArrowRight size={16} />
             </Link>
           </div>
 
@@ -187,7 +186,7 @@ const UserDashboard = () => {
                 <div key={course.id} className={styles.jobCard}>
                   <div className={styles.platformBadge}>{course.platform}</div>
                   <h3 className={styles.jobTitle}>{course.title}</h3>
-                  
+
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: 'auto' }}>
                     {course.skills.map((s: string) => (
                       <span key={s} className={styles.skillBadge}>{s}</span>
@@ -196,20 +195,20 @@ const UserDashboard = () => {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                       <span style={{ fontSize: '0.7rem', opacity: 0.5, fontWeight: 700 }}>MATCH SCORE</span>
-                       <span style={{ color: 'var(--color-success)', fontWeight: 800, fontSize: '1.25rem' }}>{course.match}</span>
+                      <span className="font-micro">MATCH SCORE</span>
+                      <span style={{ color: 'var(--color-success)', fontWeight: 800 }} className="text-subheading">{course.match}</span>
                     </div>
                     {course.url && (
-                        <a href={course.url} target="_blank" className={styles.viewAllLink} style={{ color: 'inherit' }}>
-                            Học ngay <ArrowRight size={14} />
-                        </a>
+                      <a href={course.url} target="_blank" rel="noopener noreferrer" className={styles.viewAllLink} style={{ color: 'inherit' }}>
+                        Học ngay <ArrowRight size={14} />
+                      </a>
                     )}
                   </div>
                 </div>
               ))
             ) : (
               <div className={styles.jobCard} style={{ gridColumn: 'span 3', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
-                 <p>Chưa có khóa học gợi ý. Vui lòng phân tích CV.</p>
+                <p>Chưa có khóa học gợi ý. Vui lòng phân tích CV.</p>
               </div>
             )
             }
@@ -222,13 +221,13 @@ const UserDashboard = () => {
             <h2 className={styles.ctaTitle}>
               Phân tích Gap.<br />Chinh phục cơ hội.
             </h2>
-            <p className={styles.headerSubtitle} style={{ color: "inherit", opacity: 0.8, fontSize: '1rem' }}>
+            <p className={styles.headerSubtitle} style={{ color: "inherit", opacity: 0.8 }}>
               AI sẽ so sánh hàng nghìn tham số giữa hồ sơ của bạn và yêu cầu thực tế từ thị trường để tìm ra lộ trình ngắn nhất.
             </p>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-                <Link href="/user/analysis" className={styles.ctaMainBtn}>
-                BẮT ĐẦU PHÂN TÍCH GAP <Sparkles size={20} />
-                </Link>
+              <Link href="/user/analysis" className={styles.ctaMainBtn}>
+                BẮT ĐẦU PHÂN TÍCH GAP <ArrowRight size={20} />
+              </Link>
             </div>
           </div>
 
