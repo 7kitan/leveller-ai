@@ -78,7 +78,7 @@
   background: var(--color-panel-bg);
   backdrop-filter: blur(20px);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 2rem;
+  border-radius: var(--radius-md);
   padding: 2.5rem;
   transition: all 0.4s var(--ease-premium);
   position: relative;
@@ -137,7 +137,7 @@
   background: var(--color-panel-bg);
   backdrop-filter: blur(20px);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 2.5rem;
+  border-radius: var(--radius-md);
   padding: 2.5rem;
   transition: all 0.4s var(--ease-premium);
   display: flex;
@@ -263,7 +263,7 @@
 .insightSection {
   grid-column: span 12;
   background: var(--color-panel-bg);
-  border-radius: 3rem;
+  border-radius: var(--radius-md);
   padding: 4rem;
   border: 1px solid var(--color-border-subtle);
   position: relative;
