@@ -136,7 +136,7 @@ const UserDashboard = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Phân tích Gap hiện tại</h3>
               <Link href="/user/analysis" className={styles.viewAllLink}>
-                Chi tiết <ArrowRight size={14} />
+                Chi tiết <ArrowRight size={16} />
               </Link>
             </div>
 
@@ -177,7 +177,7 @@ const UserDashboard = () => {
           <div className={styles.jobListHeader}>
             <h2 className={styles.jobListTitle}>Khóa học gợi ý</h2>
             <Link href="/user/recommend" className={styles.viewAllLink}>
-              Xem tất cả <ChevronRightIcon size={16} />
+              Xem tất cả <ArrowRight size={16} />
             </Link>
           </div>
 

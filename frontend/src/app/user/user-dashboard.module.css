@@ -163,6 +163,12 @@
   color: var(--color-text-main);
 }
 
+.viewAllLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* Job Matches */
 .jobGrid {
   grid-column: span 12;
