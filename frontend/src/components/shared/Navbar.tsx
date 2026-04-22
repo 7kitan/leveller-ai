@@ -5,8 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
-  LogOut, Bell,
+  LogOut, Bell, Globe,
   LayoutDashboard, BookOpen, Search, FileText,
   LineChart, Zap, UserCircle, TrendingUp, GraduationCap, Settings, Network,
 } from "lucide-react";
@@ -28,6 +29,7 @@ export default function Navbar({
 }) {
   const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
+  const { language, setLanguage } = useLanguage();
   const pathname = usePathname();
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
   const userMenuRef = React.useRef<HTMLDivElement>(null);
@@ -105,6 +107,15 @@ export default function Navbar({
         {/* Right: theme toggle + notifications + user */}
         <div className={styles.right}>
           <div className={styles.actions}>
+            <button 
+              onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
+              className={styles.langToggle}
+              title={language === 'vi' ? "Switch to English" : "Chuyển sang Tiếng Việt"}
+            >
+              <Globe width="16" height="16" />
+              <span>{language === 'vi' ? '🇻🇳' : '🇺🇸'}</span>
+              <span className={styles.langText}>{language.toUpperCase()}</span>
+            </button>
             <button onClick={toggle} className={styles.iconBtn}>
               {theme === "dark" ? (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
