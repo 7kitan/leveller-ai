@@ -19,7 +19,6 @@ import {
   Settings,
   LogOut,
   Network,
-  Globe,
 } from "lucide-react";
 
 import styles from "./sidebar.module.css";
@@ -73,7 +72,7 @@ export default function Sidebar({
   const pathname = usePathname();
   const { user } = useAuth();
   const { theme } = useTheme();
-  const { language, setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
 
   // Use passed adminItems if provided (admin layout); otherwise fall back to role-based
   const items: NavItem[] = adminItems
@@ -128,18 +127,6 @@ export default function Sidebar({
         })}
       </nav>
 
-      {/* Language Toggle */}
-      <div className={styles.footer}>
-        <button 
-          className={styles.langToggle} 
-          onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
-          title={language === 'vi' ? "Switch to English" : "Chuyển sang Tiếng Việt"}
-        >
-          <Globe size={18} />
-          {!isMini && <span className={styles.langLabel}>{language.toUpperCase()}</span>}
-        </button>
-      </div>
-
-    </aside>
+      </aside>
   );
 }

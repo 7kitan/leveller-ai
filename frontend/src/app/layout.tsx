@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Open_Sans } from "next/font/google";
+import { Open_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import "../light-mode.css";
 import { AuthProvider } from "@/context/AuthContext";
@@ -11,6 +11,7 @@ import MaintenanceOverlay from "@/components/shared/MaintenanceOverlay";
 import { LanguageProvider } from "@/context/LanguageContext";
 
 const openSans = Open_Sans({ subsets: ["latin", "latin-ext"], variable: "--font-sans" });
+const ibmPlexMono = IBM_Plex_Mono({ weight: ["400", "600", "700"], subsets: ["latin", "latin-ext"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
   title: "Lumix AI | Career Nexus & Knowledge Graph",
@@ -24,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={openSans.variable} suppressHydrationWarning>
+    <html lang="en" className={`${openSans.variable} ${ibmPlexMono.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <LanguageProvider>
           <ThemeProvider>
