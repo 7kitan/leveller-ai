@@ -203,7 +203,7 @@ Trả về JSON:
 
 Chỉ trả về JSON hợp lệ."""
 
-            raw = get_chat_completion(prompt, json_mode=True)
+            raw = get_chat_completion(prompt, json_mode=True, model_key="gap_analysis_model")
             if raw:
                 import json
 

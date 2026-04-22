@@ -11,38 +11,10 @@ import asyncio
 import time
 import uuid
 from typing import Dict, Any, Optional
+from shared.config_utils import config_manager
+from shared.ai_service import generate_completion
 
 logger = logging.getLogger(__name__)
-
-LLM_MODEL = os.getenv("GAP_LLM_MODEL", os.getenv("LLM_MODEL", "gpt-4o-mini"))
-
-# Lazy client init
-_openai_client = None
-
-
-def _get_client():
-    global _openai_client
-    if _openai_client is not None:
-        return _openai_client
-
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        logger.error(
-            "[LLM] ❌ OPENAI_API_KEY is NOT SET — LLM calls will fail. "
-            "Set OPENAI_API_KEY in your .env file."
-        )
-        return None
-
-    try:
-        import openai
-
-        _openai_client = openai.OpenAI(api_key=api_key)
-        logger.info(f"[LLM] ✓ OpenAI client initialized — model={LLM_MODEL}")
-        return _openai_client
-    except Exception as e:
-        logger.error(f"[LLM] ❌ Failed to init OpenAI client: {e}")
-        return None
-
 
 # ─── JSON Completion ───────────────────────────────────────────────────────────
 
@@ -52,54 +24,37 @@ async def llm_json_completion(
     context: str = "",
     system_prompt: Optional[str] = None,
     model: Optional[str] = None,
+    model_key: Optional[str] = None,
     temperature: float = 0.1,
     call_name: str = "llm_json_completion",
 ) -> Dict[str, Any]:
     """
     Wrapper async cho LLM JSON completion.
-
-    Args:
-        prompt: User prompt text
-        context: Job/analysis context for logging
-        system_prompt: Optional system prompt
-        model: Override model (default: GAP_LLM_MODEL)
-        temperature: Sampling temperature
-        call_name: Human-readable name for this call (for logging, e.g. "extract_jd")
-
-    Retry logic:
-      1. Parse raw response
-      2. Strip ```json ... ``` fences and retry
-      3. Return {} on failure (caller must handle gracefully)
-
-    Logging:
-      - call_id: unique UUID per LLM call
-      - duration_ms: time taken for API round-trip
-      - token usage: prompt_tokens, completion_tokens, total_tokens
-      - full prompt dump (all messages)
-      - raw response dump (before JSON parse)
+    Hỗ trợ đa provider (OpenAI, Gemini) và cấu hình động từ DB.
     """
-    effective_model = model or LLM_MODEL
+    # 1. Xác định Model: Ưu tiên tham số -> Setting DB -> Env -> Default
+    m_key = model_key or "ai_model"
+    effective_model = (
+        model or 
+        config_manager.get_setting(m_key) or 
+        os.getenv("GAP_LLM_MODEL", os.getenv("LLM_MODEL", "gpt-4o-mini"))
+    )
+    
     call_id = str(uuid.uuid4())[:8]
-    client = _get_client()
-    if not client:
-        logger.error(
-            f"[LLM][{call_id}] ❌ llm_json_completion: client is None — "
-            "OPENAI_API_KEY missing or init failed"
-        )
-        return {}
-
+    provider = "unknown" # Provider is now managed inside generate_completion
+    
     # ── Build messages ────────────────────────────────────────────────────────
     default_sys = (
         "You are a career and learning expert. "
         "Return ONLY valid JSON. No markdown, no explanation outside JSON."
     )
-    messages = [{"role": "system", "content": system_prompt or default_sys}]
+    sys_msg = system_prompt or default_sys
+    messages = [{"role": "system", "content": sys_msg}]
 
     if context:
         messages.append(
             {"role": "system", "content": f"Additional context:\n{context}"}
         )
-
     messages.append({"role": "user", "content": prompt})
 
     # ── Log BUILDING (prompt stats) ──────────────────────────────────────────
@@ -108,43 +63,39 @@ async def llm_json_completion(
     # ── Call LLM ─────────────────────────────────────────────────────────────
     t0 = time.monotonic()
     raw = None
-    usage = None
     try:
-        response = client.chat.completions.create(
+        # Gọi generate_completion từ ai_service
+        raw = generate_completion(
+            prompt=prompt,
+            system_prompt=f"{sys_msg}\nAdditional context: {context}" if context else sys_msg,
+            json_mode=True,
             model=effective_model,
-            messages=messages,
-            response_format={"type": "json_object"},
             temperature=temperature,
+            call_name=call_name
         )
         duration_ms = int((time.monotonic() - t0) * 1000)
-        raw = response.choices[0].message.content
 
-        # Extract token usage
-        usage = getattr(response, "usage", None)
-        prompt_tokens = getattr(usage, "prompt_tokens", None)
-        completion_tokens = getattr(usage, "completion_tokens", None)
-        total_tokens = getattr(usage, "total_tokens", None)
+        if not raw:
+            raise ValueError("Empty response from LLM")
 
+        # Log output (Token usage temporarily None for Gemini until we map its response)
         _log_llm_output(
             call_id,
             raw,
             "SUCCESS",
             duration_ms,
-            prompt_tokens,
-            completion_tokens,
-            total_tokens,
+            None, None, None # Usage stats
         )
 
     except Exception as call_err:
         duration_ms = int((time.monotonic() - t0) * 1000)
         logger.error(
-            f"[LLM][{call_id}] ❌ API call failed after {duration_ms}ms: "
+            f"[LLM][{call_id}] ❌ LLM call failed ({provider}) after {duration_ms}ms: "
             f"{type(call_err).__name__}: {call_err}"
         )
         return {}
 
     # ── Parse JSON ────────────────────────────────────────────────────────────
-    # Attempt 1: parse as-is
     result = _try_parse_json(raw)
     if result is not None:
         _log_parsed_result(call_id, result, "direct")
@@ -193,10 +144,7 @@ def _log_llm_input(
     context: str,
     call_name: str,
 ):
-    """
-    Log full LLM INPUT before the call.
-    Shows call metadata + every message role/content in full.
-    """
+    """Log full LLM INPUT before the call."""
     total_chars = sum(len(m["content"]) for m in messages)
     sep = "═" * 70
     logger.info(
@@ -212,7 +160,6 @@ def _log_llm_input(
     for i, msg in enumerate(messages):
         role = msg["role"].upper()
         content = msg["content"]
-        # Always show full content — it's already formatted by callers
         logger.info(f"[LLM INPUT] ── [{i}] {role} ──\n{_indent(content, 4)}\n")
     logger.info(f"{sep}")
 
@@ -226,12 +173,8 @@ def _log_llm_output(
     completion_tokens: Optional[int],
     total_tokens: Optional[int],
 ):
-    """
-    Log full LLM OUTPUT after the call.
-    Shows call metadata + raw response in full.
-    """
-    raw_len = len(raw)
-    preview = raw[:500] + "\n[...]" if raw_len > 500 else raw
+    """Log full LLM OUTPUT after the call."""
+    raw_len = len(raw) if raw else 0
     sep = "─" * 70
     token_line = ""
     if total_tokens is not None:
@@ -249,7 +192,7 @@ def _log_llm_output(
         f"             │ raw_chars   : {raw_len}\n"
         f"{token_line}"
         f"             └─────────\n"
-        f"[LLM OUTPUT] RAW RESPONSE:\n{_indent(raw, 4)}\n"
+        f"[LLM OUTPUT] RAW RESPONSE:\n{_indent(raw or '(none)', 4)}\n"
         f"{sep}\n"
     )
 
@@ -271,7 +214,7 @@ def _log_parsed_result(call_id: str, result: Dict, source: str):
 
 def _log_parse_failure(call_id: str, raw: str):
     """Log parse failure details."""
-    preview = raw[:200]
+    preview = raw[:200] if raw else "(none)"
     logger.error(f"[LLM PARSE FAIL][{call_id}] Raw that failed:\n{_indent(preview, 4)}")
 
 
@@ -288,19 +231,23 @@ async def llm_text_completion(
     context: str = "",
     system_prompt: Optional[str] = None,
     model: Optional[str] = None,
+    model_key: Optional[str] = None,
     temperature: float = 0.3,
     call_name: str = "llm_text_completion",
 ) -> str:
     """Wrapper cho LLM text (non-JSON) completion with full logging."""
-    effective_model = model or LLM_MODEL
+    # 1. Xác định Model: Ưu tiên tham số -> Setting DB -> Env -> Default
+    m_key = model_key or "career_advisor_model"
+    effective_model = (
+        model or 
+        config_manager.get_setting(m_key) or 
+        os.getenv("GAP_LLM_MODEL", os.getenv("LLM_MODEL", "gpt-4o-mini"))
+    )
+    
     call_id = str(uuid.uuid4())[:8]
-    client = _get_client()
-    if not client:
-        logger.error(f"[LLM][{call_id}] ❌ llm_text_completion: client is None")
-        return ""
-
-    default_sys = "You are a helpful career advisor."
-    messages = [{"role": "system", "content": system_prompt or default_sys}]
+    provider = "unknown"
+    
+    messages = [{"role": "system", "content": system_prompt or "You are a helpful career advisor."}]
     if context:
         messages.append({"role": "system", "content": context})
     messages.append({"role": "user", "content": prompt})
@@ -309,27 +256,26 @@ async def llm_text_completion(
 
     t0 = time.monotonic()
     try:
-        response = client.chat.completions.create(
+        raw = generate_completion(
+            prompt=prompt,
+            system_prompt=f"{system_prompt or 'You are a helpful career advisor.'}\n{context}" if context else system_prompt,
             model=effective_model,
-            messages=messages,
             temperature=temperature,
+            call_name=call_name
         )
         duration_ms = int((time.monotonic() - t0) * 1000)
-        raw = response.choices[0].message.content or ""
-        usage = getattr(response, "usage", None)
+        
         _log_llm_output(
             call_id,
             raw,
             "SUCCESS",
             duration_ms,
-            getattr(usage, "prompt_tokens", None),
-            getattr(usage, "completion_tokens", None),
-            getattr(usage, "total_tokens", None),
+            None, None, None
         )
-        return raw
+        return raw or ""
     except Exception as e:
         duration_ms = int((time.monotonic() - t0) * 1000)
         logger.error(
-            f"[LLM][{call_id}] ❌ text completion failed after {duration_ms}ms: {e}"
+            f"[LLM][{call_id}] ❌ text completion failed ({provider}) after {duration_ms}ms: {e}"
         )
         return ""

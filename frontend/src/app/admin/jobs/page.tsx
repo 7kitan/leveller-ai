@@ -93,7 +93,7 @@ const AdminJobsPage = () => {
 
   const fetchSettings = async () => {
     try {
-      const resp = await axios.get("/api/jd/admin/settings", {
+      const resp = await axios.get("/api/admin/settings", {
         headers: { 
           Authorization: `Bearer ${token}`,
           "X-Is-Admin": "true"
@@ -112,7 +112,7 @@ const AdminJobsPage = () => {
     setIsUpdatingSetting(true);
     try {
       const newValue = !crawlEnabled;
-      await axios.patch(`/api/jd/admin/settings/topcv_crawl_enabled`, 
+      await axios.patch(`/api/admin/settings/topcv_crawl_enabled`, 
         { value: newValue },
         {
           headers: { 
@@ -152,8 +152,16 @@ const AdminJobsPage = () => {
 
   const handleSave = async () => {
     try {
+      const payload = {
+        title_raw: formData.title,
+        company_name: formData.company_name,
+        location_raw: formData.location,
+        raw_text: formData.description,
+        status: formData.status
+      };
+
       if (editingJob) {
-        await axios.patch(`/api/jd/admin/${editingJob.id}`, formData, {
+        await axios.patch(`/api/jd/admin/${editingJob.id}`, payload, {
           headers: { 
             Authorization: `Bearer ${token}`,
             "X-Is-Admin": "true"
@@ -161,13 +169,16 @@ const AdminJobsPage = () => {
         });
         showNotification("Đã cập nhật công việc");
       } else {
-        // Backend doesn't have a public admin create JD endpoint yet in my last update
-        // but let's assume it exists or use list endpoint to see.
-        // For now, only focus on Update/Delete as I implemented in jd_service
-        showNotification("Tính năng tạo mới JD đang được phát triển", "error");
+        await axios.post("/api/jd/admin", payload, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "X-Is-Admin": "true"
+          }
+        });
+        showNotification("Đã tạo tin tuyển dụng mới");
       }
       setIsModalOpen(false);
-      fetchJobs();
+      fetchJobs(currentPage);
     } catch (err) {
       showNotification("Lỗi khi lưu công việc", "error");
     }
@@ -189,7 +200,27 @@ const AdminJobsPage = () => {
     }
   };
 
+  const openCreate = () => {
+    setEditingJob(null);
+    setFormData({
+      title: "",
+      company_name: "",
+      location: "",
+      description: "",
+      status: "active"
+    });
+    setIsModalOpen(true);
+  };
+
   const openEdit = (job: Job) => {
+    setEditingJob(job);
+    setFormData({
+      title: job.title,
+      company_name: job.company_name,
+      location: job.location,
+      description: "", // Description is typically long, we might want to fetch it or leave blank for update
+      status: job.status
+    });
     setIsModalOpen(true);
   };
 
@@ -241,6 +272,14 @@ const AdminJobsPage = () => {
                  <div className={styles.toggleKnob} />
                </button>
             </div>
+            
+            <button 
+              onClick={openCreate}
+              className={cn(styles.addBtn, "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200")}
+            >
+              <Plus size={18} /> 
+              Thêm công việc
+            </button>
             
             <button 
               onClick={handleManualImport}
@@ -364,10 +403,20 @@ const AdminJobsPage = () => {
                 className={styles.modalContent}
               >
                 <div className={styles.modalHeader}>
-                    <h3 className={styles.modalTitle}>Cấu hình tin tuyển dụng</h3>
+                    <h3 className={styles.modalTitle}>{editingJob ? "Cập nhật tin tuyển dụng" : "Thêm tin tuyển dụng mới"}</h3>
                 </div>
                 <div className={styles.modalBody}>
                    <div className={styles.formGrid}>
+                      <div className={styles.formFieldFull}>
+                         <label>Mô tả công việc (Raw Text)</label>
+                         <textarea 
+                           className={styles.textarea}
+                           rows={6}
+                           placeholder="Dán toàn bộ nội dung tin tuyển dụng vào đây..."
+                           value={formData.description}
+                           onChange={e => setFormData({...formData, description: e.target.value})}
+                         />
+                      </div>
                       <div className={styles.formField}>
                          <label>Tiêu đề công việc</label>
                          <input 
@@ -395,8 +444,10 @@ const AdminJobsPage = () => {
                    </div>
                 </div>
                 <div className={styles.modalFooter}>
-                   <button onClick={() => setIsModalOpen(false)}>Hủy</button>
-                   <button onClick={handleSave} className={styles.submitBtn}>Cập nhật công việc</button>
+                   <button onClick={() => setIsModalOpen(false)} className={styles.cancelBtn}>Hủy</button>
+                   <button onClick={handleSave} className={styles.submitBtn}>
+                     {editingJob ? "Cập nhật công việc" : "Lưu tin mới"}
+                   </button>
                 </div>
               </motion.div>
             </div>

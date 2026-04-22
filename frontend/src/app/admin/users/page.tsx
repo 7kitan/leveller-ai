@@ -9,10 +9,13 @@ import {
   Edit2,
   AlertTriangle,
   RefreshCcw,
-  Users as UsersIcon
+  Users as UsersIcon,
+  UserCheck,
+  UserX
 } from "lucide-react";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
+import Pagination from "@/components/shared/Pagination";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import AuthGuard from "@/components/auth/AuthGuard";
@@ -24,7 +27,7 @@ interface AdminUser {
   email: string;
   full_name: string | null;
   is_admin: boolean;
-  is_active?: boolean;
+  is_active: boolean;
   created_at: string | null;
 }
 
@@ -44,12 +47,20 @@ const AdminUsersPage = () => {
   // Delete confirmation
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [pageSize] = useState(10);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (page = 1) => {
     if (!token) return;
     try {
       setLoading(true);
-      const res = await fetch("/api/auth/admin/users", {
+      const offset = (page - 1) * pageSize;
+      const url = `/api/auth/admin/users?limit=${pageSize}&offset=${offset}${searchTerm ? `&q=${encodeURIComponent(searchTerm)}` : ""}`;
+      
+      const res = await fetch(url, {
         headers: { 
           "X-Is-Admin": "true",
           "Authorization": `Bearer ${token}`
@@ -57,7 +68,9 @@ const AdminUsersPage = () => {
       });
       if (!res.ok) throw new Error("Failed to fetch users");
       const data = await res.json();
-      setUsers(Array.isArray(data) ? data : []);
+      setUsers(data.items || []);
+      setTotalPages(data.pages || 0);
+      setCurrentPage(page);
     } catch (err) {
       console.error(err);
       toast.error("Không thể tải danh sách người dùng");
@@ -67,12 +80,20 @@ const AdminUsersPage = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
+    if (token) fetchUsers(1);
   }, [token]);
+
+  // Handle search resets pagination
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (token) fetchUsers(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const handleOpenCreate = () => {
     setModalMode("create");
-    setCurrentUser({ email: "", full_name: "", is_admin: false });
+    setCurrentUser({ email: "", full_name: "", is_admin: false, is_active: true });
     setPassword("");
     setShowModal(true);
   };
@@ -105,6 +126,7 @@ const AdminUsersPage = () => {
         email: currentUser.email,
         full_name: currentUser.full_name,
         is_admin: currentUser.is_admin,
+        is_active: currentUser.is_active,
       };
       
       if (password) payload.password = password;
@@ -166,10 +188,7 @@ const AdminUsersPage = () => {
     }
   };
 
-  const filteredUsers = users.filter(u => 
-    u.email.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredUsers = users;
 
   return (
     <AuthGuard requireAdmin>
@@ -205,7 +224,7 @@ const AdminUsersPage = () => {
               className={styles.searchInput}
             />
           </div>
-          <button onClick={fetchUsers} className={styles.refreshBtn}>
+          <button onClick={() => fetchUsers(currentPage)} className={styles.refreshBtn}>
             <RefreshCcw size={20} className={cn(loading && "animate-spin")} />
           </button>
         </div>
@@ -217,7 +236,7 @@ const AdminUsersPage = () => {
               <tr className={styles.tableHeader}>
                 <th className={styles.th}>Người dùng</th>
                 <th className={styles.th}>Vai trò</th>
-                <th className={styles.th}>ID Hệ thống</th>
+                <th className={styles.th}>Trạng thái</th>
                 <th className={styles.th}>Ngày tham gia</th>
                 <th className={cn(styles.th, styles.thRight)}>Thao tác</th>
               </tr>
@@ -264,9 +283,12 @@ const AdminUsersPage = () => {
                       </span>
                     </td>
                     <td className={styles.td}>
-                      <div className={styles.userId}>
-                        {user.id.substring(0, 13)}...
-                      </div>
+                      <span className={cn(
+                        styles.statusBadge,
+                        user.is_active ? styles.statusActive : styles.statusBanned
+                      )}>
+                        {user.is_active ? "Hoạt động" : "Bị khóa"}
+                      </span>
                     </td>
                     <td className={styles.td}>
                       <div className={styles.userDate}>
@@ -275,6 +297,30 @@ const AdminUsersPage = () => {
                     </td>
                     <td className={styles.td}>
                        <div className={styles.actionBtnGroup}>
+                          <button 
+                            onClick={async () => {
+                              if (!token) return;
+                              const res = await fetch(`/api/auth/admin/users/${user.id}`, {
+                                method: "PATCH",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                  "X-Is-Admin": "true",
+                                  "Authorization": `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ is_active: !user.is_active })
+                              });
+                              if (res.ok) {
+                                toast.success(user.is_active ? "Đã khóa người dùng" : "Đã kích hoạt người dùng");
+                                fetchUsers(currentPage);
+                              } else {
+                                toast.error("Không thể cập nhật trạng thái");
+                              }
+                            }}
+                            className={styles.actionBtn}
+                            title={user.is_active ? "Khóa người dùng" : "Kích hoạt"}
+                          >
+                            {user.is_active ? <UserX size={16} /> : <UserCheck size={16} />}
+                          </button>
                           <button 
                             onClick={() => handleOpenEdit(user)}
                             className={cn(styles.actionBtn, styles.actionBtnEdit)}
@@ -295,6 +341,12 @@ const AdminUsersPage = () => {
             </tbody>
           </table>
         </div>
+
+        <Pagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => fetchUsers(page)}
+        />
 
         {/* User Modal (Create/Edit) */}
         <AnimatePresence>
@@ -351,6 +403,18 @@ const AdminUsersPage = () => {
                                 type="checkbox"
                                 checked={currentUser.is_admin || false}
                                 onChange={(e) => setCurrentUser({...currentUser, is_admin: e.target.checked})}
+                                className={styles.checkboxInput}
+                            />
+                        </div>
+                        <div className={styles.checkboxGroup}>
+                            <div className={styles.checkboxLabelArea}>
+                                <span className={styles.checkboxTitle}>Trạng thái Hoạt động</span>
+                                <span className={styles.checkboxDesc}>Cho phép người dùng đăng nhập hệ thống.</span>
+                            </div>
+                            <input 
+                                type="checkbox"
+                                checked={currentUser.is_active || false}
+                                onChange={(e) => setCurrentUser({...currentUser, is_active: e.target.checked})}
                                 className={styles.checkboxInput}
                             />
                         </div>

@@ -1,0 +1,281 @@
+@reference "tailwindcss";
+@reference "../../globals.css";
+
+.pageRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  animation: fadeIn 0.5s ease-out forwards;
+  padding-bottom: 8rem; /* Space for the fixed save bar */
+  width: 100%;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  font-style: italic;
+  letter-spacing: -0.05em;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-top: 0.5rem;
+  opacity: 0.7;
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+}
+
+@media (min-width: 1024px) {
+  .settingsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.settingCard {
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 2.5rem;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.settingCardModified {
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 1px var(--color-accent-primary), 0 10px 30px rgba(79, 70, 229, 0.1);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 1.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.fieldModified {
+  background-color: rgba(79, 70, 229, 0.05);
+}
+
+.fieldModifiedDot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-accent-primary);
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 0.5rem;
+}
+
+.labelArea {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+}
+
+.desc {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.input {
+  flex: 1;
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1.25rem;
+  padding: 1.125rem 1.5rem;
+  color: var(--color-text-main);
+  font-weight: 700;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .input {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.input:focus {
+  border-color: var(--color-accent-primary);
+  background-color: white;
+}
+
+.toggle {
+  width: 3.5rem;
+  height: 2rem;
+  border-radius: 1rem;
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.toggleOn {
+  background-color: #10b981;
+}
+
+.toggleOff {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .toggleOff {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.knob {
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 0.25rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggleOn .knob {
+  left: 1.75rem;
+}
+
+.toggleOff .knob {
+  left: 0.25rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.saveBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.125rem 2.5rem;
+  background-color: var(--color-accent-primary);
+  color: white;
+  border-radius: 1.25rem;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+}
+
+.saveBtn:hover {
+  background-color: #4338ca;
+  transform: translateY(-2px);
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Unified Save Bar */
+.saveBar {
+  position: sticky;
+  bottom: 2rem;
+  margin: 4rem auto 0;
+  width: fit-content;
+  max-width: 90%;
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  padding: 1rem 2.5rem;
+  border-radius: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+.saveBarText {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.saveBarActions {
+  display: flex;
+  gap: 1rem;
+}
+
+.discardBtn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  transition: all 0.3s ease;
+}
+
+.discardBtn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--color-text-main);
+}
+
+.mainSaveBtn {
+  background-color: var(--color-accent-primary);
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+  transition: all 0.3s ease;
+}
+
+.mainSaveBtn:hover {
+  background-color: #4338ca;
+  transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.saveBarAnimation {
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}

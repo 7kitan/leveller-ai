@@ -1,9 +1,11 @@
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import FastAPI, Depends, HTTPException, Request, Query
 from sqlalchemy.orm import Session
 from shared.database import get_db
 from shared.models import User
 from shared.auth_utils import get_password_hash, verify_password, create_access_token, hash_token, decode_access_token, ACCESS_TOKEN_EXPIRE_SECONDS
+from shared.config_utils import config_manager
 from shared.redis_client import auth_cache
+from shared.schemas import PaginatedResponse
 from pydantic import BaseModel, EmailStr
 import json
 import logging
@@ -40,6 +42,7 @@ class AdminUserResponse(BaseModel):
     email: str
     full_name: Optional[str]
     is_admin: bool
+    is_active: bool
     created_at: Optional[str] # Will be stringified
 
 class AdminUserUpdate(BaseModel):
@@ -102,6 +105,9 @@ def login(user_in: UserLogin, db: Session = Depends(get_db)):
     if not user or not verify_password(user_in.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
     
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Account is disabled. Please contact administrator.")
+    
     access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
     
     user_data = {
@@ -136,7 +142,10 @@ def verify(token: str, db: Session = Depends(get_db)):
     cached = auth_cache.get(token_key)
     
     if cached:
-        return json.loads(cached)
+        user_data = json.loads(cached)
+        user_data["maintenance_mode"] = config_manager.get_setting("maintenance_mode", False)
+        user_data["maintenance_duration"] = config_manager.get_setting("maintenance_duration", "Không xác định")
+        return user_data
     
     # Cache miss -> Deep Verification (JWT Decode + DB Check)
     logging.info(f"DEBUG Auth: Cache miss for token. Performing deep verification...")
@@ -177,6 +186,9 @@ def verify(token: str, db: Session = Depends(get_db)):
         auth_cache.setex(token_key, ACCESS_TOKEN_EXPIRE_SECONDS, json.dumps(user_data))
         logging.info(f"DEBUG Auth: Deep verification successful for user {user.email}")
         
+        # Thêm system status vào response
+        user_data["maintenance_mode"] = config_manager.get_setting("maintenance_mode", False)
+        user_data["maintenance_duration"] = config_manager.get_setting("maintenance_duration", "Không xác định")
         return user_data
     except Exception as e:
         if isinstance(e, HTTPException):
@@ -235,23 +247,48 @@ def patch_profile(request: Request, user_in: UserProfileUpdate, db: Session = De
         "created_at": user.created_at.isoformat() if user.created_at else None
     }
 
-@app.get("/auth/admin/users", response_model=List[AdminUserResponse])
-def admin_list_users(request: Request, db: Session = Depends(get_db)):
-    """Admin only: Lấy danh sách toàn bộ người dùng."""
+@app.get("/auth/admin/users", response_model=PaginatedResponse[AdminUserResponse])
+def admin_list_users(
+    request: Request, 
+    db: Session = Depends(get_db),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    q: Optional[str] = Query(None)
+):
+    """Admin only: Lấy danh sách toàn bộ người dùng với phân trang."""
     if not is_admin(request):
         raise HTTPException(status_code=403, detail="Admin privileges required")
     
-    users = db.query(User).order_by(User.created_at.desc()).all()
-    return [
+    query = db.query(User)
+    
+    if q:
+        query = query.filter(
+            (User.email.ilike(f"%{q}%")) | (User.full_name.ilike(f"%{q}%"))
+        )
+    
+    total = query.count()
+    users = query.order_by(User.created_at.desc()).offset(offset).limit(limit).all()
+    
+    items = [
         {
             "id": str(u.id),
             "email": u.email,
             "full_name": u.full_name,
             "is_admin": u.is_admin,
+            "is_active": u.is_active,
             "created_at": u.created_at.isoformat() if u.created_at else None
         }
         for u in users
     ]
+    
+    return {
+        "items": items,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "page": (offset // limit) + 1,
+        "pages": (total + limit - 1) // limit
+    }
 
 @app.post("/auth/admin/users", response_model=AdminUserResponse)
 def admin_create_user(request: Request, user_in: UserCreate, db: Session = Depends(get_db)):
@@ -278,6 +315,7 @@ def admin_create_user(request: Request, user_in: UserCreate, db: Session = Depen
         "email": new_user.email,
         "full_name": new_user.full_name,
         "is_admin": new_user.is_admin,
+        "is_active": new_user.is_active,
         "created_at": new_user.created_at.isoformat() if new_user.created_at else None
     }
 
@@ -301,6 +339,14 @@ def admin_update_user(user_id: str, user_in: AdminUserUpdate, request: Request, 
         user.is_admin = user_in.is_admin
     if user_in.is_active is not None:
         user.is_active = user_in.is_active
+        if not user.is_active:
+            # Revoke active session if banned
+            session_pointer = f"user_session:{user.id}"
+            old_token_key = auth_cache.get(session_pointer)
+            if old_token_key:
+                logging.info(f"Revoking session for banned user {user.id}")
+                auth_cache.delete(old_token_key)
+                auth_cache.delete(session_pointer)
         
     db.commit()
     db.refresh(user)
@@ -310,6 +356,7 @@ def admin_update_user(user_id: str, user_in: AdminUserUpdate, request: Request, 
         "email": user.email,
         "full_name": user.full_name,
         "is_admin": user.is_admin,
+        "is_active": user.is_active,
         "created_at": user.created_at.isoformat() if user.created_at else None
     }
 

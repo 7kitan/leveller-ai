@@ -199,9 +199,9 @@ function JobCard({ job }: { job: Job }) {
     >
       <div className={styles.cardTop}>
         <div className={styles.iconBox}>
-          {job.source_label?.toLowerCase() === 'topcv' ? <Layers size={24} /> : <Briefcase size={24} />}
+          {job.source_label?.toLowerCase() === 'topcv' ? <Layers size={22} /> : <Briefcase size={22} />}
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
             <span className={cn(
               styles.statusBadge,
               job.status?.toLowerCase() === "active" ? styles.statusActive : styles.statusOther
@@ -219,40 +219,42 @@ function JobCard({ job }: { job: Job }) {
         </div>
       </div>
       
-      <div>
-          <h3 className={styles.cardTitle}>
+      <div style={{ flex: 1 }}>
+          <h3 className={styles.cardTitle} title={job.title_raw}>
             {job.title_raw}
           </h3>
           <div className={styles.companyName}>
-            <Building2 size={14} className="inline mr-1 opacity-50" />
-            {job.company_name || "Công ty bảo mật"}
+            <Building2 size={14} style={{ marginRight: '6px', opacity: 0.6 }} />
+            <span className="truncate" title={job.company_name}>{job.company_name || "Công ty bảo mật"}</span>
           </div>
-      </div>
-      
-      <div className={styles.metaGrid}>
-        <div className={styles.cardMeta}>
-          <MapPin size={14} className="opacity-50" /> 
-          <span className="truncate">{job.location_raw || "Không xác định"}</span>
-        </div>
-        <div className={styles.cardMeta}>
-          <DollarSign size={14} className="opacity-50" /> 
-          <span>{formatSalary(job.min_salary_vnd, job.max_salary_vnd)}</span>
-        </div>
-        <div className={styles.cardMeta}>
-          <Briefcase size={14} className="opacity-50" /> 
-          <span>{job.employment_type || "Toàn thời gian"}</span>
-        </div>
-        <div className={styles.cardMeta}>
-          <Clock size={14} className="opacity-50" /> 
-          <span>{getRelativeTime(job.created_at)}</span>
-        </div>
+
+          <div className={styles.metaGrid}>
+            <div className={styles.cardMeta} title={job.location_raw}>
+                <MapPin size={14} style={{ opacity: 0.6 }} /> 
+                <span className="truncate">{job.location_raw || "Toàn quốc"}</span>
+            </div>
+            <div className={styles.cardMeta}>
+                <DollarSign size={14} style={{ opacity: 0.6 }} /> 
+                <span style={{ color: 'var(--color-success)', fontWeight: 700 }}>
+                    {formatSalary(job.min_salary_vnd, job.max_salary_vnd)}
+                </span>
+            </div>
+            <div className={styles.cardMeta}>
+                <Clock size={14} style={{ opacity: 0.6 }} /> 
+                <span>{getRelativeTime(job.created_at)}</span>
+            </div>
+            <div className={styles.cardMeta}>
+                <Briefcase size={14} style={{ opacity: 0.6 }} /> 
+                <span>{job.employment_type || "Toàn thời gian"}</span>
+            </div>
+          </div>
       </div>
       
       <Link
         href={`/user/analysis?job_id=${job.id}&job_title=${encodeURIComponent(job.title_raw || "")}`}
         className={styles.actionBtn}
       >
-        Khởi chạy Phân tích <Sparkles size={14} className="inline ml-1" />
+        Khởi chạy Phân tích <Sparkles size={14} style={{ marginLeft: '8px' }} />
       </Link>
     </motion.div>
   );

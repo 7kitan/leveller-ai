@@ -6,9 +6,9 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import AuthGuard from "@/components/auth/AuthGuard";
+import MaintenanceOverlay from "@/components/shared/MaintenanceOverlay";
 
 const openSans = Open_Sans({ subsets: ["latin", "latin-ext"], variable: "--font-sans" });
-
 
 export const metadata: Metadata = {
   title: "Lumix AI | Career Nexus & Knowledge Graph",
@@ -26,6 +26,7 @@ export default function RootLayout({
       <body className="antialiased">
         <ThemeProvider>
           <AuthProvider>
+            <MaintenanceOverlay />
             <LayoutWrapper>
               <AuthGuard>
                 {children}

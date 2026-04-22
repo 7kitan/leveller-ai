@@ -104,6 +104,15 @@ function AnalysisPageContent() {
     }
   }, [initialJobId, initialJobTitle]);
 
+  /* -- Auto Run Integration -- */
+  useEffect(() => {
+    const autoRun = searchParams.get("auto_run") === "true";
+    if (autoRun && phase === "setup" && selectedCvId && selectedJobId) {
+      console.log("[ANALYSIS] Auto-run triggered");
+      startAnalysis();
+    }
+  }, [selectedCvId, selectedJobId, phase]);
+
   /* -- Load CVs ------------------------------------------------------- */
   useEffect(() => {
     if (!token) return;

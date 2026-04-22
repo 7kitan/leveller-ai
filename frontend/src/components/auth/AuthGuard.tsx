@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import styles from "./auth-guard.module.css";
 import { cn } from "@/lib/utils";
+import MaintenanceOverlay from "@/components/shared/MaintenanceOverlay";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -13,7 +14,7 @@ interface AuthGuardProps {
 }
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin, requireRole }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, maintenanceMode, maintenanceDuration } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -72,6 +73,15 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin, requireRo
   const publicRoutes = ["/", "/login", "/register", "/auth/login", "/auth/register", "/auth"];
   const isAuthorized = !user ? publicRoutes.includes(pathname) : true;
   if (!isAuthorized && !loading) return null;
+
+  // ── Maintenance Mode Gate ──────────────────────────────────────────
+  // Allow admins and critical paths during maintenance
+  const isCriticalPath = ["/auth/login", "/login"].includes(pathname);
+  const isAdmin = user?.role === "admin";
+  
+  if (maintenanceMode && !isAdmin && !isCriticalPath) {
+    return <MaintenanceOverlay isAdmin={!!user} duration={maintenanceDuration} />;
+  }
 
   return <>{children}</>;
 };

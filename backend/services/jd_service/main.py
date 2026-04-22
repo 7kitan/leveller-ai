@@ -1,5 +1,5 @@
 """
-JD Service — Job Description management + Hybrid search.
+JD Service â€” Job Description management + Hybrid search.
 Spec: 1.6 JD Parsing, 1.8 Advanced Job Search, 5.1+5.2 Market Analytics.
 """
 
@@ -9,7 +9,9 @@ from sqlalchemy import text, or_, and_
 from sqlalchemy.dialects.postgresql import UUID
 from shared.database import get_db
 from shared.models import Job, SystemSetting
+from shared.config_utils import config_manager
 from shared.llm_utils import get_embedding
+from shared.ai_service import AI_REGISTRY
 from shared.scrapers.topcv import TopCVScraper
 from pydantic import BaseModel
 from shared.schemas import PaginatedResponse
@@ -30,7 +32,7 @@ logger = logging.getLogger("jd_service")
 USE_VECTOR_SEARCH = os.getenv("JD_USE_VECTOR_SEARCH", "true").lower() == "true"
 
 
-# ─── Pydantic Schemas ─────────────────────────────────────────────────────────
+# â”€â”€â”€ Pydantic Schemas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 class JobCreate(BaseModel):
@@ -72,15 +74,6 @@ class JobResponse(BaseModel):
         from_attributes = True
 
 
-class SettingUpdate(BaseModel):
-    value: Any
-
-
-class SettingResponse(BaseModel):
-    key: str
-    value: Any
-    description: Optional[str] = None
-    updated_at: datetime
 
     class Config:
         from_attributes = True
@@ -94,7 +87,7 @@ class JobBulkCreate(BaseModel):
     jobs: List[JobCreate]
 
 
-# ─── Helpers ────────────────────────────────────────────────────────────────
+# â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 def _job_to_response(job: Job, similarity: float = None) -> dict:
@@ -118,14 +111,14 @@ def _job_to_response(job: Job, similarity: float = None) -> dict:
     }
 
 
-# ─── Endpoints ────────────────────────────────────────────────────────────────
+# â”€â”€â”€ Endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 @app.post("/jd/import/text", response_model=JobResponse)
 def import_jd_text(job_in: JobCreate, request: Request, db: Session = Depends(get_db)):
     """
-    Import JD text và trigger background parsing task (v3 pipeline).
-    Spec 1.6: Thu thập và xử lý yêu cầu từ tin tuyển dụng.
+    Import JD text vÃ  trigger background parsing task (v3 pipeline).
+    Spec 1.6: Thu tháº­p vÃ  xá»­ lÃ½ yÃªu cáº§u tá»« tin tuyá»ƒn dá»¥ng.
     """
     source_id = f"manual_{uuid.uuid4()}"
 
@@ -163,7 +156,7 @@ def list_jobs(
     limit: int = 50,
     offset: int = 0,
 ):
-    """Danh sách jobs active, có phân trang."""
+    """Danh sÃ¡ch jobs active, cÃ³ phÃ¢n trang."""
     jobs = (
         db.query(Job)
         .filter(Job.status == "active")
@@ -178,32 +171,32 @@ def list_jobs(
 @app.get("/jd/search", response_model=PaginatedResponse[JobResponse])
 def search_jobs(
     db: Session = Depends(get_db),
-    # ── Text / Semantic search ─────────────────────────────────────────
-    q: Optional[str] = Query(None, description="Từ khóa tìm kiếm"),
-    # ── Filters spec 1.8 ──────────────────────────────────────────────
-    location: Optional[str] = Query(None, description="Địa điểm"),
-    min_salary: Optional[int] = Query(None, description="Lương tối thiểu (VND)"),
-    max_salary: Optional[int] = Query(None, description="Lương tối đa (VND)"),
+    # â”€â”€ Text / Semantic search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    q: Optional[str] = Query(None, description="Tá»« khÃ³a tÃ¬m kiáº¿m"),
+    # â”€â”€ Filters spec 1.8 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    location: Optional[str] = Query(None, description="Äá»‹a Ä‘iá»ƒm"),
+    min_salary: Optional[int] = Query(None, description="LÆ°Æ¡ng tá»‘i thiá»ƒu (VND)"),
+    max_salary: Optional[int] = Query(None, description="LÆ°Æ¡ng tá»‘i Ä‘a (VND)"),
     employment_type: Optional[str] = Query(
-        None, description="Loại công việc: full-time, part-time, contract"
+        None, description="Loáº¡i cÃ´ng viá»‡c: full-time, part-time, contract"
     ),
-    remote_friendly: Optional[bool] = Query(None, description="Hỗ trợ remote"),
-    has_insurance: Optional[bool] = Query(None, description="Có bảo hiểm"),
+    remote_friendly: Optional[bool] = Query(None, description="Há»— trá»£ remote"),
+    has_insurance: Optional[bool] = Query(None, description="CÃ³ báº£o hiá»ƒm"),
     category: Optional[str] = Query(
-        None, description="Ngành/vai trò: Backend, Frontend, DevOps, Data"
+        None, description="NgÃ nh/vai trÃ²: Backend, Frontend, DevOps, Data"
     ),
-    # ── Pagination ────────────────────────────────────────────────
+    # â”€â”€ Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
 ):
     """
     Hybrid job search: pgvector semantic + ILIKE text + filters.
-    Spec 1.8: Lọc theo địa điểm, mức lương, loại công việc.
+    Spec 1.8: Lá»c theo Ä‘á»‹a Ä‘iá»ƒm, má»©c lÆ°Æ¡ng, loáº¡i cÃ´ng viá»‡c.
 
     Priority:
-    1. Nếu có q (query): pgvector similarity search
-    2. Nếu không có q: ILIKE text search
-    3. Áp dụng tất cả filters
+    1. Náº¿u cÃ³ q (query): pgvector similarity search
+    2. Náº¿u khÃ´ng cÃ³ q: ILIKE text search
+    3. Ãp dá»¥ng táº¥t cáº£ filters
     """
     base_query = db.query(Job).filter(Job.status == "active")
 
@@ -211,7 +204,7 @@ def search_jobs(
     similarity_scores = {}
 
     if q and USE_VECTOR_SEARCH:
-        # ── pgvector semantic search ───────────────────────────────────────
+        # â”€â”€ pgvector semantic search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         # Reset any aborted transaction before vector query
         try:
             db.rollback()
@@ -242,7 +235,7 @@ def search_jobs(
                     Job.id.in_([uuid.UUID(k) for k in vec_job_ids.keys()])
                 )
 
-    # ── Text search fallback / supplement ────────────────────────────────
+    # â”€â”€ Text search fallback / supplement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if q:
         q_like = f"%{q}%"
         text_filter = or_(
@@ -253,7 +246,7 @@ def search_jobs(
         )
         base_query = base_query.filter(text_filter)
 
-    # ── Filters spec 1.8 ──────────────────────────────────────────────
+    # â”€â”€ Filters spec 1.8 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if location:
         base_query = base_query.filter(
             or_(
@@ -315,7 +308,7 @@ def search_jobs(
 
 @app.get("/jd/{job_id}", response_model=JobResponse)
 def get_job(job_id: uuid.UUID, db: Session = Depends(get_db)):
-    """Lấy chi tiết 1 job."""
+    """Láº¥y chi tiáº¿t 1 job."""
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -331,7 +324,7 @@ def admin_list_jobs(
     status: Optional[str] = None,
     q: Optional[str] = Query(None)
 ):
-    """Admin only: Lấy tất cả Job với phân trang."""
+    """Admin only: Láº¥y táº¥t cáº£ Job vá»›i phÃ¢n trang."""
     if request.headers.get("X-Is-Admin") != "true":
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
@@ -370,7 +363,7 @@ def admin_update_job(
     request: Request,
     db: Session = Depends(get_db),
 ):
-    """Admin only: Cập nhật Job."""
+    """Admin only: Cáº­p nháº­t Job."""
     if request.headers.get("X-Is-Admin") != "true":
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
@@ -396,7 +389,7 @@ def admin_update_job(
 def admin_delete_job(
     job_id: uuid.UUID, request: Request, db: Session = Depends(get_db)
 ):
-    """Admin only: Xóa Job."""
+    """Admin only: XÃ³a Job."""
     if request.headers.get("X-Is-Admin") != "true":
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
@@ -409,9 +402,43 @@ def admin_delete_job(
     return {"message": "Job deleted successfully"}
 
 
+@app.post("/jd/admin", response_model=JobResponse)
+def admin_create_job(job_in: JobCreate, request: Request, db: Session = Depends(get_db)):
+    """Admin only: Táº¡o má»›i Job thá»§ cÃ´ng."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    source_id = f"manual_{uuid.uuid4()}"
+
+    # Generate Embedding
+    embedding_ctx = f"{job_in.title_raw} at {job_in.company_name}. {job_in.location_raw}. {job_in.raw_text[:1000]}"
+    vector = get_embedding(embedding_ctx)
+
+    new_job = Job(
+        source_id=source_id,
+        title_raw=job_in.title_raw,
+        raw_text=job_in.raw_text,
+        company_name=job_in.company_name,
+        source_url=job_in.source_url,
+        source_label=job_in.source_label or "manual",
+        min_salary_vnd=job_in.min_salary_vnd,
+        max_salary_vnd=job_in.max_salary_vnd,
+        location_raw=job_in.location_raw,
+        employment_type=job_in.employment_type,
+        status="active",
+        embedding_context=embedding_ctx,
+        vector=vector
+    )
+    db.add(new_job)
+    db.commit()
+    db.refresh(new_job)
+
+    return _job_to_response(new_job)
+
+
 @app.post("/jd/admin/crawl")
 def admin_trigger_crawl(request: Request):
-    """Admin only: Kích hoạt cào tin TopCV ngay lập tức."""
+    """Admin only: KÃ­ch hoáº¡t cÃ o tin TopCV ngay láº­p tá»©c."""
     if request.headers.get("X-Is-Admin") != "true":
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
@@ -424,57 +451,32 @@ def admin_trigger_crawl(request: Request):
         raise HTTPException(status_code=500, detail=f"Could not trigger crawler: {str(e)}")
 
 
-# ─── Admin Settings & Manual Crawl ──────────────────────────────────────────
+# â”€â”€â”€ Admin Settings & Manual Crawl â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
-@app.get("/jd/admin/settings", response_model=List[SettingResponse])
-def admin_list_settings(request: Request, db: Session = Depends(get_db)):
-    """Admin only: Lấy danh sách settings hệ thống."""
-    if request.headers.get("X-Is-Admin") != "true":
-        raise HTTPException(status_code=403, detail="Admin privileges required")
 
-    settings = db.query(SystemSetting).all()
-    return settings
-
-
-@app.patch("/jd/admin/settings/{key}", response_model=SettingResponse)
-def admin_update_setting(
-    key: str, setting_in: SettingUpdate, request: Request, db: Session = Depends(get_db)
-):
-    """Admin only: Cập nhật setting."""
-    if request.headers.get("X-Is-Admin") != "true":
-        raise HTTPException(status_code=403, detail="Admin privileges required")
-
-    setting = db.query(SystemSetting).filter(SystemSetting.key == key).first()
-    if not setting:
-        raise HTTPException(status_code=404, detail="Setting not found")
-
-    setting.value = setting_in.value
-    db.commit()
-    db.refresh(setting)
-    return setting
 
 
 @app.post("/jd/admin/crawl/fetch")
 def admin_crawl_fetch_job(req: CrawlUrlRequest, request: Request):
-    """Admin only: Cào dữ liệu từ 1 URL TopCV để hiển thị ra form (chưa lưu)."""
+    """Admin only: CÃ o dá»¯ liá»‡u tá»« 1 URL TopCV Ä‘á»ƒ hiá»ƒn thá»‹ ra form (chÆ°a lÆ°u)."""
     if request.headers.get("X-Is-Admin") != "true":
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     if "topcv.vn" not in req.url:
-        raise HTTPException(status_code=400, detail="Chỉ hỗ trợ URL từ TopCV.vn")
+        raise HTTPException(status_code=400, detail="Chá»‰ há»— trá»£ URL tá»« TopCV.vn")
 
     scraper = TopCVScraper()
     data = scraper.scrape_job_details(req.url)
     if not data:
-        raise HTTPException(status_code=404, detail="Không thể lấy dữ liệu từ URL này. Có thể bị block hoặc URL sai.")
+        raise HTTPException(status_code=404, detail="KhÃ´ng thá»ƒ láº¥y dá»¯ liá»‡u tá»« URL nÃ y. CÃ³ thá»ƒ bá»‹ block hoáº·c URL sai.")
 
     return data
 
 
 @app.post("/jd/admin/bulk")
 def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = Depends(get_db)):
-    """Admin only: Lưu nhiều job cùng lúc (từ manual import)."""
+    """Admin only: LÆ°u nhiá»u job cÃ¹ng lÃºc (tá»« manual import)."""
     if request.headers.get("X-Is-Admin") != "true":
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
@@ -514,7 +516,7 @@ def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = D
     return {"message": f"Successfully imported {new_jobs_count} jobs", "count": new_jobs_count}
 
 
-# ─── 5.1 + 5.2: Market Analytics ──────────────────────────────────────────
+# â”€â”€â”€ 5.1 + 5.2: Market Analytics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 @app.get("/jd/analytics/salary-range")
@@ -524,8 +526,8 @@ def get_salary_range_by_role(
     days: int = Query(90, ge=1, le=365, description="Days back"),
 ):
     """
-    Spec 5.2: Mức lương tham khảo theo role.
-    Trả về salary ranges (min, median, max) theo title_category.
+    Spec 5.2: Má»©c lÆ°Æ¡ng tham kháº£o theo role.
+    Tráº£ vá» salary ranges (min, median, max) theo title_category.
     """
     since = datetime.now() - timedelta(days=days)
     query = db.query(
@@ -579,12 +581,12 @@ def get_trending_skills(
     limit: int = Query(20, ge=1, le=100),
 ):
     """
-    Spec 5.1: Xu hướng kỹ năng — kỹ năng phổ biến nhất trong JD gần đây.
-    Kết hợp: job count + avg salary insights.
+    Spec 5.1: Xu hÆ°á»›ng ká»¹ nÄƒng â€” ká»¹ nÄƒng phá»• biáº¿n nháº¥t trong JD gáº§n Ä‘Ã¢y.
+    Káº¿t há»£p: job count + avg salary insights.
     """
     since = datetime.now() - timedelta(days=days)
 
-    # Sử dụng extracted_requirements_json hoặc job_skill_requirement
+    # Sá»­ dá»¥ng extracted_requirements_json hoáº·c job_skill_requirement
     query = text(f"""
         WITH skill_stats AS (
             SELECT
@@ -688,7 +690,7 @@ def get_role_analytics(
     limit: int = Query(20, ge=1, le=50),
 ):
     """
-    Spec 5.2: Thông tin nghề nghiệp — vai trò phổ biến + mức lương theo role.
+    Spec 5.2: ThÃ´ng tin nghá» nghiá»‡p â€” vai trÃ² phá»• biáº¿n + má»©c lÆ°Æ¡ng theo role.
     """
     safe_query = text(f"""
         SELECT
@@ -733,4 +735,5 @@ def get_role_analytics(
     ]
 
 
-# ─── Internal helpers ─────────────────────────────────────────────────────────
+# â”€â”€â”€ Internal helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+

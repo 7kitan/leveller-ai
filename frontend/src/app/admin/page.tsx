@@ -6,8 +6,7 @@ import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { 
   Users, 
-  Database,
-  Network,
+  FileText,
   TrendingUp,
   ShieldCheck,
   ArrowUpRight,
@@ -15,7 +14,8 @@ import {
   Layers,
   BookOpen,
   ChevronRight,
-  Zap
+  Zap,
+  Settings
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -25,8 +25,8 @@ const AdminDashboard = () => {
   const { token } = useAuth();
   const [stats, setStats] = useState({
     users: 0,
-    skills: 0,
-    relations: 0,
+    cvs: 0,
+    jobs: 0,
     marketFits: 0
   });
 
@@ -53,15 +53,15 @@ const AdminDashboard = () => {
       color: "#818cf8"
     },
     { 
-      title: "Taxonomy Hub", 
-      desc: "Định nghĩa kĩ năng và thực thể cho Knowledge Graph.", 
-      icon: Database, 
-      path: "/admin/taxonomy",
-      color: "#34d399"
+      title: "CV Repository", 
+      desc: "Kho lưu trữ và quản lý CV của toàn bộ người dùng.", 
+      icon: FileText, 
+      path: "/admin/cvs",
+      color: "#ec4899"
     },
     { 
       title: "Job Portal", 
-      desc: "Quản trị tin tuyển dụng, trạng thái và ánh xạ taxonomy.", 
+      desc: "Quản trị tin tuyển dụng, trạng thái và cập nhật thị trường.", 
       icon: Layers, 
       path: "/admin/jobs",
       color: "#f59e0b"
@@ -74,18 +74,18 @@ const AdminDashboard = () => {
       color: "#0ea5e9"
     },
     { 
-      title: "Relations Map", 
-      desc: "Thiết lập quan hệ phân cấp giữa các thực thể tri thức.", 
-      icon: Network, 
-      path: "/admin/relations",
-      color: "#f472b6"
-    },
-    { 
       title: "Market Insight", 
       desc: "Giám sát chỉ số khớp lệnh thị trường và phân tích Gap.", 
       icon: TrendingUp, 
       path: "/admin/market",
       color: "#a78bfa"
+    },
+    { 
+      title: "System Settings", 
+      desc: "Cấu hình tham số hệ thống và các thiết lập chung.", 
+      icon: Settings, 
+      path: "/admin/settings",
+      color: "#64748b"
     }
   ];
 
@@ -108,8 +108,8 @@ const AdminDashboard = () => {
         <div className={styles.statsGrid}>
           {[
             { label: "Active Users", value: stats.users, icon: Users },
-            { label: "Graph Entities", value: stats.skills, icon: Cpu },
-            { label: "Semantic Links", value: stats.relations, icon: Network },
+            { label: "Total CVs", value: stats.cvs || 0, icon: FileText },
+            { label: "Active Jobs", value: stats.jobs || 0, icon: Layers },
             { label: "Avg Market Fit", value: `${stats.marketFits}%`, icon: Zap },
           ].map((stat) => (
             <div key={stat.label} className={styles.statCard}>
@@ -163,11 +163,11 @@ const AdminDashboard = () => {
           <TrendingUp size={400} className={styles.bgDecoration} />
            <div className={styles.relativeZ10}>
             <h2 className={styles.insightTitle}>
-               <Layers size={24} className={styles.insightIcon} /> Knowledge Logic Health
+               <ShieldCheck size={24} className={styles.insightIcon} /> System Intelligence Health
             </h2>
             <p className={styles.insightText}>
-               Hệ thống đang hoạt động ổn định. Taxonomy được cập nhật lần cuối vào 2 giờ trước. 
-               Không có xung đột semantic nào được phát hiện trong quá trình ánh xạ kĩ năng người dùng.
+               Hệ thống đang hoạt động ổn định. Cơ sở dữ liệu tri thức được cập nhật theo thời gian thực.
+               Không có xung đột logic nào được phát hiện trong quá trình phân tích kĩ năng người dùng.
             </p>
             <div className={styles.badgeGroup}>
                <div className={styles.badge}>
