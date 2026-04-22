@@ -160,9 +160,6 @@ const UserDashboard = () => {
         <div className={styles.verticalStack8}>
           <div className={styles.jobListHeader}>
             <h2 className={styles.jobListTitle}>Khóa học gợi ý</h2>
-            <Link href="/user/analysis" className={styles.viewAllLink}>
-              Phân tích gap ngay
-            </Link>
           </div>
 
           <div className={styles.jobGrid}>
