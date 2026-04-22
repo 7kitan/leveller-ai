@@ -122,9 +122,8 @@ const UserDashboard = () => {
             <div className={styles.uploadIcon}>
               <UploadCloud size={32} />
             </div>
-            <h3 className={styles.uploadTitle}>CV Genome</h3>
             <p className={styles.headerSubtitle} style={{ textAlign: "center", marginBottom: "1rem" }}>
-              Cập nhật hồ sơ để AI giải mã gene nghề nghiệp của bạn.
+              Cập nhật hồ sơ để nhận gợi ý phân tích kỹ năng phù hợp.
             </p>
             <Link href="/user/cv" className={styles.uploadBtn}>
               QUẢN LÝ CV
