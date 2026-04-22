@@ -159,9 +159,14 @@ function getSkillProgressLevel(level: string | undefined): number {
 }
 
 function calculateCategoryMatch(skills: SkillSource[], category: string): number {
-  const categorySkills = skills.filter(s => 
-    (s.category ?? "Technology").toLowerCase() === category.toLowerCase()
-  );
+  const normalizedCategory = category.toLowerCase();
+  
+  const categorySkills = skills.filter(s => {
+    const skillCategory = s.category?.toLowerCase();
+    // Only match skills that explicitly have this category
+    // Skills without category are excluded (not auto-assigned to Technology)
+    return skillCategory === normalizedCategory;
+  });
   
   if (categorySkills.length === 0) return SKILL_MATCH_CONFIG.emptySkillsDefault;
   
@@ -176,9 +181,12 @@ function calculatePotentialCategoryMatch(
   filledSkills: { category?: string }[], 
   category: string
 ): number {
-  const filledInCategory = filledSkills.filter(s => 
-    (s.category ?? "Technology").toLowerCase() === category.toLowerCase()
-  );
+  const normalizedCategory = category.toLowerCase();
+  
+  const filledInCategory = filledSkills.filter(s => {
+    const skillCategory = s.category?.toLowerCase();
+    return skillCategory === normalizedCategory;
+  });
   
   if (filledInCategory.length === 0) return currentMatch;
   
