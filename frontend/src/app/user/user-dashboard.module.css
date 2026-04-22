@@ -141,6 +141,28 @@
   opacity: 0.5;
 }
 
+/* Vertical Stack */
+.verticalStack8 {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+/* Job List Header */
+.jobListHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.jobListTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text-main);
+}
+
 /* Job Matches */
 .jobGrid {
   grid-column: span 12;

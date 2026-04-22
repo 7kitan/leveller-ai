@@ -833,7 +833,7 @@ const UserCVPage = () => {
           <div>
             <h1 className={styles.title}>
               <Zap size={40} className={styles.zapIcon} />
-              KHO HỒ SƠ CÁ NHÂN.
+              KHO HỒ SƠ CÁ NHÂN
             </h1>
             <p className={styles.subtitle}>
               Tải lên CV (PDF/Images) để AI tự động trích xuất và tối ưu lộ trình kỹ

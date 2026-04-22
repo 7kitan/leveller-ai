@@ -482,7 +482,7 @@ const StudentDashboard = () => {
             </div>
             <h1 className={styles.headerTitle}>
               THE<br />
-              <span className={styles.nexusText}>NEXUS.</span>
+              <span className={styles.nexusText}>NEXUS</span>
             </h1>
             <p className={styles.headerSubtitle}>
                Chào mừng trở lại. AI đã phân tích sự phù hợp của bạn với thị trường.

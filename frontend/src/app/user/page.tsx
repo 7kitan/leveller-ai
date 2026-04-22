@@ -117,7 +117,7 @@ const UserDashboard = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h1 className={styles.headerTitle}>User Hub.</h1>
+            <h1 className={styles.headerTitle}>User Hub</h1>
             <p className={styles.headerSubtitle}>
               Giải mã khoảng trống kỹ năng và kết nối với cơ hội tương xứng trên quy mô toàn cầu.
             </p>
@@ -160,9 +160,6 @@ const UserDashboard = () => {
         <div className={styles.verticalStack8}>
           <div className={styles.jobListHeader}>
             <h2 className={styles.jobListTitle}>Khóa học gợi ý</h2>
-            <Link href="/user/analysis" className={styles.viewAllLink}>
-              Phân tích gap ngay
-            </Link>
           </div>
 
           <div className={styles.jobGrid}>

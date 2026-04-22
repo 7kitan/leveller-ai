@@ -78,7 +78,7 @@ export default function JobsPage() {
       <div className={styles.header}>
         <div>
             <h1 className={styles.title}>
-               KHÁM PHÁ<span className={styles.gradientText}> CƠ HỘI</span>.
+               KHÁM PHÁ<span className={styles.gradientText}> CƠ HỘI</span>
             </h1>
             <p className={styles.subtitle}>Tìm kiếm và phân tích độ phù hợp với các vị trí hàng đầu trên quy mô toàn cầu.</p>
         </div>
