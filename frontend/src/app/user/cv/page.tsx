@@ -327,6 +327,7 @@ const UserCVPage = () => {
   const handleGoManual = () => {
     // Spec 5: Error Handling -> Alternative Paths
     setParsedData({
+      id: "manual-" + Date.now(),
       full_name: "Candidate Name",
       skills: [],
       experience_years_total: 0,

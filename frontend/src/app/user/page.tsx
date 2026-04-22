@@ -40,8 +40,17 @@ const UserDashboard = () => {
     fetchMarketFit();
   }, [token]);
 
+  interface JobCard {
+    id: number;
+    title: string;
+    company: string;
+    location: string;
+    match: string;
+    skills: string[];
+  }
+
   // Map API courses to job card format
-  const matchedJobs = (marketData?.courses || []).map((c: any, i: number) => ({
+  const matchedJobs: JobCard[] = (marketData?.courses || []).map((c: any, i: number) => ({
     id: i + 1,
     title: c.title || "Khóa học kỹ năng",
     company: c.platform || "E-learning",
