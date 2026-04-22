@@ -1,6 +1,20 @@
 @import "tailwindcss";
 
 @theme {
+    /* Font Size Scale - UI & Body */
+    --font-size-xs: 0.6875rem;
+    --font-size-sm: 0.75rem;
+    --font-size-base: 0.875rem;
+    --font-size-lg: 1rem;
+    --font-size-xl: 1.125rem;
+    --font-size-2xl: 1.25rem;
+    --font-size-3xl: 1.5rem;
+    --font-size-4xl: 1.875rem;
+    --font-size-5xl: 2.25rem;
+    --font-size-6xl: 3rem;
+    --font-size-7xl: 3.75rem;
+    --font-size-8xl: 4.5rem;
+
     /* Apple Design System Palette */
     --color-apple-black: #000000;
     --color-apple-light-gray: #f5f5f7;
@@ -114,6 +128,62 @@
         font-size: 40px;
         font-weight: 600;
         line-height: 1.10;
+    }
+
+    /* UI Element Font Scale */
+    .font-micro {
+        font-size: var(--font-size-xs);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .font-meta {
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        opacity: 0.6;
+    }
+
+    .font-label {
+        font-size: var(--font-size-base);
+        font-weight: 700;
+    }
+
+    .font-stat {
+        font-size: 2.5rem;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+    }
+
+    .font-stat-label {
+        font-size: var(--font-size-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+        opacity: 0.5;
+    }
+
+    /* Semantic Text Classes */
+    .text-body {
+        font-size: var(--font-size-lg);
+        line-height: 1.5;
+    }
+
+    .text-subheading {
+        font-size: var(--font-size-2xl);
+        font-weight: 700;
+    }
+
+    .text-card-title {
+        font-size: var(--font-size-3xl);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .text-page-title {
+        font-size: var(--font-size-5xl);
+        font-weight: 800;
+        letter-spacing: -0.04em;
     }
 
     .apple-glass {

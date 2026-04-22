@@ -123,7 +123,7 @@ const UserDashboard = () => {
               <UploadCloud size={32} />
             </div>
             <h3 className={styles.uploadTitle}>CV Genome</h3>
-            <p className={styles.headerSubtitle} style={{ fontSize: "0.9rem", textAlign: "center", marginBottom: "1rem" }}>
+            <p className={styles.headerSubtitle} style={{ textAlign: "center", marginBottom: "1rem" }}>
               Cập nhật hồ sơ để AI giải mã gene nghề nghiệp của bạn.
             </p>
             <Link href="/user/cv" className={styles.uploadBtn}>
@@ -134,7 +134,7 @@ const UserDashboard = () => {
           {/* Gap Analysis Summary */}
           <div className={cn(styles.card, styles.statsSection)} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Phân tích Gap hiện tại</h3>
+              <h3 className="text-subheading">Phân tích Gap hiện tại</h3>
               <Link href="/user/analysis" className={styles.viewAllLink}>
                 Chi tiết <ArrowRight size={16} />
               </Link>
@@ -144,8 +144,8 @@ const UserDashboard = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
                 {topGaps.map((gap: any) => (
                   <div key={gap.skill} style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '1rem', border: '1px solid var(--color-border-subtle)' }}>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.25rem' }}>{gap.skill}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', opacity: 0.6 }}>
+                    <div className="font-label" style={{ marginBottom: '0.25rem' }}>{gap.skill}</div>
+                    <div className="font-meta">
                       <span style={{ color: gap.severity === 'HIGH' ? 'var(--color-danger)' : 'var(--color-warning)' }}>
                         ● {gap.severity}
                       </span>
@@ -164,8 +164,8 @@ const UserDashboard = () => {
             <div className={styles.statsGrid}>
               {stats.map((stat) => (
                 <div key={stat.label} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div className={styles.statValue} style={{ fontSize: '1.5rem' }}>{stat.value}</div>
-                  <div className={styles.statLabel} style={{ fontSize: '0.65rem' }}>{stat.label}</div>
+                  <div className={styles.statValue}>{stat.value}</div>
+                  <div className={styles.statLabel}>{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -196,8 +196,8 @@ const UserDashboard = () => {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.7rem', opacity: 0.5, fontWeight: 700 }}>MATCH SCORE</span>
-                      <span style={{ color: 'var(--color-success)', fontWeight: 800, fontSize: '1.25rem' }}>{course.match}</span>
+                      <span className="font-micro">MATCH SCORE</span>
+                      <span style={{ color: 'var(--color-success)', fontWeight: 800 }} className="text-subheading">{course.match}</span>
                     </div>
                     {course.url && (
                       <a href={course.url} target="_blank" className={styles.viewAllLink} style={{ color: 'inherit' }}>
@@ -222,7 +222,7 @@ const UserDashboard = () => {
             <h2 className={styles.ctaTitle}>
               Phân tích Gap.<br />Chinh phục cơ hội.
             </h2>
-            <p className={styles.headerSubtitle} style={{ color: "inherit", opacity: 0.8, fontSize: '1rem' }}>
+            <p className={styles.headerSubtitle} style={{ color: "inherit", opacity: 0.8 }}>
               AI sẽ so sánh hàng nghìn tham số giữa hồ sơ của bạn và yêu cầu thực tế từ thị trường để tìm ra lộ trình ngắn nhất.
             </p>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
