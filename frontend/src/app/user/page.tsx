@@ -117,7 +117,7 @@ const UserDashboard = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h1 className={styles.headerTitle}>User Hub.</h1>
+            <h1 className={styles.headerTitle}>User Hub</h1>
             <p className={styles.headerSubtitle}>
               Giải mã khoảng trống kỹ năng và kết nối với cơ hội tương xứng trên quy mô toàn cầu.
             </p>
