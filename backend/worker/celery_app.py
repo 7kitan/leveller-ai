@@ -23,6 +23,7 @@ celery_app = Celery(
         "worker.tasks.analysis_tasks",  # Main analysis entry (v3 khi flag=true, legacy khi flag=false)
         "worker.langgraph_agents.gap_v3.tasks.cv_parsing_v3_task",  # CV parsing v3 (khi USE_LLM_GAP_AGENT_V3=true)
         "worker.tasks.crawler_tasks",  # Course metadata crawler
+        "worker.tasks.market_stats_tasks", # Daily market data aggregation
         # NOTE: gap_analysis_v3_task.py bị DEPRECATE — dùng analysis_tasks thay thế
     ],
 )
@@ -45,6 +46,7 @@ def setup_logging(logger, *args, **kwargs):
         "gap_analysis_v3",
         "llm_utils",
         "gap_calculator",
+        "market_stats_worker",
     ]
 
     for logger_name in loggers_to_config:
@@ -76,6 +78,14 @@ celery_app.conf.update(
             "task": "worker.tasks.crawler_tasks.crawl_topcv_jobs_task",
             "schedule": 1800.0,  # 30 minutes
             "args": (20,),
+        },
+        "daily-market-aggregation": {
+            "task": "worker.tasks.market_stats_tasks.aggregate_market_data",
+            "schedule": 86400.0, # 24 hours
+        },
+        "daily-youtube-cleanup": {
+            "task": "worker.tasks.market_stats_tasks.cleanup_expired_youtube_courses",
+            "schedule": 86400.0, # 24 hours
         },
     },
 )

@@ -47,6 +47,11 @@ class User(Base):
     )
     last_analysis = relationship("UserAnalysis", foreign_keys=[last_analysis_id])
 
+    # ── Market Fit Cache (Update once per day) ────────────────────────
+    market_fit_score = Column(Float, default=0.0)
+    market_fit_last_updated = Column(DateTime(timezone=True))
+    market_fit_data = Column(JSON) # Lưu matched_jobs_count, percentile, vv.
+
 
 class UserCV(Base):
     __tablename__ = "user_cvs"
@@ -266,4 +271,45 @@ class UserFeedback(Base):
     is_accurate = Column(Boolean)
     missing_skills = Column(JSON)
     comment = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class MarketSkillStats(Base):
+    __tablename__ = "market_skill_stats"
+
+    skill_name = Column(String(200), primary_key=True)
+    category = Column(String(100), index=True)
+    
+    avg_salary_min = Column(BigInteger)
+    avg_salary_max = Column(BigInteger)
+    salary_premium_pct = Column(Float) # Phần trăm chênh lệch lương so với trung bình cùng nhóm
+    
+    job_count_30d = Column(Integer, default=0)
+    growth_rate_30d = Column(Float, default=0.0) # Tỷ lệ tăng trưởng so với 30 ngày trước
+    
+    demand_score = Column(Float) # Điểm nhu cầu (0-100) dựa trên job_count và growth
+    
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class YouTubeCourse(Base):
+    __tablename__ = "youtube_courses"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    video_id = Column(String(50), unique=True, index=True)
+    title = Column(Text, nullable=False)
+    description = Column(Text)
+    thumbnail = Column(String(255))
+    channel_name = Column(String(255))
+    url = Column(Text)
+    
+    # Vector search support
+    embedding_context = Column(Text)
+    vector = Column(Vector(1536))
+    
+    # Metadata
+    duration_raw = Column(String(50))
+    published_at = Column(DateTime(timezone=True))
+    expires_at = Column(DateTime(timezone=True), index=True) # Thời điểm hết hạn cache
+    last_verified_at = Column(DateTime(timezone=True), index=True) # Thời điểm kiểm tra tính khả dụng gần nhất
     created_at = Column(DateTime(timezone=True), server_default=func.now())

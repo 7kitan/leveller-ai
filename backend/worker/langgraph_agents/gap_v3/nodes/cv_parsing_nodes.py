@@ -13,7 +13,7 @@ from ..states import CVParsingState, CVParsedData
 from ..utils.pii_masker import mask_pii, mask_work_history
 from ..utils.llm_helpers import llm_json_completion
 from ..utils.ocr_client import ocr_client
-from shared.models import UserCV, UserSkillProfile, Skill
+from shared.models import UserCV, UserSkillProfile, Skill, UserWorkExperience
 import json
 from shared.redis_client import result_cache
 from shared.config_utils import config_manager
@@ -412,7 +412,7 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
         "ocr_confidence": float(
             result.get("ocr_confidence") or (0.6 if is_ocr else 1.0)
         ),
-        "raw_text_masked": masked_text,
+        # Removed raw_text_masked as per user request to keep JSON clean
     }
 
     skill_count = len(parsed.get("skills", []))
@@ -504,10 +504,16 @@ async def normalize_cv_node(state: CVParsingState) -> CVParsingState:
         raw_level = (skill.get("level") or "Junior").lower().strip()
         normalized = level_map.get(raw_level, "Junior")
 
+        # Normalize category to English
+        raw_cat = (skill.get("category") or "Technology").strip()
+        cat_lower = raw_cat.lower()
+        if cat_lower == "công nghệ":
+            raw_cat = "Technology"
+
         normalized_skills.append(
             {
                 "name": raw_name,
-                "category": skill.get("category") or "Technology",
+                "category": raw_cat,
                 "years_exp": max(0.0, float(skill.get("experience_years") or skill.get("years_exp") or 0)),
                 "level": normalized,
             }
@@ -626,6 +632,11 @@ async def persist_cv_data_node(state: CVParsingState) -> CVParsingState:
         skills_upserted = await _upsert_skills_from_cv(
             cv_parsed.get("skills", []), cv_id_str, db
         )
+        
+        # ── Upsert Work History ──────────────────────────────────────────
+        work_upserted = await _upsert_work_history_from_cv(
+            cv_parsed.get("work_history", []), cv_id_str, db
+        )
 
         # ── Commit ───────────────────────────────────────────────────────────
         db.commit()
@@ -677,13 +688,18 @@ async def _upsert_skills_from_cv(skills: list, cv_id: str, db) -> int:
         skill_record = db.query(Skill).filter(Skill.name == skill_name).first()
 
         if not skill_record:
+            # Normalize category to English for DB consistency
+            raw_cat = (s.get("category") or "Technology").strip()
+            if raw_cat.lower() == "công nghệ":
+                raw_cat = "Technology"
+
             skill_record = Skill(
-                id=uuid.uuid4(), name=skill_name, category="Technology"
+                id=uuid.uuid4(), name=skill_name, category=raw_cat
             )
             db.add(skill_record)
             db.flush()
             logger.debug(
-                f"  skill[{idx}] CREATED new Skill: id={skill_record.id} name='{skill_name}'"
+                f"  skill[{idx}] CREATED new Skill: id={skill_record.id} name='{skill_name}' category='{raw_cat}'"
             )
         else:
             logger.debug(
@@ -736,4 +752,31 @@ async def _upsert_skills_from_cv(skills: list, cv_id: str, db) -> int:
         f"  skipped (empty): {skipped_count}"
     )
 
+    return upserted_count
+
+
+async def _upsert_work_history_from_cv(work_history: list, cv_id: str, db) -> int:
+    """
+    Upsert work history từ parsed CV vào user_work_experiences table.
+    """
+    from shared.models import UserWorkExperience
+    
+    upserted_count = 0
+    cv_uuid = uuid.UUID(cv_id)
+    
+    # Xóa cũ ghi mới (đồng bộ với finalize_cv)
+    db.query(UserWorkExperience).filter(UserWorkExperience.cv_id == cv_uuid).delete()
+    
+    for w in (work_history or []):
+        new_work = UserWorkExperience(
+            id=uuid.uuid4(),
+            cv_id=cv_uuid,
+            position_name=w.get("position", "N/A"),
+            company_name=w.get("company", "N/A"),
+            duration_years=float(w.get("duration_years") or 0),
+            description=w.get("description", "")
+        )
+        db.add(new_work)
+        upserted_count += 1
+        
     return upserted_count

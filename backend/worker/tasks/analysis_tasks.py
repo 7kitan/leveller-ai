@@ -329,11 +329,22 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
 
         # Update User's last_analysis_id for persistent state
         from shared.models import User
+        from services.analysis_service.market_fit_service import update_user_market_fit
 
         user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
         if user:
             user.last_analysis_id = new_analysis.id
             logger.info(f"[ANALYSIS STEP 4] Updated User {user_id} with last_analysis_id={new_analysis.id}")
+            
+            # ── TRIGGER MARKET FIT UPDATE ──────────────────────────────────────
+            # Mỗi khi phân tích gap xong, tính lại market fit để Dashboard luôn mới
+            try:
+                # Chạy đồng bộ trong worker vì đây là background task rồi
+                loop = asyncio.get_event_loop()
+                loop.run_until_complete(update_user_market_fit(user.id, db))
+                logger.info(f"[ANALYSIS STEP 4] ✓ Market Fit updated for user {user_id}")
+            except Exception as mf_err:
+                logger.error(f"[ANALYSIS STEP 4] Failed to update market fit: {mf_err}")
 
         db.commit()
 

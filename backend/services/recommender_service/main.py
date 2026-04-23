@@ -14,6 +14,7 @@ from datetime import datetime
 from worker.celery_app import celery_app
 from celery.result import AsyncResult
 from shared.schemas import PaginatedResponse
+from shared.youtube_service import youtube_service
 
 app = FastAPI(title="Recommender Service")
 logger = logging.getLogger("recommender")
@@ -300,7 +301,25 @@ async def recommend_courses(req: RecommendRequest, db: Session = Depends(get_db)
             f"  Found {len(candidates)} candidates, selected top {min(limit, len(ranked))}"
         )
 
-    return all_recommendations
+    # ─── YouTube Integration (Free Resources) ────────────────────────
+    # Tìm kiếm video YouTube cho các Gap Skills (Top 3 skills có severity cao nhất)
+    youtube_resources = []
+    top_gaps = sorted_gaps[:2] # Lấy 2 gap quan trọng nhất để tìm video
+    
+    for gap in top_gaps:
+        videos = await youtube_service.search_and_cache(
+            query=f"{gap.skill_name} {gap.target_level} tutorial",
+            db=db,
+            limit=2
+        )
+        for v in videos:
+            v["gap_skill"] = gap.skill_name
+            youtube_resources.append(v)
+
+    return {
+        "courses": all_recommendations,
+        "youtube_videos": youtube_resources
+    }
 
 
 @app.get("/recommend/trending-skills")
@@ -618,3 +637,19 @@ async def admin_get_crawl_status(task_id: str, request: Request):
              return {"status": "failed", "error": result["error"]}
         return {"status": "completed", "result": result}
     return {"status": "processing"}
+
+
+@app.get("/recommend/youtube")
+async def get_youtube_recommendations(
+    skill: str, 
+    level: str = "Beginner", 
+    limit: int = 3, 
+    db: Session = Depends(get_db)
+):
+    """
+    Tìm kiếm video YouTube cho một kỹ năng cụ thể.
+    Sử dụng Vector Search để tối ưu cache.
+    """
+    query = f"{skill} {level} tutorial course"
+    videos = await youtube_service.search_and_cache(query=query, db=db, limit=limit)
+    return videos

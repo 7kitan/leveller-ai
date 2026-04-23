@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, Request, UploadFile, File, Query
 from sqlalchemy.orm import Session
 from shared.database import get_db
-from shared.models import User, UserCV, UserSkillProfile, Skill, UserAnalysis
+from shared.models import User, UserCV, UserSkillProfile, Skill, UserAnalysis, UserWorkExperience
 from worker.celery_app import celery_app
 from shared.redis_client import result_cache
 from shared.schemas import PaginatedResponse
@@ -293,10 +293,15 @@ async def finalize_cv(
         # Tìm hoặc tạo kĩ năng trong taxonomy
         skill = db.query(Skill).filter(Skill.name.ilike(s_name)).first()
         if not skill:
+            # Normalize category to English for DB consistency
+            raw_cat = (s_data.get("category") or "Technology").strip()
+            if raw_cat.lower() == "công nghệ":
+                raw_cat = "Technology"
+
             skill = Skill(
                 id=uuid.uuid4(),
                 name=s_name_std,
-                category=s_data.get("category", "Technology"),
+                category=raw_cat,
             )
             db.add(skill)
             db.commit()
@@ -312,6 +317,21 @@ async def finalize_cv(
             source="cv_parsed",
         )
         db.add(new_prof)
+
+    # 4. Cập nhật danh sách work_history (UserWorkExperience table)
+    # Xóa work experiences cũ của CV này để ghi đè
+    db.query(UserWorkExperience).filter(UserWorkExperience.cv_id == cv.id).delete()
+    
+    for w_data in (req.work_history or []):
+        new_work = UserWorkExperience(
+            id=uuid.uuid4(),
+            cv_id=cv.id,
+            position_name=w_data.get("position", "N/A"),
+            company_name=w_data.get("company", "N/A"),
+            duration_years=float(w_data.get("duration_years") or 0),
+            description=w_data.get("description", "")
+        )
+        db.add(new_work)
 
     db.commit()
     logger.info(f"CV Fully Finalized: {cv.id} for user {user_id_str}")
@@ -536,7 +556,12 @@ async def add_cv_skill(
 
     skill = db.query(Skill).filter(Skill.name.ilike(s_name)).first()
     if not skill:
-        skill = Skill(id=uuid.uuid4(), name=s_name_cap, category=payload.category)
+        # Normalize category to English for DB consistency
+        raw_cat = (payload.category or "Technology").strip()
+        if raw_cat.lower() == "công nghệ":
+            raw_cat = "Technology"
+
+        skill = Skill(id=uuid.uuid4(), name=s_name_cap, category=raw_cat)
         db.add(skill)
         db.commit()
         db.refresh(skill)

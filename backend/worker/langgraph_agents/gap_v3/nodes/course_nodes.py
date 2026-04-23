@@ -20,6 +20,7 @@ from ..states import GapAnalysisStateV3
 from ..utils.llm_helpers import llm_json_completion
 from ..config import get_vector_sim_threshold
 from shared.config_utils import config_manager
+from shared.youtube_service import youtube_service
 
 logger = logging.getLogger("course_agent_v3")
 
@@ -130,13 +131,40 @@ async def course_recommendation_llm_node(
 
         all_recommendations.extend(course_candidates)
 
+    # ── STEP 1.5: YouTube Search (Free Resources) ──────────────────────────
+    # Tìm kiếm video YouTube song song hoặc trước khi selection để luôn có fallback
+    youtube_videos = []
+    current_lang = state.get("lang", "vi") # Mặc định tiếng Việt nếu không có
+    
+    # Tìm cho top 3 gaps để đảm bảo có đủ free resources cho roadmap
+    for gap in gaps_to_process[:3]:
+        skill_name = gap.get("skill") or "?"
+        level_name = gap.get("required_level") or "Mid-level"
+        logger.info(f"[STEP 4/YouTube] Searching videos for gap: {skill_name} (lang={current_lang})")
+        v_results = await youtube_service.search_and_cache(
+            query=f"{skill_name} {level_name}",
+            db=db,
+            limit=3,
+            lang=current_lang
+        )
+        for v in v_results:
+            v["gap_skill"] = skill_name
+            youtube_videos.append(v)
+
     if not all_recommendations:
-        logger.warning("[STEP 4] No courses found for any gap")
-        return {**state, "course_recommendations": [], "career_roadmap": {}, "status": "courses_done"}
+        logger.warning("[STEP 4] No courses found for any gap. Providing YouTube only.")
+        return {
+            **state, 
+            "course_recommendations": [], 
+            "youtube_videos": youtube_videos,
+            "career_roadmap": {}, 
+            "status": "courses_done"
+        }
 
     # ── STEP 2 (FINAL LLM CALL): Unified course selection + roadmap ─────────
     unified_result = await _llm_select_courses_and_roadmap_unified(
         all_candidates=all_recommendations,
+        youtube_candidates=youtube_videos,
         gaps=gaps_to_process,
         jd_context=jd_context,
     )
@@ -145,19 +173,43 @@ async def course_recommendation_llm_node(
     career_roadmap = unified_result.get("career_roadmap", {})
 
     # ── Attach gap metadata to selected courses ──────────────────────────────
+    # Map both standard courses (by course_id) and youtube videos (by video_id)
     course_id_map = {c.get("course_id"): c for c in all_recommendations}
+    youtube_id_map = {v.get("video_id"): v for v in youtube_videos}
+    
     final_courses = []
     for item in selected_courses:
         cid = item.get("course_id")
-        c = course_id_map.get(cid)
+        vid = item.get("video_id")
+        
+        # Check standard courses first, then youtube
+        c = course_id_map.get(cid) if cid else None
+        is_youtube = False
+        
+        if not c and vid:
+            c = youtube_id_map.get(vid)
+            is_youtube = True
+            
         if c:
-            c["course_id"] = cid
-            c["gap_skill"] = c.pop("_gap_skill", "")
+            if is_youtube:
+                # Standardize YouTube video to look like a course
+                c["course_id"] = vid
+                c["platform"] = "YouTube"
+                c["provider"] = c.get("channel_name", "YouTube")
+                c["is_certification"] = False
+                c["cost_usd"] = 0
+                c["level"] = "All levels"
+                c["duration_hours"] = 0.5 # Default approx duration
+            else:
+                c["course_id"] = cid
+            
+            c["gap_skill"] = c.pop("_gap_skill", item.get("gap_skills", [""])[0] if item.get("gap_skills") else "")
             c["gap_severity"] = c.pop("_gap_severity", "MEDIUM")
             c["gap_learning_path"] = c.pop("_gap_learning_path", "")
             c["gap_estimated_months"] = c.pop("_gap_estimated_months", 0)
             c["is_critical"] = c.pop("_is_critical", False)
             c["selection_reason"] = item.get("selection_reason") or ""
+            c["is_youtube"] = is_youtube
             final_courses.append(c)
 
     # ── STEP 3: Deduplicate + rank ───────────────────────────────────────────
@@ -167,9 +219,11 @@ async def course_recommendation_llm_node(
         f"[STEP 4] DONE (OPTIMIZED) | unique courses={len(course_recommendations)} "
         f"| roadmap stages={len(career_roadmap.get('stages', []))} | cv_id={state.get('cv_id', '?')}"
     )
+
     return {
         **state,
         "course_recommendations": course_recommendations,
+        "youtube_videos": youtube_videos,
         "career_roadmap": career_roadmap,
         "status": "courses_done",
     }
@@ -182,6 +236,7 @@ async def course_recommendation_llm_node(
 
 async def _llm_select_courses_and_roadmap_unified(
     all_candidates: List[Dict],
+    youtube_candidates: List[Dict],
     gaps: List[Dict],
     jd_context: str,
 ) -> Dict[str, Any]:
@@ -196,66 +251,69 @@ async def _llm_select_courses_and_roadmap_unified(
     Now: 1 LLM call
       _llm_select_courses_and_roadmap_unified
     """
-    # ── Build gap context block ────────────────────────────────────────────────
-    gap_blocks = []
-    for i, g in enumerate(gaps):
-        gap_skill = g.get("skill") or "?"
-        required_level = g.get("required_level") or "Mid-level"
-        severity = g.get("severity") or "MEDIUM"
-        estimated_months = g.get("estimated_months") or 3
-        learning_path = g.get("learning_path") or ""
-        gap_blocks.append(
-            f"  Gap #{i + 1}: {gap_skill}\n"
-            f"    Required level: {required_level}\n"
-            f"    Severity: {severity} | Est. months: {estimated_months}\n"
-            f"    Learning path: {learning_path}"
-        )
-    gaps_context = "\n".join(gap_blocks)
+    # ── Build gap context block (JSON) ──────────────────────────────────────────
+    gaps_json = []
+    for g in gaps:
+        gaps_json.append({
+            "skill": g.get("skill") or "?",
+            "required_level": g.get("required_level") or "Mid-level",
+            "severity": g.get("severity") or "MEDIUM",
+            "estimated_months": g.get("estimated_months") or 3,
+            "learning_path": g.get("learning_path") or ""
+        })
+    gaps_context = _json.dumps(gaps_json, ensure_ascii=False, indent=2)
 
-    # ── Build candidates block ─────────────────────────────────────────────────
-    # ENHANCED: include tags/skills_raw/modules/level for LLM to make better decisions
-    candidate_lines = []
-    for i, c in enumerate(all_candidates):
-        gap_skill = c.get("_gap_skill") or "?"
-        tags = c.get("tags") or []
-        skills_raw = c.get("skills_raw") or []
-        modules = c.get("modules") or []
-        # Truncate for prompt size
-        tags_str = ", ".join(tags[:6])
-        skills_str = ", ".join(skills_raw[:6])
-        modules_str = " | ".join(str(m)[:40] for m in modules[:4])
-        candidate_lines.append(
-            f"  [{i + 1}] course_id={c.get('course_id')} | "
-            f"gap={gap_skill} | title={c.get('title')} | "
-            f"platform={c.get('platform')} | level={c.get('level')} | "
-            f"hrs={c.get('duration_hours', 0):.0f}h | cert={c.get('is_certification')} | "
-            f"cost=${c.get('cost_usd', 0):.0f} | sim={c.get('similarity', 0):.2f}\n"
-            f"      tags={tags_str} | skills={skills_str} | modules={modules_str}"
-        )
-    candidates_context = "\n".join(candidate_lines)
+    # ── Build candidates block (JSON) ──────────────────────────────────────────
+    # Increase limit to 10 to give more options across all gaps
+    sorted_candidates = sorted(
+        all_candidates, 
+        key=lambda x: float(x.get("similarity") or 0), 
+        reverse=True
+    )[:10]
+
+    candidates_json = []
+    for c in sorted_candidates:
+        candidates_json.append({
+            "course_id": c.get("course_id"),
+            "target_gap_skill": c.get("_gap_skill") or "?",
+            "title": c.get("title"),
+            "platform": c.get("platform"),
+            "skills": (c.get("skills_raw") or [])[:6],
+        })
+    candidates_context = _json.dumps(candidates_json, ensure_ascii=False, indent=2)
+
+    # ── Build YouTube candidates block (JSON) ──────────────────────────────────
+    yt_json = []
+    for v in youtube_candidates:
+        yt_json.append({
+            "video_id": v.get("video_id"),
+            "target_gap_skill": v.get("gap_skill") or "?",
+            "title": v.get("title"),
+            "channel": v.get("channel_name"),
+        })
+    yt_context = _json.dumps(yt_json, ensure_ascii=False, indent=2)
 
     prompt = (
-        "You are a Senior Learning Path Advisor. Select the best courses and build a career roadmap.\n\n"
+        "You are a Senior Learning Path Advisor. Select the best resources (paid courses + free YouTube) and build a career roadmap.\n\n"
         "## GAP CONTEXT:\n" + gaps_context + "\n\n"
-        "## COURSE CANDIDATES (from vector search — ranked by relevance):\n" + candidates_context + "\n\n"
+        "## PAID COURSE CANDIDATES:\n" + candidates_context + "\n\n"
+        "## FREE YOUTUBE CANDIDATES:\n" + yt_context + "\n\n"
         "## MISSION:\n"
-        "1. SELECT COURSES: For each gap, pick 1-2 best courses.\n"
-        "   - CERTIFICATION first (cert=true → higher priority)\n"
-        "   - Level match: prefer course.level >= gap.required_level\n"
-        "   - Hard match: prefer courses where 'tags' or 'skills' contain the gap skill name\n"
-        "   - Prefer free or low-cost courses\n"
-        "   - Include clear 'selection_reason' for each selected course\n"
-        "   - Deduplicate: same course covers multiple gaps → list ONCE with all gap_skills\n"
+        "1. SELECT RESOURCES: For each gap, pick 1-2 best resources.\n"
+        "   - Mix & Match: Ideally provide ONE paid course for depth and ONE free YouTube video for quick start.\n"
+        "   - Hard match: prefer resources where 'skills' or 'title' match the gap skill\n"
+        "   - Include clear 'selection_reason' (in Vietnamese) for each selected resource\n"
         "2. BUILD ROADMAP: Create a personalized learning roadmap in Vietnamese.\n"
-        "   - Group courses by learning stage (Stage 1: fundamentals → Stage 2: intermediate → Stage 3: advanced)\n"
+        "   - Group resources by learning stage (Stage 1: fundamentals → Stage 2: intermediate → Stage 3: advanced)\n"
         "   - Use English for skill names, Vietnamese for descriptions\n"
         "   - Each stage: focus skill, duration_weeks, milestones\n\n"
         "## OUTPUT JSON SCHEMA:\n"
         "{\n"
         '  "selected_courses": [\n'
         '    {\n'
-        '      "course_id": "...",\n'
-        '      "gap_skills": ["skill1", "skill2"],\n'
+        '      "course_id": "standard_course_id_here",\n'
+        '      "video_id": "youtube_video_id_here (if youtube)",\n'
+        '      "gap_skills": ["skill1"],\n'
         '      "selection_reason": "...",\n'
         '      "stage": 1\n'
         '    }\n'
@@ -267,7 +325,7 @@ async def _llm_select_courses_and_roadmap_unified(
         '        "focus": "skill name in English",\n'
         '        "duration_weeks": 4,\n'
         '        "skills_acquired": ["..."],\n'
-        '        "courses_taken": ["course titles"],\n'
+        '        "courses_taken": ["course titles or video titles"],\n'
         '        "milestones": [{"week": 1, "milestone": "..."}]\n'
         '      }\n'
         '    ],\n'

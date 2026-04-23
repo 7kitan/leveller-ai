@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
-import axios from "axios";
+import api from "@/lib/api";
 import {
   Zap,
   Sparkles,
@@ -21,6 +21,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import styles from "./user-analysis.module.css";
+import { AnimatePresence, motion } from "framer-motion";
+
+const POLLING_INTERVAL = 5000;
 
 /* -- Types --------------------------------------------------------------- */
 interface CVOption {
@@ -90,19 +93,56 @@ function AnalysisPageContent() {
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
   const [processMessage, setProcessMessage] = useState<string>(t("init_message"));
+  const [spamIndex, setSpamIndex] = useState(0);
+  const [processingTime, setProcessingTime] = useState(0);
+  const [showTimeoutOverlay, setShowTimeoutOverlay] = useState(false);
+
+  const spamMessages = language === 'vi' ? [
+    "AI đang bóc tách từng dòng trong CV của bạn...",
+    "Đang so khớp kinh nghiệm của bạn với yêu cầu thị trường...",
+    "Tìm kiếm các khóa học tối ưu nhất để lấp đầy khoảng trống kỹ năng...",
+    "Đang xây dựng lộ trình sự nghiệp cá nhân hóa cho bạn...",
+    "AI đang phân tích sâu các từ khóa tiềm năng...",
+    "Hệ thống đang chạy các mô phỏng kịch bản sự nghiệp...",
+    "Đang tổng hợp các tài liệu học tập từ YouTube...",
+    "Gần xong rồi, chúng tôi đang chuẩn bị bản báo cáo cuối cùng...",
+  ] : [
+    "AI is reading between the lines of your CV...",
+    "Matching your experience with global market trends...",
+    "Finding the perfect courses to bridge your skill gaps...",
+    "Building your personalized career roadmap...",
+    "Deep-analyzing potential keywords for your success...",
+    "Simulating career growth scenarios...",
+    "Aggregating free learning resources from YouTube...",
+    "Almost there! Wrapping up your final report...",
+  ];
 
   /* -- Handle URL Params ---------------------------------------------- */
   useEffect(() => {
-    if (initialJobId && initialJobTitle) {
+    if (initialJobId) {
       setSelectedJobId(initialJobId);
-      setSelectedJob({
-        id: initialJobId,
-        title_raw: initialJobTitle,
-        company_name: null,
-        location: null,
-        salary_min: null
-      });
       setJdMode("select");
+
+      if (initialJobTitle) {
+        setSelectedJob({
+          id: initialJobId,
+          title_raw: initialJobTitle,
+          company_name: null,
+          location: null,
+          salary_min: null
+        });
+      } else {
+        // Fetch job info if title is missing
+        api.get(`/api/jd/${initialJobId}`)
+          .then(r => {
+            setSelectedJob(r.data);
+          })
+          .catch(err => {
+            console.error("[ANALYSIS] Failed to fetch job info from URL:", err);
+            // Fallback: stay in select mode but empty
+            setSelectedJobId("");
+          });
+      }
     }
   }, [initialJobId, initialJobTitle]);
 
@@ -110,16 +150,16 @@ function AnalysisPageContent() {
   useEffect(() => {
     const autoRun = searchParams.get("auto_run") === "true";
     if (autoRun && phase === "setup" && selectedCvId && selectedJobId) {
-      console.log("[ANALYSIS] Auto-run triggered");
-      startAnalysis();
+      console.log("[ANALYSIS] Auto-run triggered (forcing recompute)");
+      startAnalysis(true);
     }
   }, [selectedCvId, selectedJobId, phase]);
 
   /* -- Load CVs ------------------------------------------------------- */
   useEffect(() => {
     if (!token) return;
-    axios
-      .get("/api/cv/list", { headers: { Authorization: `Bearer ${token}` } })
+    api
+      .get("/api/cv/list")
       .then((r) => {
         const done = (r.data as CVOption[]).filter((c) => c.status === "completed");
         setCvs(done);
@@ -138,10 +178,9 @@ function AnalysisPageContent() {
   const searchJobs = (q: string) => {
     if (!token) return;
     setSearchingJobs(true);
-    axios
+    api
       .get("/api/jd/search", {
         params: { q: q || undefined, limit: 10 },
-        headers: { Authorization: `Bearer ${token}` },
       })
       .then((r) => setJobResults(r.data.items as JobOption[]))
       .catch(() => setJobResults([]))
@@ -166,7 +205,7 @@ function AnalysisPageContent() {
     (jdMode === "paste" ? pastedJdText.trim().length > 20 : !!selectedJobId);
 
   /* -- Start analysis ------------------------------------------------ */
-  const startAnalysis = async () => {
+  const startAnalysis = async (force: boolean = false) => {
     setError("");
     if (!isValid) {
       setError(t("analysis_missing_inputs"));
@@ -176,9 +215,12 @@ function AnalysisPageContent() {
     setPhase("processing");
     setProgress(0);
     setCurrentStep(0);
+    setProcessingTime(0);
+    setShowTimeoutOverlay(false);
+    setNotified(false);
 
     console.log(
-      `[ANALYSIS] Starting — cv_id=${selectedCvId} | jd_mode=${jdMode} | ` +
+      `[ANALYSIS] Starting — cv_id=${selectedCvId} | jd_mode=${jdMode} | force=${force} | ` +
         (jdMode === "paste"
           ? `jd_text length=${pastedJdText.length}`
           : `job_id=${selectedJobId}`)
@@ -187,7 +229,8 @@ function AnalysisPageContent() {
     try {
       const payload: Record<string, unknown> = { 
         cv_id: selectedCvId,
-        lang: language 
+        lang: language,
+        force: force
       };
       if (jdMode === "paste") {
         payload.jd_text = pastedJdText;
@@ -195,9 +238,7 @@ function AnalysisPageContent() {
         payload.job_id = selectedJobId;
       }
 
-      const resp = await axios.post("/api/analysis/gap", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const resp = await api.post("/api/analysis/gap", payload);
 
       const tid = resp.data.task_id as string;
       setTaskId(tid);
@@ -215,9 +256,7 @@ function AnalysisPageContent() {
   const pollStatus = (tid: string) => {
     const interval = setInterval(async () => {
       try {
-        const resp = await axios.get(`/api/analysis/status/${tid}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const resp = await api.get(`/api/analysis/status/${tid}`);
         const { status, result } = resp.data as { status: string; result?: unknown };
         console.log(`[ANALYSIS] poll — status=${status}`);
 
@@ -257,23 +296,41 @@ function AnalysisPageContent() {
         }
         
         if (message) {
-            // We can store this in a new state or just log it for now.
-            // Let's add a state for it.
             setProcessMessage(message);
         }
       } catch (err) {
         console.error(`[ANALYSIS] poll error:`, err);
       }
-    }, 2500);
+    }, POLLING_INTERVAL);
+
+    // Dynamic Spam Message Loop
+    const spamInterval = setInterval(() => {
+      setSpamIndex(prev => (prev + 1) % spamMessages.length);
+    }, 4500);
+
+    // Timeout Tracker
+    const timerInterval = setInterval(() => {
+      setProcessingTime(prev => {
+        const next = prev + 1;
+        if (next >= 45 && !showTimeoutOverlay) {
+          setShowTimeoutOverlay(true);
+        }
+        return next;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(spamInterval);
+      clearInterval(timerInterval);
+    };
   };
 
   /* -- Point 4: Graceful Cancellation ----------------------------- */
   const handleCancel = async () => {
     if (!taskId || !token) return;
     try {
-      await axios.delete(`/api/analysis/status/${taskId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/api/analysis/status/${taskId}`);
       console.log(`[ANALYSIS] Revoke request sent — task_id=${taskId}`);
       setError(t("analysis_cancelled"));
       setPhase("setup");
@@ -287,9 +344,7 @@ function AnalysisPageContent() {
   const handleNotify = async () => {
     if (!taskId || !token) return;
     try {
-      await axios.post(`/api/analysis/notify/${taskId}`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post(`/api/analysis/notify/${taskId}`, {});
       setNotified(true);
     } catch (err) {
       console.error("[ANALYSIS] Notify failed:", err);
@@ -501,7 +556,7 @@ function AnalysisPageContent() {
               {t("back")}
             </button>
             <button
-              onClick={startAnalysis}
+              onClick={() => startAnalysis(false)}
               disabled={!isValid}
               className={styles.startBtn}
             >
@@ -568,12 +623,59 @@ function AnalysisPageContent() {
           
           <div className={styles.granularMessage}>
             <Loader2 size={16} className={styles.spinIcon} />
-            <span>{processMessage}</span>
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={spamIndex}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.5 }}
+                className={styles.spamText}
+              >
+                {spamMessages[spamIndex]}
+              </motion.span>
+            </AnimatePresence>
+          </div>
+          
+          <div className={styles.backendMessage}>
+             {processMessage}
           </div>
 
           <p className={styles.processingSub}>
-            {t("task_id_label")}: <code>{taskId}</code>
+            {t("task_id_label")}: <code>{taskId}</code> | Time: {processingTime}s
           </p>
+
+          {/* Timeout Overlay Dialog */}
+          <AnimatePresence>
+            {showTimeoutOverlay && !notified && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className={styles.timeoutOverlay}
+              >
+                <div className={styles.timeoutIcon}>
+                   <AlertCircle size={32} />
+                </div>
+                <h3 className={styles.timeoutTitle}>
+                  {language === 'vi' ? "Hệ thống đang quá tải?" : "System is Busy?"}
+                </h3>
+                <p className={styles.timeoutText}>
+                  {language === 'vi' 
+                    ? "Quá trình phân tích đang mất nhiều thời gian hơn dự kiến do độ phức tạp của dữ liệu. Bạn có thể quay lại sau, kết quả sẽ được xử lý ngầm và gửi thông báo cho bạn."
+                    : "The analysis is taking longer than expected due to data complexity. You can return later; the results will be processed in the background, and we'll notify you."}
+                </p>
+                <div className={styles.timeoutActions}>
+                   <button onClick={handleNotify} className={styles.timeoutNotifyBtn}>
+                     <Zap size={16} />
+                     {language === 'vi' ? "Đồng ý nhận Email & Quay lại" : "Notify via Email & Go Back"}
+                   </button>
+                   <button onClick={() => setShowTimeoutOverlay(false)} className={styles.timeoutContinueBtn}>
+                     {language === 'vi' ? "Tiếp tục chờ" : "Continue Waiting"}
+                   </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className={styles.asyncActions}>
             <button 

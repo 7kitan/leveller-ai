@@ -143,6 +143,7 @@ class GapAnalysisStateV3(TypedDict):
 
     # Stage 4: Course Recommendation
     course_recommendations: Optional[List[CourseRecommendation]]
+    youtube_videos: Optional[List[Dict]] # Thêm hỗ trợ YouTube videos
 
     # Stage 5: Roadmap
     career_roadmap: Optional[CareerRoadmap]

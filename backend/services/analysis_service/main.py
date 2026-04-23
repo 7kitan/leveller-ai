@@ -17,6 +17,7 @@ from typing import Optional, List
 import uuid
 import json
 import logging
+from datetime import datetime, timezone
 from worker.celery_app import celery_app
 from celery.result import AsyncResult
 
@@ -54,6 +55,18 @@ class SimulateBoostRequest(BaseModel):
     cv_id: uuid.UUID
     selected_course_ids: List[uuid.UUID]
     job_id: Optional[uuid.UUID] = None
+
+
+class InterviewPrepRequest(BaseModel):
+    cv_id: uuid.UUID
+    job_id: Optional[uuid.UUID] = None
+    jd_text: Optional[str] = None
+
+
+class OptimizeCVRequest(BaseModel):
+    cv_id: uuid.UUID
+    job_id: Optional[uuid.UUID] = None
+    jd_text: Optional[str] = None
 
 
 # ─── 1.9 + 4.2: Gap Analysis Endpoints ─────────────────────────────────
@@ -206,6 +219,22 @@ async def get_latest_analysis(request: Request, db: Session = Depends(get_db)):
     if isinstance(result, dict):
         result["cv_id"] = str(analysis.cv_id)
         result["job_id"] = str(analysis.job_id) if analysis.job_id else None
+        
+        # Heuristic fallback for growth metrics if missing
+        course_recs = result.get("course_recommendations") or []
+        matched_jobs_count = len(course_recs)
+        market_fit_pct = int(float(result.get("overall_match_pct") or 0))
+        
+        if result.get("potential_match_pct") is None or result.get("potential_match_pct") == 0:
+            if matched_jobs_count > 0:
+                result["potential_match_pct"] = min(98, market_fit_pct + (matched_jobs_count * 5))
+        
+        if result.get("salary_growth_pct") is None or result.get("salary_growth_pct") == 0:
+            if matched_jobs_count > 0:
+                result["salary_growth_pct"] = matched_jobs_count * 8
+                
+        if not result.get("market_sentiment") and matched_jobs_count > 0:
+             result["market_sentiment"] = "Tăng trưởng cao" if matched_jobs_count > 3 else "Ổn định"
 
     return result
 
@@ -321,48 +350,106 @@ async def get_recommendations(request: Request, db: Session = Depends(get_db)):
 async def get_market_fit(request: Request, db: Session = Depends(get_db)):
     """
     Dashboard API: Trả về tóm tắt sự tương thích của user với thị trường.
+    Tối ưu hóa: Chỉ cập nhật 1 lần mỗi ngày khi user truy cập, 
+    hoặc khi được trigger từ background worker sau khi phân tích gap.
     """
-    user_id = request.headers.get("X-User-ID")
-    if not user_id:
+    user_id_str = request.headers.get("X-User-ID")
+    if not user_id_str:
         raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    user_id = uuid.UUID(user_id_str)
+    from shared.models import User
+    from services.analysis_service.market_fit_service import update_user_market_fit
 
-    # 1. Tổng số jobs đang active
-    total_jobs = db.query(Job).filter(Job.status == "active").count()
+    # 1. Lấy thông tin User và kiểm tra cache
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-    # 2. Lấy analysis mới nhất cho user này
-    latest = (
-        db.query(UserAnalysis)
-        .filter(UserAnalysis.user_id == uuid.UUID(user_id))
-        .order_by(UserAnalysis.created_at.desc())
-        .first()
-    )
+    now = datetime.now(timezone.utc)
+    is_stale = True
+    
+    if user.market_fit_last_updated:
+        # Kiểm tra xem đã qua ngày mới chưa
+        last_update = user.market_fit_last_updated
+        if last_update.date() == now.date():
+            is_stale = False
 
-    if not latest or not latest.result_json:
-        return {"matched_jobs": 0, "market_fit_pct": 0, "total_jobs": total_jobs}
+    # 2. Nếu cache còn hạn, trả về dữ liệu cũ ngay lập tức
+    if not is_stale and user.market_fit_data:
+        cached_data = user.market_fit_data
+        # Migration check: Ensure new growth metrics are present
+        has_new_fields = (
+            "courses" in cached_data and 
+            "top_trending_skills" in cached_data and
+            "potential_match_pct" in cached_data
+        )
+        
+        if has_new_fields:
+            logger.info(f"[MARKET FIT] Returning cached data for user {user_id}")
+            return cached_data
+        else:
+            logger.info(f"[MARKET FIT] Cache missing new fields for user {user_id}. Forcing recompute...")
+            is_stale = True
 
-    # 3. Trích xuất matched_jobs và market_fit_pct
-    # Hệ thống mới: dùng course_recommendations từ gap analysis v3
-    # (job_recommendations không còn được tạo trong pipeline v3)
-    course_recommendations = latest.result_json.get("course_recommendations") or []
-    matched_jobs = len(course_recommendations)
+    # 3. Nếu cache hết hạn, thực hiện tính toán mới thông qua service
+    return await update_user_market_fit(user_id, db)
 
-    # market_fit_pct: lấy từ overall_match_pct hoặc tính từ rank_score
-    market_fit_pct = int(float(latest.result_json.get("overall_match_pct") or 0))
 
-    # Fallback: nếu không có overall_match_pct, tính từ course rank_scores
-    if market_fit_pct == 0 and course_recommendations:
-        fit_scores = [
-            int(float(c.get("rank_score") or 0) * 100)
-            for c in course_recommendations
-            if c.get("rank_score")
-        ]
-        market_fit_pct = max(fit_scores) if fit_scores else 0
+@app.get("/analysis/market-trends")
+async def get_market_trends(
+    limit: int = 10, 
+    category: Optional[str] = None, 
+    db: Session = Depends(get_db)
+):
+    """Lấy danh sách các kỹ năng đang trending trên thị trường."""
+    from shared.models import MarketSkillStats
+    query = db.query(MarketSkillStats)
+    if category:
+        query = query.filter(MarketSkillStats.category == category)
+        
+    trends = query.order_by(MarketSkillStats.growth_rate_30d.desc()).limit(limit).all()
+    
+    return [
+        {
+            "skill": t.skill_name,
+            "category": t.category,
+            "avg_salary": (t.avg_salary_min + t.avg_salary_max) / 2 if t.avg_salary_min else 0,
+            "growth": round(t.growth_rate_30d * 100, 1),
+            "demand_score": t.demand_score,
+            "job_count": t.job_count_30d
+        }
+        for t in trends
+    ]
+
+
+@app.get("/analysis/skill-value")
+async def get_skills_valuation(
+    skills: List[str] = Query(...), 
+    db: Session = Depends(get_db)
+):
+    """Ước tính giá trị (mức lương tăng thêm) cho một danh sách kỹ năng."""
+    from shared.models import MarketSkillStats
+    stats = db.query(MarketSkillStats).filter(MarketSkillStats.skill_name.in_(skills)).all()
+    
+    valuation = []
+    total_premium = 0.0
+    
+    for s in stats:
+        premium_vnd = (s.avg_salary_min * s.salary_premium_pct) if s.avg_salary_min and s.salary_premium_pct else 0
+        valuation.append({
+            "skill": s.skill_name,
+            "premium_pct": round(s.salary_premium_pct * 100, 1) if s.salary_premium_pct else 0,
+            "premium_vnd": int(premium_vnd),
+            "avg_salary_min": s.avg_salary_min,
+            "demand_score": s.demand_score
+        })
+        total_premium += premium_vnd
 
     return {
-        "matched_jobs": matched_jobs,
-        "market_fit_pct": market_fit_pct,
-        "total_jobs": total_jobs,
-        "courses": course_recommendations,  # Forward full course data to frontend
+        "skills": valuation,
+        "total_estimated_premium_vnd": int(total_premium),
+        "note": "Ước tính dựa trên dữ liệu tuyển dụng 30 ngày gần nhất."
     }
 
 
@@ -855,3 +942,113 @@ async def admin_delete_entity(entity_id: str, request: Request):
     check_admin(request)
     taxonomy_service.delete_skill(entity_id)
     return {"message": "Entity deleted"}
+
+
+# ─── New Advanced Features: Mock Interview & CV Optimizer ───────────────
+
+
+@app.post("/analysis/interview-prep")
+async def get_interview_prep(req: InterviewPrepRequest, request: Request, db: Session = Depends(get_db)):
+    """
+    Tạo bộ câu hỏi phỏng vấn thử dựa trên CV và JD.
+    """
+    user_id = request.headers.get("X-User-ID")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    # Verify CV
+    cv = db.query(UserCV).filter(UserCV.id == req.cv_id, UserCV.user_id == uuid.UUID(user_id)).first()
+    if not cv:
+        raise HTTPException(status_code=404, detail="CV not found")
+
+    # Fetch JD
+    jd_content = req.jd_text
+    if req.job_id:
+        job = db.query(Job).filter(Job.id == req.job_id).first()
+        if job:
+            jd_content = job.raw_text
+
+    from shared.ai_service import generate_completion
+    
+    prompt = f"""
+    Bạn là một chuyên gia tuyển dụng Senior. Dựa trên CV của ứng viên và mô tả công việc (JD) dưới đây, hãy tạo ra 5 câu hỏi phỏng vấn quan trọng nhất tập trung vào các "khoảng cách kỹ năng" (gaps) và các kinh nghiệm then chốt.
+    
+    CV ỨNG VIÊN:
+    {cv.raw_text[:2000]}
+    
+    MÔ TẢ CÔNG VIỆC:
+    {jd_content[:2000] if jd_content else "Thông tin chung cho vị trí này"}
+    
+    YÊU CẦU:
+    Trả về định dạng JSON với danh sách các câu hỏi. Mỗi câu hỏi gồm:
+    - question: Nội dung câu hỏi.
+    - category: Loại câu hỏi (Technical, Behavioral, Situation).
+    - intent: Mục đích của người phỏng vấn khi hỏi câu này.
+    - star_hint: Gợi ý cách trả lời theo phương pháp STAR (Situation, Task, Action, Result).
+    - ideal_answer_keywords: Các từ khóa nên có trong câu trả lời.
+    """
+
+    response = generate_completion(
+        prompt=prompt,
+        system_prompt="Bạn là một AI Interview Coach chuyên nghiệp. Chỉ trả về JSON.",
+        json_mode=True,
+        model_key="career_advisor_model"
+    )
+
+    try:
+        data = json.loads(response)
+        return data
+    except:
+        return {"error": "Failed to parse AI response", "raw": response}
+
+
+@app.post("/analysis/optimize-cv")
+async def optimize_cv_suggestions(req: OptimizeCVRequest, request: Request, db: Session = Depends(get_db)):
+    """
+    Gợi ý tối ưu hóa CV để tăng điểm khớp với JD.
+    """
+    user_id = request.headers.get("X-User-ID")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    cv = db.query(UserCV).filter(UserCV.id == req.cv_id, UserCV.user_id == uuid.UUID(user_id)).first()
+    if not cv:
+        raise HTTPException(status_code=404, detail="CV not found")
+
+    jd_content = req.jd_text
+    if req.job_id:
+        job = db.query(Job).filter(Job.id == req.job_id).first()
+        if job:
+            jd_content = job.raw_text
+
+    from shared.ai_service import generate_completion
+    
+    prompt = f"""
+    Dựa trên CV và JD dưới đây, hãy đưa ra các đề xuất cụ thể để tối ưu hóa CV nhằm đạt điểm tương thích cao nhất.
+    
+    CV HIỆN TẠI:
+    {cv.raw_text[:2000]}
+    
+    MÔ TẢ CÔNG VIỆC MỤC TIÊU:
+    {jd_content[:2000] if jd_content else "Thông tin chung cho vị trí này"}
+    
+    YÊU CẦU:
+    Trả về định dạng JSON gồm:
+    - overall_strategy: Chiến lược tổng thể để sửa CV.
+    - keyword_suggestions: Các từ khóa/kỹ năng quan trọng nên bổ sung vào CV.
+    - content_improvements: Danh sách các đề xuất sửa đổi cụ thể cho từng phần (Summary, Experience, Skills). Mỗi mục gồm 'section', 'original_text' (nếu có), và 'suggested_improvement'.
+    - match_score_projection: Dự báo điểm khớp sau khi sửa (+% tăng thêm).
+    """
+
+    response = generate_completion(
+        prompt=prompt,
+        system_prompt="Bạn là một chuyên gia viết CV chuyên nghiệp. Chỉ trả về JSON.",
+        json_mode=True,
+        model_key="career_advisor_model"
+    )
+
+    try:
+        data = json.loads(response)
+        return data
+    except:
+        return {"error": "Failed to parse AI response", "raw": response}

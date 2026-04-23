@@ -12,17 +12,27 @@ from shared.config_utils import config_manager
 AUTH_SVC_URL = os.getenv("AUTH_SVC_URL", "http://auth-service:8000")
 
 async def auth_middleware(request: Request, call_next):
-    # Public endpoints
+    # Public endpoints & preflight requests
     public_paths = ["/health", "/auth/login", "/auth/register", "/user/login", "/user/register", "/jd/list"]
     
-    is_public = request.url.path == "/" or any(request.url.path.startswith(path) for path in public_paths)
+    path = request.url.path
+    if path.startswith("/api"):
+        path = path[4:]
+        if not path:
+            path = "/"
+
+    is_public = path == "/" or any(path.startswith(p) for p in public_paths)
+    
+    # Preflight requests should always pass
+    if request.method == "OPTIONS":
+        return await call_next(request)
     
     # 1. Maintenance Mode Check (High Priority)
     maintenance_mode = config_manager.get_setting("maintenance_mode", False)
     
     # Critical paths that should always be accessible to allow admins to login and fix things
     critical_paths = ["/health", "/auth/login", "/user/login", "/admin/settings"]
-    is_critical = any(request.url.path.startswith(path) for path in critical_paths)
+    is_critical = any(path.startswith(p) for p in critical_paths)
 
     if maintenance_mode and not is_critical:
         # If public but not critical, or restricted, we must check if user is admin

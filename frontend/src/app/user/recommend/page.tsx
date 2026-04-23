@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
@@ -23,7 +23,10 @@ import {
   Sparkles,
   ExternalLink,
   Save,
+  Video,
+  Play,
 } from "lucide-react";
+import CourseCard from "@/components/user/CourseCard";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -77,7 +80,11 @@ interface GapResult {
   transferable_insights: string[];
   jd_context?: string;
   top_gaps?: SkillGap[];
+  potential_match_pct?: number;
+  salary_growth_pct?: number;
+  market_sentiment?: string;
   course_recommendations: CourseRec[];
+  youtube_videos?: any[];
   career_roadmap?: {
     stages: { 
       stage: number; 
@@ -124,7 +131,7 @@ const UserRecommendPage = () => {
   const [gapResult, setGapResult] = useState<GapResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<"gaps" | "courses" | "roadmap">("gaps");
+  const [activeTab, setActiveTab] = useState<"gaps" | "courses" | "roadmap" | "videos">("gaps");
 
   /* ── Load gap result ─────────────────────────────────────────────────── */
   useEffect(() => {
@@ -181,6 +188,9 @@ const UserRecommendPage = () => {
       })
       .finally(() => setLoading(false));
   };
+
+  const youtube_videos = gapResult?.youtube_videos || [];
+
 
   /* ── Loading state ────────────────────────────────────────────────────── */
   if (loading) {
@@ -247,6 +257,7 @@ const UserRecommendPage = () => {
   const tabs = [
     { key: "gaps", label: t("skill_gaps"), icon: Layers, count: skill_gaps.length },
     { key: "courses", label: t("suggested_courses"), icon: BookOpen, count: course_recommendations.length },
+    { key: "videos", label: "Free Tutorials", icon: Video, count: youtube_videos.length },
     { key: "roadmap", label: t("career_roadmap"), icon: Target, count: career_roadmap?.stages?.length ?? 0 },
   ] as const;
 
@@ -380,6 +391,39 @@ const UserRecommendPage = () => {
                 <span className={styles.matchStatLabel}>{t("total_duration")}</span>
               </div>
             </div>
+
+            {/* Growth Forecast */}
+            {(gapResult.potential_match_pct || gapResult.salary_growth_pct) && (
+              <div className={styles.growthForecast}>
+                <div className={styles.growthItem}>
+                  <div className={styles.growthLabel}>
+                    <Target size={14} className="text-accent" />
+                    {t("dash_potential_match")}
+                  </div>
+                  <div className={styles.growthValue}>
+                    {gapResult.potential_match_pct}%
+                    <span className={styles.growthDiff}>
+                      +{ (gapResult.potential_match_pct || 0) - (overall_match_pct || 0) }%
+                    </span>
+                  </div>
+                </div>
+                <div className={styles.growthItem}>
+                  <div className={styles.growthLabel}>
+                    <TrendingUp size={14} className="text-success" />
+                    {t("dash_salary_boost")}
+                  </div>
+                  <div className={styles.growthValue}>
+                    +{gapResult.salary_growth_pct}%
+                  </div>
+                </div>
+                {gapResult.market_sentiment && (
+                  <div className={styles.marketInsight}>
+                    <Sparkles size={14} className="text-warning" />
+                    <span>{t("dash_market_sentiment")}: <strong>{gapResult.market_sentiment}</strong></span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -525,72 +569,71 @@ const UserRecommendPage = () => {
                 <p>{t("no_cv_msg")}</p>
               </div>
             ) : (
-              course_recommendations.map((course, idx) => (
+              course_recommendations.map((course: any, idx: number) => (
+                <CourseCard 
+                  key={course.course_id || idx} 
+                  course={{
+                    id: course.course_id,
+                    title: course.title,
+                    platform: course.platform || course.provider,
+                    level: course.level,
+                    match: `${Math.round((course.similarity || 0) * 100)}%`,
+                    skills: course.tags || [],
+                    url: course.url,
+                    is_certification: course.is_certification,
+                    selection_reason: course.selection_reason
+                  }} 
+                  index={idx} 
+                />
+              ))
+            )}
+          </div>
+        )}
+
+        {/* ── Tab: YouTube Videos ────────────────────────────────────────── */}
+        {activeTab === "videos" && (
+          <div className={styles.videoSection}>
+            <div className={styles.videoGrid}>
+              {youtube_videos.length === 0 ? (
+                <div className={styles.emptySection}>
+                  <Video size={40} className={styles.emptyIcon} />
+                  <p>No free tutorials found yet.</p>
+                </div>
+              ) : (
+                youtube_videos.map((vid: any, idx: number) => (
                 <motion.div
-                  key={course.course_id || idx}
+                  key={vid.video_id || idx}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className={styles.courseCard}
+                  className={styles.videoCard}
                 >
-                  <div className={styles.courseCardTop}>
-                    <div className={styles.courseTitle}>{course.title}</div>
-                    {course.is_certification && (
-                      <span className={styles.certBadge}>
-                        <Award size={12} />
-                        {t("cert_label")}
-                      </span>
-                    )}
+                  <div className={styles.videoPlayer}>
+                    <iframe
+                      src={vid.embed_url}
+                      title={vid.title}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
                   </div>
-
-                  <div className={styles.courseMeta}>
-                    <span style={{ color: levelColor(course.level) }}>
-                      {course.level}
-                    </span>
-                    <span>·</span>
-                    <span>{course.platform || course.provider || "Unknown"}</span>
-                    <span>·</span>
-                    <span>{(course.duration_hours || 0).toFixed(1)}h</span>
-                    <span>·</span>
-                    <span>{course.cost_usd === 0 ? t("free") : `$${course.cost_usd}`}</span>
-                  </div>
-
-                  {course.gap_skill && (
-                    <div className={styles.courseGapTag}>
-                      <Zap size={12} />
-                      {t("nav_skills")}: {course.gap_skill} ({course.gap_severity})
+                  <div className={styles.videoInfo}>
+                    <div className={styles.videoTitle}>{vid.title}</div>
+                    <div className={styles.videoMeta}>
+                      <span>{vid.channel_name}</span>
+                      {vid.gap_skill && (
+                        <span className={styles.videoGapTag}>
+                          <Play size={10} /> {vid.gap_skill}
+                        </span>
+                      )}
                     </div>
-                  )}
-
-                  {course.selection_reason && (
-                    <p className={styles.courseReason}>
-                      &ldquo;{course.selection_reason}&rdquo;
-                    </p>
-                  )}
-
-                  <div className={styles.courseFooterActions}>
-                    {course.url && (
-                      <a
-                        href={course.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.courseLink}
-                      >
-                        <ExternalLink size={14} />
-                        {t("view_course")}
-                      </a>
-                    )}
-                    {course.similarity && (
-                      <span className={styles.similarityScore}>
-                         {t("confidence")}: {Math.round(course.similarity * 100)}%
-                      </span>
-                    )}
                   </div>
                 </motion.div>
               ))
             )}
           </div>
-        )}
+        </div>
+      )}
 
         {/* ── Tab: Roadmap ────────────────────────────────────────────────── */}
         {activeTab === "roadmap" && (

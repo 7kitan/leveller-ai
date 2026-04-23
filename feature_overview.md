@@ -1,184 +1,73 @@
-# 🚀 Danh sách chức năng – Hệ thống AI hướng nghiệp
+# 🚀 Danh sách chức năng – Hệ thống AI hướng nghiệp (Lumix AI)
 
 ## 🎯 Mục tiêu
-
-> Giúp người dùng biết chính xác cần học gì để sẵn sàng đi làm nhanh nhất.
+> Giúp người dùng biết chính xác cần học gì để sẵn sàng đi làm nhanh nhất và tối ưu hóa giá trị bản thân trên thị trường lao động.
 
 ---
 
 ## 🧠 1. Chức năng chính
 
-### 1.1 Tải lên CV
+### 1.1 Quản lý CV & Hồ sơ kỹ năng
+- **Tải lên đa định dạng**: Hỗ trợ PDF, DOCX và hình ảnh (scan/ảnh chụp).
+- **Xử lý CV từ ảnh (Chandra OCR 2) ⭐**: Sử dụng engine OCR chuyên dụng để trích xuất văn bản có cấu trúc từ ảnh.
+- **Bóc tách AI (Holistic Parsing)**: Tự động trích xuất Kỹ năng, Kinh nghiệm, Học vấn và Chứng chỉ.
+- **Xác thực hồ sơ**: Người dùng có thể kiểm tra và chỉnh sửa lại thông tin AI đã bóc tách trước khi lưu.
 
-- Người dùng tải CV (PDF hoặc ảnh)
-- Hệ thống tự động nhận diện loại CV
+### 1.2 Phân tích thị trường (Job Description)
+- **Thu thập JD thông minh**: Xử lý yêu cầu từ tin tuyển dụng hoặc văn bản dán vào.
+- **Bóc tách yêu cầu (Extraction)**: Xác định kỹ năng bắt buộc, kỹ năng ưu tiên và số năm kinh nghiệm tối thiểu.
+- **Tìm kiếm nâng cao ⭐**: Lọc công việc theo địa điểm, mức lương, loại hình làm việc và độ khớp kỹ năng.
 
----
-
-### 1.2 Xử lý CV từ ảnh (Chandra OCR 2) ⭐
-
-- Tự động đọc nội dung từ CV dạng ảnh hoặc scan bằng engine **Chandra OCR 2** chuyên dụng.
-- Trích xuất văn bản có cấu trúc (Markdown) để tiếp tục phân tích.
-- Đánh dấu CV được xử lý từ ảnh.
-
-👉 Người dùng có thể kiểm tra lại nếu có sai sót
-
----
-
-### 1.3 Phân tích CV bằng AI
-
-- Trích xuất:
-  - Kỹ năng
-  - Kinh nghiệm
-  - Học vấn
+### 1.3 Phân tích khoảng cách & Lộ trình (Gap Analysis v3)
+- **So khớp kỹ năng thông minh**: So sánh toàn diện CV với JD dựa trên ngữ cảnh (không chỉ là từ khóa).
+- **Đánh giá mức độ chênh lệch (Skill Gap)**: Xác định kỹ năng đã có, kỹ năng thiếu và mức độ nghiêm trọng (Severity).
+- **Mô phỏng lộ trình (Career Roadmap) ⭐**: Tạo lộ trình học tập theo thời gian với các giai đoạn và cột mốc cụ thể.
+- **Gợi ý khóa học**: Đề xuất khóa học từ Coursera/Udemy dựa trên độ khớp vector và mức độ ưu tiên của kỹ năng thiếu.
 
 ---
 
-### 1.4 Chuẩn hóa kỹ năng
+## 📊 2. Phân tích thị trường chuyên sâu (Premium) ⭐
 
-- Chuẩn hóa tên kỹ năng về dạng thống nhất
-- Gộp các kỹ năng tương tự
+### 2.1 Ước tính giá trị kỹ năng (Skill Valuation)
+- Dự báo mức lương tăng thêm dự kiến cho mỗi kỹ năng trong lộ trình học.
+- Giúp người dùng ưu tiên học những kỹ năng có lợi nhuận đầu tư (ROI) cao nhất.
 
----
+### 2.2 Chỉ số khớp thị trường (Market Fit Index)
+- Thống kê số lượng công việc thực tế khớp với bộ kỹ năng hiện tại của người dùng.
+- Định vị vị thế cá nhân trong thị trường (ví dụ: "Bạn đang thuộc Top 10% ứng viên phù hợp nhất").
 
-### 1.5 Suy luận kỹ năng (Skill Graph) ⭐
-
-- Suy ra các kỹ năng liên quan từ kỹ năng hiện có
-- Gợi ý lộ trình học tự nhiên
-
----
-
-### 1.6 Phân tích Job Description (JD)
-
-- Thu thập và xử lý yêu cầu từ tin tuyển dụng
-- Xác định kỹ năng cần thiết
+### 2.3 Radar xu hướng 30 ngày (Trend Radar)
+- Cập nhật hàng ngày các kỹ năng đang tăng trưởng nóng về nhu cầu tuyển dụng.
+- Phân tích xu hướng lương theo từng nhóm kỹ năng và vị trí.
 
 ---
 
-### 1.7 So khớp kỹ năng thông minh
+## 🔁 3. Hệ thống học máy & Phản hồi
 
-- So sánh kỹ năng người dùng với yêu cầu công việc
-- Nhận diện các kỹ năng tương tự
+### 3.1 Vòng lặp phản hồi (Feedback Loop) ⭐
+- Người dùng đánh giá độ chính xác của phân tích Gap.
+- Báo cáo kỹ năng bị bỏ sót để AI tự học và điều chỉnh kết quả lần sau.
 
----
-
-### 1.8 Tìm kiếm nâng cao ⭐
-
-- Lọc theo:
-  - Địa điểm
-  - Mức lương
-  - Loại công việc
+### 3.2 Tối ưu hóa cá nhân hóa
+- Hệ thống tự điều chỉnh trọng số gợi ý dựa trên lịch sử tương tác và phản hồi của người dùng.
 
 ---
 
-### 1.9 Phân tích khoảng cách kỹ năng (Skill Gap)
+## 🔐 4. Bảo mật & Trải nghiệm người dùng
 
-- Xác định:
-  - Kỹ năng đã có
-  - Kỹ năng còn thiếu
-- Đánh giá mức độ chênh lệch
+### 4.1 Bảo mật dữ liệu ⭐
+- **Ẩn danh thông tin (PII Masking)**: Tự động che số điện thoại, email, địa chỉ trước khi gửi dữ liệu đến LLM.
+- **Quyền riêng tư**: Mã hóa dữ liệu người dùng và file CV.
 
----
-
-### 1.10 Gợi ý khóa học / chứng chỉ
-
-- Đề xuất nội dung học phù hợp
-- Sắp xếp theo:
-  - Mức độ phù hợp
-  - Độ khó
-  - Thời gian học
-
----
-
-### 1.11 Mô phỏng lộ trình nghề nghiệp ⭐
-
-- Tạo roadmap theo thời gian
-- Gợi ý từng bước học và hành động
-
----
-
-## 🔁 2. Học từ người dùng
-
-### 2.1 Thu thập phản hồi ⭐
-
-- Người dùng đánh giá độ chính xác
-- Báo thiếu kỹ năng
-
----
-
-### 2.2 Cải thiện hệ thống
-
-- Điều chỉnh kết quả dựa trên phản hồi
-- Nâng cao độ chính xác theo thời gian
-
----
-
-## 🔐 3. Bảo mật & minh bạch
-
-### 3.1 Bảo vệ thông tin cá nhân ⭐
-
-- Che thông tin nhạy cảm:
-  - Số điện thoại
-  - Email
-  - Địa chỉ
-
----
-
-### 3.2 Minh bạch kết quả ⭐
-
-- Hiển thị cảnh báo nếu CV xử lý từ ảnh
-- Cho phép người dùng kiểm tra lại
-
----
-
-## ⚙️ 4. Trải nghiệm hệ thống
-
-### 4.1 Xử lý nền
-
-- Tự động xử lý CV và phân tích
-- Không cần chờ trực tiếp
-
----
-
-### 4.2 Quản lý tài khoản
-
-- Đăng ký / đăng nhập
-- Lưu lịch sử phân tích
-
----
-
-## 📊 5. Phân tích thị trường
-
-### 5.1 Xu hướng kỹ năng ⭐
-
-- Xác định kỹ năng đang phổ biến
-- Gợi ý kỹ năng nên học
-
----
-
-### 5.2 Thông tin nghề nghiệp
-
-- Vai trò phổ biến
-- Mức lương tham khảo
-
----
-
-## 🎯 6. Điểm khác biệt (WOW)
-
-- Phân tích kỹ năng thông minh (không chỉ từ khóa)
-- Gợi ý lộ trình học rõ ràng
-- Tự cải thiện theo phản hồi người dùng
-- Xử lý CV ảnh và minh bạch kết quả
-- Cá nhân hóa theo từng người dùng
+### 4.2 Trải nghiệm Premium
+- **Xử lý nền (Async Processing)**: Sử dụng Celery để xử lý các tác vụ AI nặng mà không gây treo trình duyệt.
+- **Thông báo trạng thái**: Cập nhật tiến trình xử lý chi tiết theo thời gian thực.
+- **Giao diện hiện đại**: Hỗ trợ Dark/Light mode, hiệu ứng mượt mà và responsive trên mọi thiết bị.
 
 ---
 
 ## 🏁 Tổng kết
-
-Hệ thống giúp:
-
-- Hiểu bản thân đang ở đâu
-- Biết cần học gì
-- Có lộ trình rõ ràng
-- Tiến nhanh tới mục tiêu nghề nghiệp
-
+Hệ thống không chỉ là một công cụ phân tích mà còn là một **Trợ lý Sự nghiệp AI** giúp người dùng:
+1. Hiểu rõ giá trị hiện tại của bản thân.
+2. Biết chính xác những gì thị trường đang cần và trả lương cao.
+3. Có lộ trình học tập tối ưu để đạt được mục tiêu thu nhập mong muốn.

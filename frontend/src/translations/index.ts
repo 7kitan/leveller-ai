@@ -15,6 +15,9 @@ export const translations = {
     copy_to_clipboard: "Sao chép vào Clipboard",
     syncing_dots: "Đang đồng bộ...",
     not_available: "K/D",
+    rerun_now: "Chạy lại ngay",
+    later: "Để sau",
+    selected_job: "vị trí đã chọn",
     
     // Navbar/Sidebar
     nav_dashboard: "Bảng điều khiển",
@@ -124,7 +127,6 @@ export const translations = {
     gap_skill_needed: "Kỹ năng cần bổ sung",
     suggested_course_count: "Khóa học gợi ý",
     total_duration: "Tổng thời lượng",
-    confidence: "Độ tin cậy",
     view_course: "Xem khóa học",
     free: "Miễn phí",
     roadmap_stage: "Giai đoạn",
@@ -275,11 +277,15 @@ export const translations = {
     dash_suggested_courses: "Khóa học gợi ý",
     dash_view_all: "Xem tất cả",
     dash_no_courses: "Chưa có khóa học gợi ý. Vui lòng phân tích CV.",
+    dash_market_trends: "Xu hướng thị trường",
     dash_cta_title: "Phân tích Gap. Chinh phục cơ hội.",
     dash_cta_sub: "AI sẽ so sánh hàng nghìn tham số giữa hồ sơ của bạn và yêu cầu thực tế từ thị trường để tìm ra lộ trình ngắn nhất.",
     dash_cta_btn: "BẮT ĐẦU PHÂN TÍCH GAP",
     dash_match_score: "MATCH SCORE",
     dash_learn_now: "Học ngay",
+    dash_potential_match: "ĐỘ PHÙ HỢP TIỀM NĂNG",
+    dash_salary_boost: "DỰ BÁO TĂNG TRƯỞNG LƯƠNG",
+    dash_market_sentiment: "TÍN HIỆU THỊ TRƯỜNG",
 
     // Admin Users
     admin_users_title: "Quản trị Người dùng",
@@ -465,6 +471,9 @@ export const translations = {
     copy_to_clipboard: "Copy to Clipboard",
     syncing_dots: "Synchronizing...",
     not_available: "N/A",
+    rerun_now: "Rerun now",
+    later: "Later",
+    selected_job: "selected job",
 
     // Navbar/Sidebar
     nav_dashboard: "Dashboard",
@@ -530,7 +539,6 @@ export const translations = {
     step_courses: "Find Courses",
     step_roadmap: "Build Roadmap",
     init_message: "Initializing process...",
-    processing_hint: "You can leave this page. The system will continue analyzing and notify you once completed.",
     analysis_engine_badge: "Career Genome Engine v2",
     per_year: "/year",
     uploaded_at: "Uploaded",
@@ -723,11 +731,15 @@ export const translations = {
     dash_suggested_courses: "Suggested Courses",
     dash_view_all: "View All",
     dash_no_courses: "No suggested courses yet. Please analyze your CV.",
+    dash_market_trends: "Market Trends",
     dash_cta_title: "Gap Analysis. Conquer Opportunities.",
     dash_cta_sub: "AI compares thousands of parameters between your profile and market requirements to find the shortest path.",
     dash_cta_btn: "START GAP ANALYSIS",
     dash_match_score: "MATCH SCORE",
     dash_learn_now: "Learn Now",
+    dash_potential_match: "POTENTIAL MATCH SCORE",
+    dash_salary_boost: "SALARY GROWTH FORECAST",
+    dash_market_sentiment: "MARKET SENTIMENT",
 
     // Admin Users
     admin_users_title: "User Management",

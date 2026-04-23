@@ -85,7 +85,8 @@ async def load_cv_parsed_data_node(state: GapAnalysisStateV3) -> GapAnalysisStat
 
         if parsed:
             # Sync direct columns from UserCV (Source of truth for manual edits)
-            parsed["full_name"] = cv_record.full_name or parsed.get("full_name")
+            # Remove full_name as per user request to keep JSON clean for LLM
+            parsed.pop("full_name", None)
             parsed["summary"] = cv_record.summary or parsed.get("summary")
             if cv_record.experience_years_total is not None:
                 parsed["experience_years_total"] = cv_record.experience_years_total
@@ -256,8 +257,9 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
         # Hash requirements to detect changes in extracted data
         jd_req_hash = hashlib.md5(json.dumps(pre_jd_requirements).encode()).hexdigest()[:16]
         
-        # Path A cache key: includes job_id and content hashes
-        cache_key = f"gap_v3_path_a:{cv_id}:{job_id or 'nojob'}:{jd_req_hash}:cvh_{cv_hash}"
+        # Path A cache key: includes job_id, content hashes, and CV timestamp
+        cv_ts = state.get("cv_timestamp", 0)
+        cache_key = f"gap_v3_path_a:{cv_id}:{job_id or 'nojob'}:{jd_req_hash}:cvh_{cv_hash}:ts_{cv_ts}"
         
         force_recompute = state.get("force_recompute", False)
         cached_raw = result_cache.get(cache_key) if not force_recompute else None
@@ -275,7 +277,12 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
                 logger.warning(f"[STEP 3/Path_A] Cache parse failed: {e}")
 
         # Build gap-analysis prompt WITHOUT JD text (JD already extracted)
-        cv_json_str = json.dumps(cv_parsed, ensure_ascii=False, indent=2)
+        # Remove PII/Unnecessary fields before sending to LLM
+        cv_clean = cv_parsed.copy()
+        cv_clean.pop("full_name", None)
+        cv_clean.pop("raw_text_masked", None)
+        
+        cv_json_str = json.dumps(cv_clean, ensure_ascii=False, indent=2)
         reqs_json_str = json.dumps(pre_jd_requirements, ensure_ascii=False, indent=2)
         target_lang = "English" if state.get("lang") == "en" else "Vietnamese"
         
@@ -374,8 +381,9 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
         cv_hash = _compute_cv_hash(cv_parsed)
         jd_hash = hashlib.md5(jd_text.encode()).hexdigest()[:16]
         
-        # Path B cache key: includes job_id (if any) and content hashes
-        cache_key = f"gap_v3_combined:{cv_id}:{job_id or 'nojob'}:{jd_hash}:cvh_{cv_hash}"
+        # Path B cache key: includes job_id, content hashes, and CV timestamp
+        cv_ts = state.get("cv_timestamp", 0)
+        cache_key = f"gap_v3_combined:{cv_id}:{job_id or 'nojob'}:{jd_hash}:cvh_{cv_hash}:ts_{cv_ts}"
 
         force_recompute = state.get("force_recompute", False)
         cached_raw = result_cache.get(cache_key) if not force_recompute else None
@@ -395,7 +403,12 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
                 logger.warning(f"[STEP 3] Cache parse failed: {e}")
 
         # ── Format for LLM ────────────────────────────────────────────────
-        cv_json_str = json.dumps(cv_parsed, ensure_ascii=False, indent=2)
+        # Remove PII/Unnecessary fields before sending to LLM
+        cv_clean = cv_parsed.copy()
+        cv_clean.pop("full_name", None)
+        cv_clean.pop("raw_text_masked", None)
+        
+        cv_json_str = json.dumps(cv_clean, ensure_ascii=False, indent=2)
         target_lang = "English" if state.get("lang") == "en" else "Vietnamese"
 
         logger.info(
@@ -603,6 +616,12 @@ def _build_merged_gap_prompt(cv_text: str, jd_text: str, language: str = "Vietna
         '  },\n'
         '  "gap_analysis": {\n'
         '    "overall_match_pct": score 0-100,\n'
+        '    "potential_match_pct": score 0-100 (if recommended courses are completed),\n'
+        '    "salary_growth_pct": estimated % increase after completing roadmap,\n'
+        '    "market_sentiment": "Short trend analysis (e.g. \'High Growth\', \'Stable\', \'Competitive\') in Vietnamese",\n'
+        '    "potential_match_pct": score 0-100 (if recommended courses are completed),\n'
+        '    "salary_growth_pct": estimated % increase after completing roadmap,\n'
+        '    "market_sentiment": "Short trend analysis (e.g. \'High Growth\', \'Stable\', \'Competitive\') in Vietnamese",\n'
         '    "overall_assessment": "summary in Vietnamese",\n'
         '    "match_breakdown": { "Technical Skills": 0-100, "Experience": 0-100, "Soft Skills": 0-100, "Education": 0-100, "Domain Knowledge": 0-100 },\n'
         '    "strengths": ["..."],\n'
