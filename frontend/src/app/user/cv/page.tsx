@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
-import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import {
@@ -34,6 +34,8 @@ import { cn } from "@/lib/utils";
 import styles from "./user-cv.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+
+const POLLING_INTERVAL = 5000;
 
 interface CVHistory {
   id: string;
@@ -150,7 +152,7 @@ const UserCVPage = () => {
   const { t, language } = useLanguage();
 
   const getSeniorityLabel = (val: string) => {
-    switch(val) {
+    switch (val) {
       case "Junior": return t("cv_level_junior");
       case "Mid-level": return t("cv_level_mid");
       case "Senior": return t("cv_level_senior");
@@ -179,9 +181,7 @@ const UserCVPage = () => {
 
   const fetchHistory = async () => {
     try {
-      const resp = await axios.get("/api/cv/list", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const resp = await api.get("/api/cv/list");
       setHistory(resp.data);
     } catch (err) {
       console.error("Fetch history error:", err);
@@ -191,7 +191,7 @@ const UserCVPage = () => {
   useEffect(() => {
     if (token) {
       fetchHistory();
-      
+
       // Load context (including suggested skills) from Gap Analysis
       const storedContext = sessionStorage.getItem("analysis_context");
       const targetCvId = sessionStorage.getItem("target_cv_id");
@@ -203,7 +203,7 @@ const UserCVPage = () => {
           setSuggestedSkills(context.suggested_skills);
         }
       }
-      
+
       // Auto-load targeted CV for editing
       if (targetCvId) {
         handleLoadSpecificCV(targetCvId);
@@ -236,9 +236,9 @@ const UserCVPage = () => {
     // Clear the context to avoid showing the banner again later
     sessionStorage.removeItem("suggested_skills");
     sessionStorage.removeItem("analysis_context");
-    
+
     // Redirect back to analysis engine
-    router.push(`/user/analysis?job_id=${analysisContext.jd_id}&job_title=${encodeURIComponent(analysisContext.jd_title)}&auto_run=true`);
+    router.push(`/user/analysis?job_id=${analysisContext.jd_id}&auto_run=true`);
   };
 
   const handleUpload = async () => {
@@ -250,9 +250,8 @@ const UserCVPage = () => {
     formData.append("file", file);
 
     try {
-      const resp = await axios.post("/api/cv/upload", formData, {
+      const resp = await api.post("/api/cv/upload", formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
@@ -270,9 +269,7 @@ const UserCVPage = () => {
 
       if (uploadStatus === "completed") {
         try {
-          const detailResp = await axios.get(`/api/cv/${cv_id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const detailResp = await api.get(`/api/cv/${cv_id}`);
           setParsedData(detailResp.data);
           setStatus("viewing");
           fetchHistory();
@@ -298,9 +295,7 @@ const UserCVPage = () => {
     setStatus("processing");
     const interval = setInterval(async () => {
       try {
-        const resp = await axios.get(`/api/cv/status/${parserId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const resp = await api.get(`/api/cv/status/${parserId}`);
         const { status: taskStatus, result } = resp.data;
 
         if (taskStatus === "completed") {
@@ -308,9 +303,7 @@ const UserCVPage = () => {
           if (result) {
             setParsedData(result);
           } else {
-            const detailResp = await axios.get(`/api/cv/${cvId}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
+            const detailResp = await api.get(`/api/cv/${cvId}`);
             setParsedData(detailResp.data);
           }
           setStatus("viewing");
@@ -324,17 +317,15 @@ const UserCVPage = () => {
         clearInterval(interval);
         setStatus("idle");
       }
-    }, 3000);
+    }, POLLING_INTERVAL);
   };
-  
+
   const handleLoadSpecificCV = async (cvId: string) => {
     setStatus("processing");
     setError(null);
     setSelectedHistoryId(cvId);
     try {
-      const resp = await axios.get(`/api/cv/${cvId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const resp = await api.get(`/api/cv/${cvId}`);
       setParsedData(resp.data);
       setStatus("viewing");
     } catch (err) {
@@ -352,9 +343,7 @@ const UserCVPage = () => {
     setError(null);
     setSelectedHistoryId(item.id);
     try {
-      const resp = await axios.get(`/api/cv/${item.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const resp = await api.get(`/api/cv/${item.id}`);
       setParsedData(resp.data);
       setStatus("viewing");
     } catch (err) {
@@ -459,6 +448,17 @@ const UserCVPage = () => {
     const nextSkills = [...(parsedData.skills || [])];
     if (nextSkills[idx]) {
       nextSkills[idx] = { ...nextSkills[idx], [field]: value };
+
+      // Auto-suggest level based on experience_years
+      if (field === "experience_years") {
+        const yrs = parseFloat(value) || 0;
+        let suggestedLevel = "Junior";
+        if (yrs >= 10) suggestedLevel = "Expert";
+        else if (yrs >= 5) suggestedLevel = "Senior";
+        else if (yrs >= 2) suggestedLevel = "Mid-level";
+        nextSkills[idx].level = suggestedLevel;
+      }
+
       setParsedData({ ...parsedData, skills: nextSkills });
       setIsDirty(true);
     }
@@ -475,7 +475,7 @@ const UserCVPage = () => {
 
   const handleSaveMatrix = async () => {
     setSaving(true);
-    
+
     // Duplicate check
     const skillNames = (parsedData?.skills || []).map(s => s.name.toLowerCase().trim());
     const duplicateSkills = skillNames.filter((name, index) => skillNames.indexOf(name) !== index);
@@ -487,28 +487,36 @@ const UserCVPage = () => {
     }
 
     try {
+      // Normalize categories to English for database consistency
+      const normalizedSkills = (parsedData?.skills || []).map(skill => {
+        let cat = skill.category || "Uncategorized";
+        const lowerCat = cat.toLowerCase().trim();
+        if (lowerCat === "công nghệ") {
+          cat = "Technology";
+        }
+        return { ...skill, category: cat };
+      });
+
       // Backend Spec 5: Payload validation
       const payload = {
         id: parsedData?.id,
         full_name: parsedData?.full_name,
         summary: parsedData?.summary,
         experience_years_total: parsedData?.experience_years_total,
-        skills: parsedData?.skills,
+        skills: normalizedSkills,
         work_history: parsedData?.work_history,
         education: parsedData?.education,
         certifications: parsedData?.certifications,
         seniority: parsedData?.seniority || "Unknown"
       };
-      await axios.post("/api/cv/finalize", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.post("/api/cv/finalize", payload);
       if (parsedData) {
         setParsedData({ ...parsedData, is_verified: true });
       }
 
       const wasDirty = isDirty;
       setIsDirty(false);
-      
+
       // Update sessionStorage inside analysis_context to reflect removed skills
       if (analysisContext) {
         const updatedContext = { ...analysisContext, suggested_skills: suggestedSkills };
@@ -556,15 +564,21 @@ const UserCVPage = () => {
     // Include the original index for accurate updates
     const skillsWithIndex = (parsedData.skills || []).map((s, i) => ({ ...s, originalIndex: i }));
     const groupedSkills = skillsWithIndex.reduce((acc: any, skill) => {
-      const cat = skill.category || "Uncategorized";
+      let cat = skill.category || "Uncategorized";
+      // Normalize common categories to unify English/Vietnamese versions
+      const lowerCat = cat.toLowerCase().trim();
+      if (lowerCat === "technology") {
+        cat = t("cv_skill_default_cat");
+      }
+
       if (!acc[cat]) acc[cat] = [];
       acc[cat].push(skill);
       return acc;
     }, {});
 
     // Filter out suggestions that are already present in the CV (case-insensitive)
-    const filteredSuggestions = suggestedSkills.filter(s => 
-      !parsedData.skills?.some(existing => 
+    const filteredSuggestions = suggestedSkills.filter(s =>
+      !parsedData.skills?.some(existing =>
         existing.name.toLowerCase().trim() === s.toLowerCase().trim()
       )
     );
@@ -595,7 +609,7 @@ const UserCVPage = () => {
 
         {/* ── Smart Suggestions Banner ───────────────────────────────── */}
         {filteredSuggestions.length > 0 && parsedData.id === analysisContext?.cv_id && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             className={styles.suggestionBanner}
@@ -604,27 +618,27 @@ const UserCVPage = () => {
               <Sparkles size={20} color="#f59e0b" />
             </div>
             <div className={styles.bannerContent}>
-               <div className={styles.bannerTitle}>
-                  {t("cv_optimization_suggestion")}: <strong>{analysisContext?.jd_title || t("select_job")}</strong>
-               </div>
-               <p className={styles.bannerSubtitle}>
-                  {t("cv_optimization_sub")}
-               </p>
-               <div className={styles.suggestedTagsGrid}>
-                  {filteredSuggestions.map(skill => (
-                    <button 
-                      key={skill} 
-                      onClick={() => handleAddSuggestedSkill(skill)}
-                      className={styles.suggestedTagBtn}
-                    >
-                      <Plus size={12} />
-                      {skill}
-                    </button>
-                  ))}
-               </div>
+              <div className={styles.bannerTitle}>
+                {t("cv_optimization_suggestion")}: <strong>{analysisContext?.jd_title || t("select_job")}</strong>
+              </div>
+              <p className={styles.bannerSubtitle}>
+                {t("cv_optimization_sub")}
+              </p>
+              <div className={styles.suggestedTagsGrid}>
+                {filteredSuggestions.map(skill => (
+                  <button
+                    key={skill}
+                    onClick={() => handleAddSuggestedSkill(skill)}
+                    className={styles.suggestedTagBtn}
+                  >
+                    <Plus size={12} />
+                    {skill}
+                  </button>
+                ))}
+              </div>
             </div>
-            <button 
-              className={styles.closeBannerBtn} 
+            <button
+              className={styles.closeBannerBtn}
               onClick={() => setSuggestedSkills([])}
             >
               <X size={16} />
@@ -675,11 +689,11 @@ const UserCVPage = () => {
                   <div className={styles.userExpBadge}>
                     <Clock size={13} />
                     <input
-                        type="number"
-                        step="0.5"
-                        value={parsedData.experience_years_total ?? 0}
-                        onChange={(e) => handleUpdateBasic("experience_years_total", parseFloat(e.target.value) || 0)}
-                        className={styles.inlineEditInput}
+                      type="number"
+                      step="0.5"
+                      value={parsedData.experience_years_total ?? 0}
+                      onChange={(e) => handleUpdateBasic("experience_years_total", parseFloat(e.target.value) || 0)}
+                      className={styles.inlineEditInput}
                     />
                     {t("cv_years_exp")}
                   </div>
@@ -998,7 +1012,7 @@ const UserCVPage = () => {
                 ) : (
                   <CheckCircle2 size={20} />
                 )}
-                {t("save_changes")}
+                {t("cv_save_changes")}
               </button>
             </div>
           </div>
@@ -1030,11 +1044,11 @@ const UserCVPage = () => {
                   <button onClick={() => setShowRerunModal(false)} className={styles.modalCancelBtn}>
                     {t("later")}
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
-                        setShowRerunModal(false);
-                        handleRerunAnalysis();
-                    }} 
+                      setShowRerunModal(false);
+                      handleRerunAnalysis();
+                    }}
                     className={styles.modalConfirmBtn}
                   >
                     {t("rerun_now")}
@@ -1178,8 +1192,8 @@ const UserCVPage = () => {
                         item.status === "completed"
                           ? styles.historyIconCompleted
                           : item.status === "failed"
-                          ? styles.historyIconFailed
-                          : styles.historyIconProcessing
+                            ? styles.historyIconFailed
+                            : styles.historyIconProcessing
                       )}
                     >
                       {item.status === "completed" ? (
@@ -1198,8 +1212,8 @@ const UserCVPage = () => {
                         {item.status === "completed"
                           ? `${t("cv_analyzed")} · ${new Date(item.created_at).toLocaleString(language === 'vi' ? "vi-VN" : "en-US")}`
                           : item.status === "failed"
-                          ? `${t("cv_analysis_error")} · ${new Date(item.created_at).toLocaleString(language === 'vi' ? "vi-VN" : "en-US")}`
-                          : `${t("cv_processing")} · ${new Date(item.created_at).toLocaleString(language === 'vi' ? "vi-VN" : "en-US")}`}
+                            ? `${t("cv_analysis_error")} · ${new Date(item.created_at).toLocaleString(language === 'vi' ? "vi-VN" : "en-US")}`
+                            : `${t("cv_processing")} · ${new Date(item.created_at).toLocaleString(language === 'vi' ? "vi-VN" : "en-US")}`}
                       </p>
                       {item.status === "failed" && item.error_message && (
                         <div className={styles.historyErrorText}>

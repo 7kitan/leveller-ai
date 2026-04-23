@@ -663,6 +663,75 @@
   opacity: 0.4;
 }
 
+/* ── Growth Forecast ── */
+.growthForecast {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+
+.growthItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.growthLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-text-muted);
+}
+
+.growthValue {
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  font-style: italic;
+  letter-spacing: -0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.growthDiff {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.625rem;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-radius: 99px;
+  font-weight: 900;
+  font-style: normal;
+  letter-spacing: 0;
+}
+
+.marketInsight {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 1.25rem;
+  background: rgba(79, 70, 229, 0.05);
+  border-radius: 1.25rem;
+  border-left: 4px solid var(--color-accent-primary);
+  font-size: 0.95rem;
+  color: var(--color-text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-style: italic;
+}
+
+.marketInsight strong {
+  color: var(--color-accent-primary);
+  font-weight: 900;
+}
+
 /* ── Severity Row ────────────────────────────────────────────────────── */
 .severityRow {
   display: flex;
@@ -749,6 +818,74 @@
   color: var(--color-text-muted);
   opacity: 0.4;
   font-style: italic;
+}
+
+/* ── Video Grid ───────────────────────────────────────────────────────── */
+.videoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(28rem, 1fr));
+  gap: 2rem;
+}
+
+.videoCard {
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.videoCard:hover {
+  transform: translateY(-0.5rem);
+  border-color: #ff0000;
+  box-shadow: 0 20px 40px rgba(255, 0, 0, 0.05);
+}
+
+.videoPlayer {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-color: #000;
+}
+
+.videoPlayer iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.videoInfo {
+  padding: 1.5rem;
+}
+
+.videoTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin-bottom: 0.75rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.videoMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.videoGapTag {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  background-color: rgba(255, 0, 0, 0.1);
+  color: #ff0000;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .emptyIcon {
@@ -921,127 +1058,10 @@
   opacity: 0.5;
 }
 
-/* ── Course Grid ──────────────────────────────────────────────────────── */
 .courseGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(26rem, 1fr));
   gap: 1.5rem;
-}
-
-.courseCard {
-  background-color: var(--color-panel-bg);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-  padding: 2.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  transition: all 0.3s ease;
-}
-
-.courseCard:hover {
-  transform: translateY(-4px);
-  border-color: var(--color-accent-primary);
-  box-shadow: 0 12px 32px rgba(79, 70, 229, 0.1);
-}
-
-.courseCardTop {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.courseTitle {
-  font-size: 1rem;
-  font-weight: 900;
-  color: var(--color-text-main);
-  line-height: 1.4;
-}
-
-.certBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.75rem;
-  background-color: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 9999px;
-  font-size: 9px;
-  font-weight: 900;
-  color: #10b981;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  flex-shrink: 0;
-}
-
-.courseMeta {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-text-muted);
-  opacity: 0.5;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.courseGapTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: rgba(79, 70, 229, 0.05);
-  border: 1px solid rgba(79, 70, 229, 0.12);
-  border-radius: 1rem;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-accent-primary);
-  width: fit-content;
-}
-
-.courseReason {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  font-style: italic;
-  line-height: 1.6;
-  opacity: 0.6;
-}
-
-.courseFooterActions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: auto;
-}
-
-.courseLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 11px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--color-accent-primary);
-  text-decoration: none;
-  transition: all 0.2s;
-}
-
-.courseLink:hover {
-  opacity: 0.7;
-  transform: translateX(4px);
-}
-
-.similarityScore {
-  font-size: 10px;
-  font-weight: 900;
-  color: #10b981;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.6;
 }
 
 /* ── Roadmap ──────────────────────────────────────────────────────────── */
@@ -1229,4 +1249,128 @@
   font-size: 0.875rem;
   line-height: 1.6;
   opacity: 0.6;
+}
+
+/* ── YouTube Section & Filters ── */
+.videoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.videoFilterBar {
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem;
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1.5rem;
+  width: fit-content;
+}
+
+.filterBtn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.filterBtn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.filterBtnActive {
+  background: var(--color-accent-primary) !important;
+  color: white !important;
+  opacity: 1 !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+.videoGrid {
+  display: grid;
+  grid-template-cols: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .videoGrid {
+    grid-template-cols: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .videoGrid {
+    grid-template-cols: repeat(3, 1fr);
+  }
+}
+
+.videoCard {
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.videoCard:hover {
+  transform: translateY(-5px);
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.videoPlayer {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+
+.videoPlayer iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.videoInfo {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.videoTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.videoMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.videoGapTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  background: rgba(79, 70, 229, 0.1);
+  color: var(--color-accent-primary);
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
 }

@@ -258,7 +258,7 @@ function JobCard({ job }: { job: Job }) {
       </div>
       
       <Link
-        href={`/user/analysis?job_id=${job.id}&job_title=${encodeURIComponent(job.title_raw || "")}`}
+        href={`/user/analysis?job_id=${job.id}`}
         className={styles.actionBtn}
       >
         {t("jobs_run_analysis")} <Sparkles size={14} style={{ marginLeft: '8px' }} />

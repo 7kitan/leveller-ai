@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import styles from "./user-dashboard.module.css";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import CourseCard from "@/components/user/CourseCard";
 
 const icons = [BowArrow, AppWindow, Layers, Rocket, Network];
 
@@ -70,15 +71,21 @@ const UserDashboard = () => {
   }
 
   // Map API courses to job card format
-  const courses = (marketData?.courses || []).map((c: any, i: number) => ({
+  const rawCourses = marketData?.courses?.length > 0 
+    ? marketData.courses 
+    : (latestAnalysis?.course_recommendations || []);
+
+  const courses = rawCourses.map((c: any, i: number) => ({
     id: i + 1,
     title: c.title || t("nav_courses"),
     platform: c.platform || "E-learning",
     match: c.rank_score
       ? `${Math.round(parseFloat(c.rank_score) * 100)}%`
       : `${Math.round(parseFloat(c.similarity || 0) * 100)}%`,
-    skills: (c.tags || []).slice(0, 3),
+    skills: (c.tags || c.skills || []).slice(0, 3),
     url: c.url,
+    level: c.level,
+    is_certification: c.is_certification,
   }));
 
   const stats = [
@@ -133,42 +140,117 @@ const UserDashboard = () => {
           </div>
 
           {/* Gap Analysis Summary */}
-          <div className={cn(styles.card, styles.statsSection)} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className={cn(styles.card, styles.statsSection)}>
+            <div className={styles.sectionHeader}>
               <h3 className="text-subheading">{t("dash_gap_analysis_title")}</h3>
-              <Link href="/user/analysis" className={styles.viewAllLink}>
-                {t("dash_view_details")} <ArrowRight size={16} />
-              </Link>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <Link href="/user/analysis" className={styles.viewAllLink}>
+                  {t("dash_view_details")} <ArrowRight size={16} />
+                </Link>
+              </div>
             </div>
 
-            {topGaps.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-                {topGaps.map((gap: any) => (
-                  <div key={gap.skill} style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '1rem', border: '1px solid var(--color-border-subtle)' }}>
-                    <div className="font-label" style={{ marginBottom: '0.25rem' }}>{gap.skill}</div>
-                    <div className="font-meta">
-                      <span style={{ color: gap.severity === 'HIGH' ? 'var(--color-danger)' : 'var(--color-warning)' }}>
+            <div className={styles.gapGrid}>
+              {topGaps.length > 0 ? (
+                topGaps.map((gap: any) => (
+                  <div key={gap.skill} className={styles.gapMiniCard}>
+                    <div className={styles.gapMiniTitle}>{gap.skill}</div>
+                    <div className={styles.gapMiniMeta}>
+                      <span className={cn(styles.miniSeverity, styles[gap.severity?.toLowerCase()])}>
                         ● {gap.severity}
                       </span>
                       <span>· {gap.learning_effort} {t("learning_effort")}</span>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', opacity: 0.5 }}>
-                <Target size={40} style={{ marginBottom: '1rem' }} />
-                <p>{t("dash_no_gaps")}</p>
+                ))
+              ) : (
+                <div className={styles.emptyStateCenter}>
+                  <Target size={40} className={styles.emptyIcon} />
+                  <p>{t("dash_no_gaps")}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Growth Forecast Section */}
+            {(marketData?.potential_match_pct > 0 || marketData?.salary_growth_pct > 0) && (
+              <div className={styles.forecastSection}>
+                <div className={styles.forecastDivider} />
+                <div className={styles.forecastGrid}>
+                  <div className={styles.forecastItem}>
+                    <div className={styles.forecastLabel}>
+                      <Target size={14} className="text-accent" />
+                      {t("dash_potential_match")}
+                    </div>
+                    <div className={styles.forecastValue}>
+                      {marketData.potential_match_pct}%
+                      <span className={styles.growthBadge}>
+                        +{marketData.potential_match_pct - (marketData.market_fit_pct || 0)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.forecastItem}>
+                    <div className={styles.forecastLabel}>
+                      <TrendingUp size={14} className="text-success" />
+                      {t("dash_salary_boost")}
+                    </div>
+                    <div className={styles.forecastValue}>
+                      +{marketData.salary_growth_pct}%
+                    </div>
+                  </div>
+                </div>
+                {marketData.market_sentiment && (
+                  <div className={styles.sentimentBox}>
+                    <Sparkles size={14} className="text-warning" />
+                    <span>{t("dash_market_sentiment")}: <strong>{marketData.market_sentiment}</strong></span>
+                  </div>
+                )}
               </div>
             )}
 
-            <div className={styles.statsGrid}>
+            <div className={styles.bottomStats}>
               {stats.map((stat) => (
-                <div key={stat.label} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div className={styles.statValue}>{stat.value}</div>
-                  <div className={styles.statLabel}>{stat.label}</div>
+                <div key={stat.label} className={styles.bottomStatItem}>
+                  <div className={styles.bottomStatValue}>{stat.value}</div>
+                  <div className={styles.bottomStatLabel}>{stat.label}</div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Market Trends Section */}
+          <div className={cn(styles.card, styles.trendsCard)}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 className="text-subheading">{t("dash_market_trends")}</h3>
+              <Sparkles size={20} className="text-accent" />
+            </div>
+            <div className={styles.trendsList}>
+              {(marketData?.top_trending_skills || []).length > 0 ? (
+                (marketData.top_trending_skills).map((skill: any) => (
+                  <div key={skill.name} className={styles.trendItem}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div className={styles.trendSkillInfo}>
+                        <span className="font-label">{skill.name}</span>
+                        <span className={styles.trendSalary}>
+                          ~{(skill.growth * 2 + 20).toFixed(0)}M VND
+                        </span>
+                      </div>
+                      <span className={styles.trendGrowthBadge}>
+                        +{skill.growth}%
+                      </span>
+                    </div>
+                    <div className={styles.progressBar}>
+                      <div 
+                        className={styles.progressFill} 
+                        style={{ width: `${skill.demand}%` }} 
+                      />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: 0.5 }}>
+                  <p>{t("loading")}...</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -183,37 +265,19 @@ const UserDashboard = () => {
           </div>
 
           <div className={styles.jobGrid}>
-            {courses.length > 0 ? (
-              courses.slice(0, 6).map((course: any) => (
-                <div key={course.id} className={styles.jobCard}>
-                  <div className={styles.platformBadge}>{course.platform}</div>
-                  <h3 className={styles.jobTitle}>{course.title}</h3>
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: 'auto' }}>
-                    {course.skills.map((s: string) => (
-                      <span key={s} className={styles.skillBadge}>{s}</span>
-                    ))}
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span className="font-micro">{t("dash_match_score")}</span>
-                      <span style={{ color: 'var(--color-success)', fontWeight: 800 }} className="text-subheading">{course.match}</span>
-                    </div>
-                    {course.url && (
-                      <a href={course.url} target="_blank" rel="noopener noreferrer" className={styles.viewAllLink} style={{ color: 'inherit' }}>
-                        {t("dash_learn_now")} <ArrowRight size={14} />
-                      </a>
-                    )}
-                  </div>
-                </div>
+            {loading ? (
+              <div className={styles.jobCard} style={{ gridColumn: 'span 3', alignItems: 'center', justifyContent: 'center', opacity: 0.3 }}>
+                <p>{t("loading")}...</p>
+              </div>
+            ) : courses.length > 0 ? (
+              courses.slice(0, 6).map((course: any, idx: number) => (
+                <CourseCard key={course.id} course={course} index={idx} />
               ))
             ) : (
               <div className={styles.jobCard} style={{ gridColumn: 'span 3', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
                 <p>{t("dash_no_courses")}</p>
               </div>
-            )
-            }
+            )}
           </div>
         </div>
 

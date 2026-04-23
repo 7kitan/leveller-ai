@@ -134,6 +134,233 @@
   composes: font-stat-label;
 }
 
+/* Trends Section */
+.trendsCard {
+  grid-column: span 12;
+}
+
+@media (min-width: 1024px) {
+  .trendsCard { grid-column: span 4; }
+  .statsSection { grid-column: span 8; }
+  /* Adjust CV section to fit if needed, but currently it's span 4 + 8 = 12. 
+     If we add another card, we might need a new row or adjust spans.
+     Let's make CV span 12 on mobile, and in a row with Stats+Trends on desktop.
+  */
+}
+
+/* --- Gap Mini Cards --- */
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.gapGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+
+.gapMiniCard {
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  transition: all 0.3s ease;
+}
+
+.gapMiniCard:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+.gapMiniTitle {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-main);
+}
+
+.gapMiniMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.miniSeverity {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.miniSeverity.high { color: var(--color-danger); }
+.miniSeverity.medium { color: var(--color-warning); }
+.miniSeverity.low { color: var(--color-success); }
+
+/* --- Growth Forecast --- */
+.forecastSection {
+  margin-top: 2rem;
+  animation: fadeIn 0.8s ease backwards;
+}
+
+.forecastDivider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border-subtle), transparent);
+  margin-bottom: 1.5rem;
+}
+
+.forecastGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.forecastItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.forecastLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.forecastValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.growthBadge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+  border-radius: 99px;
+  font-weight: 700;
+}
+
+.sentimentBox {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(79, 70, 229, 0.05);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  color: var(--color-text-main);
+  border-left: 3px solid var(--color-accent-primary);
+}
+
+.sentimentBox strong {
+  color: var(--color-accent-primary);
+}
+
+/* --- Bottom Stats --- */
+.bottomStats {
+  margin-top: 2rem;
+  display: flex;
+  gap: 3rem;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 1.5rem;
+}
+
+.bottomStatItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.bottomStatValue {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-text-main);
+}
+
+.bottomStatLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.emptyStateCenter {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.5;
+  padding: 3rem 0;
+}
+
+.emptyIcon {
+  margin-bottom: 1rem;
+  color: var(--color-text-muted);
+}
+
+.trendsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.trendItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.progressBar {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .progressBar { background: rgba(255, 255, 255, 0.05); }
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary));
+  border-radius: 9999px;
+  transition: width 1s var(--ease-premium);
+}
+
+.trendSkillInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.trendSalary {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.trendGrowthBadge {
+  color: var(--color-success);
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: rgba(16, 185, 129, 0.05);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+}
+
 /* Vertical Stack */
 .verticalStack8 {
   display: flex;
@@ -162,38 +389,12 @@
   gap: 4px;
 }
 
-/* Job Matches */
+/* Course Grid */
 .jobGrid {
-  grid-column: span 12;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
   gap: 1.5rem;
 }
-
-@media (max-width: 1024px) {
-  .jobGrid { grid-template-columns: 1fr; }
-}
-
-.jobCard {
-  composes: card;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.jobTitle {
-  composes: text-card-title;
-}
-
-.skillBadge {
-  padding: 0.4rem 0.8rem;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-[data-theme="dark"] .skillBadge { background: rgba(255, 255, 255, 0.05); }
 
 /* CTA Card */
 .ctaCard {

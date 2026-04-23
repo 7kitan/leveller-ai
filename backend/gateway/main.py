@@ -32,10 +32,16 @@ SERVICES = {
 
 client = httpx.AsyncClient()
 
-@app.api_route("/{service_name}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+@app.api_route("/{service_name}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
 async def proxy(service_name: str, path: str, request: Request):
+    # Handle /api prefix if present (strip it and shift service_name/path)
+    if service_name == "api":
+        parts = path.split("/", 1)
+        service_name = parts[0]
+        path = parts[1] if len(parts) > 1 else ""
+
     if service_name not in SERVICES:
-        raise HTTPException(status_code=404, detail="Service not found")
+        raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found")
 
     # Xử lý path ánh xạ: Nếu gọi /user/login -> forward tới auth-service/auth/login
     target_prefix = "auth" if service_name == "user" else service_name

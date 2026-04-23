@@ -1032,6 +1032,13 @@
   border-color: var(--color-accent-primary);
   background-color: var(--color-panel-bg);
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  z-index: 10;
+}
+
+/* Ensure the item with an open dropdown stays above everything else */
+.skillItem:has(.customDropdownContainerActive),
+.skillItem:focus-within {
+  z-index: 100;
 }
 
 .addSkillBtn {
@@ -1468,6 +1475,10 @@
   display: inline-flex;
 }
 
+.customDropdownContainerActive {
+  z-index: 50; /* Ensure active dropdown is above sibling elements */
+}
+
 .customDropdownButton {
   display: flex;
   align-items: center;
@@ -1506,8 +1517,8 @@
   border-radius: 1.25rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.03);
   padding: 0.5rem;
-  z-index: 100;
-  overflow: hidden;
+  z-index: 999;
+  overflow: visible;
 }
 
 [data-theme="dark"] .customDropdownMenu {
