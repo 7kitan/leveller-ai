@@ -955,22 +955,6 @@ const AdminSettingsPage = () => {
                       </div>
                     </div>
 
-                    <div className={cn(styles.field, isModified("daily_analysis_limit") ? styles.fieldModified : "")}>
-                      <div className={styles.labelArea}>
-                        <label className={styles.label}>
-                          {t("admin_settings_daily_analysis_limit_label")}
-                          {isModified("daily_analysis_limit") && <span className={styles.fieldModifiedDot} />}
-                        </label>
-                        <span className={styles.desc}>{t("admin_settings_daily_analysis_limit_desc")}</span>
-                      </div>
-                      <input 
-                        type="number"
-                        className={styles.input}
-                        value={getValue("daily_analysis_limit", 10)}
-                        onChange={(e) => handleFieldChange("daily_analysis_limit", parseInt(e.target.value))}
-                      />
-                    </div>
-
                     <div className={cn(styles.field, isModified("maintenance_duration") ? styles.fieldModified : "")}>
                       <div className={styles.labelArea}>
                         <label className={styles.label}>
