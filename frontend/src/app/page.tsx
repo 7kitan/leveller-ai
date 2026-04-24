@@ -8,7 +8,13 @@ import {
   GraduationCap,
   ChevronRight,
   Menu,
-  X
+  X,
+  Upload,
+  Sparkles,
+  TrendingUp,
+  ArrowRight,
+  Star,
+  Mail
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -359,9 +365,12 @@ export default function LandingPage() {
         </AnimatePresence>
       </motion.nav>
 
-      {/* Hero Section - Dark Immersive */}
+      {/* Hero Section - Dark Immersive with Animated Gradient */}
       <div className={`${styles.sectionWrapper} ${styles.bgDark}`}>
         <section className={styles.heroSection}>
+          {/* Animated Gradient Background */}
+          <div className={styles.heroGradient} />
+          
           <motion.div 
             className={styles.heroContent}
             initial={{ opacity: 0, y: 30 }}
@@ -386,6 +395,38 @@ export default function LandingPage() {
         </section>
       </div>
 
+      {/* Statistics Section - Social Proof */}
+      <div className={`${styles.sectionWrapper} ${styles.bgLight}`}>
+        <section className={styles.statsSection}>
+          <motion.div 
+            className={styles.statsGrid}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, staggerChildren: 0.1 }}
+          >
+            {[
+              { value: "10,000+", label: "CVs Analyzed" },
+              { value: "95%", label: "Match Accuracy" },
+              { value: "500+", label: "Companies" },
+              { value: "24/7", label: "AI Support" }
+            ].map((stat, idx) => (
+              <motion.div 
+                key={idx}
+                className={styles.statItem}
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+              >
+                <h3 className={styles.statValue}>{stat.value}</h3>
+                <p className={styles.statLabel}>{stat.label}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+      </div>
+
       {/* Philosophy Section - Light Informational */}
       <div className={`${styles.sectionWrapper} ${styles.bgLight}`}>
         <section id="philosophy" className={styles.section}>
@@ -404,6 +445,70 @@ export default function LandingPage() {
               Lumix AI không chỉ là công cụ, mà là một hệ sinh thái tri thức giúp bạn xóa bỏ mọi giới hạn.
             </p>
           </motion.div>
+        </section>
+      </div>
+
+      {/* How It Works Section - Dark with Visual Flow */}
+      <div className={`${styles.sectionWrapper} ${styles.bgDark}`}>
+        <section className={styles.section}>
+          <div className={styles.centeredText}>
+            <h2 className={styles.sectionHeading}>How it works</h2>
+            <p className={styles.sectionSubheading}>
+              Three simple steps to unlock your career potential
+            </p>
+          </div>
+
+          <div className={styles.howItWorksGrid}>
+            {[
+              {
+                icon: Upload,
+                step: "01",
+                title: "Upload CV",
+                description: "Upload your resume and let our AI analyze your skills, experience, and career trajectory."
+              },
+              {
+                icon: Sparkles,
+                step: "02",
+                title: "AI Analysis",
+                description: "Advanced algorithms identify skill gaps, match opportunities, and generate personalized recommendations."
+              },
+              {
+                icon: TrendingUp,
+                step: "03",
+                title: "Get Results",
+                description: "Receive actionable insights, course recommendations, and a clear roadmap to your dream job."
+              }
+            ].map((item, idx) => (
+              <React.Fragment key={idx}>
+                <motion.div
+                  className={styles.howItWorksStep}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.6, delay: idx * 0.2 }}
+                >
+                  <div className={styles.stepIconWrapper}>
+                    <item.icon className={styles.stepIcon} />
+                  </div>
+                  <div className={styles.stepNumber}>{item.step}</div>
+                  <h3 className={styles.stepTitle}>{item.title}</h3>
+                  <p className={styles.stepDescription}>{item.description}</p>
+                </motion.div>
+                
+                {idx < 2 && (
+                  <motion.div 
+                    className={styles.stepArrow}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: idx * 0.2 + 0.3 }}
+                  >
+                    <ArrowRight size={24} />
+                  </motion.div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
         </section>
       </div>
 
@@ -481,10 +586,129 @@ export default function LandingPage() {
         </section>
       </div>
 
-      {/* Simple Footer */}
+      {/* Testimonials Section - Light */}
+      <div className={`${styles.sectionWrapper} ${styles.bgLight}`}>
+        <section className={styles.section}>
+          <div className={styles.centeredText}>
+            <h2 className={styles.sectionHeading}>Trusted by professionals</h2>
+            <p className={styles.sectionSubheading}>
+              See what our users have to say about their experience
+            </p>
+          </div>
+
+          <div className={styles.testimonialsGrid}>
+            {[
+              {
+                quote: "Lumix AI helped me identify skill gaps I didn't even know I had. Within 3 months, I landed my dream job at a top tech company.",
+                author: "Nguyễn Văn A",
+                role: "Software Engineer",
+                company: "Tech Corp",
+                rating: 5
+              },
+              {
+                quote: "The AI-powered recommendations were spot-on. The personalized learning roadmap saved me months of trial and error.",
+                author: "Trần Thị B",
+                role: "Data Analyst",
+                company: "Analytics Inc",
+                rating: 5
+              },
+              {
+                quote: "As a career switcher, Lumix AI gave me the confidence and direction I needed. The skill gap analysis was incredibly detailed.",
+                author: "Lê Văn C",
+                role: "Product Manager",
+                company: "Startup XYZ",
+                rating: 5
+              }
+            ].map((testimonial, idx) => (
+              <motion.div
+                key={idx}
+                className={styles.testimonialCard}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.6, delay: idx * 0.15 }}
+              >
+                <div className={styles.testimonialRating}>
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} size={16} fill="#667eea" color="#667eea" />
+                  ))}
+                </div>
+                <p className={styles.testimonialQuote}>"{testimonial.quote}"</p>
+                <div className={styles.testimonialAuthor}>
+                  <div className={styles.authorAvatar}>
+                    {testimonial.author.charAt(0)}
+                  </div>
+                  <div>
+                    <div className={styles.authorName}>{testimonial.author}</div>
+                    <div className={styles.authorRole}>
+                      {testimonial.role} at {testimonial.company}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {/* Enhanced Footer */}
       <div className={`${styles.sectionWrapper} ${styles.bgDark}`}>
-        <footer className={styles.section} style={{ padding: "60px 20px", textAlign: "center", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-          <p style={{ opacity: 0.4, fontSize: "12px" }}>© 2026 Lumix AI. V6.0 Premium Experience.</p>
+        <footer className={styles.richFooter}>
+          <div className={styles.footerContent}>
+            <div className={styles.footerGrid}>
+              <div className={styles.footerColumn}>
+                <h4 className={styles.footerHeading}>Product</h4>
+                <Link href="#features">Features</Link>
+                <Link href="/auth/login">Pricing</Link>
+                <Link href="#philosophy">About</Link>
+                <Link href="/auth/register">Get Started</Link>
+              </div>
+
+              <div className={styles.footerColumn}>
+                <h4 className={styles.footerHeading}>Company</h4>
+                <Link href="/auth/login">Careers</Link>
+                <Link href="/auth/login">Blog</Link>
+                <Link href="/auth/login">Press</Link>
+                <Link href="/auth/login">Contact</Link>
+              </div>
+
+              <div className={styles.footerColumn}>
+                <h4 className={styles.footerHeading}>Resources</h4>
+                <Link href="/auth/login">Documentation</Link>
+                <Link href="/auth/login">Help Center</Link>
+                <Link href="/auth/login">API</Link>
+                <Link href="/auth/login">Community</Link>
+              </div>
+
+              <div className={styles.footerColumn}>
+                <h4 className={styles.footerHeading}>Stay updated</h4>
+                <p className={styles.footerNewsletter}>
+                  Get the latest news and updates delivered to your inbox.
+                </p>
+                <div className={styles.newsletterForm}>
+                  <input 
+                    type="email" 
+                    placeholder="Enter your email" 
+                    className={styles.newsletterInput}
+                  />
+                  <button className={styles.newsletterButton}>
+                    <Mail size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.footerBottom}>
+              <p className={styles.footerCopyright}>
+                © 2026 Lumix AI. All rights reserved.
+              </p>
+              <div className={styles.footerLinks}>
+                <Link href="/auth/login">Privacy Policy</Link>
+                <Link href="/auth/login">Terms of Service</Link>
+                <Link href="/auth/login">Cookie Policy</Link>
+              </div>
+            </div>
+          </div>
         </footer>
       </div>
     </div>
