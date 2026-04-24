@@ -121,27 +121,21 @@ async def start_gap_analysis(
             detail=f"CV chưa hoàn tất phân tích (status={cv.status}). Vui lòng đợi CV được xử lý xong.",
         )
 
+    # ── Check Daily Quota (Unified QuotaManager) ──────────────────
     from shared.queue_utils import get_queue_length
     from shared.email_utils import notify_queue_delay
     from shared.config_utils import config_manager
+    from shared.quota_manager import quota_manager
+    
+    user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-    # ── Check Daily Quota (Atomic with Redis) ─────────────────────
-    from shared.redis_client import quota_cache
-    today = datetime.now().strftime("%Y%m%d")
-    quota_key = f"analysis_count:{user_id}:{today}"
-    
-    # Increment first (atomic)
-    current_count = quota_cache.incr(quota_key)
-    if current_count == 1:
-        quota_cache.expire(quota_key, 86400) # 24h
-        
-    daily_limit = int(config_manager.get_setting("daily_analysis_limit") or os.getenv("DAILY_ANALYSIS_LIMIT", "10"))
-    
-    if current_count > daily_limit and not cv.user.is_admin:
-        logger.warning(f"[ANALYSIS GAP] Quota exceeded for user {user_id}: {current_count}/{daily_limit}")
+    if not quota_manager.check_analysis_quota(user, db):
+        limit = quota_manager.get_analysis_limit(user)
         raise HTTPException(
             status_code=429, 
-            detail=f"Bạn đã đạt giới hạn phân tích trong ngày ({daily_limit} lượt). Vui lòng quay lại vào ngày mai hoặc liên hệ Admin."
+            detail=f"Bạn đã đạt giới hạn phân tích trong ngày ({limit} lượt). Vui lòng quay lại vào ngày mai hoặc liên hệ Admin."
         )
 
     # Check queue length

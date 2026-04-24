@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
     - **Chống SQL Injection**: Refactor các câu lệnh SQL trong Recommender Service sử dụng bind parameters.
     - **Log Masking**: Tự động ẩn thông tin nhạy cảm (API Keys, PII) trong `SystemLog` và `LLMLog`.
     - **Atomic Quota**: Triển khai giới hạn hạn mức phân tích hàng ngày bằng Redis INCR để chống race condition.
+    - **Hệ thống Quota tập trung**: Hợp nhất quản lý hạn mức phân tích (`daily_analysis_limit`) và token (`daily_token_limit`) vào `QuotaManager`, hỗ trợ cấu hình riêng biệt cho từng User.
     - **Async Logging**: Chuyển việc ghi log DB sang background thread để tối ưu latency.
 
 ### Changed
