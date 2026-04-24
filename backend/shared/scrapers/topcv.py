@@ -91,6 +91,9 @@ class TopCVScraper:
             content_div = soup.find('div', class_=re.compile('job-detail__information-detail|job-data'))
             raw_text = content_div.get_text("\n", strip=True) if content_div else ""
             
+            # Parse structured sections
+            sections = self._parse_job_sections(raw_text)
+            
             # Extract Job ID
             job_id_match = re.search(r'/(\d+)\.html', job_url)
             external_id = job_id_match.group(1) if job_id_match else str(time.time())
@@ -108,6 +111,9 @@ class TopCVScraper:
                 "source_url": job_url,
                 "source_label": "topcv",
                 "raw_text": raw_text,
+                "job_description": sections.get("job_description", ""),
+                "requirements": sections.get("requirements", ""),
+                "benefits": sections.get("benefits", ""),
                 "min_salary_vnd": salary_data["min"],
                 "max_salary_vnd": salary_data["max"],
                 "location_raw": location_text,
@@ -177,3 +183,43 @@ class TopCVScraper:
         if "Đà Nẵng" in city: city = "Đà Nẵng"
         
         return {"city": city, "district": district}
+
+    def _parse_job_sections(self, full_text: str) -> Dict[str, str]:
+        """Parse job posting into structured sections."""
+        sections = {
+            "job_description": "",
+            "requirements": "",
+            "benefits": "",
+        }
+        
+        # Section anchors (Vietnamese)
+        anchors = [
+            ("Mô tả công việc", "job_description"),
+            ("Yêu cầu ứng viên", "requirements"),
+            ("Quyền lợi", "benefits"),
+            ("Cách thức ứng tuyển", None),  # Stop parsing here
+        ]
+        
+        lines = full_text.split('\n')
+        current_section = None
+        
+        for line in lines:
+            clean_line = line.strip()
+            found_anchor = False
+            
+            # Check if this line is a section header
+            for anchor_text, key in anchors:
+                if anchor_text.lower() in clean_line.lower() and len(clean_line) < 50:
+                    current_section = key
+                    found_anchor = True
+                    break
+            
+            # Add content to current section
+            if not found_anchor and current_section and clean_line:
+                sections[current_section] += line + "\n"
+        
+        # Clean up sections
+        for key in sections:
+            sections[key] = sections[key].strip()
+        
+        return sections

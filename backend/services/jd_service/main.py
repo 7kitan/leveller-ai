@@ -69,6 +69,9 @@ class JobResponse(BaseModel):
     source_label: Optional[str]
     created_at: Optional[datetime]
     raw_text: Optional[str] = None
+    job_description: Optional[str] = None
+    requirements: Optional[str] = None
+    benefits: Optional[str] = None
     similarity: Optional[float] = None  # For search results
 
     class Config:
@@ -98,6 +101,9 @@ def _job_to_response(job: Job, similarity: float = None) -> dict:
         "title_raw": job.title_raw,
         "company_name": job.company_name,
         "status": job.status,
+        "job_description": job.job_description,
+        "requirements": job.requirements,
+        "benefits": job.benefits,
         "min_salary_vnd": job.min_salary_vnd,
         "max_salary_vnd": job.max_salary_vnd,
         "location_raw": job.location_raw,

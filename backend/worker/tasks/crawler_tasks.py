@@ -146,8 +146,22 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False):
             data = scraper.scrape_job_details(url)
             if not data: continue
             
-            # Generate Embedding
-            embedding_ctx = f"{data['title_raw']} at {data['company_name']}. {data['location_raw']}. {data['raw_text'][:1000]}"
+            # Generate Embedding (prioritize requirements for better matching)
+            title = data.get('title_raw', '')
+            company = data.get('company_name', '')
+            location = data.get('location_raw', '')
+            requirements = data.get('requirements', '')
+            job_desc = data.get('job_description', '')
+            
+            # Use requirements as primary context (most relevant for matching)
+            # Fallback to raw_text if sections are empty
+            if requirements:
+                embedding_ctx = f"{title} at {company}. Location: {location}. Requirements: {requirements[:800]}"
+            elif job_desc:
+                embedding_ctx = f"{title} at {company}. Location: {location}. Description: {job_desc[:800]}"
+            else:
+                embedding_ctx = f"{title} at {company}. {location}. {data.get('raw_text', '')[:1000]}"
+            
             vector = get_embedding(embedding_ctx)
             
             # Save
