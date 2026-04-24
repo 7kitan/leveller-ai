@@ -2,11 +2,6 @@ name: Backend CI/CD
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ demo, main ]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend-cicd.yml'
 
 jobs:
   test:

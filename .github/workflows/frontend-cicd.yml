@@ -2,11 +2,6 @@ name: Frontend CI/CD
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ demo, main ]
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend-cicd.yml'
 
 jobs:
   build-and-test:
