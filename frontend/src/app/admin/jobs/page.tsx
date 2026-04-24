@@ -24,6 +24,8 @@ import { cn } from "@/lib/utils";
 import styles from "./admin-jobs.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import Portal from "@/components/shared/Portal";
+import Modal from "@/components/shared/Modal";
 
 interface Job {
   id: string;
@@ -395,66 +397,58 @@ const AdminJobsPage = () => {
           />
         </div>
 
-        <AnimatePresence>
-          {isModalOpen && (
-            <div className={styles.modalOverlay}>
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className={styles.modalContent}
-              >
-                <div className={styles.modalHeader}>
-                    <h3 className={styles.modalTitle}>{editingJob ? t("admin_jobs_modal_edit_title") : t("admin_jobs_modal_create_title")}</h3>
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title={
+            <h3 className={styles.modalTitle}>{editingJob ? t("admin_jobs_modal_edit_title") : t("admin_jobs_modal_create_title")}</h3>
+          }
+        >
+          <div className={styles.modalBodyContent}>
+            <div className={styles.formGrid}>
+                <div className={styles.formFieldFull}>
+                  <label>{t("admin_jobs_modal_desc_label")}</label>
+                  <textarea 
+                    className={styles.textarea}
+                    rows={6}
+                    placeholder={t("admin_jobs_modal_desc_placeholder")}
+                    value={formData.description}
+                    onChange={e => setFormData({...formData, description: e.target.value})}
+                  />
                 </div>
-                <div className={styles.modalBody}>
-                   <div className={styles.formGrid}>
-                      <div className={styles.formFieldFull}>
-                         <label>{t("admin_jobs_modal_desc_label")}</label>
-                         <textarea 
-                           className={styles.textarea}
-                           rows={6}
-                           placeholder={t("admin_jobs_modal_desc_placeholder")}
-                           value={formData.description}
-                           onChange={e => setFormData({...formData, description: e.target.value})}
-                         />
-                      </div>
-                      <div className={styles.formField}>
-                         <label>{t("admin_jobs_modal_title_label")}</label>
-                         <input 
-                           value={formData.title}
-                           onChange={e => setFormData({...formData, title: e.target.value})}
-                         />
-                      </div>
-                      <div className={styles.formField}>
-                         <label>{t("admin_jobs_modal_company_label")}</label>
-                         <input 
-                           value={formData.company_name}
-                           onChange={e => setFormData({...formData, company_name: e.target.value})}
-                         />
-                      </div>
-                      <div className={styles.formField}>
-                         <label>{t("admin_jobs_modal_status_label")}</label>
-                         <select 
-                           value={formData.status}
-                           onChange={e => setFormData({...formData, status: e.target.value})}
-                         >
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                         </select>
-                      </div>
-                   </div>
+                <div className={styles.formField}>
+                  <label>{t("admin_jobs_modal_title_label")}</label>
+                  <input 
+                    value={formData.title}
+                    onChange={e => setFormData({...formData, title: e.target.value})}
+                  />
                 </div>
-                <div className={styles.modalFooter}>
-                   <button onClick={() => setIsModalOpen(false)} className={styles.cancelBtn}>{t("cancel")}</button>
-                   <button onClick={handleSave} className={styles.submitBtn}>
-                     {editingJob ? t("admin_jobs_modal_edit_title") : t("admin_jobs_save_btn")}
-                   </button>
+                <div className={styles.formField}>
+                  <label>{t("admin_jobs_modal_company_label")}</label>
+                  <input 
+                    value={formData.company_name}
+                    onChange={e => setFormData({...formData, company_name: e.target.value})}
+                  />
                 </div>
-              </motion.div>
+                <div className={styles.formField}>
+                  <label>{t("admin_jobs_modal_status_label")}</label>
+                  <select 
+                    value={formData.status}
+                    onChange={e => setFormData({...formData, status: e.target.value})}
+                  >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                  </select>
+                </div>
             </div>
-          )}
-        </AnimatePresence>
+          </div>
+          <div className={styles.modalFooter}>
+            <button onClick={() => setIsModalOpen(false)} className={styles.cancelBtn}>{t("cancel")}</button>
+            <button onClick={handleSave} className={styles.submitBtn}>
+              {editingJob ? t("admin_jobs_modal_edit_title") : t("admin_jobs_save_btn")}
+            </button>
+          </div>
+        </Modal>
 
         <AnimatePresence>
           {notification && (

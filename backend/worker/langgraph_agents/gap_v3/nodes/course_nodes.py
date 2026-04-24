@@ -90,57 +90,48 @@ async def course_recommendation_llm_node(
     db = state["db"]
     all_recommendations: List[Dict] = []
 
-    # ── STEP 1: Vector search per gap (parallel, no LLM) ───────────────────
-    logger.info(f"[STEP 4] Searching courses for {len(gaps_to_process)} gaps...")
-    for gap in gaps_to_process:
+    import asyncio
+
+    # ── STEP 1: Vector search per gap (Parallel) ───────────────────
+    logger.info(f"[STEP 4] Searching courses for {len(gaps_to_process)} gaps in parallel...")
+    
+    async def search_gap_courses(gap):
         gap_skill = gap.get("skill") or "?"
         required_level = gap.get("required_level") or "Mid-level"
-        estimated_months = gap.get("estimated_months") or 3
         learning_path = gap.get("learning_path") or ""
-
-        course_candidates = await _vector_search_courses(
+        estimated_months = gap.get("estimated_months") or 3
+        
+        candidates = await _vector_search_courses(
             skill_name=gap_skill,
             target_level=required_level,
             db=db,
             limit=12,
         )
-
-        if not course_candidates:
-            logger.warning("[STEP 4] No courses found for gap: " + gap_skill)
-            continue
-
+        
         sim_threshold = config_manager.get_setting("gap_vector_sim_threshold", default=0.35, cast=float)
-        logger.info(
-            f"[STEP 4] {len(course_candidates)} candidates for '{gap_skill}' | "
-            f"sim_threshold={sim_threshold}"
-        )
-        for c in course_candidates[:5]:
-            logger.info(
-                f"  course: {c.get('title')} | platform={c.get('platform')} | "
-                f"level={c.get('level')} | hrs={c.get('duration_hours')} | "
-                f"sim={c.get('similarity', 0):.3f} | cert={c.get('is_certification')}"
-            )
-
-        # Attach gap metadata to candidates
-        for c in course_candidates:
+        logger.info(f"[STEP 4] {len(candidates)} candidates for '{gap_skill}' | sim_threshold={sim_threshold}")
+        
+        # Attach gap metadata
+        for c in candidates:
             c["_gap_skill"] = gap_skill
             c["_gap_severity"] = gap.get("severity") or "MEDIUM"
             c["_gap_learning_path"] = learning_path
             c["_gap_estimated_months"] = estimated_months
             c["_is_critical"] = bool(gap.get("is_critical"))
+        return candidates
 
-        all_recommendations.extend(course_candidates)
+    # Run vector searches in parallel
+    course_candidate_lists = await asyncio.gather(*[search_gap_courses(g) for g in gaps_to_process])
+    for cand_list in course_candidate_lists:
+        all_recommendations.extend(cand_list)
 
-    # ── STEP 1.5: YouTube Search (Free Resources) ──────────────────────────
-    # Tìm kiếm video YouTube song song hoặc trước khi selection để luôn có fallback
+    # ── STEP 1.5: YouTube Search (Free Resources - Parallel) ───────────
     youtube_videos = []
-    current_lang = state.get("lang", "vi") # Mặc định tiếng Việt nếu không có
+    current_lang = state.get("lang", "vi")
     
-    # Tìm cho top 3 gaps để đảm bảo có đủ free resources cho roadmap
-    for gap in gaps_to_process[:3]:
+    async def search_yt(gap):
         skill_name = gap.get("skill") or "?"
         level_name = gap.get("required_level") or "Mid-level"
-        logger.info(f"[STEP 4/YouTube] Searching videos for gap: {skill_name} (lang={current_lang})")
         v_results = await youtube_service.search_and_cache(
             query=f"{skill_name} {level_name}",
             db=db,
@@ -149,7 +140,12 @@ async def course_recommendation_llm_node(
         )
         for v in v_results:
             v["gap_skill"] = skill_name
-            youtube_videos.append(v)
+        return v_results
+
+    # Run YouTube searches in parallel for top 3 gaps
+    yt_results = await asyncio.gather(*[search_yt(g) for g in gaps_to_process[:3]])
+    for v_list in yt_results:
+        youtube_videos.extend(v_list)
 
     if not all_recommendations:
         logger.warning("[STEP 4] No courses found for any gap. Providing YouTube only.")

@@ -3,6 +3,10 @@ import logging
 from celery import Celery
 from celery.signals import after_setup_logger
 from dotenv import load_dotenv
+from shared.database import engine, Base
+import shared.models # Ensure all models are registered
+# Ensure tables are created
+Base.metadata.create_all(bind=engine)
 
 load_dotenv()
 
@@ -24,7 +28,6 @@ celery_app = Celery(
         "worker.langgraph_agents.gap_v3.tasks.cv_parsing_v3_task",  # CV parsing v3 (khi USE_LLM_GAP_AGENT_V3=true)
         "worker.tasks.crawler_tasks",  # Course metadata crawler
         "worker.tasks.market_stats_tasks", # Daily market data aggregation
-        # NOTE: gap_analysis_v3_task.py bị DEPRECATE — dùng analysis_tasks thay thế
     ],
 )
 
@@ -32,13 +35,11 @@ celery_app = Celery(
 def setup_logging(logger, *args, **kwargs):
     """
     Ensure our custom loggers are visible in the Celery worker logs.
-    By default, Celery's logging setup might swallow logs from other loggers.
     """
     formatter = logging.Formatter(
         "[%(asctime)s: %(levelname)s/%(processName)s] %(name)s: %(message)s"
     )
 
-    # List of loggers to force to stdout
     loggers_to_config = [
         "worker",
         "analysis_worker",
@@ -52,7 +53,6 @@ def setup_logging(logger, *args, **kwargs):
     for logger_name in loggers_to_config:
         l = logging.getLogger(logger_name)
         l.setLevel(logging.INFO)
-        # Ensure it has a handler if it's not propagating to a configured root
         if not l.handlers:
             handler = logging.StreamHandler()
             handler.setFormatter(formatter)
@@ -85,6 +85,10 @@ celery_app.conf.update(
         },
         "daily-youtube-cleanup": {
             "task": "worker.tasks.market_stats_tasks.cleanup_expired_youtube_courses",
+            "schedule": 86400.0, # 24 hours
+        },
+        "daily-system-log-cleanup": {
+            "task": "worker.tasks.market_stats_tasks.cleanup_system_logs",
             "schedule": 86400.0, # 24 hours
         },
     },

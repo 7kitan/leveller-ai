@@ -13,15 +13,22 @@ if sys.stdout.encoding != 'utf-8':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 def scrape_coursera_course(url):
+    # Normalize URL: Remove language suffixes like -zhcn, -es, etc.
+    # Coursera localized URLs usually end with -[language_code]
+    url = re.sub(r'-[a-z]{4}$', '', url.split('?')[0])
+    
     logger.info(f"🕸️ [SCRAPER] Bắt đầu trích xuất dữ liệu: {url}...")
     
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
     }
     
     try:
         response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
+        # Force UTF-8 encoding
+        response.encoding = 'utf-8'
     except Exception as e:
         return {"error": f"Lỗi truy cập: {str(e)}"}
 

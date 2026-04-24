@@ -146,8 +146,11 @@
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  overflow: hidden;
+  overflow-x: auto; /* Horizontal scroll if needed */
+  overflow-y: auto; /* Vertical scroll for data */
+  max-height: 60vh; /* Limit height */
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+  position: relative;
 }
 
 .table {
@@ -157,6 +160,10 @@
 
 .tableHeader {
   background-color: rgba(0, 0, 0, 0.02);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
 }
 
 [data-theme="dark"] .tableHeader {
@@ -245,6 +252,40 @@
 
 [data-theme="light"] .userDate {
   color: rgba(0, 0, 0, 0.4);
+}
+
+.usageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 120px;
+}
+
+.usageText {
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.usageBar {
+  width: 100%;
+  height: 6px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .usageBar {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.usageFill {
+  height: 100%;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .roleBadge {
@@ -381,10 +422,11 @@
   background-color: rgba(15, 23, 42, 0.4);
   backdrop-filter: blur(12px);
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Spacing from top instead of centered */
   justify-content: center;
-  z-index: 50;
-  padding: 1.5rem;
+  z-index: 2000; /* Higher than navbar z-1000 */
+  padding: 4rem 1.5rem; /* Large top padding for spacing from header */
+  overflow-y: auto; /* Allow overlay to scroll if modal is too tall */
 }
 
 [data-theme="dark"] .modalOverlay {
@@ -396,9 +438,11 @@
   max-width: 36rem;
   background-color: white;
   border: 1px solid var(--color-border-subtle);
-  border-radius: 3.5rem;
+  border-radius: 2.5rem; /* Slightly smaller radius for better balance */
   overflow: hidden;
   box-shadow: 0 40px 80px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem; /* Spacing at bottom */
+  position: relative;
 }
 
 [data-theme="dark"] .modalContent {

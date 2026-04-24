@@ -1,7 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException, Request, Query
 from sqlalchemy.orm import Session
-from shared.database import get_db
+from shared.database import get_db, engine, Base
+import shared.models # Ensure all models are registered
 from shared.models import User
+# Ensure tables are created
+Base.metadata.create_all(bind=engine)
 from shared.auth_utils import get_password_hash, verify_password, create_access_token, hash_token, decode_access_token, ACCESS_TOKEN_EXPIRE_SECONDS
 from shared.config_utils import config_manager
 from shared.redis_client import auth_cache
@@ -43,6 +46,9 @@ class AdminUserResponse(BaseModel):
     full_name: Optional[str]
     is_admin: bool
     is_active: bool
+    is_flagged: bool
+    daily_token_limit: int
+    today_usage: Optional[int] = 0
     created_at: Optional[str] # Will be stringified
 
 class AdminUserUpdate(BaseModel):
@@ -51,6 +57,8 @@ class AdminUserUpdate(BaseModel):
     full_name: Optional[str] = None
     is_admin: Optional[bool] = None
     is_active: Optional[bool] = None
+    is_flagged: Optional[bool] = None
+    daily_token_limit: Optional[int] = None
 
 class UserProfileUpdate(BaseModel):
     full_name: Optional[str] = None
@@ -58,7 +66,7 @@ class UserProfileUpdate(BaseModel):
     password: Optional[str] = None
 
 @app.post("/auth/register", response_model=AuthResponse)
-def register(user_in: UserCreate, db: Session = Depends(get_db)):
+def register(request: Request, user_in: UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user_in.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -67,7 +75,11 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
         email=user_in.email,
         hashed_password=get_password_hash(user_in.password),
         full_name=user_in.full_name,
-        is_admin=False # Default
+        is_admin=False, # Default
+        registration_ip=request.client.host if request.client else None,
+        registration_user_agent=request.headers.get("User-Agent"),
+        last_login_ip=request.client.host if request.client else None,
+        last_login_user_agent=request.headers.get("User-Agent")
     )
     db.add(new_user)
     db.commit()
@@ -100,13 +112,19 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     }
 
 @app.post("/auth/login", response_model=AuthResponse)
-def login(user_in: UserLogin, db: Session = Depends(get_db)):
+def login(request: Request, user_in: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == user_in.email).first()
     if not user or not verify_password(user_in.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
     
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is disabled. Please contact administrator.")
+    
+    # Update last login info
+    user.last_login_ip = request.client.host if request.client else None
+    user.last_login_user_agent = request.headers.get("User-Agent")
+    db.commit()
+    db.refresh(user)
     
     access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
     
@@ -256,6 +274,7 @@ def admin_list_users(
     q: Optional[str] = Query(None)
 ):
     """Admin only: Lấy danh sách toàn bộ người dùng với phân trang."""
+    from shared.token_manager import get_user_daily_usage
     if not is_admin(request):
         raise HTTPException(status_code=403, detail="Admin privileges required")
     
@@ -276,6 +295,9 @@ def admin_list_users(
             "full_name": u.full_name,
             "is_admin": u.is_admin,
             "is_active": u.is_active,
+            "is_flagged": getattr(u, "is_flagged", False),
+            "daily_token_limit": getattr(u, "daily_token_limit", 0),
+            "today_usage": get_user_daily_usage(str(u.id), db),
             "created_at": u.created_at.isoformat() if u.created_at else None
         }
         for u in users
@@ -316,6 +338,8 @@ def admin_create_user(request: Request, user_in: UserCreate, db: Session = Depen
         "full_name": new_user.full_name,
         "is_admin": new_user.is_admin,
         "is_active": new_user.is_active,
+        "is_flagged": False,
+        "daily_token_limit": 0,
         "created_at": new_user.created_at.isoformat() if new_user.created_at else None
     }
 
@@ -347,6 +371,11 @@ def admin_update_user(user_id: str, user_in: AdminUserUpdate, request: Request, 
                 logging.info(f"Revoking session for banned user {user.id}")
                 auth_cache.delete(old_token_key)
                 auth_cache.delete(session_pointer)
+    
+    if user_in.is_flagged is not None:
+        user.is_flagged = user_in.is_flagged
+    if user_in.daily_token_limit is not None:
+        user.daily_token_limit = user_in.daily_token_limit
         
     db.commit()
     db.refresh(user)
@@ -357,6 +386,8 @@ def admin_update_user(user_id: str, user_in: AdminUserUpdate, request: Request, 
         "full_name": user.full_name,
         "is_admin": user.is_admin,
         "is_active": user.is_active,
+        "is_flagged": user.is_flagged,
+        "daily_token_limit": user.daily_token_limit,
         "created_at": user.created_at.isoformat() if user.created_at else None
     }
 

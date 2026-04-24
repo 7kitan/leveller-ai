@@ -30,6 +30,7 @@ Thumbs.db
 
 # AI & Tooling
 .ai-log/
+.ai-log/.last_synced_commit
 .gemini/
 .antigravity/
 

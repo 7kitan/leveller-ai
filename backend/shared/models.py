@@ -7,9 +7,9 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Text,
-    BigInteger,
     JSON,
     UniqueConstraint,
+    BigInteger,
 )
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from pgvector.sqlalchemy import Vector
@@ -40,6 +40,14 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    daily_token_limit = Column(Integer, default=0) # 0 means use global default
+    is_flagged = Column(Boolean, default=False)
+
+    # ── Security & Tracking ──────────────────────────────────────────
+    registration_ip = Column(String(50))
+    registration_user_agent = Column(Text)
+    last_login_ip = Column(String(50))
+    last_login_user_agent = Column(Text)
 
     cvs = relationship("UserCV", back_populates="user")
     last_analysis_id = Column(
@@ -217,6 +225,7 @@ class Course(Base):
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    is_active = Column(Boolean, default=True)
 
 
 class UserWorkExperience(Base):
@@ -313,3 +322,41 @@ class YouTubeCourse(Base):
     expires_at = Column(DateTime(timezone=True), index=True) # Thời điểm hết hạn cache
     last_verified_at = Column(DateTime(timezone=True), index=True) # Thời điểm kiểm tra tính khả dụng gần nhất
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class LLMLog(Base):
+    __tablename__ = "llm_logs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    model_id = Column(String(100), nullable=False)
+    provider = Column(String(50))
+    call_type = Column(String(50))  # e.g., 'cv_parsing', 'gap_analysis', 'general'
+    
+    prompt_tokens = Column(Integer, default=0)
+    completion_tokens = Column(Integer, default=0)
+    total_tokens = Column(Integer, default=0)
+    
+    latency_ms = Column(Integer)  # Time taken in milliseconds
+    status = Column(String(20))   # 'success', 'failed'
+    error_message = Column(Text)
+    
+    # Metadata for filtering/debugging
+    request_metadata = Column(JSON) # Store additional info like call_id, etc.
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    user = relationship("User")
+
+
+class SystemLog(Base):
+    __tablename__ = "system_logs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    level = Column(String(20), index=True) # INFO, WARNING, ERROR, CRITICAL
+    module = Column(String(100), index=True) # Email, AI, DB, Worker, Crawler
+    message = Column(Text)
+    details = Column(JSON) # Stacktrace, metadata, etc.
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)

@@ -88,6 +88,13 @@ const AdminDashboard = () => {
       icon: Settings, 
       path: "/admin/settings",
       color: "#64748b"
+    },
+    { 
+      title: "AI Usage", 
+      desc: "Monitor token usage, model performance, and costs.", 
+      icon: Cpu, 
+      path: "/admin/ai-usage",
+      color: "#10b981"
     }
   ];
 

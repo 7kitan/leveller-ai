@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import styles from "./user-cv.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import Modal from "@/components/shared/Modal";
 
 const POLLING_INTERVAL = 5000;
 
@@ -1019,46 +1020,36 @@ const UserCVPage = () => {
         </div>
 
         {/* ── Rerun Confirmation Modal ───────────────────────────────── */}
-        <AnimatePresence>
-          {showRerunModal && (
-            <div className={styles.modalBackdrop}>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className={styles.modalCard}
-              >
-                <div className={styles.modalGlow} />
-                <div className={styles.modalHeader}>
-                  <div className={styles.modalIconBox}>
-                    <Zap size={24} className={styles.modalZap} />
-                  </div>
-                  <h2 className={styles.modalTitle}>{t("cv_update_success")}</h2>
-                </div>
-                <div className={styles.modalBody}>
-                  <p>
-                    {t("cv_rerun_desc").replace('{title}', analysisContext?.jd_title || t("selected_job"))}
-                  </p>
-                </div>
-                <div className={styles.modalFooter}>
-                  <button onClick={() => setShowRerunModal(false)} className={styles.modalCancelBtn}>
-                    {t("later")}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowRerunModal(false);
-                      handleRerunAnalysis();
-                    }}
-                    className={styles.modalConfirmBtn}
-                  >
-                    {t("rerun_now")}
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
-              </motion.div>
+        <Modal
+          isOpen={showRerunModal}
+          onClose={() => setShowRerunModal(false)}
+          title={t("cv_update_success")}
+          maxWidth="500px"
+        >
+          <div className={styles.modalBodyContent}>
+            <div className={styles.modalIconBox}>
+              <Zap size={32} className={styles.modalZap} />
             </div>
-          )}
-        </AnimatePresence>
+            <p className={styles.modalDescription}>
+              {t("cv_rerun_desc").replace('{title}', analysisContext?.jd_title || t("selected_job"))}
+            </p>
+            <div className={styles.modalFooterActions}>
+              <button onClick={() => setShowRerunModal(false)} className={styles.modalCancelBtn}>
+                {t("later")}
+              </button>
+              <button
+                onClick={() => {
+                  setShowRerunModal(false);
+                  handleRerunAnalysis();
+                }}
+                className={styles.modalConfirmBtn}
+              >
+                {t("rerun_now")}
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        </Modal>
       </motion.div>
     );
   }
