@@ -114,6 +114,21 @@ def aggregate_market_data():
             stat_record.demand_score = demand_score
             stat_record.updated_at = now
 
+            # 5. Save snapshot to history (NEW)
+            from shared.models import MarketSkillHistory
+            avg_salary_val = (avg_min + avg_max) / 2 if avg_min and avg_max else (avg_min or avg_max)
+            
+            # Tránh lưu quá nhiều data nếu không có sự thay đổi (optional optimization)
+            # Ở đây ta lưu mỗi lần aggregation chạy (daily)
+            history_record = MarketSkillHistory(
+                skill_name=skill_name,
+                job_count=count_current,
+                avg_salary=int(avg_salary_val),
+                demand_score=demand_score,
+                snapshot_date=now
+            )
+            db.add(history_record)
+
         db.commit()
         logger.info(f"[MARKET STATS] Aggregation completed for {len(stats_current)} skills.")
 

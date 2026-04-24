@@ -5,6 +5,7 @@ import os
 from typing import List, Dict, Any, Optional
 from bs4 import BeautifulSoup
 from curl_cffi import requests
+import json
 from datetime import datetime
 
 # Setup detailed file logging
@@ -12,8 +13,19 @@ logger = logging.getLogger("topcv_scraper")
 logger.setLevel(logging.DEBUG)
 
 # Create logs directory if not exists
-log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
-os.makedirs(log_dir, exist_ok=True)
+# Use data/logs to ensure it's within a persistent volume and avoid root-level conflicts
+backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+log_dir = os.path.join(backend_dir, "data", "logs")
+
+try:
+    if os.path.exists(log_dir) and not os.path.isdir(log_dir):
+        os.remove(log_dir)
+    os.makedirs(log_dir, exist_ok=True)
+except Exception as e:
+    # Fallback to a temporary directory if data/logs is inaccessible
+    import tempfile
+    log_dir = os.path.join(tempfile.gettempdir(), "career_advisor_logs")
+    os.makedirs(log_dir, exist_ok=True)
 
 # File handler with detailed format
 log_file = os.path.join(log_dir, f"topcv_crawler_{datetime.now().strftime('%Y%m%d')}.log")
@@ -74,11 +86,6 @@ class TopCVScraper:
                 logger.error(f"[GET_URLS] Search page returned {resp.status_code}")
                 return []
 
-            # Save HTML for debugging
-            html_file = os.path.join(log_dir, f"topcv_search_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html")
-            with open(html_file, 'w', encoding='utf-8') as f:
-                f.write(resp.text)
-            logger.info(f"[GET_URLS] Saved HTML to: {html_file}")
 
             soup = BeautifulSoup(resp.text, 'html.parser')
             job_links = []
@@ -88,9 +95,12 @@ class TopCVScraper:
             for a in soup.find_all('a', href=True):
                 href = a['href']
                 all_links.append(href)
-                if '/viec-lam/' in href and 'topcv.vn/viec-lam' in href and href not in job_links:
-                    job_links.append(href)
-                    logger.debug(f"[GET_URLS] Found job link: {href}")
+                if '/viec-lam/' in href and 'topcv.vn/viec-lam' in href:
+                    # Clean URL: Truncate at .html
+                    clean_href = href.split('.html')[0] + '.html' if '.html' in href else href
+                    if clean_href not in job_links:
+                        job_links.append(clean_href)
+                        logger.debug(f"[GET_URLS] Found job link: {clean_href}")
             
             logger.info(f"[GET_URLS] Total links found: {len(all_links)}")
             logger.info(f"[GET_URLS] Job links found: {len(job_links)}")
@@ -134,13 +144,14 @@ class TopCVScraper:
                         continue  # Retry
                     return None
 
-                # Save HTML for debugging
+                # Clean URL: Remove tracking parameters after .html
+                if '.html' in job_url:
+                    job_url = job_url.split('.html')[0] + '.html'
+
+                # Extract Job ID for logging and result
                 job_id_match = re.search(r'/(\d+)\.html', job_url)
                 job_id = job_id_match.group(1) if job_id_match else str(int(time.time()))
-                html_file = os.path.join(log_dir, f"topcv_job_{job_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html")
-                with open(html_file, 'w', encoding='utf-8') as f:
-                    f.write(resp.text)
-                logger.info(f"[SCRAPE_JOB] Saved HTML to: {html_file}")
+
 
                 soup = BeautifulSoup(resp.text, 'html.parser')
                 html = resp.text
@@ -275,13 +286,21 @@ class TopCVScraper:
                 data = {}
                 for key in ['job_title', 'recruiter_company', 'experience', 'work_location', 'salary_range']:
                     # Use regex instead of json.loads because it's a JS object, not pure JSON
-                    key_match = re.search(f'"{key}"\s*:\s*"(.*?)"', json_str)
+                    # Use regex that handles escaped quotes: "(?:[^"\\]|\\.)*"
+                    # We capture the entire quoted string to use json.loads on it
+                    key_match = re.search(fr'"{key}"\s*:\s*("(?:[^"\\]|\\.)*")', json_str)
                     if key_match:
                         try:
-                            val = key_match.group(1).encode('utf-8').decode('unicode_escape')
+                            # json.loads correctly handles \/, \uXXXX, \", etc.
+                            val = json.loads(key_match.group(1))
                             data[key] = val
-                        except:
-                            data[key] = key_match.group(1)
+                        except Exception as e:
+                            # Fallback if the JS string is not valid JSON
+                            logger.debug(f"[TOPCV] json.loads failed for {key}: {e}")
+                            # Try to extract content between quotes and do simple unescape
+                            simple_match = re.search(f'"{key}"\s*:\s*"(.*?)"', json_str)
+                            if simple_match:
+                                data[key] = simple_match.group(1).replace('\\/', '/')
                 return data
         except: pass
         return {}

@@ -67,3 +67,28 @@ def notify_queue_delay(user_email: str, queue_pos: int):
     </div>
     """
     return send_email(user_email, subject, body, is_html=True)
+
+def send_password_reset_email(user_email: str, reset_link: str):
+    """
+    Send password reset link to user.
+    """
+    subject = "Đặt lại mật khẩu - Lumix AI Advisor"
+    body = f"""
+    <div style="font-family: sans-serif; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #f8fafc; max-width: 500px; margin: auto;">
+        <h2 style="color: #6366f1; text-align: center; margin-bottom: 24px;">Đặt lại mật khẩu</h2>
+        <p>Chào bạn,</p>
+        <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản Lumix AI của bạn. Vui lòng nhấn vào nút bên dưới để tiến hành thay đổi mật khẩu:</p>
+        
+        <div style="text-align: center; margin: 32px 0;">
+            <a href="{reset_link}" style="background-color: #6366f1; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                Đặt lại mật khẩu
+            </a>
+        </div>
+        
+        <p style="font-size: 14px; color: #64748b;">Nếu bạn không yêu cầu thay đổi mật khẩu, bạn có thể bỏ qua email này. Liên kết sẽ hết hạn trong vòng 1 giờ.</p>
+        
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+        <p style="font-size: 12px; color: #94a3b8; text-align: center;">Lumix AI Advisor - Hệ thống tư vấn lộ trình nghề nghiệp AI</p>
+    </div>
+    """
+    return send_email(user_email, subject, body, is_html=True)

@@ -130,8 +130,7 @@ class TestGapAnalysisPipeline:
                         "position": "Senior Backend Engineer",
                         "company": "TechCorp",
                         "duration_years": 4.0,
-                        "description": "Built microservices with Python",
-                        "skills_used": ["Python", "Docker", "PostgreSQL"],
+                        "description": "Built microservices with Python"
                     }
                 ],
                 "education": [],

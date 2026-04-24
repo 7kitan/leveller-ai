@@ -158,7 +158,7 @@ async def run_cv_parsing_pipeline(cv_id: str, user_id: str, db) -> dict:
             f"  is_ocr         : {parsed.get('is_ocr', False)}\n"
             f"  ocr_confidence : {parsed.get('ocr_confidence', 0):.2f}\n" + "=" * 60
         )
-        return {"status": "success", "cv_parsed": parsed, "cv_id": cv_id}
+        return {"status": "success", "cv_parsed": parsed, "cv_id": cv_id, "file_path": state.get("file_path")}
     else:
         error = state.get("error", "Pipeline failed with no error message")
         logger.warning(

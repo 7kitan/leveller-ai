@@ -24,7 +24,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin, requireRo
     if (!loading && !maintenanceMode) {
       if (!user) {
         // Unauthenticated users can only view public routes
-        const publicRoutes = ["/", "/login", "/register", "/auth/login", "/auth/register", "/auth"];
+        const publicRoutes = ["/", "/login", "/register", "/auth/login", "/auth/register", "/auth", "/auth/forgot-password", "/auth/reset-password"];
         if (!publicRoutes.includes(pathname)) {
           router.push("/");
         }
@@ -78,7 +78,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin, requireRo
   const showMaintenance = maintenanceMode && !isAdmin && !isCriticalPath;
 
   // Hide protected content if redirects are about to happen
-  const publicRoutes = ["/", "/login", "/register", "/auth/login", "/auth/register", "/auth"];
+  const publicRoutes = ["/", "/login", "/register", "/auth/login", "/auth/register", "/auth", "/auth/forgot-password", "/auth/reset-password"];
   const isAuthorized = !user ? publicRoutes.includes(pathname) : true;
   
   if (!isAuthorized && !showMaintenance) return null;

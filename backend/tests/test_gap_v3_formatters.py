@@ -30,12 +30,10 @@ def _format_cv_for_llm_test(cv_parsed: dict) -> str:
     work_lines = []
     for w in work_history:
         dur = w.get("duration_years", 0)
-        skills_used = ", ".join(w.get("skills_used", [])[:8])
         desc = w.get("description", "")[:200]
         work_lines.append(
             f"  - [{dur:.1f} năm] {w.get('position', 'N/A')} @ {w.get('company', 'N/A')}\n"
-            f"    {desc}\n"
-            f"    Technologies: {skills_used or 'N/A'}"
+            f"    {desc}"
         )
     work_text = "\n".join(work_lines) or "  (Không có kinh nghiệm)"
 
@@ -140,8 +138,7 @@ class TestCVFormatter:
                     "position": "Senior Backend Engineer",
                     "company": "TechCorp",
                     "duration_years": 3.0,
-                    "description": "Built microservices with Python",
-                    "skills_used": ["Python", "Docker", "PostgreSQL"],
+                    "description": "Built microservices with Python"
                 }
             ],
             "education": [

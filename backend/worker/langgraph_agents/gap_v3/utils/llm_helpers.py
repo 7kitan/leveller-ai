@@ -28,6 +28,7 @@ async def llm_json_completion(
     model_key: Optional[str] = None,
     temperature: float = 0.1,
     call_name: str = "llm_json_completion",
+    user_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Wrapper async cho LLM JSON completion.
@@ -72,7 +73,8 @@ async def llm_json_completion(
             json_mode=True,
             model=effective_model,
             temperature=temperature,
-            call_name=call_name
+            call_name=call_name,
+            user_id=user_id
         )
         duration_ms = int((time.monotonic() - t0) * 1000)
 
@@ -235,6 +237,7 @@ async def llm_text_completion(
     model_key: Optional[str] = None,
     temperature: float = 0.3,
     call_name: str = "llm_text_completion",
+    user_id: Optional[str] = None
 ) -> str:
     """Wrapper cho LLM text (non-JSON) completion with full logging."""
     # 1. Xác định Model: Ưu tiên tham số -> Setting DB -> Env -> Default
@@ -262,7 +265,8 @@ async def llm_text_completion(
             system_prompt=f"{system_prompt or 'You are a helpful career advisor.'}\n{context}" if context else system_prompt,
             model=effective_model,
             temperature=temperature,
-            call_name=call_name
+            call_name=call_name,
+            user_id=user_id
         )
         duration_ms = int((time.monotonic() - t0) * 1000)
         

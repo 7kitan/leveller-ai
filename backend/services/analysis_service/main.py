@@ -409,7 +409,7 @@ async def get_recommendations(request: Request, db: Session = Depends(get_db)):
 
 
 @app.get("/analysis/market-fit")
-async def get_market_fit(request: Request, db: Session = Depends(get_db)):
+async def get_market_fit(request: Request, period: str = "month", db: Session = Depends(get_db)):
     """
     Dashboard API: Trả về tóm tắt sự tương thích của user với thị trường.
     Tối ưu hóa: Chỉ cập nhật 1 lần mỗi ngày khi user truy cập, 
@@ -421,7 +421,7 @@ async def get_market_fit(request: Request, db: Session = Depends(get_db)):
     
     user_id = uuid.UUID(user_id_str)
     from shared.models import User
-    from services.analysis_service.market_fit_service import update_user_market_fit
+    from services.analysis_service.market_fit_service import update_user_market_fit, get_market_trends
 
     # 1. Lấy thông tin User và kiểm tra cache
     user = db.query(User).filter(User.id == user_id).first()
@@ -437,52 +437,37 @@ async def get_market_fit(request: Request, db: Session = Depends(get_db)):
         if last_update.date() == now.date():
             is_stale = False
 
-    # 2. Nếu cache còn hạn, trả về dữ liệu cũ ngay lập tức
+    # 2. Lấy dữ liệu Market Fit (Cache based)
     if not is_stale and user.market_fit_data:
-        cached_data = user.market_fit_data
-        # Migration check: Ensure new growth metrics are present
-        has_new_fields = (
-            "courses" in cached_data and 
-            "top_trending_skills" in cached_data and
-            "potential_match_pct" in cached_data
-        )
-        
-        if has_new_fields:
-            logger.info(f"[MARKET FIT] Returning cached data for user {user_id}")
-            return cached_data
-        else:
-            logger.info(f"[MARKET FIT] Cache missing new fields for user {user_id}. Forcing recompute...")
-            is_stale = True
-
-    # 3. Nếu cache hết hạn, thực hiện tính toán mới thông qua service
-    return await update_user_market_fit(user_id, db)
+        market_data = user.market_fit_data
+    else:
+        # Nếu cache quá cũ hoặc chưa có, trigger update đồng bộ
+        market_data = await update_user_market_fit(user_id, db)
+    
+    # 3. Lấy dữ liệu Trending theo Period (Realtime calculated)
+    trends = await get_market_trends(db, period=period)
+    
+    # Merge trend data into response
+    if isinstance(market_data, dict):
+        market_data["market_trends"] = trends
+    
+    return market_data
 
 
 @app.get("/analysis/market-trends")
-async def get_market_trends(
-    limit: int = 10, 
-    category: Optional[str] = None, 
+async def get_market_trends_api(
+    period: str = "month",
+    limit: int = 10,
     db: Session = Depends(get_db)
 ):
-    """Lấy danh sách các kỹ năng đang trending trên thị trường."""
-    from shared.models import MarketSkillStats
-    query = db.query(MarketSkillStats)
-    if category:
-        query = query.filter(MarketSkillStats.category == category)
-        
-    trends = query.order_by(MarketSkillStats.growth_rate_30d.desc()).limit(limit).all()
+    """Lấy xu hướng kỹ năng thị trường theo ngày/tuần/tháng."""
+    from services.analysis_service.market_fit_service import get_market_trends
+    trends_data = await get_market_trends(db, period=period)
     
-    return [
-        {
-            "skill": t.skill_name,
-            "category": t.category,
-            "avg_salary": (t.avg_salary_min + t.avg_salary_max) / 2 if t.avg_salary_min else 0,
-            "growth": round(t.growth_rate_30d * 100, 1),
-            "demand_score": t.demand_score,
-            "job_count": t.job_count_30d
-        }
-        for t in trends
-    ]
+    # Slice results by limit
+    trends_data["trends"] = trends_data["trends"][:limit]
+    return trends_data
+
 
 
 @app.get("/analysis/skill-value")

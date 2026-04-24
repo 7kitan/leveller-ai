@@ -33,4 +33,14 @@ def parse_cv(self, user_id: str, cv_id: str, file_path: str):
         f"  user_id={user_id} | cv_id={cv_id} | file_path={file_path}\n"
         f"  This task does nothing. Set USE_LLM_GAP_AGENT_V3=true to use v3 pipeline."
     )
+    
+    # ── Cleanup physical file even for deprecated task ─────────────────────
+    import os
+    if file_path and os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+            logger.info(f"[LEGACY] ✓ Deleted CV file: {file_path}")
+        except Exception as e:
+            logger.warning(f"[LEGACY] ⚠ Failed to delete CV file {file_path}: {e}")
+
     return {"status": "deprecated", "message": "Use v3 pipeline instead"}

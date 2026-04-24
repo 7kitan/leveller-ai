@@ -4,7 +4,7 @@ gap_v3 Roadmap + Finalize nodes.
 
 import logging
 import json as _json
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from ..states import GapAnalysisStateV3
 
@@ -35,6 +35,7 @@ async def roadmap_synthesis_node(state: GapAnalysisStateV3) -> GapAnalysisStateV
 async def _llm_build_roadmap(
     gaps_str: str,
     courses_str: str,
+    user_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """Gọi LLM để tạo career roadmap JSON."""
     from ..utils.llm_helpers import llm_json_completion
@@ -57,6 +58,7 @@ async def _llm_build_roadmap(
     result = await llm_json_completion(
         prompt=prompt,
         call_name="build_roadmap",
+        user_id=user_id
     )
     return result or {}
 

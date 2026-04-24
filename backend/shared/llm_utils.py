@@ -214,9 +214,22 @@ def truncate_for_prompt(text: str, max_chars: int = 4000) -> str:
     if len(text) <= max_chars: return text
     return text[:max_chars] + "... [TRUNCATED]"
 
+def clean_json_response(response: str) -> str:
+    """
+    SECURITY & STABILITY: Loại bỏ markdown code blocks từ LLM response.
+    Đảm bảo json.loads() có thể parse được kể cả khi LLM bao bọc trong ```json.
+    """
+    if not response:
+        return ""
+    # Remove ```json ... ``` or ``` ... ```
+    import re
+    cleaned = re.sub(r'^```(?:json)?\s*', '', response, flags=re.MULTILINE)
+    cleaned = re.sub(r'\s*```$', '', cleaned, flags=re.MULTILINE)
+    return cleaned.strip()
+
 # ─── Skill Extraction ────────────────────────────────────────────────────────
 
-def extract_skills_from_requirements(requirements_text: str, model_key: str = "ai_model") -> Optional[List[Dict[str, Any]]]:
+def extract_skills_from_requirements(requirements_text: str, model_key: str = "ai_model", user_id: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
     """
     Extract structured skills from job requirements text using LLM.
     
@@ -275,16 +288,18 @@ Important:
             system_prompt=system_prompt,
             json_mode=True,
             model_key=model_key,
-            call_name="extract_skills"
+            call_name="extract_skills",
+            user_id=user_id
         )
         
         if not response:
             logger.error("[SKILL EXTRACT] No response from LLM")
             return None
         
-        # Parse JSON response
+        # Parse JSON response with cleaning
         import json
-        skills = json.loads(response)
+        cleaned_response = clean_json_response(response)
+        skills = json.loads(cleaned_response)
         
         if not isinstance(skills, list):
             logger.error(f"[SKILL EXTRACT] Expected list, got {type(skills)}")

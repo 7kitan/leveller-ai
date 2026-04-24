@@ -502,7 +502,7 @@ const UserRecommendPage = () => {
             </div>
 
             {/* Growth Forecast */}
-            {(gapResult.potential_match_pct || gapResult.salary_growth_pct) && (
+            {(!!gapResult.potential_match_pct || !!gapResult.salary_growth_pct) && (
               <div className={styles.growthForecast}>
                 <div className={styles.growthItem}>
                   <div className={styles.growthLabel}>
@@ -615,6 +615,97 @@ const UserRecommendPage = () => {
         {/* ── Tab: Skill Gaps ────────────────────────────────────────────── */}
         {activeTab === "gaps" && (
           <div className={styles.gapGrid}>
+            {skill_gaps.length > 0 && (
+              <div className={styles.impactChartSection} style={{ gridColumn: '1 / -1' }}>
+                <div className={styles.impactChartHeader}>
+                  <h3 className={styles.impactChartTitle}>
+                    <BarChart3 size={18} />
+                    Phân tích tác động kỹ năng
+                  </h3>
+                </div>
+                <div className={styles.impactChartContainer}>
+                  <ReactECharts
+                    option={{
+                      tooltip: {
+                        trigger: 'axis',
+                        axisPointer: { type: 'shadow' },
+                        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                        borderColor: '#4f46e5',
+                        borderWidth: 1,
+                        textStyle: { color: '#fff' }
+                      },
+                      legend: {
+                        data: ['Match Impact (%)', 'Salary Impact (%)'],
+                        textStyle: { color: 'rgba(255, 255, 255, 0.6)', fontSize: 10 },
+                        top: 0
+                      },
+                      grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        top: '40px',
+                        containLabel: true
+                      },
+                      xAxis: {
+                        type: 'value',
+                        axisLabel: { color: 'rgba(255, 255, 255, 0.4)', fontSize: 10 },
+                        splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.05)' } }
+                      },
+                      yAxis: {
+                        type: 'category',
+                        data: skill_gaps.map(g => g.skill).reverse(),
+                        axisLabel: { 
+                          color: '#fff', 
+                          fontSize: 11,
+                          width: 100,
+                          overflow: 'truncate'
+                        },
+                        axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } }
+                      },
+                      series: [
+                        {
+                          name: 'Match Impact (%)',
+                          type: 'bar',
+                          data: skill_gaps.map(g => g.match_impact || 0).reverse(),
+                          itemStyle: {
+                            color: {
+                              type: 'linear',
+                              x: 0, y: 0, x2: 1, y2: 0,
+                              colorStops: [
+                                { offset: 0, color: '#4f46e5' },
+                                { offset: 1, color: '#0ea5e9' }
+                              ]
+                            },
+                            borderRadius: [0, 4, 4, 0]
+                          },
+                          barWidth: '30%'
+                        },
+                        {
+                          name: 'Salary Impact (%)',
+                          type: 'bar',
+                          data: skill_gaps.map(g => g.salary_impact || 0).reverse(),
+                          itemStyle: {
+                            color: {
+                              type: 'linear',
+                              x: 0, y: 0, x2: 1, y2: 0,
+                              colorStops: [
+                                { offset: 0, color: '#10b981' },
+                                { offset: 1, color: '#34d399' }
+                              ]
+                            },
+                            borderRadius: [0, 4, 4, 0]
+                          },
+                          barWidth: '30%'
+                        }
+                      ]
+                    }}
+                    style={{ height: '100%', width: '100%' }}
+                    opts={{ renderer: 'svg' }}
+                  />
+                </div>
+              </div>
+            )}
+            
             {skill_gaps.length === 0 ? (
               <div className={styles.emptySection}>
                 <CheckCircle2 size={40} className={styles.emptyIcon} />
@@ -658,15 +749,15 @@ const UserRecommendPage = () => {
                   </div>
 
                   {/* Impact Values - NEW */}
-                  {(gap.match_impact || gap.salary_impact) && (
+                  {(!!gap.match_impact || !!gap.salary_impact) && (
                     <div className={styles.gapImpact}>
-                      {gap.match_impact && (
+                      {!!gap.match_impact && (
                         <span className={styles.impactBadge} style={{ background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
                           <Target size={12} />
                           +{gap.match_impact}% match
                         </span>
                       )}
-                      {gap.salary_impact && (
+                      {!!gap.salary_impact && (
                         <span className={styles.impactBadge} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
                           <TrendingUp size={12} />
                           +{gap.salary_impact}% salary

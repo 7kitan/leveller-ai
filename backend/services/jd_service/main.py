@@ -75,7 +75,7 @@ class JobResponse(BaseModel):
     remote_friendly: bool
     source_label: Optional[str]
     created_at: Optional[datetime]
-    raw_text: Optional[str] = None
+    source_url: Optional[str] = None
     job_description: Optional[str] = None
     requirements: Optional[str] = None
     benefits: Optional[str] = None
@@ -121,7 +121,7 @@ def _job_to_response(job: Job, similarity: float = None) -> dict:
         "remote_friendly": job.remote_friendly,
         "source_label": job.source_label,
         "created_at": job.created_at,
-        "raw_text": job.raw_text,
+        "source_url": job.source_url,
         "similarity": similarity,
     }
 

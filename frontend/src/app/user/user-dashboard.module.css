@@ -140,7 +140,7 @@
 }
 
 @media (min-width: 1024px) {
-  .trendsCard { grid-column: span 4; }
+  .trendsCard { grid-column: span 12; }
   .statsSection { grid-column: span 8; }
   /* Adjust CV section to fit if needed, but currently it's span 4 + 8 = 12. 
      If we add another card, we might need a new row or adjust spans.
@@ -322,23 +322,63 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-sm);
+  transition: transform 0.3s var(--ease-premium);
 }
 
-.progressBar {
-  width: 100%;
-  height: 6px;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 999px;
+.trendItem:hover {
+  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.barChartContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.barRow {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.barLabel {
+  width: 8rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-[data-theme="dark"] .progressBar { background: rgba(255, 255, 255, 0.05); }
+.barWrapper {
+  flex: 1;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 99px;
+  overflow: hidden;
+  position: relative;
+}
 
-.progressFill {
+[data-theme="dark"] .barWrapper { background: rgba(255, 255, 255, 0.05); }
+
+.barFill {
   height: 100%;
   background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary));
-  border-radius: 9999px;
-  transition: width 1s var(--ease-premium);
+  border-radius: 99px;
+  transition: width 1.5s var(--ease-premium);
+}
+
+.barValue {
+  width: 3rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--color-accent-primary);
+  text-align: right;
 }
 
 .trendSkillInfo {
@@ -359,6 +399,62 @@
   background: rgba(16, 185, 129, 0.05);
   padding: 0.25rem 0.5rem;
   border-radius: 0.5rem;
+}
+
+.trendGrowthBadge.negative {
+  color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+/* Period Selector */
+.periodSelector {
+  display: flex;
+  background: var(--color-border-subtle);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.periodBtn {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  transition: all 0.2s;
+}
+
+.periodBtn.active {
+  background: var(--color-panel-bg);
+  color: var(--color-accent-primary);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Sparkline */
+.sparkline {
+  margin-top: 0.5rem;
+  height: 24px;
+  width: 100%;
+}
+
+.trendHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.topGainerBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-success);
+  margin-bottom: 1.5rem;
 }
 
 /* Vertical Stack */

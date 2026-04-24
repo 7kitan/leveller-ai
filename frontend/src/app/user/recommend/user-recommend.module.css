@@ -1927,3 +1927,42 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ── Impact Chart ────────────────────────────────────────────────────── */
+.impactChartSection {
+  margin-bottom: 3rem;
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+}
+
+.impactChartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.impactChartTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.impactChartContainer {
+  height: 350px;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .impactChartContainer {
+    height: 400px;
+  }
+}

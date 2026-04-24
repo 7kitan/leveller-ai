@@ -25,56 +25,17 @@ interface Job {
   employment_type?: string;
   source_label?: string;
   created_at?: string;
-  raw_text?: string;
+  source_url?: string;
   job_description?: string;
   requirements?: string;
   benefits?: string;
 }
 
 function FormattedText({ text }: { text: string }) {
-  const lines = text.split('\n').filter(line => line.trim());
-  
-  const formatLine = (line: string, index: number) => {
-    const trimmed = line.trim();
-    
-    // Check if it's a bullet point (-, *, •, or numbered list)
-    const bulletMatch = trimmed.match(/^[-*•]\s+(.+)$/);
-    const numberedMatch = trimmed.match(/^(\d+)[.)]\s+(.+)$/);
-    
-    if (bulletMatch) {
-      return (
-        <div key={index} className={styles.bulletItem}>
-          <span className={styles.bulletDot}>•</span>
-          <span>{bulletMatch[1]}</span>
-        </div>
-      );
-    }
-    
-    if (numberedMatch) {
-      return (
-        <div key={index} className={styles.bulletItem}>
-          <span className={styles.bulletNumber}>{numberedMatch[1]}.</span>
-          <span>{numberedMatch[2]}</span>
-        </div>
-      );
-    }
-    
-    // Check if it's a section header (all caps or ends with :)
-    if (trimmed === trimmed.toUpperCase() && trimmed.length < 100 && trimmed.length > 3) {
-      return <div key={index} className={styles.sectionHeader}>{trimmed}</div>;
-    }
-    
-    if (trimmed.endsWith(':') && trimmed.length < 100) {
-      return <div key={index} className={styles.sectionHeader}>{trimmed}</div>;
-    }
-    
-    // Regular paragraph
-    return <p key={index} className={styles.paragraph}>{trimmed}</p>;
-  };
-  
+  if (!text) return null;
   return (
-    <div className={styles.formattedContent}>
-      {lines.map((line, index) => formatLine(line, index))}
+    <div className={styles.formattedContent} style={{ whiteSpace: 'pre-wrap' }}>
+      {text}
     </div>
   );
 }
@@ -321,18 +282,8 @@ export default function JobsPage() {
               </div>
             )}
 
-            {/* Fallback to raw_text if no structured data */}
-            {!selectedJob.job_description && !selectedJob.requirements && !selectedJob.benefits && selectedJob.raw_text && (
-              <div className={styles.modalSection}>
-                <div className={styles.modalSectionLabel}>{t("job_description") || "Chi tiết công việc"}</div>
-                <div className={styles.modalDescription}>
-                  <FormattedText text={selectedJob.raw_text} />
-                </div>
-              </div>
-            )}
-
-            {/* No data at all */}
-            {!selectedJob.job_description && !selectedJob.requirements && !selectedJob.benefits && !selectedJob.raw_text && (
+            {/* No structured data available */}
+            {!selectedJob.job_description && !selectedJob.requirements && !selectedJob.benefits && (
               <div className={styles.modalSection}>
                 <div className={styles.modalDescription} style={{ opacity: 0.6, fontStyle: 'italic' }}>
                   {t("no_description_available") || "Không có thông tin chi tiết."}
@@ -351,6 +302,16 @@ export default function JobsPage() {
                 >
                     {t("jobs_run_analysis")} <Sparkles size={16} />
                 </Link>
+                {selectedJob.source_url && (
+                    <a 
+                        href={selectedJob.source_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={styles.modalSourceBtn}
+                    >
+                        {t("view_original") || "Xem bản gốc"} <Briefcase size={16} />
+                    </a>
+                )}
             </div>
           </div>
         )}

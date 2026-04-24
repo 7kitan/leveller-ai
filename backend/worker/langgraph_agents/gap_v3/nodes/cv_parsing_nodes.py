@@ -68,6 +68,23 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
         f"existing raw_text len={len(cv_record.raw_text or '')}"
     )
 
+    # ── Locate CV file on disk ───────────────────────────────────────────────
+    file_id = getattr(cv_record, "file_id", None) or cv_id_str
+    upload_dir = os.getenv("CV_UPLOAD_DIR", "data/cv_uploads")
+    
+    # Strategy Detection
+    strategy = config_manager.get_setting("cv_parser_strategy", default="direct").lower()
+    logger.info(f"[STEP 1] Selected Strategy: {strategy.upper()}")
+
+    # Robust File Discovery
+    file_path = None
+    if os.path.exists(upload_dir):
+        for f_name in os.listdir(upload_dir):
+            if f_name.startswith(f"{file_id}."):
+                file_path = os.path.join(upload_dir, f_name)
+                logger.info(f"[STEP 1] ✓ File DISCOVERED on disk: {file_path}")
+                break
+    
     # ── Cache hit: raw_text đã có trong DB ──────────────────────────────────
     if cv_record.raw_text and len(cv_record.raw_text) > 100:
         logger.info(
@@ -79,30 +96,13 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
             "raw_text": cv_record.raw_text,
             "is_ocr": getattr(cv_record, "is_ocr", False),
             "status": "text_extracted",
+            "file_path": file_path,
         }
-
+    
     logger.info("[STEP 1] CACHE MISS — extracting text from file...")
-
-    # ── Locate CV file on disk ───────────────────────────────────────────────
+    
     try:
         import fitz  # pymupdf
-
-        file_id = getattr(cv_record, "file_id", None) or cv_id_str
-        upload_dir = os.getenv("CV_UPLOAD_DIR", "data/cv_uploads")
-        
-        # Strategy Detection
-        strategy = config_manager.get_setting("cv_parser_strategy", default="direct").lower()
-        logger.info(f"[STEP 1] Selected Strategy: {strategy.upper()}")
-
-        # Robust File Discovery
-        file_path = None
-        # Try finding the file by ID in the upload directory regardless of extension
-        if os.path.exists(upload_dir):
-            for f_name in os.listdir(upload_dir):
-                if f_name.startswith(f"{file_id}."):
-                    file_path = os.path.join(upload_dir, f_name)
-                    logger.info(f"[STEP 1] ✓ File DISCOVERED on disk: {file_path}")
-                    break
         
         if not file_path:
             logger.error(f"[STEP 1] FILE NOT FOUND on disk starting with: {file_id}")
@@ -138,6 +138,7 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
                 "raw_text": raw_text,
                 "is_ocr": is_ocr,
                 "status": "text_extracted",
+                "file_path": file_path,
             }
         else:
             logger.warning(
@@ -345,8 +346,7 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
           "position": "Title",
           "company": "Company Name",
           "duration_years": 0.0,
-          "description": "Short description in English",
-          "skills_used": ["Skill A", "Skill B"]
+          "description": "Short description in English"
         }}
       ],
       "education": [
@@ -371,7 +371,13 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
         f"input chars={len(prompt)} | is_ocr={is_ocr}"
     )
     t_llm = __import__("time").monotonic()
-    result = await llm_json_completion(prompt, context=f"is_ocr={is_ocr}", model_key="cv_parsing_model")
+    user_id = state.get("user_id")
+    result = await llm_json_completion(
+        prompt, 
+        context=f"is_ocr={is_ocr}", 
+        model_key="cv_parsing_model",
+        user_id=user_id
+    )
     elapsed_llm = __import__("time").monotonic() - t_llm
     logger.info(
         f"[STEP 2] LLM returned in {elapsed_llm:.1f}s | result keys={list(result.keys()) if result else 'EMPTY'}"

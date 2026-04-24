@@ -150,7 +150,8 @@ def extract_and_save_job_skills(
     db: Session,
     job: Job,
     model_key: str = "ai_model",
-    commit: bool = True
+    commit: bool = True,
+    user_id: Optional[str] = None
 ) -> Optional[int]:
     """
     Complete workflow: Extract skills from job requirements and save to database.
@@ -173,7 +174,8 @@ def extract_and_save_job_skills(
     # Step 1: Extract skills using LLM
     extracted_skills = extract_skills_from_requirements(
         job.requirements,
-        model_key=model_key
+        model_key=model_key,
+        user_id=user_id
     )
     
     if not extracted_skills:

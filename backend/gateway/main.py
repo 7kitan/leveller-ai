@@ -3,6 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 import httpx
 import os
 from gateway.auth_middleware import auth_middleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.storage import RedisStorage
+from shared.redis_client import REDIS_HOST, REDIS_PORT, REDIS_PASSWORD
 
 app = FastAPI(title="AI Career Advisor Gateway")
 
@@ -19,6 +24,30 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Initialize Limiter with Redis Storage
+redis_url = f"redis://{f':{REDIS_PASSWORD}@' if REDIS_PASSWORD else ''}{REDIS_HOST}:{REDIS_PORT}/0"
+storage = RedisStorage(redis_url)
+limiter = Limiter(key_func=get_remote_address, storage=storage)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+def get_dynamic_limit(request: Request):
+    """Xác định hạn mức dựa trên URL path."""
+    path = request.url.path
+    
+    # 1. Các API polling hoặc kiểm tra trạng thái (Status/Polling) -> Hạn mức cao
+    if any(p in path for p in ["/status", "/polling", "/health", "/analysis/status"]):
+        return "120/minute"
+    
+    # 2. Kiểm tra nếu là user đã login (đã qua middleware và inject request.state.user)
+    # Tuy nhiên slowapi decorator chạy trước middleware hoặc độc lập, nên ta dựa vào Header
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.lower().startswith("bearer "):
+        return "100/minute"
+    
+    # 3. Mặc định cho Public APIs
+    return "30/minute"
 
 # Thêm Auth Middleware
 @app.middleware("http")
@@ -39,6 +68,7 @@ SERVICES = {
 client = httpx.AsyncClient()
 
 @app.api_route("/{service_name}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
+@limiter.limit(get_dynamic_limit)
 async def proxy(service_name: str, path: str, request: Request):
     # Handle /api prefix if present (strip it and shift service_name/path)
     if service_name == "api":

@@ -24,6 +24,10 @@ import styles from "./user-dashboard.module.css";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import CourseCard from "@/components/user/CourseCard";
+import { 
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, 
+  CartesianGrid, Tooltip as RechartsTooltip, Cell, Legend
+} from "recharts";
 
 const icons = [BowArrow, AppWindow, Layers, Rocket, Network];
 
@@ -42,12 +46,14 @@ const UserDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const [period, setPeriod] = useState("month");
+
   useEffect(() => {
     if (!token) return;
     const fetchData = async () => {
       try {
         const [marketRes, latestRes] = await Promise.all([
-          axios.get("/api/analysis/market-fit", { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get(`/api/analysis/market-fit?period=${period}`, { headers: { Authorization: `Bearer ${token}` } }),
           axios.get("/api/analysis/user/latest", { headers: { Authorization: `Bearer ${token}` } }),
         ]);
         setMarketData(marketRes.data);
@@ -59,7 +65,7 @@ const UserDashboard = () => {
       }
     };
     fetchData();
-  }, [token]);
+  }, [token, period]);
 
   interface JobCard {
     id: number;
@@ -69,6 +75,33 @@ const UserDashboard = () => {
     match: string;
     skills: string[];
   }
+
+  const Sparkline = ({ data }: { data: any[] }) => {
+    if (!data || data.length < 2) return null;
+    const maxDemand = Math.max(...data.map(d => d.demand)) || 100;
+    const minDemand = Math.min(...data.map(d => d.demand)) || 0;
+    const range = maxDemand - minDemand || 1;
+    
+    const points = data.map((d, i) => {
+      const x = (i / (data.length - 1)) * 100;
+      const y = 100 - ((d.demand - minDemand) / range) * 80 - 10; // 10% padding
+      return `${x},${y}`;
+    }).join(" ");
+
+    return (
+      <svg className={styles.sparkline} viewBox="0 0 100 100" preserveAspectRatio="none">
+        <polyline
+          fill="none"
+          stroke="var(--color-accent-primary)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          points={points}
+          style={{ opacity: 0.6 }}
+        />
+      </svg>
+    );
+  };
 
   // Map API courses to job card format
   const rawCourses = marketData?.courses?.length > 0 
@@ -217,35 +250,115 @@ const UserDashboard = () => {
             </div>
           </div>
 
-          {/* Market Trends Section */}
           <div className={cn(styles.card, styles.trendsCard)}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div className={styles.trendHeader}>
               <h3 className="text-subheading">{t("dash_market_trends")}</h3>
-              <Sparkles size={20} className="text-accent" />
+              <div className={styles.periodSelector}>
+                {['day', 'week', 'month'].map((p) => (
+                  <button 
+                    key={p} 
+                    className={cn(styles.periodBtn, period === p && styles.active)}
+                    onClick={() => setPeriod(p)}
+                  >
+                    {p === 'day' ? '24h' : p === 'week' ? '7d' : '30d'}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className={styles.trendsList}>
-              {(marketData?.top_trending_skills || []).length > 0 ? (
-                (marketData.top_trending_skills).map((skill: any) => (
-                  <div key={skill.name} className={styles.trendItem}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div className={styles.trendSkillInfo}>
-                        <span className="font-label">{skill.name}</span>
-                        <span className={styles.trendSalary}>
-                          ~{(skill.growth * 2 + 20).toFixed(0)}M VND
-                        </span>
-                      </div>
-                      <span className={styles.trendGrowthBadge}>
-                        +{skill.growth}%
-                      </span>
-                    </div>
-                    <div className={styles.progressBar}>
-                      <div 
-                        className={styles.progressFill} 
-                        style={{ width: `${skill.demand}%` }} 
-                      />
-                    </div>
-                  </div>
-                ))
+
+            {marketData?.market_trends?.summary?.top_gainer && (
+              <div className={styles.topGainerBadge}>
+                <TrendingUp size={14} />
+                <span>Xu hướng tăng mạnh: <strong>{marketData.market_trends.summary.top_gainer}</strong></span>
+              </div>
+            )}
+            <div className={styles.barChartContainer} style={{ height: '400px', width: '100%', marginTop: '2rem' }}>
+              {(marketData?.market_trends?.trends || []).length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart 
+                    data={(() => {
+                      const trends = marketData.market_trends.trends.slice(0, 5);
+                      // Pivot data for Recharts: array of { date, skillA, skillB, ... }
+                      const dates = Array.from(new Set(trends.flatMap((t: any) => (t.history || []).map((h: any) => h.date)))).sort();
+                      return dates.map(date => {
+                        const entry: any = { date };
+                        trends.forEach((t: any) => {
+                          const h = (t.history || []).find((hi: any) => hi.date === date);
+                          if (h) entry[t.name] = h.demand;
+                        });
+                        return entry;
+                      });
+                    })()} 
+                    margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
+                  >
+                    <defs>
+                      {[
+                        { id: 'Emerald', color: '#10b981' },
+                        { id: 'Indigo', color: '#6366f1' },
+                        { id: 'Amber', color: '#f59e0b' },
+                        { id: 'Sky', color: '#0ea5e9' },
+                        { id: 'Pink', color: '#ec4899' }
+                      ].map(g => (
+                        <linearGradient key={g.id} id={`color${g.id}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={g.color} stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor={g.color} stopOpacity={0}/>
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                    <XAxis 
+                      dataKey="date" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 'bold' }}
+                      minTickGap={40}
+                    />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 'bold' }}
+                    />
+                    <Legend 
+                      verticalAlign="top" 
+                      align="right" 
+                      height={36} 
+                      iconType="circle"
+                      wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.8 }}
+                    />
+                    <RechartsTooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'rgba(0,0,0,0.85)', 
+                        borderRadius: '16px', 
+                        border: 'none',
+                        backdropFilter: 'blur(10px)',
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+                        color: '#fff'
+                      }}
+                    />
+                    {(marketData.market_trends.trends || []).slice(0, 5).map((skill: any, idx: number) => {
+                      const palettes = [
+                        { id: 'Emerald', color: '#10b981' },
+                        { id: 'Indigo', color: '#6366f1' },
+                        { id: 'Amber', color: '#f59e0b' },
+                        { id: 'Sky', color: '#0ea5e9' },
+                        { id: 'Pink', color: '#ec4899' }
+                      ];
+                      const p = palettes[idx % palettes.length];
+                      return (
+                        <Area 
+                          key={skill.name}
+                          type="monotone" 
+                          dataKey={skill.name} 
+                          stroke={p.color} 
+                          strokeWidth={3}
+                          fillOpacity={1} 
+                          fill={`url(#color${p.id})`} 
+                          animationDuration={1500}
+                        />
+                      );
+                    })}
+                  </AreaChart>
+                </ResponsiveContainer>
               ) : (
                 <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: 0.5 }}>
                   <p>{t("loading")}...</p>

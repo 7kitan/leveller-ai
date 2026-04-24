@@ -163,7 +163,7 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
         logger.info(f"[GRAPH START] Invoking cv_parsing_pipeline | cv_id={cv_id}")
         t_graph = time.monotonic()
         result = loop.run_until_complete(
-            run_cv_parsing_pipeline(cv_id=cv_id, user_id=user_id or "", db=db)
+            run_cv_parsing_pipeline(cv_id=cv_id, user_id=user_id, db=db)
         )
         graph_elapsed = time.monotonic() - t_graph
 
@@ -187,6 +187,17 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
                 f"  graph time     : {graph_elapsed:.1f}s\n" + "=" * 60
             )
             self._update_cv_status(cv_id, status="completed", error_msg="")
+
+            # ── Step 3: Cleanup physical file ────────────────────────────────
+            import os
+            f_path = result.get("file_path")
+            if f_path and os.path.exists(f_path):
+                try:
+                    os.remove(f_path)
+                    logger.info(f"[TASK] ✓ Deleted CV file after successful parse: {f_path}")
+                except Exception as e:
+                    logger.warning(f"[TASK] ⚠ Failed to delete CV file {f_path}: {e}")
+
             return result
 
         else:
