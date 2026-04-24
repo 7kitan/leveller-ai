@@ -1057,6 +1057,44 @@ async def admin_get_llm_stats(request: Request, db: Session = Depends(get_db)):
     }
 
 
+@app.get("/analysis/admin/llm-usage-series")
+async def admin_get_llm_usage_series(
+    request: Request, 
+    period: str = Query("day", regex="^(day|hour)$"),
+    days: int = Query(7, ge=1, le=30),
+    db: Session = Depends(get_db)
+):
+    """Admin only: Lấy chuỗi dữ liệu sử dụng LLM theo thời gian."""
+    check_admin(request)
+    from shared.models import LLMLog
+    from datetime import timedelta
+    
+    start_date = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    if period == "hour":
+        time_func = func.date_trunc('hour', LLMLog.created_at)
+    else:
+        time_func = func.date_trunc('day', LLMLog.created_at)
+        
+    usage = db.query(
+        time_func.label("timestamp"),
+        func.sum(LLMLog.total_tokens).label("tokens"),
+        func.count(LLMLog.id).label("calls")
+    ).filter(LLMLog.created_at >= start_date)\
+     .group_by("timestamp")\
+     .order_by("timestamp")\
+     .all()
+     
+    return [
+        {
+            "timestamp": u.timestamp.isoformat(),
+            "tokens": int(u.tokens or 0),
+            "calls": u.calls
+        }
+        for u in usage
+    ]
+
+
 @app.get("/analysis/admin/stats")
 async def admin_get_stats(request: Request, db: Session = Depends(get_db)):
     """Admin only: Lấy thống kê tổng quan hệ thống."""

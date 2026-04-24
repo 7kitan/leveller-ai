@@ -20,28 +20,39 @@ import {
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
 import styles from "../admin-dashboard.module.css";
+import { 
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, 
+  CartesianGrid, Tooltip, BarChart, Bar 
+} from "recharts";
+import { format } from "date-fns";
 
 const AIUsagePage = () => {
   const { token } = useAuth();
   const { t } = useLanguage();
   const [stats, setStats] = useState<any>(null);
   const [logs, setLogs] = useState<any[]>([]);
+  const [usageSeries, setUsageSeries] = useState<any[]>([]);
+  const [period, setPeriod] = useState<'day' | 'hour'>('day');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = async () => {
     setRefreshing(true);
     try {
-      const [statsRes, logsRes] = await Promise.all([
+      const [statsRes, logsRes, seriesRes] = await Promise.all([
         axios.get("/api/analysis/admin/llm-stats", {
           headers: { Authorization: `Bearer ${token}` }
         }),
         axios.get("/api/analysis/admin/llm-logs?limit=20", {
           headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`/api/analysis/admin/llm-usage-series?period=${period}`, {
+          headers: { Authorization: `Bearer ${token}` }
         })
       ]);
       setStats(statsRes.data);
       setLogs(logsRes.data.items);
+      setUsageSeries(seriesRes.data);
     } catch (err) {
       console.error("Fetch AI usage error:", err);
     } finally {
@@ -52,7 +63,7 @@ const AIUsagePage = () => {
 
   useEffect(() => {
     if (token) fetchData();
-  }, [token]);
+  }, [token, period]);
 
   if (loading) {
     return (
@@ -113,6 +124,88 @@ const AIUsagePage = () => {
             icon={BarChart3} 
             color="#ec4899" 
           />
+        </div>
+
+        {/* Chart Section */}
+        <div className={cn(styles.statCard, "p-8 mb-8")}>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+            <h2 className="text-2xl font-extrabold flex items-center gap-3 text-[var(--color-text-main)]">
+              <BarChart3 size={28} className="text-emerald-500" /> Usage Trends
+            </h2>
+            <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+              <button 
+                onClick={() => setPeriod('hour')}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-xs font-bold transition-all",
+                  period === 'hour' ? "bg-emerald-500 text-white shadow-lg" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]"
+                )}
+              >
+                Hourly
+              </button>
+              <button 
+                onClick={() => setPeriod('day')}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-xs font-bold transition-all",
+                  period === 'day' ? "bg-emerald-500 text-white shadow-lg" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]"
+                )}
+              >
+                Daily
+              </button>
+            </div>
+          </div>
+
+          <div className="h-[350px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={usageSeries} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorTokens" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                <XAxis 
+                  dataKey="timestamp" 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 'bold' }}
+                  tickFormatter={(val) => {
+                    const date = new Date(val);
+                    return period === 'hour' ? format(date, 'HH:mm') : format(date, 'dd/MM');
+                  }}
+                  minTickGap={30}
+                />
+                <YAxis 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 'bold' }}
+                  tickFormatter={(val) => val >= 1000 ? `${(val/1000).toFixed(1)}k` : val}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(0,0,0,0.8)', 
+                    borderRadius: '16px', 
+                    border: 'none',
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+                    color: '#fff'
+                  }}
+                  itemStyle={{ color: '#10b981' }}
+                  labelStyle={{ marginBottom: '8px', fontWeight: 'bold', color: '#888' }}
+                  labelFormatter={(val) => format(new Date(val), period === 'hour' ? 'PPP HH:mm' : 'PPP')}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="tokens" 
+                  stroke="#10b981" 
+                  strokeWidth={4}
+                  fillOpacity={1} 
+                  fill="url(#colorTokens)" 
+                  animationDuration={1500}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         <div className={styles.moduleGrid}>
