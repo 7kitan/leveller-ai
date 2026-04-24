@@ -7,8 +7,6 @@ import {
   Cpu,
   GraduationCap,
   ChevronRight,
-  Menu,
-  X,
   Upload,
   Sparkles,
   TrendingUp,
@@ -17,218 +15,23 @@ import {
   Mail
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/context/LanguageContext";
+import LandingNavbar from "@/components/landing/LandingNavbar";
 
 import styles from "./landing.module.css";
-
-/* ========================================
- * ANIMATION CONFIGURATIONS
- * Extracted for easier tweaking and editing
- * ======================================== */
-
-const NAV_ANIMATION = {
-  duration: 0.4,
-  ease: [0.32, 0.72, 0, 1] as [number, number, number, number]
-};
-
-const MOBILE_MENU_OPEN = {
-  height: "auto" as const,
-  opacity: 1, 
-  transition: { 
-    height: { duration: 0.5 },
-    staggerChildren: 0.08,
-    delayChildren: 0.1
-  } 
-};
-
-const MOBILE_MENU_CLOSED = { 
-  height: 0,
-  opacity: 0,
-  transition: { 
-    height: { duration: 0.4, ease: [0.32, 0.72, 0, 1] },
-    opacity: { duration: 0.3 },
-    staggerChildren: 0.03,
-    staggerDirection: -1
-  }
-};
-
-const ICON_ANIMATION = {
-  duration: 0.4,
-  ease: [0.16, 1, 0.3, 1] as [number, number, number, number]
-};
-
-/* ========================================
- * HELPER FUNCTIONS
- * ======================================== */
-
-function getNavBackground(isOpen: boolean) {
-  return isOpen ? "rgba(255, 255, 255, 1)" : "rgba(255, 255, 255, 0.8)";
-}
-
-function getNavBorderRadius(isOpen: boolean) {
-  return isOpen ? "28px" : "980px";
-}
-
-function getNavPadding(isOpen: boolean) {
-  return isOpen ? "20px" : "0px";
-}
-
-function getNavShadow(isOpen: boolean) {
-  return isOpen ? "0 20px 40px rgba(0, 0, 0, 0.1)" : "0 8px 32px rgba(0, 0, 0, 0.08)";
-}
-
-/* ========================================
- * NAVIGATION COMPONENT
- * Broken out for clarity
- * ======================================== */
-
-function GlassNavbar({ 
-  isOpen, 
-  onToggle,
-  navRef 
-}: { 
-  isOpen: boolean; 
-  onToggle: () => void;
-  navRef: React.RefObject<HTMLElement>;
-}) {
-  const navAnimation = {
-    backgroundColor: getNavBackground(isOpen),
-    borderRadius: getNavBorderRadius(isOpen),
-    paddingBottom: getNavPadding(isOpen),
-    boxShadow: getNavShadow(isOpen)
-  };
-
-  return (
-    <motion.nav 
-      ref={navRef}
-      className={styles.navWrapper}
-      layout
-      initial={false}
-      animate={navAnimation}
-      transition={{ duration: NAV_ANIMATION.duration, ease: NAV_ANIMATION.ease }}
-    >
-      <div className={styles.nav}>
-        <Link href="/" className={styles.navLogo}>LUMIX AI</Link>
-        
-        {/* Desktop Links */}
-        <div className={styles.navLinks}>
-          <Link href="#features">Tính năng</Link>
-          <Link href="#philosophy">Tầm nhìn</Link>
-          <Link href="/auth/login" className={styles.navCta}>Hội viên</Link>
-        </div>
-
-        {/* Mobile Toggle */}
-        <div className={styles.navRight}>
-          <button 
-            className={styles.mobileToggle} 
-            onClick={onToggle}
-            aria-label="Toggle menu"
-          >
-            <motion.div
-              animate={{ rotate: isOpen ? 90 : 0 }}
-              transition={{ duration: ICON_ANIMATION.duration, ease: ICON_ANIMATION.ease }}
-              style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={isOpen ? "close" : "menu"}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {isOpen ? <X size={24} /> : <Menu size={24} />}
-                </motion.div>
-              </AnimatePresence>
-            </motion.div>
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div 
-            className={styles.mobileMenu}
-            initial="closed"
-            animate="open"
-            exit="closed"
-            variants={{
-              open: MOBILE_MENU_OPEN,
-              closed: MOBILE_MENU_CLOSED
-            }}
-            style={{ overflow: "hidden" }}
-          >
-            <div className={styles.mobileLinks}>
-              {[
-                { href: "#features", label: "Tính năng" },
-                { href: "#philosophy", label: "Tầm nhìn" },
-                { href: "/auth/login", label: "Hội viên", isCta: true }
-              ].map((link) => (
-                <motion.div
-                  key={link.href}
-                  variants={{
-                    open: { opacity: 1, y: 0 },
-                    closed: { opacity: 0, y: -10 }
-                  }}
-                  transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                >
-                  <Link 
-                    href={link.href} 
-                    className={link.isCta ? styles.mobileCta : ""} 
-                    onClick={() => onToggle()}
-                  >
-                    {link.label}
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
-      {/* Backdrop */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            className={styles.mobileBackdrop}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            onClick={() => onToggle()}
-          />
-        )}
-      </AnimatePresence>
-    </motion.nav>
-  );
-}
 
 /* ========================================
  * MAIN PAGE COMPONENT
  * ======================================== */
 
 export default function LandingPage() {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const [language, setLanguage] = React.useState<'vi' | 'en'>('vi');
-  const navRef = React.useRef<HTMLElement>(null);
-
-  // Toggle language
-  const toggleLanguage = () => {
-    setLanguage(prev => prev === 'vi' ? 'en' : 'vi');
-  };
+  const { language } = useLanguage();
 
   // Translation object
   const t = {
     vi: {
-      nav: {
-        stats: "Thống kê",
-        howItWorks: "Cách hoạt động",
-        features: "Tính năng",
-        testimonials: "Đánh giá",
-        login: "Đăng nhập"
-      },
       hero: {
-        title: "Định hình lại\ncon đường tương lai",
+        title: "Định hình lại con đường tương lai",
         description: "Trải nghiệm thế hệ mới của trí tuệ nghề nghiệp được hỗ trợ bởi AI và quản lý đồ thị tri thức kỹ thuật.",
         getStarted: "Bắt đầu ngay",
         learnMore: "Tìm hiểu thêm"
@@ -289,15 +92,8 @@ export default function LandingPage() {
       }
     },
     en: {
-      nav: {
-        stats: "Statistics",
-        howItWorks: "How it works",
-        features: "Features",
-        testimonials: "Reviews",
-        login: "Login"
-      },
       hero: {
-        title: "Recode your\nfuture path",
+        title: "Recode your future path",
         description: "Experience the next generation of AI-driven career intelligence and technical knowledge graph management.",
         getStarted: "Get started",
         learnMore: "Learn more"
@@ -361,172 +157,13 @@ export default function LandingPage() {
 
   const currentLang = t[language];
 
-  // Close menu when clicking outside
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (navRef.current && !navRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    };
-    if (isMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isMenuOpen]);
-
-  // Prevent scroll when mobile menu is open
-  React.useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => { document.body.style.overflow = "unset"; };
-  }, [isMenuOpen]);
-
   return (
     <div className={styles.pageRoot}>
       {/* Apple-style Glass Navbar */}
-      <motion.nav 
-        ref={navRef}
-        className={styles.navWrapper}
-        layout
-        initial={false}
-        animate={{
-          backgroundColor: isMenuOpen ? "rgba(255, 255, 255, 1)" : "rgba(255, 255, 255, 0.8)",
-          borderRadius: isMenuOpen ? "28px" : "980px",
-          paddingBottom: isMenuOpen ? "20px" : "0px",
-          boxShadow: isMenuOpen 
-            ? "0 20px 40px rgba(0, 0, 0, 0.1)" 
-            : "0 8px 32px rgba(0, 0, 0, 0.08)"
-        }}
-        transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-      >
-        <div className={styles.nav}>
-          <Link href="/" className={styles.navLogo}>LUMIX AI</Link>
-          
-          {/* Desktop Links */}
-          <div className={styles.navLinks}>
-            <Link href="#stats">{currentLang.nav.stats}</Link>
-            <Link href="#how-it-works">{currentLang.nav.howItWorks}</Link>
-            <Link href="#features">{currentLang.nav.features}</Link>
-            <Link href="#testimonials">{currentLang.nav.testimonials}</Link>
-            <Link href="/auth/login" className={styles.navCta}>{currentLang.nav.login}</Link>
-            <button onClick={toggleLanguage} className={styles.langToggle}>
-              {language === 'vi' ? 'EN' : 'VI'}
-            </button>
-          </div>
-
-          {/* Mobile Toggle */}
-          <div className={styles.navRight}>
-            <button onClick={toggleLanguage} className={styles.langToggleMobile}>
-              {language === 'vi' ? 'EN' : 'VI'}
-            </button>
-            <button 
-              className={styles.mobileToggle} 
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              <motion.div
-                animate={{ rotate: isMenuOpen ? 90 : 0 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
-              >
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={isMenuOpen ? "close" : "menu"}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                  </motion.div>
-                </AnimatePresence>
-              </motion.div>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu Overlay */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div 
-              className={styles.mobileMenu}
-              initial="closed"
-              animate="open"
-              exit="closed"
-              variants={{
-                open: { 
-                  height: "auto",
-                  opacity: 1, 
-                  transition: { 
-                    height: { duration: 0.5 },
-                    staggerChildren: 0.08,
-                    delayChildren: 0.1
-                  } 
-                },
-                closed: { 
-                  height: 0,
-                  opacity: 0,
-                  transition: { 
-                    height: { duration: 0.4, ease: [0.32, 0.72, 0, 1] },
-                    opacity: { duration: 0.3 },
-                    staggerChildren: 0.03,
-                    staggerDirection: -1
-                  }
-                }
-              }}
-              style={{ overflow: "hidden" }}
-            >
-              <div className={styles.mobileLinks}>
-                {[
-                  { href: "#stats", label: currentLang.nav.stats },
-                  { href: "#how-it-works", label: currentLang.nav.howItWorks },
-                  { href: "#features", label: currentLang.nav.features },
-                  { href: "#testimonials", label: currentLang.nav.testimonials },
-                  { href: "/auth/login", label: currentLang.nav.login, isCta: true }
-                ].map((link) => (
-                  <motion.div
-                    key={link.href}
-                    variants={{
-                      open: { opacity: 1, y: 0 },
-                      closed: { opacity: 0, y: -10 }
-                    }}
-                    transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                  >
-                    <Link 
-                      href={link.href} 
-                      className={link.isCta ? styles.mobileCta : ""} 
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {link.label}
-                    </Link>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        {/* Backdrop */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div
-              className={styles.mobileBackdrop}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              onClick={() => setIsMenuOpen(false)}
-            />
-          )}
-        </AnimatePresence>
-      </motion.nav>
+      <LandingNavbar />
 
       {/* Hero Section - Dark Immersive with Animated Gradient */}
-      <div className={`${styles.sectionWrapper} ${styles.bgDark}`}>
+      <div className={styles.sectionWrapper}>
         <section className={styles.heroSection}>
           {/* Background Image with Blur */}
           <div className={styles.heroBackground} />
@@ -541,12 +178,7 @@ export default function LandingPage() {
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
           >
             <h1 className={styles.heroTitle}>
-              {currentLang.hero.title.split('\n').map((line, i) => (
-                <React.Fragment key={i}>
-                  {line}
-                  {i === 0 && <br />}
-                </React.Fragment>
-              ))}
+              {currentLang.hero.title}
             </h1>
             <p className={styles.heroDescription}>
               {currentLang.hero.description}
@@ -564,7 +196,7 @@ export default function LandingPage() {
       </div>
 
       {/* Statistics Section - Social Proof */}
-      <div id="stats" className={`${styles.sectionWrapper} ${styles.bgLight}`}>
+      <div id="stats" className={styles.sectionWrapper}>
         <section className={styles.statsSection}>
           <motion.div 
             className={styles.statsGrid}
@@ -596,7 +228,7 @@ export default function LandingPage() {
       </div>
 
       {/* Philosophy Section - Light Informational */}
-      <div id="philosophy" className={`${styles.sectionWrapper} ${styles.bgLight}`}>
+      <div id="philosophy" className={styles.sectionWrapper}>
         <section className={styles.section}>
           <motion.div
             className={styles.visionSection}
@@ -653,7 +285,7 @@ export default function LandingPage() {
       </div>
 
       {/* How It Works Section - Dark with Visual Flow */}
-      <div id="how-it-works" className={`${styles.sectionWrapper} ${styles.bgDark}`}>
+      <div id="how-it-works" className={styles.sectionWrapper}>
         <section className={styles.section}>
           <div className={styles.centeredText}>
             <h2 className={styles.sectionHeading}>{currentLang.howItWorks.heading}</h2>
@@ -717,7 +349,7 @@ export default function LandingPage() {
       </div>
 
       {/* Feature Bento Grid - Dark Immersive */}
-      <div id="features" className={`${styles.sectionWrapper} ${styles.bgDark}`}>
+      <div id="features" className={styles.sectionWrapper}>
         <section className={styles.section}>
           <div className={styles.featuresHeader}>
             <motion.div
@@ -798,7 +430,7 @@ export default function LandingPage() {
       </div>
 
       {/* Testimonials Section - Light */}
-      <div id="testimonials" className={`${styles.sectionWrapper} ${styles.bgLight}`}>
+      <div id="testimonials" className={styles.sectionWrapper}>
         <section className={styles.section}>
           <div className={styles.centeredText}>
             <h2 className={styles.sectionHeading}>{currentLang.testimonials.heading}</h2>
@@ -841,7 +473,7 @@ export default function LandingPage() {
               >
                 <div className={styles.testimonialRating}>
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} size={16} fill="#667eea" color="#667eea" />
+                    <Star key={i} size={16} fill="#06B6D4" color="#06B6D4" />
                   ))}
                 </div>
                 <p className={styles.testimonialQuote}>"{testimonial.quote}"</p>
@@ -863,7 +495,7 @@ export default function LandingPage() {
       </div>
 
       {/* Enhanced Footer */}
-      <div className={`${styles.sectionWrapper} ${styles.bgDark}`}>
+      <div className={styles.sectionWrapper}>
         <footer className={styles.richFooter}>
           <div className={styles.footerContent}>
             <div className={styles.footerGrid}>

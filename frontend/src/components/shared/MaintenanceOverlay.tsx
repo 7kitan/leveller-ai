@@ -2,12 +2,14 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Hammer, Clock, ShieldCheck, Mail } from 'lucide-react';
+import { Sparkles, Clock, ShieldCheck, Mail } from 'lucide-react';
 import styles from './maintenance-overlay.module.css';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function MaintenanceOverlay() {
   const { maintenanceMode, maintenanceDuration, user } = useAuth();
+  const { t } = useLanguage();
   
   // If not in maintenance mode, or if user is admin, don't show overlay
   if (!maintenanceMode || user?.role === 'admin') {
@@ -27,24 +29,24 @@ export default function MaintenanceOverlay() {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className={styles.card}
         >
           <div className={styles.header}>
             <div className={styles.iconWrapper}>
-              <Hammer className={styles.mainIcon} size={48} />
+              <Sparkles className={styles.mainIcon} size={48} />
               <motion.div 
-                animate={{ rotate: [0, 10, -10, 0] }}
+                animate={{ scale: [1, 1.05, 1] }}
                 transition={{ repeat: Infinity, duration: 2 }}
                 className={styles.statusBadge}
               >
-                System Update
+                {t("maintenance_system_update")}
               </motion.div>
             </div>
             
-            <h1 className={styles.title}>Chúng tôi đang bảo trì hệ thống</h1>
+            <h1 className={styles.title}>{t("maintenance_title")}</h1>
             <p className={styles.subtitle}>
-              Lumix AI đang được nâng cấp để mang lại trải nghiệm tốt nhất cho định hướng sự nghiệp của bạn.
+              {t("maintenance_subtitle")}
             </p>
           </div>
 
@@ -52,16 +54,16 @@ export default function MaintenanceOverlay() {
             <div className={styles.infoItem}>
               <Clock className={styles.infoIcon} size={20} />
               <div>
-                <span className={styles.infoLabel}>Thời gian dự kiến</span>
-                <p className={styles.infoValue}>{maintenanceDuration || "Đang cập nhật..."}</p>
+                <span className={styles.infoLabel}>{t("maintenance_duration_label")}</span>
+                <p className={styles.infoValue}>{maintenanceDuration || "..."}</p>
               </div>
             </div>
             
             <div className={styles.infoItem}>
               <ShieldCheck className={styles.infoIcon} size={20} />
               <div>
-                <span className={styles.infoLabel}>Dữ liệu an toàn</span>
-                <p className={styles.infoValue}>Toàn bộ CV & phân tích được bảo mật</p>
+                <span className={styles.infoLabel}>{t("maintenance_data_safe_label")}</span>
+                <p className={styles.infoValue}>{t("maintenance_data_safe_value")}</p>
               </div>
             </div>
           </div>
@@ -75,7 +77,7 @@ export default function MaintenanceOverlay() {
               className={styles.refreshBtn}
               onClick={() => window.location.reload()}
             >
-              Thử tải lại trang
+              {t("maintenance_refresh_btn")}
             </button>
           </div>
         </motion.div>

@@ -462,11 +462,62 @@
   font-size: 1rem;
   line-height: 1.8;
   color: var(--color-text-main);
-  white-space: pre-wrap;
   padding: 1.5rem;
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
+}
+
+.formattedContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sectionHeader {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-accent-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--color-border-subtle);
+}
+
+.sectionHeader:first-child {
+  margin-top: 0;
+}
+
+.bulletItem {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding-left: 0.5rem;
+  line-height: 1.7;
+}
+
+.bulletDot {
+  color: var(--color-accent-primary);
+  font-weight: 900;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+.bulletNumber {
+  color: var(--color-accent-primary);
+  font-weight: 800;
+  font-size: 0.9rem;
+  min-width: 1.5rem;
+  flex-shrink: 0;
+}
+
+.paragraph {
+  line-height: 1.7;
+  color: var(--color-text-main);
+  margin: 0;
 }
 
 .modalFooterActions {

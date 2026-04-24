@@ -31,6 +31,54 @@ interface Job {
   benefits?: string;
 }
 
+function FormattedText({ text }: { text: string }) {
+  const lines = text.split('\n').filter(line => line.trim());
+  
+  const formatLine = (line: string, index: number) => {
+    const trimmed = line.trim();
+    
+    // Check if it's a bullet point (-, *, •, or numbered list)
+    const bulletMatch = trimmed.match(/^[-*•]\s+(.+)$/);
+    const numberedMatch = trimmed.match(/^(\d+)[.)]\s+(.+)$/);
+    
+    if (bulletMatch) {
+      return (
+        <div key={index} className={styles.bulletItem}>
+          <span className={styles.bulletDot}>•</span>
+          <span>{bulletMatch[1]}</span>
+        </div>
+      );
+    }
+    
+    if (numberedMatch) {
+      return (
+        <div key={index} className={styles.bulletItem}>
+          <span className={styles.bulletNumber}>{numberedMatch[1]}.</span>
+          <span>{numberedMatch[2]}</span>
+        </div>
+      );
+    }
+    
+    // Check if it's a section header (all caps or ends with :)
+    if (trimmed === trimmed.toUpperCase() && trimmed.length < 100 && trimmed.length > 3) {
+      return <div key={index} className={styles.sectionHeader}>{trimmed}</div>;
+    }
+    
+    if (trimmed.endsWith(':') && trimmed.length < 100) {
+      return <div key={index} className={styles.sectionHeader}>{trimmed}</div>;
+    }
+    
+    // Regular paragraph
+    return <p key={index} className={styles.paragraph}>{trimmed}</p>;
+  };
+  
+  return (
+    <div className={styles.formattedContent}>
+      {lines.map((line, index) => formatLine(line, index))}
+    </div>
+  );
+}
+
 export default function JobsPage() {
   const { t, language } = useLanguage();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -250,7 +298,7 @@ export default function JobsPage() {
               <div className={styles.modalSection}>
                 <div className={styles.modalSectionLabel}>{t("job_description") || "Mô tả công việc"}</div>
                 <div className={styles.modalDescription}>
-                  {selectedJob.job_description}
+                  <FormattedText text={selectedJob.job_description} />
                 </div>
               </div>
             )}
@@ -259,7 +307,7 @@ export default function JobsPage() {
               <div className={styles.modalSection}>
                 <div className={styles.modalSectionLabel}>{t("job_requirements") || "Yêu cầu ứng viên"}</div>
                 <div className={styles.modalDescription}>
-                  {selectedJob.requirements}
+                  <FormattedText text={selectedJob.requirements} />
                 </div>
               </div>
             )}
@@ -268,7 +316,7 @@ export default function JobsPage() {
               <div className={styles.modalSection}>
                 <div className={styles.modalSectionLabel}>{t("job_benefits") || "Quyền lợi"}</div>
                 <div className={styles.modalDescription}>
-                  {selectedJob.benefits}
+                  <FormattedText text={selectedJob.benefits} />
                 </div>
               </div>
             )}
@@ -278,7 +326,7 @@ export default function JobsPage() {
               <div className={styles.modalSection}>
                 <div className={styles.modalSectionLabel}>{t("job_description") || "Chi tiết công việc"}</div>
                 <div className={styles.modalDescription}>
-                  {selectedJob.raw_text}
+                  <FormattedText text={selectedJob.raw_text} />
                 </div>
               </div>
             )}
