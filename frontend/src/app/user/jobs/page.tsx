@@ -32,49 +32,10 @@ interface Job {
 }
 
 function FormattedText({ text }: { text: string }) {
-  const lines = text.split('\n').filter(line => line.trim());
-  
-  const formatLine = (line: string, index: number) => {
-    const trimmed = line.trim();
-    
-    // Check if it's a bullet point (-, *, •, or numbered list)
-    const bulletMatch = trimmed.match(/^[-*•]\s+(.+)$/);
-    const numberedMatch = trimmed.match(/^(\d+)[.)]\s+(.+)$/);
-    
-    if (bulletMatch) {
-      return (
-        <div key={index} className={styles.bulletItem}>
-          <span className={styles.bulletDot}>•</span>
-          <span>{bulletMatch[1]}</span>
-        </div>
-      );
-    }
-    
-    if (numberedMatch) {
-      return (
-        <div key={index} className={styles.bulletItem}>
-          <span className={styles.bulletNumber}>{numberedMatch[1]}.</span>
-          <span>{numberedMatch[2]}</span>
-        </div>
-      );
-    }
-    
-    // Check if it's a section header (all caps or ends with :)
-    if (trimmed === trimmed.toUpperCase() && trimmed.length < 100 && trimmed.length > 3) {
-      return <div key={index} className={styles.sectionHeader}>{trimmed}</div>;
-    }
-    
-    if (trimmed.endsWith(':') && trimmed.length < 100) {
-      return <div key={index} className={styles.sectionHeader}>{trimmed}</div>;
-    }
-    
-    // Regular paragraph
-    return <p key={index} className={styles.paragraph}>{trimmed}</p>;
-  };
-  
+  if (!text) return null;
   return (
-    <div className={styles.formattedContent}>
-      {lines.map((line, index) => formatLine(line, index))}
+    <div className={styles.formattedContent} style={{ whiteSpace: 'pre-wrap' }}>
+      {text}
     </div>
   );
 }
