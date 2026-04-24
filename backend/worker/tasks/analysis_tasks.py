@@ -381,6 +381,8 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
         if isinstance(report, dict):
             report["cv_id"] = str(cv_id)
             report["job_id"] = str(job_id) if job_id else None
+            report["analysis_id"] = str(new_analysis.id)
+            report["is_cached"] = False # This was a fresh computation
 
         return report
 

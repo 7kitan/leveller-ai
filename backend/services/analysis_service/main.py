@@ -208,7 +208,8 @@ async def get_task_status(task_id: str):
             "status": "processing",
             "progress": res.info.get("percent", 0),
             "message": res.info.get("message", "Processing..."),
-            "partial_result": res.info.get("partial_result")
+            "partial_result": res.info.get("partial_result"),
+            "is_cached": res.info.get("is_cached", False)
         }
 
     return {"status": "processing"}
@@ -298,6 +299,12 @@ async def get_latest_analysis(request: Request, db: Session = Depends(get_db)):
                     result["potential_match_pct"] = min(98, current_match + math.log2(course_count + 1) * 6.5)
                     result["salary_growth_pct"] = min(35, math.log2(course_count + 1) * 5.5 + 5)
                     result["market_sentiment"] = "Ổn định"
+
+        # Check if user already provided feedback for this specific analysis record
+        has_fb = db.query(UserFeedback).filter(UserFeedback.analysis_id == str(analysis.id)).first() is not None
+        result["has_feedback"] = has_fb
+        result["analysis_id"] = str(analysis.id)
+        result["is_cached"] = True # Since we're pulling from DB latest record
 
     return result
 
@@ -580,6 +587,14 @@ async def submit_feedback(
     # Validate rating 1-5
     if not (1 <= req.rating <= 5):
         raise HTTPException(status_code=400, detail="Rating must be 1-5")
+
+    # [SPEC 2.1] Prevent duplicate feedback for the same analysis
+    existing = db.query(UserFeedback).filter(
+        UserFeedback.analysis_id == req.analysis_id,
+        UserFeedback.user_id == uuid.UUID(user_id)
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Bạn đã gửi phản hồi cho phân tích này rồi.")
 
     fb = UserFeedback(
         user_id=uuid.UUID(user_id),
@@ -1115,6 +1130,53 @@ async def admin_get_stats(request: Request, db: Session = Depends(get_db)):
         "cvs": cv_count,
         "jobs": job_count,
         "marketFits": round(float(avg_fit), 1)
+    }
+
+
+@app.get("/analysis/admin/feedback", response_model=PaginatedResponse[dict])
+async def admin_get_feedback(
+    request: Request,
+    db: Session = Depends(get_db),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    rating: Optional[int] = Query(None),
+    is_accurate: Optional[bool] = Query(None)
+):
+    """Admin only: Xem toàn bộ phản hồi của người dùng."""
+    check_admin(request)
+    from shared.models import UserFeedback
+    
+    query = db.query(UserFeedback, User.email).outerjoin(User, User.id == UserFeedback.user_id)
+    
+    if rating is not None:
+        query = query.filter(UserFeedback.rating == rating)
+    if is_accurate is not None:
+        query = query.filter(UserFeedback.is_accurate == is_accurate)
+        
+    total = query.count()
+    results = query.order_by(UserFeedback.created_at.desc()).offset(offset).limit(limit).all()
+    
+    items = [
+        {
+            "id": str(fb.id),
+            "user_email": email or "Unknown",
+            "analysis_id": fb.analysis_id,
+            "rating": fb.rating,
+            "is_accurate": fb.is_accurate,
+            "missing_skills": fb.missing_skills,
+            "comment": fb.comment,
+            "created_at": fb.created_at.isoformat(),
+        }
+        for fb, email in results
+    ]
+    
+    return {
+        "items": items,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "page": (offset // limit) + 1,
+        "pages": (total + limit - 1) // limit
     }
 
 

@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
- 
+
 ## [1.4.0] - 2026-04-24
 
 ### Added
@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
     - `calculate_market_sentiment()`: Phân tích xu hướng thị trường dựa trên `growth_rate_30d` và `demand_score`.
     - Mỗi skill gap giờ hiển thị **match_impact** (+X% match) và **salary_impact** (+Y% salary) riêng biệt.
 - **Hiển thị Impact Badge**: Thêm badges trực quan cho từng skill gap trên giao diện Recommend, giúp người dùng thấy rõ skill nào ảnh hưởng nhiều nhất đến tỷ lệ match và mức lương.
+- **Vòng lặp phản hồi (Feedback Loop)**: 
+    - [Frontend] Giao diện đánh giá độ chính xác tại trang kết quả.
+    - [Frontend] Admin Dashboard quản lý phản hồi tập trung.
+    - [Backend] API Admin Feedback truy xuất và lọc dữ liệu phản hồi.
 
 ### Changed
 - **Cải tiến Thuật Toán Dự Báo**: Thay thế thuật toán heuristic cũ (chỉ đếm số lượng khóa học: `log2(course_count) * 6.5`) bằng thuật toán dựa trên trọng số thực tế từ Job Description và dữ liệu thị trường.

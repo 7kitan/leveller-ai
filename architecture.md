@@ -55,12 +55,12 @@ graph TD
 ### 3.2 Microservices
 | Dịch vụ | Nhiệm vụ chính |
 |---|---|
-| **Auth Service** | Đăng ký, đăng nhập, quản lý hồ sơ người dùng và cấp phát JWT. |
-| **CV Service** | Tải lên file CV, quản lý bóc tách và CRUD hồ sơ kỹ năng. |
-| **JD Service** | Thu thập JD, nhập JD thủ công và tìm kiếm việc làm dựa trên vector. |
-| **Analysis Service** | Điều phối phân tích khoảng cách, tạo lộ trình sự nghiệp và vòng lặp phản hồi. |
-| **Recommender Service** | Quản lý cơ sở dữ liệu khóa học và công cụ đề xuất ngữ nghĩa. |
-| **Admin Service** | Cài đặt hệ thống, giám sát và các quyền điều khiển quản trị. |
+| **Auth Service** | Đăng ký, đăng nhập, quản lý hồ sơ người dùng, cấp phát JWT và giới hạn IP. |
+| **CV Service** | Tải lên file, bóc tách (OCR + LLM), quản lý hồ sơ kỹ năng và ẩn danh PII. |
+| **JD Service** | Thu thập JD, tìm kiếm Vector (pgvector), và phân loại yêu cầu công việc. |
+| **Analysis Service** | Điều phối phân tích Gap, tính toán tăng trưởng (Growth Calculator), giả lập lộ trình và Market Fit. |
+| **Recommender Service** | Đề xuất khóa học (Coursera/Udemy), video (YouTube) và quản lý taxonomy kỹ năng. |
+| **Admin Service** | Dashboard giám sát LLM, quản lý Quota tập trung và cấu hình hệ thống. |
 
 ---
 
@@ -133,36 +133,13 @@ Chuyển đổi tài liệu PDF/Ảnh thô thành hồ sơ JSON có cấu trúc.
 4. **Chuẩn hóa**: Ánh xạ các kỹ năng vào danh mục kỹ năng nội bộ.
 
 ### 5.2 Pipeline Phân tích Khoảng cách & Lộ trình
-Quy trình tối ưu hóa với 2 lần gọi LLM để đạt độ chính xác và hiệu suất tối đa.
+Quy trình tối ưu hóa với 2 lần gọi LLM kết hợp với engine tính toán thực tế từ Database để đảm bảo độ chính xác của chỉ số tăng trưởng.
 
-```mermaid
-sequenceDiagram
-    participant Worker as Celery Worker
-    participant LG as LangGraph Orchestrator
-    participant LLM as OpenAI GPT-4o
-    participant DB as PostgreSQL (pgvector)
-
-    Worker->>LG: Bắt đầu run_gap_analysis_v3
-    LG->>LG: Node: load_cv (Lấy dữ liệu từ DB)
-    
-    alt LLM Call #1: Phân tích
-        LG->>LLM: Node: gap_analysis_llm
-        Note over LLM: Bóc tách JD + Phân tích Gap + Xác định Top Gap
-        LLM-->>LG: {match_score, skill_gaps, top_gaps}
-    end
-
-    LG->>DB: Tìm kiếm Vector cho các Top Gap
-    DB-->>LG: Các khóa học ứng viên (~36)
-
-    alt LLM Call #2: Đề xuất & Lộ trình
-        LG->>LLM: Node: course_agent
-        Note over LLM: Chọn khóa học tốt nhất + Tổng hợp lộ trình
-        LLM-->>LG: {selected_courses, career_roadmap}
-    end
-
-    LG->>LG: Node: finalize (Gộp kết quả & Lưu Cache)
-    LG->>Worker: Báo cáo cuối cùng
-```
+1. **LLM Node #1 (Analysis)**: Bóc tách JD và so sánh với CV để xác định `Skill Gaps`.
+2. **Impact Calculation (DB-driven)**: Sử dụng `GrowthCalculator` để tính toán `match_impact` và `salary_impact` dựa trên dữ liệu thị trường thực tế trong PostgreSQL.
+3. **Vector Search**: Tìm kiếm các khóa học/video phù hợp nhất với các Top Gaps qua pgvector.
+4. **LLM Node #2 (Synthesis)**: Chọn lọc khóa học và tổng hợp thành Lộ trình sự nghiệp (Roadmap) có tính khả thi cao.
+5. **Finalize**: Lưu kết quả vào Cache (Redis) và DB (PostgreSQL).
 
 ---
 

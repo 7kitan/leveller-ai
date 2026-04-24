@@ -1,0 +1,187 @@
+"use client";
+
+import React, { useState } from "react";
+import { Star, CheckCircle2, AlertCircle, Send, Plus, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useLanguage } from "@/context/LanguageContext";
+import api from "@/lib/api";
+import { motion } from "framer-motion";
+import styles from "./feedback-section.module.css";
+
+interface FeedbackSectionProps {
+  analysisId: string;
+  hasFeedback?: boolean;
+  isCached?: boolean;
+}
+
+const FeedbackSection: React.FC<FeedbackSectionProps> = ({ analysisId, hasFeedback, isCached }) => {
+  const { t } = useLanguage();
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [isAccurate, setIsAccurate] = useState<boolean | null>(null);
+  const [comment, setComment] = useState("");
+  const [missingSkills, setMissingSkills] = useState<string[]>([]);
+  const [skillInput, setSkillInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleAddSkill = () => {
+    if (skillInput.trim() && !missingSkills.includes(skillInput.trim())) {
+      setMissingSkills([...missingSkills, skillInput.trim()]);
+      setSkillInput("");
+    }
+  };
+
+  const removeSkill = (skill: string) => {
+    setMissingSkills(missingSkills.filter((s) => s !== skill));
+  };
+
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      setError("Please provide a rating");
+      return;
+    }
+    setIsSubmitting(true);
+    setError("");
+    try {
+      await api.post("/api/analysis/feedback", {
+        analysis_id: analysisId,
+        rating,
+        is_accurate: isAccurate,
+        missing_skills: missingSkills,
+        comment,
+      });
+      setIsSubmitted(true);
+    } catch (err) {
+      setError("Failed to submit feedback. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // If already cached, don't show feedback section as per user requirement
+  if (isCached) return null;
+
+  if (isSubmitted || hasFeedback) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className={styles.successContainer}
+      >
+        <CheckCircle2 size={48} className={styles.successIcon} />
+        <h3 className={styles.successTitle}>{t("feedback_success")}</h3>
+      </motion.div>
+    );
+  }
+
+  return (
+    <section className={styles.section}>
+      <div className={styles.header}>
+        <h2 className={styles.title}>{t("feedback_title")}</h2>
+        <p className={styles.subtitle}>{t("feedback_subtitle")}</p>
+      </div>
+
+      <div className={styles.card}>
+        {/* Rating */}
+        <div className={styles.group}>
+          <label className={styles.label}>{t("feedback_rating")}</label>
+          <div className={styles.stars}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <button
+                key={i}
+                onMouseEnter={() => setHoverRating(i)}
+                onMouseLeave={() => setHoverRating(0)}
+                onClick={() => setRating(i)}
+                className={cn(
+                  styles.starBtn,
+                  (hoverRating || rating) >= i && styles.starActive
+                )}
+                type="button"
+              >
+                <Star size={28} fill={(hoverRating || rating) >= i ? "currentColor" : "none"} />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Accuracy */}
+        <div className={styles.group}>
+          <label className={styles.label}>{t("feedback_accurate")}</label>
+          <div className={styles.toggleRow}>
+            <button
+              onClick={() => setIsAccurate(true)}
+              className={cn(styles.toggleBtn, isAccurate === true && styles.toggleActive)}
+              type="button"
+            >
+              <CheckCircle2 size={16} />
+              {t("feedback_accurate_yes")}
+            </button>
+            <button
+              onClick={() => setIsAccurate(false)}
+              className={cn(styles.toggleBtn, isAccurate === false && styles.toggleActive)}
+              type="button"
+            >
+              <AlertCircle size={16} />
+              {t("feedback_accurate_no")}
+            </button>
+          </div>
+        </div>
+
+        {/* Missing Skills */}
+        <div className={styles.group}>
+          <label className={styles.label}>{t("feedback_missing_skills")}</label>
+          <div className={styles.skillInputRow}>
+            <input
+              type="text"
+              value={skillInput}
+              onChange={(e) => setSkillInput(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleAddSkill()}
+              className={styles.input}
+              placeholder="e.g. Docker, AWS..."
+            />
+            <button onClick={handleAddSkill} className={styles.addBtn} type="button">
+              <Plus size={18} />
+            </button>
+          </div>
+          <div className={styles.pillContainer}>
+            {missingSkills.map((skill) => (
+              <span key={skill} className={styles.pill}>
+                {skill}
+                <button onClick={() => removeSkill(skill)} className={styles.pillX} type="button">
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Comment */}
+        <div className={styles.group}>
+          <label className={styles.label}>{t("feedback_comment")}</label>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className={styles.textarea}
+            rows={3}
+          />
+        </div>
+
+        {error && <p className={styles.error}>{error}</p>}
+
+        <button
+          onClick={handleSubmit}
+          disabled={isSubmitting || rating === 0}
+          className={styles.submitBtn}
+          type="button"
+        >
+          {isSubmitting ? "..." : <Send size={18} />}
+          {t("feedback_submit")}
+        </button>
+      </div>
+    </section>
+  );
+};
+
+export default FeedbackSection;

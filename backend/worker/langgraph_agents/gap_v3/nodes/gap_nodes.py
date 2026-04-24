@@ -272,6 +272,7 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
                     **state,
                     "gap_analysis": cached_data["gap_analysis"],
                     "status": "gap_analyzed",
+                    "is_cached": True,
                 }
             except Exception as e:
                 logger.warning(f"[STEP 3/Path_A] Cache parse failed: {e}")
@@ -400,6 +401,7 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
                     "jd_requirements": cached_data["jd_parsed"].get("requirements") or [],
                     "gap_analysis": cached_data["gap_analysis"],
                     "status": "gap_analyzed",
+                    "is_cached": True,
                 }
             except Exception as e:
                 logger.warning(f"[STEP 3] Cache parse failed: {e}")

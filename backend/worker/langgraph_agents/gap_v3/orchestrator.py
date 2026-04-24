@@ -214,6 +214,7 @@ async def run_gap_analysis_v3(
                             "selected_youtube_videos": final_state.get("selected_youtube_videos") or [],
                             "career_roadmap": final_state.get("career_roadmap") or {},
                             "status": final_state.get("status") or "processing",
+                            "is_cached": final_state.get("is_cached", False),
                             "node": node_name
                         }
                         await on_update(partial_report)

@@ -30,6 +30,7 @@ import CourseCard from "@/components/user/CourseCard";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactECharts from 'echarts-for-react';
+import FeedbackSection from "@/components/user/FeedbackSection";
 import styles from "./user-recommend.module.css";
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
@@ -102,7 +103,12 @@ interface GapResult {
     total_weeks: number;
     total_hours: number;
     summary: string;
+    method?: string;
   };
+  status?: string;
+  analysis_id?: string;
+  has_feedback?: boolean;
+  is_cached?: boolean;
 }
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
@@ -1027,6 +1033,16 @@ const UserRecommendPage = () => {
             {t("ai_suggestion_text")}
           </p>
         </div>
+
+        {/* ── Feedback Section ────────────────────────────────────────────── */}
+        {gapResult && gapResult.analysis_id && (
+          <FeedbackSection 
+            analysisId={gapResult.analysis_id} 
+            hasFeedback={gapResult.has_feedback}
+            isCached={gapResult.is_cached}
+          />
+        )}
+
       </div>
   );
 };

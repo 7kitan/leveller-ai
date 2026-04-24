@@ -22,14 +22,17 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-career_advisor}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # Mandatory in prod
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d career_advisor"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-career_advisor}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    # SECURITY: Remove public ports mapping for database in production
+    # ports:
+    #   - "5432:5432"
     networks:
       - advisor_net_prod
 
@@ -38,20 +41,23 @@ services:
     container_name: advisor_redis_prod
     restart: always
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_PASSWORD=${REDIS_PASSWORD} # Mandatory in prod
     command: >
       sh -c "
-      if [ -n \"$$REDIS_PASSWORD\" ]; then
-        redis-server --requirepass \"$$REDIS_PASSWORD\"
+      if [ -n \"$REDIS_PASSWORD\" ]; then
+        redis-server --requirepass \"$REDIS_PASSWORD\"
       else
         redis-server
       fi
       "
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "if [ -n \"$REDIS_PASSWORD\" ]; then redis-cli -a \"$REDIS_PASSWORD\" ping; else redis-cli ping; fi"]
       interval: 10s
       timeout: 5s
       retries: 5
+    # SECURITY: Remove public ports mapping for redis in production
+    # ports:
+    #   - "6379:6379"
     networks:
       - advisor_net_prod
 
