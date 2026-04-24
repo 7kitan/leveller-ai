@@ -163,6 +163,7 @@ async def course_recommendation_llm_node(
         youtube_candidates=youtube_videos,
         gaps=gaps_to_process,
         jd_context=jd_context,
+        user_id=state.get("user_id")
     )
 
     selected_courses = unified_result.get("selected_courses", [])
@@ -174,52 +175,48 @@ async def course_recommendation_llm_node(
     youtube_id_map = {v.get("video_id"): v for v in youtube_videos}
     
     final_courses = []
+    selected_youtube = []
+
     for item in selected_courses:
         cid = item.get("course_id")
         vid = item.get("video_id")
+        reason = item.get("selection_reason") or ""
         
-        # Check standard courses first, then youtube
-        c = course_id_map.get(cid) if cid else None
-        is_youtube = False
+        if cid:
+            c = course_id_map.get(cid)
+            if c:
+                c_copy = c.copy()
+                c_copy["gap_skill"] = c_copy.pop("_gap_skill", item.get("gap_skills", [""])[0] if item.get("gap_skills") else "")
+                c_copy["gap_severity"] = c_copy.pop("_gap_severity", "MEDIUM")
+                c_copy["gap_learning_path"] = c_copy.pop("_gap_learning_path", "")
+                c_copy["gap_estimated_months"] = c_copy.pop("_gap_estimated_months", 0)
+                c_copy["is_critical"] = c_copy.pop("_is_critical", False)
+                c_copy["selection_reason"] = reason
+                c_copy["is_youtube"] = False
+                final_courses.append(c_copy)
         
-        if not c and vid:
-            c = youtube_id_map.get(vid)
-            is_youtube = True
-            
-        if c:
-            if is_youtube:
-                # Standardize YouTube video to look like a course
-                c["course_id"] = vid
-                c["platform"] = "YouTube"
-                c["provider"] = c.get("channel_name", "YouTube")
-                c["is_certification"] = False
-                c["cost_usd"] = 0
-                c["level"] = "All levels"
-                c["duration_hours"] = 0.5 # Default approx duration
-            else:
-                c["course_id"] = cid
-            
-            c["gap_skill"] = c.pop("_gap_skill", item.get("gap_skills", [""])[0] if item.get("gap_skills") else "")
-            c["gap_severity"] = c.pop("_gap_severity", "MEDIUM")
-            c["gap_learning_path"] = c.pop("_gap_learning_path", "")
-            c["gap_estimated_months"] = c.pop("_gap_estimated_months", 0)
-            c["is_critical"] = c.pop("_is_critical", False)
-            c["selection_reason"] = item.get("selection_reason") or ""
-            c["is_youtube"] = is_youtube
-            final_courses.append(c)
+        if vid:
+            v = youtube_id_map.get(vid)
+            if v:
+                v_copy = v.copy()
+                # Standardize YouTube video to look like a course if needed, or keep as video
+                v_copy["selection_reason"] = reason
+                v_copy["gap_skill"] = v.get("gap_skill", item.get("gap_skills", [""])[0] if item.get("gap_skills") else "")
+                selected_youtube.append(v_copy)
 
     # ── STEP 3: Deduplicate + rank ───────────────────────────────────────────
     course_recommendations = _deduplicate_and_rank(final_courses, gaps=gaps_to_process)
 
     logger.info(
-        f"[STEP 4] DONE (OPTIMIZED) | unique courses={len(course_recommendations)} "
-        f"| roadmap stages={len(career_roadmap.get('stages', []))} | cv_id={state.get('cv_id', '?')}"
+        f"[STEP 4] DONE (OPTIMIZED) | courses={len(course_recommendations)} "
+        f"| youtube={len(selected_youtube)} | roadmap stages={len(career_roadmap.get('stages', []))}"
     )
 
     return {
         **state,
         "course_recommendations": course_recommendations,
-        "youtube_videos": youtube_videos,
+        "selected_youtube_videos": selected_youtube,
+        "youtube_videos": youtube_videos, # Keep raw results just in case
         "career_roadmap": career_roadmap,
         "status": "courses_done",
     }
@@ -235,6 +232,7 @@ async def _llm_select_courses_and_roadmap_unified(
     youtube_candidates: List[Dict],
     gaps: List[Dict],
     jd_context: str,
+    user_id: str = None,
 ) -> Dict[str, Any]:
     """
     ONE LLM call handles BOTH:
@@ -295,10 +293,11 @@ async def _llm_select_courses_and_roadmap_unified(
         "## PAID COURSE CANDIDATES:\n" + candidates_context + "\n\n"
         "## FREE YOUTUBE CANDIDATES:\n" + yt_context + "\n\n"
         "## MISSION:\n"
-        "1. SELECT RESOURCES: For each gap, pick 1-2 best resources.\n"
-        "   - Mix & Match: Ideally provide ONE paid course for depth and ONE free YouTube video for quick start.\n"
-        "   - Hard match: prefer resources where 'skills' or 'title' match the gap skill\n"
-        "   - Include clear 'selection_reason' (in Vietnamese) for each selected resource\n"
+        "1. SELECT RESOURCES: For each gap, pick 1 best paid course AND 1 best YouTube video.\n"
+        "   - STRICTOR REASONING: The 'selection_reason' MUST describe the specific resource selected.\n"
+        "   - DO NOT mix YouTube details into a Paid Course description.\n"
+        "   - If you select a Coursera course, talk about its curriculum. If you select a YouTube video, talk about its content/length.\n"
+        "   - Selection reason must be in Vietnamese.\n"
         "2. BUILD ROADMAP: Create a personalized learning roadmap in Vietnamese.\n"
         "   - Group resources by learning stage (Stage 1: fundamentals → Stage 2: intermediate → Stage 3: advanced)\n"
         "   - Use English for skill names, Vietnamese for descriptions\n"
@@ -345,7 +344,7 @@ async def _llm_select_courses_and_roadmap_unified(
         f"{'═' * 70}\n"
     )
 
-    user_id = state.get("user_id")
+    # user_id is passed from node to llm_json_completion
     result = await llm_json_completion(
         prompt=prompt,
         context=jd_context,

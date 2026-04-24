@@ -282,7 +282,12 @@ function AnalysisPageContent() {
         }
 
         // Capture granular progress from API
-        const { progress: apiProgress, message } = resp.data as { progress?: number; message?: string };
+        const { progress: apiProgress, message, partial_result } = resp.data as { 
+          progress?: number; 
+          message?: string; 
+          partial_result?: any 
+        };
+
         if (apiProgress !== undefined) {
           setProgress(apiProgress);
           setCurrentStep(detectStep(apiProgress));
@@ -298,6 +303,19 @@ function AnalysisPageContent() {
         
         if (message) {
             setProcessMessage(message);
+        }
+
+        // --- PROGRESSIVE LOADING: Redirect early if gaps are ready ---
+        if (partial_result && partial_result.node === "gap_analysis") {
+            console.log("[ANALYSIS] Gaps are ready! Redirecting early to /user/recommend for progressive loading.");
+            try {
+              sessionStorage.setItem("gap_analysis_partial", JSON.stringify(partial_result));
+            } catch {}
+            
+            clearInterval(interval);
+            setPhase("completed");
+            router.push(`/user/recommend?task_id=${tid}`);
+            return;
         }
       } catch (err) {
         console.error(`[ANALYSIS] poll error:`, err);

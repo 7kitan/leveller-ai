@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useTheme } from "@/context/ThemeContext";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   TrendingUp,
   Target,
@@ -129,19 +130,101 @@ import { useLanguage } from "@/context/LanguageContext";
 
 const UserRecommendPage = () => {
   const { token } = useAuth();
+  const { theme } = useTheme();
   const router = useRouter();
   const { t } = useLanguage();
+
+  const isDark = theme === "dark";
+  const chartTextColor = isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(15, 23, 42, 0.8)";
+  const chartAxisColor = isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(15, 23, 42, 0.15)";
+  const chartSplitLineColor = isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(15, 23, 42, 0.05)";
+  const chartTooltipBg = isDark ? "rgba(0, 0, 0, 0.85)" : "rgba(255, 255, 255, 0.95)";
+  const chartTooltipText = isDark ? "#fff" : "#0f172a";
+
+  const translateRadarCategory = (name: string) => {
+    const n = name.toUpperCase().trim();
+    if (n.includes('TECHNICAL')) return t('cat_technical');
+    if (n.includes('SOFT')) return t('cat_soft');
+    if (n.includes('TOOLS') || n.includes('FRAMEWORK')) return t('cat_tools');
+    if (n.includes('DOMAIN') || n.includes('KNOWLEDGE')) return t('cat_domain');
+    if (n.includes('CERTIFICATION')) return t('cat_cert');
+    return name;
+  };
 
   const [gapResult, setGapResult] = useState<GapResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"gaps" | "courses" | "roadmap" | "videos">("gaps");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processMessage, setProcessMessage] = useState("");
 
-  /* ── Load gap result ─────────────────────────────────────────────────── */
+  const searchParams = useSearchParams();
+  const taskIdFromUrl = searchParams.get("task_id");
+
+  /* ── Progressive Polling Logic ───────────────────────────────────────── */
   useEffect(() => {
-    if (!token) return;
+    if (!token || !taskIdFromUrl) return;
 
-    // 1. Try sessionStorage first (fresh from analysis page)
+    console.log("[RECOMMEND] Polling for progressive updates - Task ID:", taskIdFromUrl);
+    setIsProcessing(true);
+    
+    // 0. Load partial data from sessionStorage if exists (from analysis page)
+    try {
+      const partial = sessionStorage.getItem("gap_analysis_partial");
+      if (partial) {
+        setGapResult(JSON.parse(partial));
+        setLoading(false);
+        sessionStorage.removeItem("gap_analysis_partial");
+      }
+    } catch (e) {}
+
+    const interval = setInterval(async () => {
+      try {
+        const resp = await axios.get(`/api/analysis/status/${taskIdFromUrl}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        const { status, result, partial_result, message } = resp.data;
+        
+        if (message) setProcessMessage(message);
+
+        if (partial_result) {
+          console.log("[RECOMMEND] Received partial update:", partial_result.node);
+          setGapResult(prev => ({
+            ...prev,
+            ...partial_result,
+            // Merge specialized arrays to avoid losing data
+            course_recommendations: partial_result.course_recommendations?.length > 0 
+                ? partial_result.course_recommendations 
+                : (prev?.course_recommendations || [])
+          } as GapResult));
+          setLoading(false);
+        }
+
+        if (status === "completed") {
+          console.log("[RECOMMEND] Analysis completed!");
+          setGapResult(result as GapResult);
+          setIsProcessing(false);
+          setLoading(false);
+          clearInterval(interval);
+        } else if (status === "failed") {
+          console.error("[RECOMMEND] Analysis task failed");
+          setIsProcessing(false);
+          clearInterval(interval);
+        }
+      } catch (e) {
+        console.error("[RECOMMEND] Polling error:", e);
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [token, taskIdFromUrl]);
+
+  /* ── Load initial gap result (if no task_id) ─────────────────────────── */
+  useEffect(() => {
+    if (!token || taskIdFromUrl) return;
+
+    // 1. Try sessionStorage first
     try {
       const stored = sessionStorage.getItem("gap_analysis_result");
       if (stored) {
@@ -175,7 +258,7 @@ const UserRecommendPage = () => {
         setError(t("error") + ": Connection failed");
       })
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token, taskIdFromUrl]);
 
   /* ── Refresh from backend ──────────────────────────────────────────────── */
   const fetchLatest = () => {
@@ -339,16 +422,16 @@ const UserRecommendPage = () => {
               option={{
                 radar: {
                   indicator: (Object.keys(match_breakdown).length > 0 
-                    ? Object.entries(match_breakdown).map(([name, value]) => ({
-                        name: name.replace('_', ' ').toUpperCase(),
+                    ? Object.keys(match_breakdown).map((name) => ({
+                        name: translateRadarCategory(name),
                         max: 100,
                       }))
                     : [
-                        { name: 'KỸ NĂNG KỸ THUẬT', max: 100 },
-                        { name: 'KỸ NĂNG MỀM', max: 100 },
-                        { name: 'CÔNG CỤ & FRAMEWORK', max: 100 },
-                        { name: 'KIẾN THỨC DOMAIN', max: 100 },
-                        { name: 'CHỨNG CHỈ', max: 100 },
+                        { name: t('cat_technical'), max: 100 },
+                        { name: t('cat_soft'), max: 100 },
+                        { name: t('cat_tools'), max: 100 },
+                        { name: t('cat_domain'), max: 100 },
+                        { name: t('cat_cert'), max: 100 },
                       ]
                   ),
                   shape: 'polygon',
@@ -356,31 +439,34 @@ const UserRecommendPage = () => {
                   center: ['50%', '50%'],
                   radius: '65%',
                   axisName: {
-                    color: 'rgba(255, 255, 255, 0.9)',
+                    color: chartTextColor,
                     fontSize: 11,
                     fontWeight: 700,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    backgroundColor: isDark ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.7)',
                     borderRadius: 4,
                     padding: [4, 8],
                   },
                   splitLine: {
                     lineStyle: {
-                      color: 'rgba(255, 255, 255, 0.08)',
+                      color: chartSplitLineColor,
                       width: 1,
                     },
                   },
                   splitArea: {
                     show: true,
                     areaStyle: {
-                      color: [
+                      color: isDark ? [
                         'rgba(79, 70, 229, 0.03)',
                         'rgba(79, 70, 229, 0.01)',
+                      ] : [
+                        'rgba(79, 70, 229, 0.05)',
+                        'rgba(79, 70, 229, 0.02)',
                       ],
                     },
                   },
                   axisLine: {
                     lineStyle: {
-                      color: 'rgba(255, 255, 255, 0.12)',
+                      color: chartAxisColor,
                     },
                   },
                 },
@@ -390,9 +476,9 @@ const UserRecommendPage = () => {
                     data: [
                       {
                         value: Object.keys(match_breakdown).length > 0
-                          ? Object.values(match_breakdown).map((score: any) => 100 - score)
-                          : [60, 40, 45, 50, 70],
-                        name: 'Khoảng cách kỹ năng',
+                          ? Object.values(match_breakdown).map((score: any) => score)
+                          : [80, 70, 75, 60, 40],
+                        name: t('match_level'),
                         areaStyle: {
                           color: {
                             type: 'radial',
@@ -400,9 +486,9 @@ const UserRecommendPage = () => {
                             y: 0.5,
                             r: 0.5,
                             colorStops: [
-                              { offset: 0, color: 'rgba(239, 68, 68, 0.4)' },
-                              { offset: 0.5, color: 'rgba(245, 158, 11, 0.3)' },
-                              { offset: 1, color: 'rgba(79, 70, 229, 0.2)' },
+                              { offset: 0, color: 'rgba(79, 70, 229, 0.4)' },
+                              { offset: 0.5, color: 'rgba(14, 165, 233, 0.3)' },
+                              { offset: 1, color: 'rgba(16, 185, 129, 0.2)' },
                             ],
                           },
                           shadowColor: 'rgba(79, 70, 229, 0.3)',
@@ -597,6 +683,20 @@ const UserRecommendPage = () => {
           </div>
         </div>
 
+        {/* ── Processing Indicator (Progressive Loading) ──────────────────── */}
+        {isProcessing && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={styles.processingIndicator}
+          >
+            <Loader2 className={styles.spinIcon} size={16} />
+            <span className={styles.processingText}>
+              {processMessage || "AI is searching for more courses and building roadmap..."}
+            </span>
+          </motion.div>
+        )}
+
         {/* ── Tab Nav ──────────────────────────────────────────────────────── */}
         <div className={styles.tabBar}>
           {tabs.map((tab) => (
@@ -629,14 +729,14 @@ const UserRecommendPage = () => {
                       tooltip: {
                         trigger: 'axis',
                         axisPointer: { type: 'shadow' },
-                        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                        backgroundColor: chartTooltipBg,
                         borderColor: '#4f46e5',
                         borderWidth: 1,
-                        textStyle: { color: '#fff' }
+                        textStyle: { color: chartTooltipText }
                       },
                       legend: {
                         data: ['Match Impact (%)', 'Salary Impact (%)'],
-                        textStyle: { color: 'rgba(255, 255, 255, 0.6)', fontSize: 10 },
+                        textStyle: { color: chartTextColor, fontSize: 10 },
                         top: 0
                       },
                       grid: {
@@ -648,19 +748,19 @@ const UserRecommendPage = () => {
                       },
                       xAxis: {
                         type: 'value',
-                        axisLabel: { color: 'rgba(255, 255, 255, 0.4)', fontSize: 10 },
-                        splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.05)' } }
+                        axisLabel: { color: chartTextColor, fontSize: 10 },
+                        splitLine: { lineStyle: { color: chartSplitLineColor } }
                       },
                       yAxis: {
                         type: 'category',
                         data: skill_gaps.map(g => g.skill).reverse(),
                         axisLabel: { 
-                          color: '#fff', 
+                          color: chartTextColor, 
                           fontSize: 11,
                           width: 100,
                           overflow: 'truncate'
                         },
-                        axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } }
+                        axisLine: { lineStyle: { color: chartAxisColor } }
                       },
                       series: [
                         {

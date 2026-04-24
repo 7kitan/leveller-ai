@@ -112,9 +112,9 @@ const UserDashboard = () => {
     id: i + 1,
     title: c.title || t("nav_courses"),
     platform: c.platform || "E-learning",
-    match: c.rank_score
-      ? `${Math.round(parseFloat(c.rank_score) * 100)}%`
-      : `${Math.round(parseFloat(c.similarity || 0) * 100)}%`,
+    match: c.similarity
+      ? `${Math.round(parseFloat(c.similarity) * 100)}%`
+      : `${Math.round(parseFloat(c.rank_score || 0) * 100)}%`,
     skills: (c.tags || c.skills || []).slice(0, 3),
     url: c.url,
     level: c.level,

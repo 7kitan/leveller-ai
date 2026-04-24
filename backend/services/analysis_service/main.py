@@ -139,7 +139,7 @@ async def start_gap_analysis(
         limit = quota_manager.get_analysis_limit(user)
         raise HTTPException(
             status_code=429, 
-            detail=f"Bạn đã đạt giới hạn phân tích trong ngày ({limit} lượt). Vui lòng quay lại vào ngày mai hoặc liên hệ Admin."
+            detail=f"Bạn đã đạt giới hạn (CV Parsing/Analysis) trong ngày ({limit} lượt). Vui lòng quay lại vào ngày mai hoặc liên hệ Admin."
         )
 
     # Check queue length
@@ -207,7 +207,8 @@ async def get_task_status(task_id: str):
         return {
             "status": "processing",
             "progress": res.info.get("percent", 0),
-            "message": res.info.get("message", "Processing...")
+            "message": res.info.get("message", "Processing..."),
+            "partial_result": res.info.get("partial_result")
         }
 
     return {"status": "processing"}

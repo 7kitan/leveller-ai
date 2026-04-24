@@ -20,19 +20,29 @@ class YouTubeSearchService:
         Tìm kiếm video YouTube.
         Sử dụng Vector Search để tìm trong cache trước khi gọi API thật.
         """
-        # Tối ưu query theo ngôn ngữ
-        search_query = query
+        # 1. Tối ưu query theo ngôn ngữ
+        clean_query = query.lower()
+        # Loại bỏ các từ khóa thừa thường được thêm bởi caller
+        for term in ["tutorial", "course", "khóa học", "hướng dẫn"]:
+            clean_query = clean_query.replace(term, "")
+        clean_query = " ".join(clean_query.split()) # Normalize whitespace
+
         if lang == "vi":
-            if "tiếng việt" not in query.lower():
-                search_query = f"{query} tiếng Việt"
-        
-        # 1. Tạo embedding cho query (dùng search_query để khớp với nội dung ngôn ngữ)
-        query_vector = get_embedding(search_query)
+            # Pattern tự nhiên: "Học [skill] [level] tiếng Việt" hoặc "Hướng dẫn [skill]"
+            if "tiếng việt" not in clean_query:
+                final_q = f"Học {clean_query} tiếng Việt"
+            else:
+                final_q = f"Học {clean_query}"
+        else:
+            final_q = f"{clean_query} tutorial course"
+
+        # 2. Tạo embedding cho query (dùng query gốc để giữ ngữ nghĩa trọn vẹn nhất cho Vector Search)
+        query_vector = get_embedding(query)
         now = datetime.now(timezone.utc)
         
         if query_vector:
-            # 2. Tìm kiếm trong Cache bằng Vector Similarity (Threshold 0.85)
-            # Chỉ lấy các video chưa hết hạn (expires_at > now)
+            # 3. Tìm kiếm trong Cache bằng Vector Similarity (Threshold 0.85)
+            # ... (keep existing cache logic)
             results = db.execute(
                 text("""
                     SELECT id, video_id, title, description, thumbnail, channel_name, url, (vector <=> :v) as distance
@@ -46,17 +56,16 @@ class YouTubeSearchService:
             ).fetchall()
 
             if results:
+                # ... (rest of cache logic)
                 logger.info(f"[YOUTUBE CACHE] Found {len(results)} matches. Checking verification age...")
                 
                 now = datetime.now(timezone.utc)
                 verification_threshold = now - timedelta(days=7) # Chỉ kiểm tra lại nếu quá 7 ngày
                 
-                # Phân loại: video nào cần check lại, video nào dùng luôn
                 to_verify = []
                 final_results = []
                 
                 for r in results:
-                    # R.last_verified_at có thể là None nếu mới được crawl
                     if not r.last_verified_at or r.last_verified_at < verification_threshold:
                         to_verify.append(r)
                     else:
@@ -67,13 +76,11 @@ class YouTubeSearchService:
                     valid_ids = await self.verify_videos_availability([v.video_id for v in to_verify])
                     
                     for v in to_verify:
-                        # Fetch the actual object for ORM update/delete
                         db_video = db.query(YouTubeCourse).filter(YouTubeCourse.video_id == v.video_id).first()
                         if not db_video:
                             continue
 
                         if v.video_id in valid_ids:
-                            # Update verification time using ORM
                             db_video.last_verified_at = now
                             final_results.append(self._format_video_result(v))
                         else:
@@ -85,20 +92,13 @@ class YouTubeSearchService:
                 if final_results:
                     return final_results[:limit]
 
-        # 3. Nếu không thấy trong cache hoặc similarity thấp, gọi YouTube API
+        # 4. Nếu không thấy trong cache hoặc similarity thấp, gọi YouTube API
         if not self.api_key:
             logger.warning("[YOUTUBE API] No API Key found. Skipping search.")
             return []
 
-        logger.info(f"[YOUTUBE API] Calling YouTube Search for: {search_query} (lang={lang})")
+        logger.info(f"[YOUTUBE API] Calling YouTube Search for: {final_q} (lang={lang})")
         try:
-            # Tối ưu hóa từ khóa theo ngôn ngữ
-            keyword_suffix = "course tutorial"
-            if lang == "vi":
-                keyword_suffix = "khóa học hướng dẫn"
-            
-            final_q = f"{search_query} {keyword_suffix}"
-
             params = {
                 "part": "snippet",
                 "q": final_q,

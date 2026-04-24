@@ -251,6 +251,7 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
                 logger.info(
                     "[ANALYSIS STEP 3] Invoking run_gap_analysis_v3 orchestrator..."
                 )
+                t3 = time.monotonic()
                 logger.info(
                     f"[ANALYSIS STEP 3] PAYLOAD to v3 orchestrator:\n"
                     f"  cv_id     : {cv_id}\n"
@@ -260,7 +261,25 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
                     f"  jd_text[:200]: {repr((jd_text or '')[:200])}\n"
                     f"  jd_context: {repr(jd_context)}"
                 )
-                t3 = time.monotonic()
+                async def on_step_update(partial_data):
+                    # Cập nhật state của Celery task với dữ liệu bán thành phẩm
+                    node_name = partial_data.get("node")
+                    msg = f"Đang xử lý: {node_name}..."
+                    if node_name == "gap_analysis":
+                        msg = "✓ Đã hoàn thành phân tích Gap. Đang tìm khóa học..."
+                    elif node_name == "course_agent":
+                        msg = "✓ Đã tìm xong khóa học. Đang tổng hợp lộ trình..."
+                    
+                    self.update_state(
+                        state='PROGRESS', 
+                        meta={
+                            'message': msg, 
+                            'percent': 60 if node_name == "gap_analysis" else 80,
+                            'partial_result': partial_data
+                        }
+                    )
+                    logger.info(f"[ANALYSIS TASK] Progress update from node: {node_name}")
+
                 report = loop.run_until_complete(
                     run_gap_analysis_v3(
                         cv_id=cv_id,
@@ -271,12 +290,13 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
                         jd_context=jd_context,
                         force=force,
                         lang=lang,
+                        on_update=on_step_update
                     )
                 )
                 elapsed_v3 = time.monotonic() - t3
                 match_pct = report.get("overall_match_pct", "N/A")
                 gaps = report.get("skill_gaps", [])
-                courses = report.get("recommended_courses", [])
+                courses = report.get("course_recommendations", [])
                 roadmap = report.get("career_roadmap")
                 logger.info(
                     f"[ANALYSIS STEP 3] Gap v3 completed in {elapsed_v3:.1f}s\n"

@@ -1966,3 +1966,36 @@
     height: 400px;
   }
 }
+/* -- Progressive Loading Indicator -- */
+.processingIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.25rem 2rem;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(6, 182, 212, 0.1));
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  border-radius: 1.5rem;
+  margin: 0.5rem 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(8px);
+}
+
+.spinIcon {
+  color: var(--color-accent-primary);
+  animation: spin 2s linear infinite;
+}
+
+.processingText {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+

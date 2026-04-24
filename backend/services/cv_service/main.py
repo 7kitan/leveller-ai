@@ -168,12 +168,14 @@ async def upload_cv(
     
     file_hash = calculate_file_hash(file_content)
 
+    # 1. Check if CV already exists (Duplicates don't count towards quota)
     existing_cv = (
         db.query(UserCV)
         .filter(UserCV.user_id == user_id, UserCV.file_hash == file_hash)
         .first()
     )
     if existing_cv:
+        # ... (keep existing duplicate logic)
         resp = {
             "cv_id": str(existing_cv.id),
             "status": existing_cv.status,
@@ -223,6 +225,20 @@ async def upload_cv(
             }
         return resp
 
+    # 2. Check Daily Quota (Sharing the same pool as Analysis)
+    from shared.quota_manager import quota_manager
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if not quota_manager.check_analysis_quota(user, db):
+        limit = quota_manager.get_analysis_limit(user)
+        raise HTTPException(
+            status_code=429, 
+            detail=f"Bạn đã đạt giới hạn (CV Parsing/Analysis) trong ngày ({limit} lượt). Vui lòng quay lại vào ngày mai."
+        )
+
+    # 3. Proceed with new CV
     cv_id = uuid.uuid4()
     # SECURITY: Use sanitized filename extension only, generate new name with UUID
     file_ext = os.path.splitext(os.path.basename(file.filename))[1].lower()

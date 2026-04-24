@@ -182,6 +182,12 @@ export const translations = {
     roadmap_empty: "Chưa có lộ trình học tập. Hãy chạy phân tích để nhận lộ trình cá nhân hóa.",
     ai_suggestions: "Gợi ý từ AI",
     ai_suggestion_text: "Tập trung vào các kỹ năng có severity CAO trước để tối đa hóa điểm match trong 3-6 tháng tới.",
+    match_level: "Mức độ đáp ứng",
+    cat_technical: "Kỹ năng kỹ thuật",
+    cat_soft: "Kỹ năng mềm",
+    cat_tools: "Công cụ & Framework",
+    cat_domain: "Kiến thức Domain",
+    cat_cert: "Chứng chỉ",
 
     // Admin Courses
     admin_courses_title: "Danh mục khóa học",
@@ -733,6 +739,12 @@ export const translations = {
     roadmap_empty: "No learning roadmap yet. Run analysis to get a personalized roadmap.",
     ai_suggestions: "AI Suggestions",
     ai_suggestion_text: "Focus on HIGH severity skills first to maximize your match score in the next 3-6 months.",
+    match_level: "Match Level",
+    cat_technical: "Technical Skills",
+    cat_soft: "Soft Skills",
+    cat_tools: "Tools & Frameworks",
+    cat_domain: "Domain Knowledge",
+    cat_cert: "Certifications",
 
     // Admin Courses
     admin_courses_title: "Course Catalog",

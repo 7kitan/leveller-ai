@@ -64,6 +64,7 @@ async def run_gap_analysis_v3(
     jd_context: str = "Vị trí chưa xác định",
     force: bool = False,
     lang: str = "vi",
+    on_update=None,
 ) -> dict:
     """
     Entry point cho toàn bộ Gap Analysis v3 pipeline.
@@ -193,7 +194,33 @@ async def run_gap_analysis_v3(
         "error": None,
     }
 
-    result = await gap_v3_graph.ainvoke(initial_state)
+    # ── Progressive Loading with astream ──────────────────────────────────────
+    final_state = initial_state
+    async for event in gap_v3_graph.astream(initial_state):
+        # event is a dict: {node_name: {state_updates}}
+        for node_name, state_update in event.items():
+            final_state = {**final_state, **state_update}
+            
+            # Nếu node quan trọng hoàn thành, trigger callback để UI cập nhật sớm
+            if node_name in ["gap_analysis", "course_agent", "roadmap", "finalize"]:
+                if on_update:
+                    try:
+                        # Gửi partial report về cho Celery task
+                        partial_report = {
+                            "overall_match_pct": (final_state.get("gap_analysis") or {}).get("overall_match_pct") or 0,
+                            "overall_assessment": (final_state.get("gap_analysis") or {}).get("overall_assessment") or "",
+                            "skill_gaps": (final_state.get("gap_analysis") or {}).get("skill_gaps") or [],
+                            "course_recommendations": final_state.get("course_recommendations") or [],
+                            "selected_youtube_videos": final_state.get("selected_youtube_videos") or [],
+                            "career_roadmap": final_state.get("career_roadmap") or {},
+                            "status": final_state.get("status") or "processing",
+                            "node": node_name
+                        }
+                        await on_update(partial_report)
+                    except Exception as up_err:
+                        _logger.warning(f"[ORCHESTRATOR] Callback failed: {up_err}")
+
+    result = final_state
 
     if result.get("final_report"):
         return result["final_report"]
