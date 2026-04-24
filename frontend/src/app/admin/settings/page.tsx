@@ -1139,7 +1139,7 @@ const AdminSettingsPage = () => {
                         {t("admin_settings_discard_btn")}
                     </button>
                     <button 
-                        onClick={handleBulkSave}
+                        onClick={() => handleBulkSave()}
                         className={styles.mainSaveBtn}
                         disabled={isSaving}
                     >

@@ -206,6 +206,7 @@ export const translations = {
     close: "Đóng",
 
     // CV Page
+    cv_processing: "Đang xử lý",
     cv_processing_detail: "Đang tải chi tiết CV...",
     cv_processing_ai: "ĐANG PHÂN TÍCH CV...",
     cv_processing_detail_sub: "AI đang tải dữ liệu hồ sơ từ hệ thống.",
@@ -382,6 +383,7 @@ export const translations = {
     admin_jobs_save_success: "Đã lưu công việc thành công",
     admin_jobs_delete_success: "Đã xóa tin tuyển dụng",
     admin_jobs_delete_confirm: "Xóa tin tuyển dụng này?",
+    admin_jobs_status_inactive: "Đã tắt Auto Crawl",
 
     // Admin Dashboard
     admin_dash_title: "System Oversight",
@@ -488,7 +490,9 @@ export const translations = {
     admin_settings_refresh_data: "Làm mới dữ liệu",
     admin_settings_refreshing: "Đang làm mới...",
     admin_settings_unsaved_changes: "Bạn có thay đổi chưa lưu",
+    admin_settings_load_error: "Không thể tải cấu hình hệ thống",
     admin_settings_save_error: "Lỗi khi lưu cấu hình",
+    admin_settings_save_success: "Đã lưu cấu hình thành công",
     admin_settings_test_mail_btn: "Test Mail",
     admin_settings_test_mail_success: "Đã gửi email thử nghiệm thành công",
     admin_settings_test_mail_error: "Lỗi gửi email kiểm tra. Vui lòng kiểm tra cấu hình SMTP.",
@@ -590,6 +594,8 @@ export const translations = {
     analysis_missing_inputs: "Please select both CV and JD to analyze.",
     analysis_failed: "Analysis failed.",
     analysis_cancelled: "Analysis has been cancelled by user.",
+    notify_me: "NOTIFY WHEN DONE",
+    will_notify: "WILL NOTIFY YOU",
     stop_analysis: "STOP ANALYSIS",
     processing_hint: "Deep analysis can take 2-3 minutes. You can safely close the browser; the system will save the results to your account.",
     analysis_done: "ANALYSIS COMPLETED!",
@@ -701,6 +707,7 @@ export const translations = {
     close: "Close",
 
     // CV Page
+    cv_processing: "Processing",
     cv_processing_detail: "Loading CV details...",
     cv_processing_ai: "ANALYZING CV...",
     cv_processing_detail_sub: "AI is loading profile data from system.",
@@ -877,6 +884,7 @@ export const translations = {
     admin_jobs_save_success: "Job saved successfully",
     admin_jobs_delete_success: "Job listing deleted",
     admin_jobs_delete_confirm: "Delete this job listing?",
+    admin_jobs_status_inactive: "Auto Crawl disabled",
 
     // Admin Dashboard
     admin_dash_title: "System Oversight",
@@ -983,7 +991,9 @@ export const translations = {
     admin_settings_refresh_data: "Refresh Data",
     admin_settings_refreshing: "Refreshing...",
     admin_settings_unsaved_changes: "You have unsaved changes",
+    admin_settings_load_error: "Failed to load system configuration",
     admin_settings_save_error: "Error saving configuration",
+    admin_settings_save_success: "Configuration saved successfully",
     admin_settings_test_mail_btn: "Test Mail",
     admin_settings_test_mail_success: "Test email sent successfully",
     admin_settings_test_mail_error: "Failed to send test email. Please check SMTP settings.",

@@ -10,8 +10,18 @@ import json
 import os
 import hashlib
 import logging
+import re
 from typing import List, Optional
 from pydantic import BaseModel
+
+# SECURITY: File upload constraints
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+ALLOWED_EXTENSIONS = {'.pdf', '.doc', '.docx'}
+ALLOWED_MIME_TYPES = {
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+}
 
 
 class SkillCreate(BaseModel):
@@ -75,6 +85,47 @@ def calculate_file_hash(file_content: bytes) -> str:
     return hashlib.sha256(file_content).hexdigest()
 
 
+def validate_uploaded_file(file: UploadFile, file_content: bytes) -> None:
+    """
+    SECURITY: Validate uploaded file for security threats
+    - Check file size
+    - Validate file extension
+    - Sanitize filename to prevent path traversal
+    """
+    # Check file size
+    if len(file_content) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"File quá lớn. Kích thước tối đa: {MAX_FILE_SIZE / (1024*1024):.0f}MB"
+        )
+    
+    # Validate filename exists
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Tên file không hợp lệ")
+    
+    # Sanitize filename - remove path traversal attempts
+    filename = os.path.basename(file.filename)
+    if '..' in filename or '/' in filename or '\\' in filename:
+        raise HTTPException(status_code=400, detail="Tên file chứa ký tự không hợp lệ")
+    
+    # Check file extension
+    file_ext = os.path.splitext(filename)[1].lower()
+    if file_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Định dạng file không được hỗ trợ. Chỉ chấp nhận: {', '.join(ALLOWED_EXTENSIONS)}"
+        )
+    
+    # Validate content type (basic check)
+    if file.content_type and file.content_type not in ALLOWED_MIME_TYPES:
+        logger.warning(f"Suspicious content type: {file.content_type} for file {filename}")
+        # Don't reject yet, as some browsers send incorrect MIME types
+    
+    # Check for null bytes (potential attack)
+    if b'\x00' in file_content[:1024]:  # Check first 1KB
+        raise HTTPException(status_code=400, detail="File chứa dữ liệu không hợp lệ")
+
+
 def is_admin(request: Request) -> bool:
     return request.headers.get("X-Is-Admin") == "true"
 
@@ -98,6 +149,10 @@ async def upload_cv(
 
     user_id = uuid.UUID(user_id_str)
     file_content = await file.read()
+    
+    # SECURITY: Validate file before processing
+    validate_uploaded_file(file, file_content)
+    
     file_hash = calculate_file_hash(file_content)
 
     existing_cv = (
@@ -156,8 +211,10 @@ async def upload_cv(
         return resp
 
     cv_id = uuid.uuid4()
-    file_ext = file.filename.split(".")[-1]
-    file_path = os.path.join(UPLOAD_DIR, f"{cv_id}.{file_ext}")
+    # SECURITY: Use sanitized filename
+    safe_filename = os.path.basename(file.filename)
+    file_ext = os.path.splitext(safe_filename)[1].lower()
+    file_path = os.path.join(UPLOAD_DIR, f"{cv_id}{file_ext}")
 
     with open(file_path, "wb") as buffer:
         buffer.write(file_content)

@@ -79,19 +79,40 @@
 /* ── Radar & Detailed Info ────────────────────────────────────────── */
 .radarSection {
   width: 100%;
-  max-width: 300px;
-  height: 220px;
+  max-width: 600px;
+  height: 350px;
+  min-height: 300px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.02);
   border-radius: var(--radius-md);
-  padding: 1rem;
+  padding: 1.5rem;
+  position: relative;
+  overflow: visible;
 }
 
-@media (max-width: 1200px) {
+.radarSection::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(79, 70, 229, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  border-radius: var(--radius-md);
+}
+
+@media (min-width: 640px) {
   .radarSection {
-    margin: 0 auto;
+    height: 400px;
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .radarSection {
+    max-width: 700px;
+    height: 450px;
+    padding: 2.5rem;
   }
 }
 
@@ -606,14 +627,28 @@
 /* ── Match Banner ──────────────────────────────────────────────────────── */
 .matchBanner {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 3rem;
+  gap: 2rem;
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  padding: 3rem 4rem;
+  padding: 2rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.04);
-  flex-wrap: wrap;
+}
+
+@media (min-width: 1024px) {
+  .matchBanner {
+    padding: 3rem;
+    gap: 3rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .matchBanner {
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
 }
 
 .matchScoreBlock {
@@ -632,6 +667,10 @@
   background: linear-gradient(to right, #4f46e5, #0ea5e9);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
+  padding-right: 0.15em;
+  padding-left: 0.05em;
+  display: inline-block;
 }
 
 .matchLabel {
@@ -644,10 +683,13 @@
 }
 
 .matchRight {
-  flex: 1;
+  width: 100%;
+  max-width: 800px;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  align-items: center;
+  text-align: center;
 }
 
 .matchAssessment {
@@ -1001,10 +1043,30 @@
 
 .gapCardMeta {
   display: flex;
-  align-items: center;
-  gap: 1.5rem;
   flex-wrap: wrap;
-  margin-top: auto;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.gapImpact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.impactBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid currentColor;
+  opacity: 0.9;
 }
 
 .gapLevel {
@@ -1398,4 +1460,470 @@
   border-radius: 99px;
   font-size: 10px;
   font-weight: 700;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE OVERRIDES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 639px) {
+  /* Page Layout */
+  .pageRoot {
+    gap: 1.5rem;
+    padding: 0 0.75rem;
+  }
+
+  /* Title & Header */
+  .titleMain {
+    font-size: 1.75rem !important;
+    line-height: 1.2;
+  }
+
+  .headerSubtitle {
+    font-size: 0.85rem;
+  }
+
+  /* Control Buttons */
+  .controlBar {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .refreshBtn {
+    padding: 0.75rem 1rem;
+    font-size: 9px;
+    gap: 0.5rem;
+    border-radius: 0.875rem;
+  }
+
+  /* Match Banner */
+  .matchBanner {
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .matchScore {
+    font-size: 3rem !important;
+  }
+
+  .matchLabel {
+    font-size: 9px;
+  }
+
+  /* Match Breakdown Bars */
+  .matchBreakdownSection {
+    order: 2;
+  }
+
+  .breakdownTitle {
+    font-size: 0.75rem;
+  }
+
+  .matchBarLabel {
+    font-size: 0.75rem;
+  }
+
+  .matchBarValue {
+    font-size: 0.8rem;
+  }
+
+  .matchBarTrack {
+    height: 6px;
+  }
+
+  /* Match Right Section */
+  .matchRight {
+    order: 3;
+  }
+
+  .matchAssessment {
+    font-size: 0.9rem;
+  }
+
+  .matchStats {
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .matchStatValue {
+    font-size: 1.5rem;
+  }
+
+  .matchStatLabel {
+    font-size: 8px;
+  }
+
+  /* Gap Analysis Section */
+  .gapAnalysisSection {
+    padding: 1.5rem;
+  }
+
+  .gapAnalysisTitle {
+    font-size: 1.25rem;
+  }
+
+  .gapAnalysisSubtitle {
+    font-size: 0.8rem;
+  }
+
+  /* Growth Forecast */
+  .growthForecast {
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+  }
+
+  .growthValue {
+    font-size: 1.75rem;
+  }
+
+  .growthLabel {
+    font-size: 9px;
+  }
+
+  .marketInsight {
+    padding: 1rem;
+    font-size: 0.85rem;
+    gap: 0.5rem;
+  }
+
+  /* Info Cards */
+  .infoCard {
+    padding: 1.5rem;
+  }
+
+  .infoTitle {
+    font-size: 0.9rem;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  /* Insight Box */
+  .insightBox {
+    padding: 1.5rem;
+  }
+
+  .insightTitle {
+    font-size: 0.85rem;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .insightItem {
+    padding: 1rem 1.25rem;
+    font-size: 0.85rem;
+  }
+
+  /* Severity Pills */
+  .severityRow {
+    gap: 0.5rem;
+  }
+
+  .severityPill {
+    padding: 0.375rem 0.75rem;
+    font-size: 9px;
+    gap: 0.375rem;
+  }
+
+  /* Tab Bar */
+  .tabBar {
+    gap: 0.25rem;
+    padding: 0.375rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab {
+    padding: 0.625rem 1rem;
+    font-size: 9px;
+    gap: 0.375rem;
+    border-radius: 1rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .tabCount {
+    font-size: 8px;
+    padding: 0.1rem 0.4rem;
+  }
+
+  /* Gap Grid */
+  .gapGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .gapCard {
+    padding: 1.25rem;
+  }
+
+  .gapSkillName {
+    font-size: 0.9rem;
+  }
+
+  .gapCardMeta {
+    gap: 0.75rem;
+  }
+
+  .gapLearningPath {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    gap: 0.75rem;
+  }
+
+  .gapLearningPath p {
+    font-size: 0.8rem;
+  }
+
+  /* Course Grid */
+  .courseGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* Video Grid */
+  .videoGrid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .videoInfo {
+    padding: 1.25rem;
+  }
+
+  .videoTitle {
+    font-size: 0.95rem;
+  }
+
+  /* Roadmap */
+  .roadmapSummary {
+    padding: 1.5rem;
+    font-size: 0.9rem;
+    gap: 1rem;
+  }
+
+  .roadmapTimeline {
+    padding-left: 1rem;
+  }
+
+  .roadmapStage {
+    gap: 1rem;
+    padding-bottom: 2rem;
+  }
+
+  .roadmapContent {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .roadmapFocus {
+    font-size: 0.95rem;
+  }
+
+  /* Empty States */
+  .emptyState {
+    padding: 3rem 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .emptySection {
+    padding: 3rem 1.5rem;
+    gap: 1rem;
+  }
+
+  .emptyTitle {
+    font-size: 1.125rem;
+  }
+
+  .emptySub {
+    font-size: 0.8rem;
+  }
+
+  .startBtn {
+    padding: 0.875rem 1.75rem;
+    font-size: 10px;
+    gap: 0.625rem;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 1.5rem;
+  }
+
+  .footerTitle {
+    font-size: 1rem;
+    gap: 0.5rem;
+  }
+
+  .footerText {
+    font-size: 0.8rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   TABLET RESPONSIVE (640px - 1023px)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  /* Page Layout */
+  .pageRoot {
+    gap: 2rem;
+    padding: 0 1rem;
+  }
+
+  /* Title & Header */
+  .titleMain {
+    font-size: 2.25rem !important;
+  }
+
+  /* Control Buttons */
+  .controlBar {
+    gap: 0.75rem;
+  }
+
+  .refreshBtn {
+    padding: 0.875rem 1.5rem;
+    font-size: 10px;
+  }
+
+  /* Match Banner */
+  .matchBanner {
+    padding: 2rem;
+    gap: 2rem;
+  }
+
+  .matchScore {
+    font-size: 4rem !important;
+  }
+
+  .matchStats {
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+
+  /* Growth Forecast */
+  .growthForecast {
+    gap: 2rem;
+  }
+
+  .growthValue {
+    font-size: 2rem;
+  }
+
+  /* Info Cards */
+  .infoCard {
+    padding: 2rem;
+  }
+
+  .infoTitle {
+    font-size: 1rem;
+  }
+
+  /* Insight Box */
+  .insightBox {
+    padding: 2rem;
+  }
+
+  .insightTitle {
+    font-size: 0.9rem;
+  }
+
+  /* Gap Grid */
+  .gapGrid {
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: 1.25rem;
+  }
+
+  .gapCard {
+    padding: 1.5rem;
+  }
+
+  /* Course Grid */
+  .courseGrid {
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+    gap: 1.25rem;
+  }
+
+  /* Video Grid */
+  .videoGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  /* Roadmap */
+  .roadmapSummary {
+    padding: 2rem;
+  }
+
+  .roadmapTimeline {
+    padding-left: 1.5rem;
+  }
+
+  .roadmapStage {
+    gap: 1.5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .roadmapContent {
+    padding: 1.75rem 2rem;
+  }
+
+  /* Empty States */
+  .emptyState {
+    padding: 4rem 2rem;
+  }
+
+  .emptySection {
+    padding: 4rem 2rem;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 2rem;
+  }
+
+  .footerTitle {
+    font-size: 1.125rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   UTILITY CLASSES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.accentBtn {
+  background: linear-gradient(135deg, #4f46e5, #0ea5e9) !important;
+  color: white !important;
+  border-color: transparent !important;
+}
+
+.accentBtn:hover {
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+}
+
+/* Fix grid-template-columns typo */
+.gridTwo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .gridTwo {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.insightContent {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .insightContent {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

@@ -2,7 +2,13 @@ import uuid
 import logging
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
-from shared.models import User, UserCV, Job, UserAnalysis, MarketSkillStats
+from shared.models import User, UserCV, UserAnalysis, Job, MarketSkillStats
+from datetime import datetime, timezone
+import logging
+from services.analysis_service.growth_calculator import (
+    calculate_skill_impact,
+    calculate_market_sentiment
+)
 
 logger = logging.getLogger("market_fit_service")
 
@@ -59,19 +65,44 @@ async def update_user_market_fit(user_id: uuid.UUID, db: Session) -> dict:
             matched_jobs_count = len(course_recs)
             market_fit_pct = int(float(res.get("overall_match_pct") or 0))
             
-            # Get from LLM or fallback to heuristic
-            potential_match_pct = int(float(res.get("potential_match_pct") or 0))
-            salary_growth_pct = int(float(res.get("salary_growth_pct") or 0))
-            market_sentiment = res.get("market_sentiment") or ""
-            courses_to_return = course_recs
+            # Calculate growth metrics using DB data (NEW ALGORITHM)
+            skill_gaps = res.get("skill_gaps") or []
             
-            # Heuristic fallback if LLM hasn't provided these yet (e.g. old analysis)
-            if potential_match_pct == 0 and matched_jobs_count > 0:
-                potential_match_pct = min(98, market_fit_pct + (matched_jobs_count * 5))
-            if salary_growth_pct == 0 and matched_jobs_count > 0:
-                salary_growth_pct = matched_jobs_count * 8
-            if not market_sentiment and matched_jobs_count > 0:
-                market_sentiment = "Tăng trưởng cao" if matched_jobs_count > 3 else "Ổn định"
+            if skill_gaps and latest_analysis.job_id:
+                try:
+                    potential_match_pct, salary_growth_pct, _ = calculate_skill_impact(
+                        skill_gaps=skill_gaps,
+                        job_id=str(latest_analysis.job_id),
+                        current_match_pct=market_fit_pct,
+                        db=db
+                    )
+                    
+                    market_sentiment = calculate_market_sentiment(skill_gaps, db)
+                    
+                    logger.info(
+                        f"Market fit calculated from DB: potential={potential_match_pct}%, "
+                        f"salary={salary_growth_pct}%"
+                    )
+                except Exception as e:
+                    logger.error(f"Error calculating market fit: {e}", exc_info=True)
+                    # Fallback to simple heuristic
+                    potential_match_pct = min(98, market_fit_pct + (matched_jobs_count * 5))
+                    salary_growth_pct = matched_jobs_count * 8
+                    market_sentiment = "Tăng trưởng cao" if matched_jobs_count > 3 else "Ổn định"
+            else:
+                # Fallback if no skill_gaps or job_id
+                potential_match_pct = int(float(res.get("potential_match_pct") or 0))
+                salary_growth_pct = int(float(res.get("salary_growth_pct") or 0))
+                market_sentiment = res.get("market_sentiment") or ""
+                
+                if potential_match_pct == 0 and matched_jobs_count > 0:
+                    potential_match_pct = min(98, market_fit_pct + (matched_jobs_count * 5))
+                if salary_growth_pct == 0 and matched_jobs_count > 0:
+                    salary_growth_pct = matched_jobs_count * 8
+                if not market_sentiment and matched_jobs_count > 0:
+                    market_sentiment = "Tăng trưởng cao" if matched_jobs_count > 3 else "Ổn định"
+            
+            courses_to_return = course_recs
 
         # 3. Lấy Trending Skills
         trends = db.query(MarketSkillStats).order_by(MarketSkillStats.growth_rate_30d.desc()).limit(5).all()

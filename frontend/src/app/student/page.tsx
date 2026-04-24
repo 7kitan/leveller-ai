@@ -522,13 +522,13 @@ const StudentDashboard = () => {
 
                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '3rem', alignItems: 'center', marginBottom: '3rem' }}>
                       <RadarChart 
-                        labels={categories} 
+                        labels={CATEGORIES} 
                         currentData={catMatch} 
                         potentialData={simData ? potentialCatMatch : undefined} 
                       />
                       
                       <div className={styles.categorySection}>
-                         {categories.map((cat, i) => (
+                         {CATEGORIES.map((cat, i) => (
                             <div key={cat} className={styles.categoryGroup}>
                                <div className={styles.categoryHeader}>
                                   <span className={styles.categoryTitle}>{cat}</span>

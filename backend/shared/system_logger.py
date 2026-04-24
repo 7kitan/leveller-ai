@@ -2,6 +2,7 @@ import logging
 import json
 import traceback
 import concurrent.futures
+import atexit
 from typing import Any, Optional, Dict
 from sqlalchemy.orm import Session
 from shared.database import SessionLocal
@@ -9,6 +10,12 @@ from shared.models import SystemLog
 
 logger = logging.getLogger("system_logger")
 log_executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+
+def shutdown_logger():
+    logger.info("Shutting down system log executor...")
+    log_executor.shutdown(wait=True)
+
+atexit.register(shutdown_logger)
 
 def mask_sensitive_data(data: Any) -> Any:
     """
@@ -30,43 +37,10 @@ def mask_sensitive_data(data: Any) -> Any:
     return data
 
 class SystemLogger:
-    @staticmethod
-    def log(level: str, module: str, message: str, details: Optional[Dict[str, Any]] = None):
-        """
-        Ghi log vào Database. Sử dụng session riêng để không ảnh hưởng đến transaction chính.
-        """
-        # Log ra console trước
-        log_msg = f"[{module}][{level}] {message}"
-        if level == "ERROR" or level == "CRITICAL":
-            logger.error(log_msg)
-        elif level == "WARNING":
-            logger.warning(log_msg)
-        else:
-            logger.info(log_msg)
-
-        db = SessionLocal()
-        try:
-            # Mask details before saving
-            masked_details = mask_sensitive_data(details) if details else None
-            
-            new_log = SystemLog(
-                level=level,
-                module=module,
-                message=message,
-                details=masked_details
-            )
-            db.add(new_log)
-            db.commit()
-        except Exception as e:
-            logger.error(f"Failed to persist system log: {e}")
-        finally:
-            db.close()
-
     @classmethod
-    def log(cls, level: str, module: str, message: str, details: Optional[Dict[str, Any]] = None):
+    def log(cls, level: str, module: str, message: str, details: Optional[Dict[str, Any]] = None, async_persist: bool = True):
         """
-        Ghi log vào Database (Async via ThreadPool). 
-        Sử dụng session riêng để không ảnh hưởng đến transaction chính.
+        Ghi log. Mặc định ghi vào DB bất đồng bộ qua ThreadPool.
         """
         # Log ra console trước (Sync)
         log_msg = f"[{module}][{level}] {message}"
@@ -77,8 +51,16 @@ class SystemLogger:
         else:
             logger.info(log_msg)
 
-        # Đẩy việc ghi DB vào background thread
-        log_executor.submit(cls._persist_log, level, module, message, details)
+        if async_persist:
+            # Đẩy việc ghi DB vào background thread
+            try:
+                log_executor.submit(cls._persist_log, level, module, message, details)
+            except RuntimeError:
+                # Executor might be shut down
+                logger.warning("Log executor is shut down. Persisting log synchronously.")
+                cls._persist_log(level, module, message, details)
+        else:
+            cls._persist_log(level, module, message, details)
 
     @staticmethod
     def _persist_log(level: str, module: str, message: str, details: Optional[Dict[str, Any]] = None):

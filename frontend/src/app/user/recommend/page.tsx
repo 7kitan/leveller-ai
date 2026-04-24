@@ -28,9 +28,7 @@ import {
 import CourseCard from "@/components/user/CourseCard";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer 
-} from 'recharts';
+import ReactECharts from 'echarts-for-react';
 import styles from "./user-recommend.module.css";
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
@@ -328,47 +326,155 @@ const UserRecommendPage = () => {
             <span className={styles.matchLabel}>{t("current_match")}</span>
           </div>
           
-          {/* Radar Chart Section - Data Visualization (Point 3) */}
+          {/* Radar Chart - Gap Analysis */}
           <div className={styles.radarSection}>
-              <ResponsiveContainer width="100%" height={220}>
-                 <RadarChart cx="50%" cy="50%" outerRadius="75%" data={
-                   Object.keys(match_breakdown).length > 0 ? Object.entries(match_breakdown).map(([name, value]) => ({
-                     subject: name.replace('_', ' ').toUpperCase(),
-                     A: value,
-                     fullMark: 100,
-                   })) : [
-                     { subject: 'KY NĂNG', A: 40, fullMark: 100 },
-                     { subject: 'KINH NGHIỆM', A: 65, fullMark: 100 },
-                     { subject: 'CHỨNG CHỈ', A: 30, fullMark: 100 },
-                     { subject: 'HỌC VẤN', A: 80, fullMark: 100 },
-                     { subject: 'DOMAIN', A: 50, fullMark: 100 },
-                   ]
-                 }>
-                   <PolarGrid stroke="var(--color-border-subtle)" strokeOpacity={0.2} />
-                   <PolarAngleAxis 
-                     dataKey="subject" 
-                     tick={{ fill: 'var(--color-text-muted)', fontSize: 9, fontWeight: 700 }} 
-                   />
-                   <PolarRadiusAxis 
-                     angle={30} 
-                     domain={[0, 100]} 
-                     tick={false} 
-                     axisLine={false} 
-                   />
-                    <Radar
-                      name={t("compatibility_label")}
-                      dataKey="A"
-                      stroke="var(--color-accent-primary)"
-                      fill="var(--color-accent-primary)"
-                      fillOpacity={0.4}
-                      animationBegin={300}
-                      animationDuration={1000}
-                    />
-                 </RadarChart>
-               </ResponsiveContainer>
-               
-               {/* Micro-animation elements (concept) */}
-               <div className={styles.radarGlow} />
+            <ReactECharts
+              option={{
+                radar: {
+                  indicator: (Object.keys(match_breakdown).length > 0 
+                    ? Object.entries(match_breakdown).map(([name, value]) => ({
+                        name: name.replace('_', ' ').toUpperCase(),
+                        max: 100,
+                      }))
+                    : [
+                        { name: 'KỸ NĂNG KỸ THUẬT', max: 100 },
+                        { name: 'KỸ NĂNG MỀM', max: 100 },
+                        { name: 'CÔNG CỤ & FRAMEWORK', max: 100 },
+                        { name: 'KIẾN THỨC DOMAIN', max: 100 },
+                        { name: 'CHỨNG CHỈ', max: 100 },
+                      ]
+                  ),
+                  shape: 'polygon',
+                  splitNumber: 4,
+                  center: ['50%', '50%'],
+                  radius: '65%',
+                  axisName: {
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    borderRadius: 4,
+                    padding: [4, 8],
+                  },
+                  splitLine: {
+                    lineStyle: {
+                      color: 'rgba(255, 255, 255, 0.08)',
+                      width: 1,
+                    },
+                  },
+                  splitArea: {
+                    show: true,
+                    areaStyle: {
+                      color: [
+                        'rgba(79, 70, 229, 0.03)',
+                        'rgba(79, 70, 229, 0.01)',
+                      ],
+                    },
+                  },
+                  axisLine: {
+                    lineStyle: {
+                      color: 'rgba(255, 255, 255, 0.12)',
+                    },
+                  },
+                },
+                series: [
+                  {
+                    type: 'radar',
+                    data: [
+                      {
+                        value: Object.keys(match_breakdown).length > 0
+                          ? Object.values(match_breakdown).map((score: any) => 100 - score)
+                          : [60, 40, 45, 50, 70],
+                        name: 'Khoảng cách kỹ năng',
+                        areaStyle: {
+                          color: {
+                            type: 'radial',
+                            x: 0.5,
+                            y: 0.5,
+                            r: 0.5,
+                            colorStops: [
+                              { offset: 0, color: 'rgba(239, 68, 68, 0.4)' },
+                              { offset: 0.5, color: 'rgba(245, 158, 11, 0.3)' },
+                              { offset: 1, color: 'rgba(79, 70, 229, 0.2)' },
+                            ],
+                          },
+                          shadowColor: 'rgba(79, 70, 229, 0.3)',
+                          shadowBlur: 20,
+                        },
+                        lineStyle: {
+                          color: '#4f46e5',
+                          width: 2,
+                          shadowColor: 'rgba(79, 70, 229, 0.5)',
+                          shadowBlur: 10,
+                        },
+                        label: {
+                          show: true,
+                          formatter: (params: any) => `${params.value}%`,
+                          color: '#fff',
+                          fontSize: 11,
+                          fontWeight: 900,
+                          distance: 10,
+                          backgroundColor: 'rgba(79, 70, 229, 0.9)',
+                          borderRadius: 4,
+                          padding: [3, 6],
+                        },
+                        itemStyle: {
+                          color: '#4f46e5',
+                          borderColor: '#fff',
+                          borderWidth: 2,
+                          shadowColor: 'rgba(79, 70, 229, 0.6)',
+                          shadowBlur: 8,
+                        },
+                        emphasis: {
+                          label: {
+                            show: true,
+                            fontSize: 13,
+                            fontWeight: 900,
+                          },
+                          areaStyle: {
+                            color: 'rgba(79, 70, 229, 0.85)',
+                            shadowBlur: 30,
+                          },
+                          lineStyle: {
+                            width: 3,
+                          },
+                          itemStyle: {
+                            borderWidth: 3,
+                            shadowBlur: 15,
+                          },
+                        },
+                      },
+                    ],
+                    animationDuration: 1500,
+                    animationEasing: 'elasticOut',
+                    animationDelay: 300,
+                  },
+                ],
+                tooltip: {
+                  trigger: 'item',
+                  backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                  borderColor: '#4f46e5',
+                  borderWidth: 1,
+                  textStyle: {
+                    color: '#fff',
+                    fontSize: 12,
+                  },
+                  formatter: (params: any) => {
+                    if (!params || !params.value) return '';
+                    const indicator = params.name;
+                    const value = Array.isArray(params.value) ? params.value : [params.value];
+                    return `<div style="padding: 6px 10px;">
+                      <strong style="color: #4f46e5;">${indicator}</strong><br/>
+                      <span style="font-size: 14px;">${value[0]}%</span>
+                    </div>`;
+                  },
+                },
+              }}
+              style={{ height: '100%', width: '100%' }}
+              opts={{ renderer: 'svg' }}
+              notMerge={true}
+              lazyUpdate={true}
+            />
           </div>
 
           <div className={styles.matchRight}>
@@ -543,6 +649,24 @@ const UserRecommendPage = () => {
                     {gap.gap_type && <span className={styles.gapType}>{gap.gap_type}</span>}
                     {gap.is_critical && <span className={styles.criticalTag}>Critical</span>}
                   </div>
+
+                  {/* Impact Values - NEW */}
+                  {(gap.match_impact || gap.salary_impact) && (
+                    <div className={styles.gapImpact}>
+                      {gap.match_impact && (
+                        <span className={styles.impactBadge} style={{ background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
+                          <Target size={12} />
+                          +{gap.match_impact}% match
+                        </span>
+                      )}
+                      {gap.salary_impact && (
+                        <span className={styles.impactBadge} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                          <TrendingUp size={12} />
+                          +{gap.salary_impact}% salary
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {gap.learning_path && (
                     <div className={styles.gapLearningPath}>
