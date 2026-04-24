@@ -113,14 +113,17 @@ def get_chat_completion(
     prompt: str, 
     system_prompt: str = "You are a helpful assistant.", 
     json_mode: bool = False,
-    model: Optional[str] = None
+    model: Optional[str] = None,
+    model_key: str = "career_advisor_model",
+    call_name: str = "chat_completion",
+    user_id: Optional[str] = None
 ) -> Optional[str]:
     """
     [LEGACY] Wrapper for the new AI Service completion core.
     This function is maintained for backward compatibility.
     """
     # Use career_advisor_model as default for general chat completions if model is not override
-    m_key = "ai_model" if model else "career_advisor_model"
+    m_key = model_key if model_key else "ai_model"
     
     return generate_completion(
         prompt=prompt,
@@ -128,7 +131,8 @@ def get_chat_completion(
         json_mode=json_mode,
         model=model,
         model_key=m_key,
-        call_name=call_name
+        call_name=call_name,
+        user_id=user_id
     )
 
 # ─── Utility Functions ───────────────────────────────────────────────────────

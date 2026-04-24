@@ -19,7 +19,7 @@ class RequirementRetriever:
     def __init__(self, db: Session):
         self.db = db
 
-    async def extract(self, jd_text: str, job_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def extract(self, jd_text: str, job_id: Optional[str] = None, user_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """AI Trích xuất JD với cơ chế 4-Layer Knowledge Retrieval (Hybrid)."""
         jd_text = jd_text.strip()
         jd_embedding = None
@@ -96,7 +96,7 @@ class RequirementRetriever:
 
         # Layer 4: AI Extraction (Chat Completion)
         logger.info(f"Executing AI Extraction (GPT) | job_id={job_id}...")
-        requirements = await self._ai_extract(jd_text)
+        requirements = await self._ai_extract(jd_text, user_id=user_id)
 
         if requirements:
             self._save_to_cache(jd_text, jd_embedding, requirements, job_id)
@@ -208,7 +208,7 @@ class RequirementRetriever:
             self.db.rollback()
             logger.error(f"Failed to save cache: {e}")
 
-    async def _ai_extract(self, jd_text: str) -> List[Dict[str, Any]]:
+    async def _ai_extract(self, jd_text: str, user_id: Optional[str] = None) -> List[Dict[str, Any]]:
         prompt = f"""
         YOU ARE A SENIOR TECHNICAL RECRUITMENT EXPERT.
         Extract the required technical skills from the following Job Description (JD).
@@ -280,7 +280,8 @@ class RequirementRetriever:
                 system_prompt="YOU ARE A SENIOR TECHNICAL RECRUITMENT EXPERT.",
                 json_mode=True,
                 model_key="gap_analysis_model",
-                call_name="requirement_extraction"
+                call_name="requirement_extraction",
+                user_id=user_id
             )
             if not raw_content:
                 return []

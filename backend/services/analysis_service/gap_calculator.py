@@ -25,10 +25,10 @@ class GapCalculator:
         self.advanced_engine = AdvancedGapEngine()
 
     async def extract_requirements_from_text(
-        self, jd_text: str, job_id: Optional[str] = None
+        self, jd_text: str, job_id: Optional[str] = None, user_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """AI Trích xuất JD (Delegated to Retriever)."""
-        return await self.retriever.extract(jd_text, job_id)
+        return await self.retriever.extract(jd_text, job_id, user_id=user_id)
 
     def _normalize_name(self, name: str) -> str:
         return self.matcher._normalize_name(name)
@@ -150,7 +150,7 @@ class GapCalculator:
 
         return results
 
-    async def infer_market_requirements_for_cv(self, cv_id: str) -> list:
+    async def infer_market_requirements_for_cv(self, cv_id: str, user_id: Optional[str] = None) -> list:
         """
         Fallback khi không có JD: LLM suy luận market standard requirements
         dựa trên primary role và skills của CV.
@@ -203,7 +203,7 @@ Trả về JSON:
 
 Chỉ trả về JSON hợp lệ."""
 
-            raw = get_chat_completion(prompt, json_mode=True, model_key="gap_analysis_model")
+            raw = get_chat_completion(prompt, json_mode=True, model_key="gap_analysis_model", user_id=user_id)
             if raw:
                 import json
 
