@@ -209,7 +209,157 @@ function GlassNavbar({
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [language, setLanguage] = React.useState<'vi' | 'en'>('vi');
   const navRef = React.useRef<HTMLElement>(null);
+
+  // Toggle language
+  const toggleLanguage = () => {
+    setLanguage(prev => prev === 'vi' ? 'en' : 'vi');
+  };
+
+  // Translation object
+  const t = {
+    vi: {
+      nav: {
+        stats: "Thống kê",
+        howItWorks: "Cách hoạt động",
+        features: "Tính năng",
+        testimonials: "Đánh giá",
+        login: "Đăng nhập"
+      },
+      hero: {
+        title: "Định hình lại\ncon đường tương lai",
+        description: "Trải nghiệm thế hệ mới của trí tuệ nghề nghiệp được hỗ trợ bởi AI và quản lý đồ thị tri thức kỹ thuật.",
+        getStarted: "Bắt đầu ngay",
+        learnMore: "Tìm hiểu thêm"
+      },
+      stats: {
+        cvs: "CV Đã Phân Tích",
+        accuracy: "Độ Chính Xác",
+        companies: "Công Ty",
+        support: "Hỗ Trợ AI"
+      },
+      vision: {
+        heading: "Tầm nhìn & Sứ mệnh",
+        text: "Chúng tôi tin rằng tương lai được xây dựng từ những kết nối thông minh. Lumix AI không chỉ là công cụ, mà là một hệ sinh thái tri thức giúp bạn xóa bỏ mọi giới hạn.",
+        subtext: "Với công nghệ AI tiên tiến và Knowledge Graph, chúng tôi tạo ra cầu nối giữa kỹ năng hiện tại và cơ hội tương lai của bạn.",
+        accurate: "Chính xác",
+        accurateDesc: "AI phân tích sâu để đưa ra đánh giá chính xác nhất",
+        fast: "Nhanh chóng",
+        fastDesc: "Kết quả trong vài phút, không phải vài ngày",
+        effective: "Hiệu quả",
+        effectiveDesc: "Lộ trình cá nhân hóa giúp bạn tiến nhanh hơn"
+      },
+      howItWorks: {
+        heading: "Cách hoạt động",
+        subheading: "Ba bước đơn giản để mở khóa tiềm năng nghề nghiệp của bạn",
+        step1: "Tải CV lên",
+        step1Desc: "Tải CV của bạn lên và để AI phân tích kỹ năng, kinh nghiệm và quỹ đạo nghề nghiệp.",
+        step2: "Phân tích AI",
+        step2Desc: "Thuật toán tiên tiến xác định khoảng trống kỹ năng, khớp cơ hội và tạo đề xuất cá nhân hóa.",
+        step3: "Nhận kết quả",
+        step3Desc: "Nhận thông tin chi tiết có thể hành động, đề xuất khóa học và lộ trình rõ ràng đến công việc mơ ước."
+      },
+      features: {
+        heading: "Tương lai của tri thức",
+        subheading: "Giải pháp toàn diện cho mọi đối tượng",
+        professionals: "Chuyên gia",
+        professionalsDesc: "Xây dựng và quản trị từ điển tri thức chuyên môn phức tạp thông qua kiến trúc Knowledge Graph tiên tiến. Tự động hóa phân tích kỹ năng và chuẩn hóa quy trình chuyên gia.",
+        applicants: "Ứng viên",
+        applicantsDesc: "Giải mã khoảng trống kỹ năng (Skill Gap) và tối ưu hóa hồ sơ năng lực để dẫn đầu trong mọi cuộc săn tìm cơ hội.",
+        students: "Sinh viên",
+        studentsDesc: "Lộ trình học tập cá nhân hóa được tinh chỉnh bởi AI, giúp bạn rút ngắn khoảng cách từ giảng đường đến thực tế doanh nghiệp.",
+        learnMore: "Tìm hiểu thêm"
+      },
+      testimonials: {
+        heading: "Được tin tưởng bởi các chuyên gia",
+        subheading: "Xem những gì người dùng của chúng tôi nói về trải nghiệm của họ"
+      },
+      footer: {
+        product: "Sản phẩm",
+        company: "Công ty",
+        resources: "Tài nguyên",
+        stayUpdated: "Cập nhật tin tức",
+        newsletter: "Nhận tin tức và cập nhật mới nhất được gửi đến hộp thư của bạn.",
+        emailPlaceholder: "Nhập email của bạn",
+        copyright: "© 2026 Lumix AI. Tất cả quyền được bảo lưu.",
+        privacy: "Chính sách bảo mật",
+        terms: "Điều khoản dịch vụ",
+        cookies: "Chính sách Cookie"
+      }
+    },
+    en: {
+      nav: {
+        stats: "Statistics",
+        howItWorks: "How it works",
+        features: "Features",
+        testimonials: "Reviews",
+        login: "Login"
+      },
+      hero: {
+        title: "Recode your\nfuture path",
+        description: "Experience the next generation of AI-driven career intelligence and technical knowledge graph management.",
+        getStarted: "Get started",
+        learnMore: "Learn more"
+      },
+      stats: {
+        cvs: "CVs Analyzed",
+        accuracy: "Match Accuracy",
+        companies: "Companies",
+        support: "AI Support"
+      },
+      vision: {
+        heading: "Vision & Mission",
+        text: "We believe the future is built from intelligent connections. Lumix AI is not just a tool, but a knowledge ecosystem that helps you break through all limitations.",
+        subtext: "With advanced AI technology and Knowledge Graph, we create a bridge between your current skills and future opportunities.",
+        accurate: "Accurate",
+        accurateDesc: "Deep AI analysis for the most precise assessment",
+        fast: "Fast",
+        fastDesc: "Results in minutes, not days",
+        effective: "Effective",
+        effectiveDesc: "Personalized roadmap helps you progress faster"
+      },
+      howItWorks: {
+        heading: "How it works",
+        subheading: "Three simple steps to unlock your career potential",
+        step1: "Upload CV",
+        step1Desc: "Upload your resume and let our AI analyze your skills, experience, and career trajectory.",
+        step2: "AI Analysis",
+        step2Desc: "Advanced algorithms identify skill gaps, match opportunities, and generate personalized recommendations.",
+        step3: "Get Results",
+        step3Desc: "Receive actionable insights, course recommendations, and a clear roadmap to your dream job."
+      },
+      features: {
+        heading: "The future of knowledge",
+        subheading: "Comprehensive solutions for everyone",
+        professionals: "Professionals",
+        professionalsDesc: "Build and manage complex professional knowledge dictionaries through advanced Knowledge Graph architecture. Automate skill analysis and standardize expert processes.",
+        applicants: "Applicants",
+        applicantsDesc: "Decode skill gaps and optimize your competency profile to lead in every opportunity hunt.",
+        students: "Students",
+        studentsDesc: "AI-refined personalized learning roadmap helps you shorten the gap from classroom to business reality.",
+        learnMore: "Learn more"
+      },
+      testimonials: {
+        heading: "Trusted by professionals",
+        subheading: "See what our users have to say about their experience"
+      },
+      footer: {
+        product: "Product",
+        company: "Company",
+        resources: "Resources",
+        stayUpdated: "Stay updated",
+        newsletter: "Get the latest news and updates delivered to your inbox.",
+        emailPlaceholder: "Enter your email",
+        copyright: "© 2026 Lumix AI. All rights reserved.",
+        privacy: "Privacy Policy",
+        terms: "Terms of Service",
+        cookies: "Cookie Policy"
+      }
+    }
+  };
+
+  const currentLang = t[language];
 
   // Close menu when clicking outside
   React.useEffect(() => {
@@ -259,15 +409,21 @@ export default function LandingPage() {
           
           {/* Desktop Links */}
           <div className={styles.navLinks}>
-            <Link href="#stats">Thống kê / Stats</Link>
-            <Link href="#how-it-works">Cách hoạt động / How it works</Link>
-            <Link href="#features">Tính năng / Features</Link>
-            <Link href="#testimonials">Đánh giá / Reviews</Link>
-            <Link href="/auth/login" className={styles.navCta}>Đăng nhập / Login</Link>
+            <Link href="#stats">{currentLang.nav.stats}</Link>
+            <Link href="#how-it-works">{currentLang.nav.howItWorks}</Link>
+            <Link href="#features">{currentLang.nav.features}</Link>
+            <Link href="#testimonials">{currentLang.nav.testimonials}</Link>
+            <Link href="/auth/login" className={styles.navCta}>{currentLang.nav.login}</Link>
+            <button onClick={toggleLanguage} className={styles.langToggle}>
+              {language === 'vi' ? 'EN' : 'VI'}
+            </button>
           </div>
 
           {/* Mobile Toggle */}
           <div className={styles.navRight}>
+            <button onClick={toggleLanguage} className={styles.langToggleMobile}>
+              {language === 'vi' ? 'EN' : 'VI'}
+            </button>
             <button 
               className={styles.mobileToggle} 
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -327,11 +483,11 @@ export default function LandingPage() {
             >
               <div className={styles.mobileLinks}>
                 {[
-                  { href: "#stats", label: "Thống kê / Stats" },
-                  { href: "#how-it-works", label: "Cách hoạt động / How it works" },
-                  { href: "#features", label: "Tính năng / Features" },
-                  { href: "#testimonials", label: "Đánh giá / Reviews" },
-                  { href: "/auth/login", label: "Đăng nhập / Login", isCta: true }
+                  { href: "#stats", label: currentLang.nav.stats },
+                  { href: "#how-it-works", label: currentLang.nav.howItWorks },
+                  { href: "#features", label: currentLang.nav.features },
+                  { href: "#testimonials", label: currentLang.nav.testimonials },
+                  { href: "/auth/login", label: currentLang.nav.login, isCta: true }
                 ].map((link) => (
                   <motion.div
                     key={link.href}
@@ -385,17 +541,22 @@ export default function LandingPage() {
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
           >
             <h1 className={styles.heroTitle}>
-              Recode your<br />future path
+              {currentLang.hero.title.split('\n').map((line, i) => (
+                <React.Fragment key={i}>
+                  {line}
+                  {i === 0 && <br />}
+                </React.Fragment>
+              ))}
             </h1>
             <p className={styles.heroDescription}>
-              Experience the next generation of AI-driven career intelligence and technical knowledge graph management.
+              {currentLang.hero.description}
             </p>
             <div className={styles.heroActions}>
               <Link href="/auth/register" className={styles.primaryBtn}>
-                Bắt đầu ngay / Get started
+                {currentLang.hero.getStarted}
               </Link>
               <Link href="#how-it-works" className={styles.secondaryBtn}>
-                Tìm hiểu thêm / Learn more <ChevronRight size={18} />
+                {currentLang.hero.learnMore} <ChevronRight size={18} />
               </Link>
             </div>
           </motion.div>
@@ -413,10 +574,10 @@ export default function LandingPage() {
             transition={{ duration: 0.8, staggerChildren: 0.1 }}
           >
             {[
-              { value: "10,000+", label: "CVs Analyzed" },
-              { value: "95%", label: "Match Accuracy" },
-              { value: "500+", label: "Companies" },
-              { value: "24/7", label: "AI Support" }
+              { value: "10,000+", label: currentLang.stats.cvs },
+              { value: "95%", label: currentLang.stats.accuracy },
+              { value: "500+", label: currentLang.stats.companies },
+              { value: "24/7", label: currentLang.stats.support }
             ].map((stat, idx) => (
               <motion.div 
                 key={idx}
@@ -452,16 +613,14 @@ export default function LandingPage() {
                 transition={{ duration: 0.8 }}
               >
                 <h2 className={styles.visionHeading}>
-                  Tầm nhìn & Sứ mệnh
+                  {currentLang.vision.heading}
                 </h2>
                 <div className={styles.visionDivider} />
                 <p className={styles.visionText}>
-                  Chúng tôi tin rằng tương lai được xây dựng từ những kết nối thông minh. 
-                  Lumix AI không chỉ là công cụ, mà là một hệ sinh thái tri thức giúp bạn xóa bỏ mọi giới hạn.
+                  {currentLang.vision.text}
                 </p>
                 <p className={styles.visionSubtext}>
-                  Với công nghệ AI tiên tiến và Knowledge Graph, chúng tôi tạo ra cầu nối giữa 
-                  kỹ năng hiện tại và cơ hội tương lai của bạn.
+                  {currentLang.vision.subtext}
                 </p>
               </motion.div>
               
@@ -474,18 +633,18 @@ export default function LandingPage() {
               >
                 <div className={styles.visionStatItem}>
                   <div className={styles.visionStatIcon}>🎯</div>
-                  <h4>Chính xác</h4>
-                  <p>AI phân tích sâu để đưa ra đánh giá chính xác nhất</p>
+                  <h4>{currentLang.vision.accurate}</h4>
+                  <p>{currentLang.vision.accurateDesc}</p>
                 </div>
                 <div className={styles.visionStatItem}>
                   <div className={styles.visionStatIcon}>⚡</div>
-                  <h4>Nhanh chóng</h4>
-                  <p>Kết quả trong vài phút, không phải vài ngày</p>
+                  <h4>{currentLang.vision.fast}</h4>
+                  <p>{currentLang.vision.fastDesc}</p>
                 </div>
                 <div className={styles.visionStatItem}>
                   <div className={styles.visionStatIcon}>🚀</div>
-                  <h4>Hiệu quả</h4>
-                  <p>Lộ trình cá nhân hóa giúp bạn tiến nhanh hơn</p>
+                  <h4>{currentLang.vision.effective}</h4>
+                  <p>{currentLang.vision.effectiveDesc}</p>
                 </div>
               </motion.div>
             </div>
@@ -497,9 +656,9 @@ export default function LandingPage() {
       <div id="how-it-works" className={`${styles.sectionWrapper} ${styles.bgDark}`}>
         <section className={styles.section}>
           <div className={styles.centeredText}>
-            <h2 className={styles.sectionHeading}>How it works</h2>
+            <h2 className={styles.sectionHeading}>{currentLang.howItWorks.heading}</h2>
             <p className={styles.sectionSubheading}>
-              Three simple steps to unlock your career potential
+              {currentLang.howItWorks.subheading}
             </p>
           </div>
 
@@ -508,20 +667,20 @@ export default function LandingPage() {
               {
                 icon: Upload,
                 step: "01",
-                title: "Upload CV",
-                description: "Upload your resume and let our AI analyze your skills, experience, and career trajectory."
+                title: currentLang.howItWorks.step1,
+                description: currentLang.howItWorks.step1Desc
               },
               {
                 icon: Sparkles,
                 step: "02",
-                title: "AI Analysis",
-                description: "Advanced algorithms identify skill gaps, match opportunities, and generate personalized recommendations."
+                title: currentLang.howItWorks.step2,
+                description: currentLang.howItWorks.step2Desc
               },
               {
                 icon: TrendingUp,
                 step: "03",
-                title: "Get Results",
-                description: "Receive actionable insights, course recommendations, and a clear roadmap to your dream job."
+                title: currentLang.howItWorks.step3,
+                description: currentLang.howItWorks.step3Desc
               }
             ].map((item, idx) => (
               <React.Fragment key={idx}>
@@ -567,9 +726,9 @@ export default function LandingPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <h2 className={styles.sectionHeading}>The future of knowledge</h2>
+              <h2 className={styles.sectionHeading}>{currentLang.features.heading}</h2>
               <p className={styles.featuresSubheading}>
-                Giải pháp toàn diện cho mọi đối tượng / Comprehensive solutions for everyone
+                {currentLang.features.subheading}
               </p>
             </motion.div>
           </div>
@@ -585,14 +744,13 @@ export default function LandingPage() {
             >
               <div>
                 <Cpu className={styles.bentoIcon} />
-                <h3 className={styles.bentoTitle}>Professionals</h3>
+                <h3 className={styles.bentoTitle}>{currentLang.features.professionals}</h3>
                 <p className={styles.bentoDesc}>
-                  Xây dựng và quản trị từ điển tri thức chuyên môn phức tạp thông qua kiến trúc Knowledge Graph tiên tiến. 
-                  Tự động hóa phân tích kỹ năng và chuẩn hóa quy trình chuyên gia.
+                  {currentLang.features.professionalsDesc}
                 </p>
               </div>
               <Link href="/auth/login" className={styles.secondaryBtn}>
-                Learn more <ChevronRight size={16} />
+                {currentLang.features.learnMore} <ChevronRight size={16} />
               </Link>
             </motion.div>
 
@@ -606,14 +764,13 @@ export default function LandingPage() {
             >
               <div>
                 <Target className={styles.bentoIcon} />
-                <h3 className={styles.bentoTitle}>Applicants</h3>
+                <h3 className={styles.bentoTitle}>{currentLang.features.applicants}</h3>
                 <p className={styles.bentoDesc}>
-                  Giải mã khoảng trống kỹ năng (Skill Gap) và tối ưu hóa hồ sơ năng lực 
-                  để dẫn đầu trong mọi cuộc săn tìm cơ hội.
+                  {currentLang.features.applicantsDesc}
                 </p>
               </div>
               <Link href="/auth/login" className={styles.secondaryBtn}>
-                Learn more <ChevronRight size={16} />
+                {currentLang.features.learnMore} <ChevronRight size={16} />
               </Link>
             </motion.div>
 
@@ -627,14 +784,13 @@ export default function LandingPage() {
             >
               <div>
                 <GraduationCap className={styles.bentoIcon} />
-                <h3 className={styles.bentoTitle}>Students</h3>
+                <h3 className={styles.bentoTitle}>{currentLang.features.students}</h3>
                 <p className={styles.bentoDesc}>
-                  Lộ trình học tập cá nhân hóa được tinh chỉnh bởi AI, 
-                  giúp bạn rút ngắn khoảng cách từ giảng đường đến thực tế doanh nghiệp.
+                  {currentLang.features.studentsDesc}
                 </p>
               </div>
               <Link href="/auth/login" className={styles.secondaryBtn}>
-                Learn more <ChevronRight size={16} />
+                {currentLang.features.learnMore} <ChevronRight size={16} />
               </Link>
             </motion.div>
           </div>
@@ -645,9 +801,9 @@ export default function LandingPage() {
       <div id="testimonials" className={`${styles.sectionWrapper} ${styles.bgLight}`}>
         <section className={styles.section}>
           <div className={styles.centeredText}>
-            <h2 className={styles.sectionHeading}>Trusted by professionals</h2>
+            <h2 className={styles.sectionHeading}>{currentLang.testimonials.heading}</h2>
             <p className={styles.sectionSubheading}>
-              See what our users have to say about their experience
+              {currentLang.testimonials.subheading}
             </p>
           </div>
 
@@ -712,7 +868,7 @@ export default function LandingPage() {
           <div className={styles.footerContent}>
             <div className={styles.footerGrid}>
               <div className={styles.footerColumn}>
-                <h4 className={styles.footerHeading}>Product</h4>
+                <h4 className={styles.footerHeading}>{currentLang.footer.product}</h4>
                 <Link href="#features">Features</Link>
                 <Link href="/auth/login">Pricing</Link>
                 <Link href="#philosophy">About</Link>
@@ -720,7 +876,7 @@ export default function LandingPage() {
               </div>
 
               <div className={styles.footerColumn}>
-                <h4 className={styles.footerHeading}>Company</h4>
+                <h4 className={styles.footerHeading}>{currentLang.footer.company}</h4>
                 <Link href="/auth/login">Careers</Link>
                 <Link href="/auth/login">Blog</Link>
                 <Link href="/auth/login">Press</Link>
@@ -728,7 +884,7 @@ export default function LandingPage() {
               </div>
 
               <div className={styles.footerColumn}>
-                <h4 className={styles.footerHeading}>Resources</h4>
+                <h4 className={styles.footerHeading}>{currentLang.footer.resources}</h4>
                 <Link href="/auth/login">Documentation</Link>
                 <Link href="/auth/login">Help Center</Link>
                 <Link href="/auth/login">API</Link>
@@ -736,14 +892,14 @@ export default function LandingPage() {
               </div>
 
               <div className={styles.footerColumn}>
-                <h4 className={styles.footerHeading}>Stay updated</h4>
+                <h4 className={styles.footerHeading}>{currentLang.footer.stayUpdated}</h4>
                 <p className={styles.footerNewsletter}>
-                  Get the latest news and updates delivered to your inbox.
+                  {currentLang.footer.newsletter}
                 </p>
                 <div className={styles.newsletterForm}>
                   <input 
                     type="email" 
-                    placeholder="Enter your email" 
+                    placeholder={currentLang.footer.emailPlaceholder}
                     className={styles.newsletterInput}
                   />
                   <button className={styles.newsletterButton}>
@@ -755,12 +911,12 @@ export default function LandingPage() {
 
             <div className={styles.footerBottom}>
               <p className={styles.footerCopyright}>
-                © 2026 Lumix AI. All rights reserved.
+                {currentLang.footer.copyright}
               </p>
               <div className={styles.footerLinks}>
-                <Link href="/auth/login">Privacy Policy</Link>
-                <Link href="/auth/login">Terms of Service</Link>
-                <Link href="/auth/login">Cookie Policy</Link>
+                <Link href="/auth/login">{currentLang.footer.privacy}</Link>
+                <Link href="/auth/login">{currentLang.footer.terms}</Link>
+                <Link href="/auth/login">{currentLang.footer.cookies}</Link>
               </div>
             </div>
           </div>
