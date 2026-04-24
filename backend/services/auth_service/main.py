@@ -27,8 +27,8 @@ RECAPTCHA_SECRET_KEY = os.getenv("GOOGLE_RECAPTCHA_SECRET_KEY")
 async def verify_google_captcha(token: str):
     """Verify Google reCAPTCHA v2/v3 token."""
     if not RECAPTCHA_SECRET_KEY:
-        logging.warning("GOOGLE_RECAPTCHA_SECRET_KEY not set. Skipping verification.")
-        return True
+        logging.error("SECURITY ALERT: GOOGLE_RECAPTCHA_SECRET_KEY not set. Cannot verify captcha. Failing securely.")
+        return False
     
     async with httpx.AsyncClient() as client:
         response = await client.post(
@@ -243,12 +243,18 @@ async def login(request: Request, user_in: UserLogin, captcha_token: Optional[st
     attempt_key = f"login_attempts:{user_in.email}"
     ip_attempt_key = f"login_attempts_ip:{ip_addr}"
     
-    email_attempts = int(auth_cache.get(attempt_key) or 0)
-    ip_attempts = int(auth_cache.get(ip_attempt_key) or 0)
+    # SECURITY: Atomic increment first to prevent Race Condition
+    email_attempts = auth_cache.incr_with_expire(attempt_key, 3600)
+    ip_attempts = auth_cache.incr_with_expire(ip_attempt_key, 3600)
     max_attempts = max(email_attempts, ip_attempts)
 
-    # 3. Check for Captcha (2 failed attempts)
-    if max_attempts >= 2:
+    # Lockout check (10 attempts)
+    if max_attempts >= 10:
+        auth_cache.setex(lockout_key, 86400, "locked")
+        raise HTTPException(status_code=403, detail="Too many failed attempts. Your IP has been locked for 24 hours.")
+
+    # 3. Check for Captcha (from 3rd attempt since we already incremented)
+    if max_attempts >= 3:
         if not captcha_token:
             raise HTTPException(status_code=400, detail="Captcha required", headers={"X-Requires-Captcha": "true"})
         
@@ -259,17 +265,10 @@ async def login(request: Request, user_in: UserLogin, captcha_token: Optional[st
     user = db.query(User).filter(User.email == user_in.email).first()
     
     if not user or not verify_password(user_in.password, user.hashed_password):
-        new_email_attempts = auth_cache.incr_with_expire(attempt_key, 3600)
-        new_ip_attempts = auth_cache.incr_with_expire(ip_attempt_key, 3600)
-        
-        if new_email_attempts >= 10 or new_ip_attempts >= 10:
-            auth_cache.setex(lockout_key, 86400, "locked")
-            raise HTTPException(status_code=403, detail="Too many failed attempts. Your IP has been locked for 24 hours.")
-            
         raise HTTPException(
             status_code=401, 
             detail="Incorrect email or password",
-            headers={"X-Attempts-Left": str(10 - max(new_email_attempts, new_ip_attempts))}
+            headers={"X-Attempts-Left": str(10 - max_attempts)}
         )
     
     if not user.is_active:

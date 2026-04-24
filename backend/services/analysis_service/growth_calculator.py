@@ -10,6 +10,12 @@ import logging
 
 logger = logging.getLogger("growth_calculator")
 
+def escape_like(s: str) -> str:
+    """Escape special characters for SQL LIKE operator to prevent LIKE Injection."""
+    if not s:
+        return ""
+    return s.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+
 
 def calculate_skill_impact(
     skill_gaps: List[Dict],
@@ -88,9 +94,9 @@ def calculate_skill_impact(
         
         # 2. Tính salary impact từ MarketSkillStats
         salary_impact = 0.0
-        # SECURITY: Use ilike with bound parameters for safe substring matching
+        # SECURITY: Use ilike with escaped skill_name to prevent LIKE injection
         market_stat = db.query(MarketSkillStats).filter(
-            MarketSkillStats.skill_name.ilike(f"%{skill_name}%")
+            MarketSkillStats.skill_name.ilike(f"%{escape_like(skill_name)}%", escape='\\')
         ).first()
         
         if market_stat and market_stat.salary_premium_pct:
@@ -156,9 +162,9 @@ def calculate_market_sentiment(
     
     for gap in skill_gaps:
         skill_name = gap.get("skill", "").lower()
-        # SECURITY: Use ilike with bound parameters for safe substring matching
+        # SECURITY: Use ilike with escaped skill_name to prevent LIKE injection
         market_stat = db.query(MarketSkillStats).filter(
-            MarketSkillStats.skill_name.ilike(f"%{skill_name}%")
+            MarketSkillStats.skill_name.ilike(f"%{escape_like(skill_name)}%", escape='\\')
         ).first()
         
         if market_stat:

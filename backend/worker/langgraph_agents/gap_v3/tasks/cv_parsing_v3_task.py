@@ -191,10 +191,17 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
             # ── Step 3: Cleanup physical file ────────────────────────────────
             import os
             f_path = result.get("file_path")
+            UPLOAD_DIR = "/app/data/cv_uploads"
             if f_path and os.path.exists(f_path):
                 try:
-                    os.remove(f_path)
-                    logger.info(f"[TASK] ✓ Deleted CV file after successful parse: {f_path}")
+                    # SECURITY: Prevent Path Traversal
+                    abs_f_path = os.path.abspath(f_path)
+                    abs_upload_dir = os.path.abspath(UPLOAD_DIR)
+                    if abs_f_path.startswith(abs_upload_dir + os.sep) or abs_f_path == abs_upload_dir:
+                        os.remove(abs_f_path)
+                        logger.info(f"[TASK] ✓ Deleted CV file after successful parse: {abs_f_path}")
+                    else:
+                        logger.warning(f"[SECURITY] Attempted to delete file outside upload directory: {abs_f_path}")
                 except Exception as e:
                     logger.warning(f"[TASK] ⚠ Failed to delete CV file {f_path}: {e}")
 
