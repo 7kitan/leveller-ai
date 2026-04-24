@@ -81,10 +81,9 @@ def calculate_skill_impact(
         
         # 2. Tính salary impact từ MarketSkillStats
         salary_impact = 0.0
-        # SECURITY: Sanitize skill_name for ILIKE query
-        safe_skill_name = skill_name.replace("%", "\\%").replace("_", "\\_")
+        # SECURITY: Use ilike with bound parameters for safe substring matching
         market_stat = db.query(MarketSkillStats).filter(
-            MarketSkillStats.skill_name.ilike(f"%{safe_skill_name}%")
+            MarketSkillStats.skill_name.ilike(f"%{skill_name}%")
         ).first()
         
         if market_stat and market_stat.salary_premium_pct:
@@ -150,10 +149,9 @@ def calculate_market_sentiment(
     
     for gap in skill_gaps:
         skill_name = gap.get("skill", "").lower()
-        # SECURITY: Sanitize skill_name for ILIKE query
-        safe_skill_name = skill_name.replace("%", "\\%").replace("_", "\\_")
+        # SECURITY: Use ilike with bound parameters for safe substring matching
         market_stat = db.query(MarketSkillStats).filter(
-            MarketSkillStats.skill_name.ilike(f"%{safe_skill_name}%")
+            MarketSkillStats.skill_name.ilike(f"%{skill_name}%")
         ).first()
         
         if market_stat:

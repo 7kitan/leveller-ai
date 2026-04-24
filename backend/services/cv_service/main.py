@@ -104,6 +104,11 @@ def validate_uploaded_file(file: UploadFile, file_content: bytes) -> None:
     if not file.filename:
         raise HTTPException(status_code=400, detail="Tên file không hợp lệ")
     
+    # SECURITY: Check for path traversal attempts and null bytes (Spec 5)
+    if ".." in file.filename or "/" in file.filename or "\\" in file.filename:
+        logger.warning(f"Path traversal attempt detected in filename: {file.filename}")
+        raise HTTPException(status_code=400, detail="Tên file chứa ký tự không hợp lệ")
+    
     # Check file extension
     filename = os.path.basename(file.filename)
     file_ext = os.path.splitext(filename)[1].lower()

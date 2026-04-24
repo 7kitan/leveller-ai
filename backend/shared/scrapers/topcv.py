@@ -74,11 +74,12 @@ class TopCVScraper:
                 logger.error(f"[GET_URLS] Search page returned {resp.status_code}")
                 return []
 
-            # Save HTML for debugging
-            html_file = os.path.join(log_dir, f"topcv_search_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html")
-            with open(html_file, 'w', encoding='utf-8') as f:
-                f.write(resp.text)
-            logger.info(f"[GET_URLS] Saved HTML to: {html_file}")
+            # Save HTML for debugging (conditional)
+            if os.getenv("SCRAPER_SAVE_HTML", "false").lower() == "true":
+                html_file = os.path.join(log_dir, f"topcv_search_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html")
+                with open(html_file, 'w', encoding='utf-8') as f:
+                    f.write(resp.text)
+                logger.info(f"[GET_URLS] Saved HTML to: {html_file}")
 
             soup = BeautifulSoup(resp.text, 'html.parser')
             job_links = []
@@ -134,13 +135,16 @@ class TopCVScraper:
                         continue  # Retry
                     return None
 
-                # Save HTML for debugging
+                # Extract Job ID for logging and result
                 job_id_match = re.search(r'/(\d+)\.html', job_url)
                 job_id = job_id_match.group(1) if job_id_match else str(int(time.time()))
-                html_file = os.path.join(log_dir, f"topcv_job_{job_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html")
-                with open(html_file, 'w', encoding='utf-8') as f:
-                    f.write(resp.text)
-                logger.info(f"[SCRAPE_JOB] Saved HTML to: {html_file}")
+
+                # Save HTML for debugging (conditional)
+                if os.getenv("SCRAPER_SAVE_HTML", "false").lower() == "true":
+                    html_file = os.path.join(log_dir, f"topcv_job_{job_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html")
+                    with open(html_file, 'w', encoding='utf-8') as f:
+                        f.write(resp.text)
+                    logger.info(f"[SCRAPE_JOB] Saved HTML to: {html_file}")
 
                 soup = BeautifulSoup(resp.text, 'html.parser')
                 html = resp.text
