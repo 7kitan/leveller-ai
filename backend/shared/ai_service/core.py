@@ -51,10 +51,20 @@ def generate_completion(
     Unified entry point using LiteLLM.
     Handles routing, automatic fallback, logging, and performance tracking.
     """
-    if user_id:
+    if user_id is not None:
+        logger.info(f"[AI SERVICE] Received user_id: {user_id} (type: {type(user_id)})")
         with SessionLocal() as db:
             from shared.quota_manager import quota_manager
-            user = db.query(User).filter(User.id == user_id).first()
+            # Convert to UUID if it's a string, to be safe
+            u_id = user_id
+            if isinstance(user_id, str) and user_id.strip():
+                try:
+                    import uuid as _uuid
+                    u_id = _uuid.UUID(user_id)
+                except ValueError:
+                    pass
+            
+            user = db.query(User).filter(User.id == u_id).first()
             if user and not quota_manager.check_token_quota(user, db):
                 logger.error(f"User {user_id} has exceeded daily token limit. Blocking call.")
                 return None

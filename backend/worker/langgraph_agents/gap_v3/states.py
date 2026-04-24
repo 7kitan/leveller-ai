@@ -19,7 +19,7 @@ class CVParsedData(TypedDict, total=False):
     skills: List[Dict]  # [{name, level, years_exp, last_used, context}]
     work_history: List[
         Dict
-    ]  # [{position, company, duration_years, description, skills_used}]
+    ]  # [{position, company, duration_years, description}]
     education: List[Dict]  # [{degree, institution, year, field}]
     certifications: List[Dict]  # [{name, issuer, year}]
 
@@ -41,6 +41,7 @@ class CVParsingState(TypedDict):
     cv_parsed: Optional[CVParsedData]
     status: str
     error: Optional[str]
+    file_path: Optional[str]
 
 
 # ─── Gap Analysis States (Pipeline 2) ──────────────────────────────────

@@ -5,6 +5,7 @@ import os
 from typing import List, Dict, Any, Optional
 from bs4 import BeautifulSoup
 from curl_cffi import requests
+import json
 from datetime import datetime
 
 # Setup detailed file logging
@@ -12,8 +13,19 @@ logger = logging.getLogger("topcv_scraper")
 logger.setLevel(logging.DEBUG)
 
 # Create logs directory if not exists
-log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
-os.makedirs(log_dir, exist_ok=True)
+# Use data/logs to ensure it's within a persistent volume and avoid root-level conflicts
+backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+log_dir = os.path.join(backend_dir, "data", "logs")
+
+try:
+    if os.path.exists(log_dir) and not os.path.isdir(log_dir):
+        os.remove(log_dir)
+    os.makedirs(log_dir, exist_ok=True)
+except Exception as e:
+    # Fallback to a temporary directory if data/logs is inaccessible
+    import tempfile
+    log_dir = os.path.join(tempfile.gettempdir(), "career_advisor_logs")
+    os.makedirs(log_dir, exist_ok=True)
 
 # File handler with detailed format
 log_file = os.path.join(log_dir, f"topcv_crawler_{datetime.now().strftime('%Y%m%d')}.log")
@@ -274,16 +286,21 @@ class TopCVScraper:
                 data = {}
                 for key in ['job_title', 'recruiter_company', 'experience', 'work_location', 'salary_range']:
                     # Use regex instead of json.loads because it's a JS object, not pure JSON
-                    key_match = re.search(f'"{key}"\s*:\s*"(.*?)"', json_str)
+                    # Use regex that handles escaped quotes: "(?:[^"\\]|\\.)*"
+                    # We capture the entire quoted string to use json.loads on it
+                    key_match = re.search(fr'"{key}"\s*:\s*("(?:[^"\\]|\\.)*")', json_str)
                     if key_match:
                         try:
-                            # SECURITY & DATA QUALITY: TopCV often escapes slashes as \/ in JS trackers.
-                            # We need to unescape them and also handle unicode escapes like \u00e0.
-                            val = key_match.group(1).replace('\\/', '/')
-                            val = val.encode('utf-8').decode('unicode_escape')
+                            # json.loads correctly handles \/, \uXXXX, \", etc.
+                            val = json.loads(key_match.group(1))
                             data[key] = val
-                        except:
-                            data[key] = key_match.group(1).replace('\\/', '/')
+                        except Exception as e:
+                            # Fallback if the JS string is not valid JSON
+                            logger.debug(f"[TOPCV] json.loads failed for {key}: {e}")
+                            # Try to extract content between quotes and do simple unescape
+                            simple_match = re.search(f'"{key}"\s*:\s*"(.*?)"', json_str)
+                            if simple_match:
+                                data[key] = simple_match.group(1).replace('\\/', '/')
                 return data
         except: pass
         return {}

@@ -64,20 +64,27 @@ def calculate_skill_impact(
     for gap in skill_gaps:
         skill_name = gap.get("skill", "").lower()
         
+        # Deterministic jitter to prevent identical percentages
+        # We use a simple hash of the skill name to get a value between -0.5 and 0.5
+        import hashlib
+        name_hash = int(hashlib.md5(skill_name.encode()).hexdigest(), 16)
+        jitter = (name_hash % 11 - 5) / 10.0  # -0.5 to 0.5
+        
         # 1. Tính match impact từ importance_weight
         match_impact = 0.0
         if skill_name in skill_weights:
             # importance_weight thường là 1-10, normalize về %
-            match_impact = min(skill_weights[skill_name] * 2, 20)  # Cap ở 20%
+            base_impact = skill_weights[skill_name] * 2.0
+            match_impact = min(base_impact + jitter, 25)  # Cap ở 25%
         else:
             # Fallback: estimate dựa trên severity
             severity = gap.get("severity", "medium").lower()
             if severity == "high":
-                match_impact = 15.0
+                match_impact = 15.0 + jitter * 2
             elif severity == "medium":
-                match_impact = 8.0
+                match_impact = 8.0 + jitter
             else:
-                match_impact = 3.0
+                match_impact = 3.0 + jitter
         
         # 2. Tính salary impact từ MarketSkillStats
         salary_impact = 0.0
@@ -87,23 +94,23 @@ def calculate_skill_impact(
         ).first()
         
         if market_stat and market_stat.salary_premium_pct:
-            salary_impact = market_stat.salary_premium_pct
+            salary_impact = market_stat.salary_premium_pct + jitter
         else:
             # Fallback: estimate dựa trên severity và demand
             severity = gap.get("severity", "medium").lower()
             if severity == "high":
-                salary_impact = 12.0
+                salary_impact = 12.0 + jitter * 3
             elif severity == "medium":
-                salary_impact = 6.0
+                salary_impact = 6.0 + jitter * 2
             else:
-                salary_impact = 2.0
+                salary_impact = 2.0 + jitter
         
         # 3. Enrich skill gap với impact values
         enriched_gap = {
             **gap,
-            "match_impact": round(match_impact, 1),
-            "salary_impact": round(salary_impact, 1),
-            "market_demand": market_stat.demand_score if market_stat else None,
+            "match_impact": round(max(1.0, match_impact), 1),
+            "salary_impact": round(max(0.0, salary_impact), 1),
+            "market_demand": market_stat.demand_score if market_stat else 50 + int(jitter * 10),
             "avg_salary_range": {
                 "min": market_stat.avg_salary_min if market_stat else None,
                 "max": market_stat.avg_salary_max if market_stat else None
@@ -122,8 +129,8 @@ def calculate_skill_impact(
     # 4. Tính potential_match_pct
     potential_match_pct = min(98, current_match_pct + total_match_gain)
     
-    # 5. Tính salary_growth_pct (cap ở 40% để realistic)
-    salary_growth_pct = min(40, total_salary_gain)
+    # 5. Tính salary_growth_pct (cap ở 50% để realistic)
+    salary_growth_pct = min(50, total_salary_gain)
     
     logger.info(
         f"Growth calculation: current={current_match_pct}%, "

@@ -307,6 +307,20 @@ class MarketSkillStats(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
+class MarketSkillHistory(Base):
+    __tablename__ = "market_skill_history"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    skill_name = Column(String(200), index=True, nullable=False)
+    
+    job_count = Column(Integer, default=0)
+    avg_salary = Column(BigInteger, default=0)
+    demand_score = Column(Float, default=0.0)
+    
+    # Snapshot date (daily)
+    snapshot_date = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
 class YouTubeCourse(Base):
     __tablename__ = "youtube_courses"
 

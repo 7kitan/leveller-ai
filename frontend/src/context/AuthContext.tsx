@@ -53,43 +53,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // 2. Initialize Auth & Detect Maintenance
   useEffect(() => {
     const initializeAuth = async () => {
-      const storedToken = localStorage.getItem("auth_token");
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem("auth_token") : null;
       
+      if (!storedToken) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        if (storedToken) {
-          // Verify token with backend - retrieves user data AND maintenance status
-          const res = await axios.get("/api/auth/verify", {
-            params: { token: storedToken },
-            headers: { Authorization: `Bearer ${storedToken}` }
-          });
-          
-          if (res.data) {
-            const userData = res.data;
-            if (!userData.role) {
-              userData.role = userData.is_admin ? 'admin' : 'user';
-            }
-            setUser(userData);
-            setToken(storedToken);
-            setMaintenanceMode(res.data.maintenance_mode || false);
-            setMaintenanceDuration(res.data.maintenance_duration || "");
-            // Sync localStorage
-            localStorage.setItem("auth_user", JSON.stringify(userData));
+        // Verify token with backend - retrieves user data AND maintenance status
+        // Added 8s timeout to prevent hanging the app forever
+        const res = await axios.get("/api/auth/verify", {
+          params: { token: storedToken },
+          headers: { Authorization: `Bearer ${storedToken}` },
+          timeout: 8000 
+        });
+        
+        if (res.data) {
+          const userData = res.data;
+          if (!userData.role) {
+            userData.role = userData.is_admin ? 'admin' : 'user';
           }
-        } else {
-          // Even if not logged in, we should check if system is under maintenance
-          // We can do a lightweight check to a public endpoint
-          try {
-            await axios.get("/api/auth/verify"); // This will 503 if maintenance is ON
-          } catch (e) {
-            // Interceptor handles the state update
-          }
+          setUser(userData);
+          setToken(storedToken);
+          setMaintenanceMode(res.data.maintenance_mode || false);
+          setMaintenanceDuration(res.data.maintenance_duration || "");
+          localStorage.setItem("auth_user", JSON.stringify(userData));
         }
       } catch (e: any) {
-        // If it's the silent maintenance error from our interceptor, do nothing
         if (e._silent) {
           setMaintenanceMode(true);
         } else {
-          console.error("Session verification failed", e.message);
+          console.error("Session verification failed:", e.message);
+          // If token is invalid or server is slow, clear everything and allow access to public pages
           logout();
         }
       } finally {

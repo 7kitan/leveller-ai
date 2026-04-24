@@ -9,6 +9,8 @@ import { Loader2, AlertCircle } from "lucide-react";
 import LandingNavbar from "@/components/landing/LandingNavbar";
 import { useLanguage } from "@/context/LanguageContext";
 import styles from "./auth-form.module.css";
+import ReCAPTCHA from "react-google-recaptcha";
+import Link from "next/link";
 
 interface AuthFormProps {
   initialMode?: "login" | "register";
@@ -21,6 +23,9 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   
+  const [showCaptcha, setShowCaptcha] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  
   const { login } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
@@ -32,7 +37,8 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
 
     try {
       const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
-      const res = await axios.post(endpoint, { email, password });
+      const payload = isLogin ? { email, password, captcha_token: captchaToken } : { email, password };
+      const res = await axios.post(endpoint, payload);
       
       const { access_token, user } = res.data;
       
@@ -41,7 +47,12 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
       const userRole = user.role || (user.is_admin ? 'admin' : 'user');
       router.push(`/${userRole}`);
     } catch (err: any) {
-      setError(err.response?.data?.detail || t("auth_error"));
+      if (err.response?.headers?.['x-requires-captcha'] === 'true') {
+        setShowCaptcha(true);
+        setError("Vui lòng xác nhận bạn không phải là robot.");
+      } else {
+        setError(err.response?.data?.detail || t("auth_error"));
+      }
     } finally {
       setLoading(false);
     }
@@ -90,6 +101,24 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
             />
           </div>
 
+          {isLogin && (
+            <div className="flex justify-end -mt-4 mb-4">
+              <Link href="/auth/forgot-password" className="text-xs text-indigo-500 hover:underline">
+                Quên mật khẩu?
+              </Link>
+            </div>
+          )}
+
+          {(showCaptcha || !isLogin) && (
+            <div className="mb-4 flex justify-center">
+              <ReCAPTCHA
+                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
+                onChange={(token) => setCaptchaToken(token || "")}
+                theme="dark"
+              />
+            </div>
+          )}
+
           {error && (
             <div className={styles.errorBox}>
               <AlertCircle size={18} /> {error}
@@ -98,7 +127,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (showCaptcha && !captchaToken)}
             className={styles.submitBtn}
           >
             {loading ? (
@@ -112,7 +141,11 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
         </form>
 
         <button 
-          onClick={() => setIsLogin(!isLogin)}
+          onClick={() => {
+            setIsLogin(!isLogin);
+            setError("");
+            setShowCaptcha(false);
+          }}
           className={styles.toggleBtn}
         >
           {isLogin ? t("to_register") : t("to_login")}

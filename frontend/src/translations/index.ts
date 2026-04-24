@@ -56,6 +56,25 @@ export const translations = {
     to_login: "Đã có tài khoản? Quay lại đăng nhập",
     auth_error: "Đã xảy ra lỗi vui lòng thử lại.",
 
+    // Forgot/Reset Password
+    forgot_password_title: "Quên mật khẩu?",
+    forgot_password_subtitle: "Nhập email của bạn để nhận liên kết khôi phục mật khẩu.",
+    forgot_password_email_placeholder: "Địa chỉ Email",
+    forgot_password_btn: "Gửi liên kết khôi phục",
+    forgot_password_back_to_login: "Quay lại đăng nhập",
+    forgot_password_success_msg: "Nếu email của bạn tồn tại trên hệ thống, chúng tôi đã gửi một liên kết đặt lại mật khẩu. Vui lòng kiểm tra hộp thư đến của bạn.",
+    forgot_password_error: "Đã xảy ra lỗi. Vui lòng thử lại.",
+    reset_password_title: "Đặt lại mật khẩu",
+    reset_password_subtitle: "Vui lòng nhập mật khẩu mới cho tài khoản của bạn.",
+    reset_password_new_password_placeholder: "Mật khẩu mới",
+    reset_password_confirm_password_placeholder: "Xác nhận mật khẩu mới",
+    reset_password_btn: "Cập nhật mật khẩu",
+    reset_password_success_msg: "Mật khẩu đã được cập nhật thành công!",
+    reset_password_redirecting: "Đang chuyển hướng về trang đăng nhập...",
+    reset_password_invalid_token: "Mã xác thực không hợp lệ hoặc đã hết hạn.",
+    reset_password_mismatch: "Mật khẩu xác nhận không khớp.",
+    reset_password_min_length: "Mật khẩu phải có ít nhất 6 ký tự.",
+
     // Maintenance Overlay
     maintenance_title: "Chúng tôi đang bảo trì hệ thống",
     maintenance_subtitle: "Lumix AI đang được nâng cấp để mang lại trải nghiệm tốt nhất cho định hướng sự nghiệp của bạn.",
@@ -587,6 +606,25 @@ export const translations = {
     to_register: "Don't have an account? Join now",
     to_login: "Already have an account? Back to login",
     auth_error: "An error occurred, please try again.",
+
+    // Forgot/Reset Password
+    forgot_password_title: "Forgot Password?",
+    forgot_password_subtitle: "Enter your email to receive a password recovery link.",
+    forgot_password_email_placeholder: "Email Address",
+    forgot_password_btn: "Send Reset Link",
+    forgot_password_back_to_login: "Back to login",
+    forgot_password_success_msg: "If your email exists in our system, we have sent a password reset link. Please check your inbox.",
+    forgot_password_error: "An error occurred. Please try again.",
+    reset_password_title: "Reset Password",
+    reset_password_subtitle: "Please enter a new password for your account.",
+    reset_password_new_password_placeholder: "New Password",
+    reset_password_confirm_password_placeholder: "Confirm New Password",
+    reset_password_btn: "Update Password",
+    reset_password_success_msg: "Password updated successfully!",
+    reset_password_redirecting: "Redirecting to login page...",
+    reset_password_invalid_token: "Invalid or expired reset token.",
+    reset_password_mismatch: "Passwords do not match.",
+    reset_password_min_length: "Password must be at least 6 characters.",
 
     // Maintenance Overlay
     maintenance_title: "System Maintenance",

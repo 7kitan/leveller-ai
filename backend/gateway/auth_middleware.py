@@ -13,7 +13,7 @@ AUTH_SVC_URL = os.getenv("AUTH_SVC_URL", "http://auth-service:8000")
 
 async def auth_middleware(request: Request, call_next):
     # Public endpoints & preflight requests
-    public_paths = ["/health", "/auth/login", "/auth/register", "/user/login", "/user/register", "/jd/list", "/auth/verify"]
+    public_paths = ["/health", "/auth/login", "/auth/register", "/user/login", "/user/register", "/jd/list", "/auth/verify", "/auth/forgot-password", "/auth/reset-password"]
     
     path = request.url.path
     if path.startswith("/api"):

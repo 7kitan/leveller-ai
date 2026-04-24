@@ -229,7 +229,7 @@ def clean_json_response(response: str) -> str:
 
 # ─── Skill Extraction ────────────────────────────────────────────────────────
 
-def extract_skills_from_requirements(requirements_text: str, model_key: str = "ai_model") -> Optional[List[Dict[str, Any]]]:
+def extract_skills_from_requirements(requirements_text: str, model_key: str = "ai_model", user_id: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
     """
     Extract structured skills from job requirements text using LLM.
     
@@ -288,7 +288,8 @@ Important:
             system_prompt=system_prompt,
             json_mode=True,
             model_key=model_key,
-            call_name="extract_skills"
+            call_name="extract_skills",
+            user_id=user_id
         )
         
         if not response:

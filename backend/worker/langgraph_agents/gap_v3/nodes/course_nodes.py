@@ -345,10 +345,12 @@ async def _llm_select_courses_and_roadmap_unified(
         f"{'═' * 70}\n"
     )
 
+    user_id = state.get("user_id")
     result = await llm_json_completion(
         prompt=prompt,
         context=jd_context,
         call_name="select_courses_and_roadmap_unified",
+        user_id=user_id
     )
 
     if not result:

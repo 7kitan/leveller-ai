@@ -295,12 +295,14 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
             "Keep technical skill names in English."
         )
 
+        user_id = state.get("user_id")
         result = await llm_json_completion(
             prompt=prompt,
             context=jd_context,
             system_prompt=system,
             temperature=0.1,
             call_name="gap_analysis_from_requirements",
+            user_id=user_id
         )
 
         if result:
@@ -423,12 +425,14 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
             "Keep technical skill names in English."
         )
 
+        user_id = state.get("user_id")
         result = await llm_json_completion(
             prompt=prompt,
             context=jd_context,
             system_prompt=system,
             temperature=0.1,
             call_name="gap_analysis_combined",
+            user_id=user_id
         )
 
         if result:
@@ -532,9 +536,8 @@ def _format_cv_for_llm(cv_parsed: dict) -> str:
         co  = w.get("company") or "?"
         dur = float(w.get("duration_years") or 0)
         desc = (w.get("description") or "")[:200]
-        su  = ", ".join((w.get("skills_used") or [])[:5])
         work_lines.append(
-            f"  - [{dur:.1f} yrs] {pos} @ {co}\n    {desc}\n    Skills: {su}"
+            f"  - [{dur:.1f} yrs] {pos} @ {co}\n    {desc}"
         )
     work_text = "\n".join(work_lines) or "  (no work history)"
 

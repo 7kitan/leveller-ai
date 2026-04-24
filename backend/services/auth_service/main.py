@@ -8,23 +8,38 @@ from shared.models import User
 from shared.auth_utils import get_password_hash, verify_password, create_access_token, hash_token, decode_access_token, ACCESS_TOKEN_EXPIRE_SECONDS
 from shared.config_utils import config_manager
 from shared.redis_client import auth_cache
+from shared.email_utils import send_password_reset_email
 from shared.schemas import PaginatedResponse
 from pydantic import BaseModel, EmailStr
 import json
 import logging
 import uuid
 import os
+import httpx
 from typing import Optional, List
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
-app = FastAPI(title="Auth Service")
+# Google reCAPTCHA Secret Key
+RECAPTCHA_SECRET_KEY = os.getenv("GOOGLE_RECAPTCHA_SECRET_KEY")
 
-@app.on_event("startup")
-async def startup_event():
-    from shared.database import init_db
-    init_db()
-
-def is_admin(request: Request) -> bool:
-    return request.headers.get("X-Is-Admin") == "true"
+async def verify_google_captcha(token: str):
+    """Verify Google reCAPTCHA v2/v3 token."""
+    if not RECAPTCHA_SECRET_KEY:
+        logging.warning("GOOGLE_RECAPTCHA_SECRET_KEY not set. Skipping verification.")
+        return True
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "https://www.google.com/recaptcha/api/siteverify",
+            data={
+                "secret": RECAPTCHA_SECRET_KEY,
+                "response": token
+            }
+        )
+        result = response.json()
+        return result.get("success", False)
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -71,8 +86,109 @@ class UserProfileUpdate(BaseModel):
     old_password: Optional[str] = None
     password: Optional[str] = None
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+    captcha_token: Optional[str] = None
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+app = FastAPI(title="Auth Service")
+
+# Initialize Limiter
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# --- Password Reset Endpoints ---
+
+@app.post("/auth/forgot-password")
+@limiter.limit("5/minute")
+async def forgot_password(req: ForgotPasswordRequest, request: Request, db: Session = Depends(get_db)):
+    # Verify Captcha
+    if not req.captcha_token:
+        raise HTTPException(status_code=400, detail="Captcha required", headers={"X-Requires-Captcha": "true"})
+    
+    is_valid = await verify_google_captcha(req.captcha_token)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Invalid Captcha. Please try again.")
+
+    user = db.query(User).filter(User.email == req.email).first()
+    if not user:
+        # Avoid user enumeration: still return success but don't do anything
+        return {"detail": "If this email is registered, a reset link will be sent."}
+    
+    # Generate a secure token
+    reset_token = str(uuid.uuid4())
+    reset_key = f"pwd_reset:{reset_token}"
+    
+    # Store in Redis for 1 hour
+    auth_cache.setex(reset_key, 3600, str(user.id))
+    
+    # TODO: Integrate with Email Service (SendGrid/SMTP)
+    reset_link = f"{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/auth/reset-password?token={reset_token}"
+    logging.info(f"PASSWORD RESET LINK for {user.email}: {reset_link}")
+    
+    # Send email
+    send_password_reset_email(user.email, reset_link)
+    
+    return {"detail": "If this email is registered, a reset link will be sent."}
+
+@app.post("/auth/reset-password")
+async def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):
+    reset_key = f"pwd_reset:{req.token}"
+    user_id = auth_cache.get(reset_key)
+    
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User no longer exists")
+        
+    # Update password
+    user.hashed_password = get_password_hash(req.new_password)
+    db.commit()
+    
+    # Invalidate token
+    auth_cache.delete(reset_key)
+    
+    # Revoke all current sessions for security
+    session_pointer = f"user_session:{user.id}"
+    old_token_key = auth_cache.get(session_pointer)
+    if old_token_key:
+        auth_cache.delete(old_token_key)
+        auth_cache.delete(session_pointer)
+
+    return {"detail": "Password has been reset successfully. Please login with your new password."}
+
+@app.on_event("startup")
+async def startup_event():
+    from shared.database import init_db
+    init_db()
+
+def is_admin(request: Request) -> bool:
+    return request.headers.get("X-Is-Admin") == "true"
+
 @app.post("/auth/register", response_model=AuthResponse)
-def register(request: Request, user_in: UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("5/day")
+async def register(request: Request, user_in: UserCreate, captcha_token: Optional[str] = None, db: Session = Depends(get_db)):
+    # 1. Check registration limit per IP
+    ip_addr = request.client.host if request.client else "unknown"
+    reg_key = f"reg_attempts:{ip_addr}"
+    reg_count = auth_cache.incr_with_expire(reg_key, 86400)
+    if reg_count > 5:
+        raise HTTPException(status_code=429, detail="Too many registrations from this IP. Please try again in 24 hours.")
+
+    # 2. Always require Captcha for Register
+    if not captcha_token:
+        raise HTTPException(status_code=400, detail="Captcha required for registration", headers={"X-Requires-Captcha": "true"})
+    
+    is_valid = await verify_google_captcha(captcha_token)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Invalid Captcha. Please try again.")
+
     db_user = db.query(User).filter(User.email == user_in.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -81,10 +197,10 @@ def register(request: Request, user_in: UserCreate, db: Session = Depends(get_db
         email=user_in.email,
         hashed_password=get_password_hash(user_in.password),
         full_name=user_in.full_name,
-        is_admin=False, # Default
-        registration_ip=request.client.host if request.client else None,
+        is_admin=False,
+        registration_ip=ip_addr,
         registration_user_agent=request.headers.get("User-Agent"),
-        last_login_ip=request.client.host if request.client else None,
+        last_login_ip=ip_addr,
         last_login_user_agent=request.headers.get("User-Agent")
     )
     db.add(new_user)
@@ -102,12 +218,10 @@ def register(request: Request, user_in: UserCreate, db: Session = Depends(get_db
     token_key = f"token:{hash_token(access_token)}"
     session_pointer = f"user_session:{new_user.id}"
 
-    # Thu hồi token cũ nếu có (Single Session)
     old_token_key = auth_cache.get(session_pointer)
     if old_token_key:
         auth_cache.delete(old_token_key)
 
-    # Lưu token mới và cập nhật con trỏ session (Đồng bộ TTL)
     auth_cache.setex(token_key, ACCESS_TOKEN_EXPIRE_SECONDS, json.dumps(user_data))
     auth_cache.setex(session_pointer, ACCESS_TOKEN_EXPIRE_SECONDS, token_key)
 
@@ -117,17 +231,54 @@ def register(request: Request, user_in: UserCreate, db: Session = Depends(get_db
         "user": user_data
     }
 
-@app.post("/auth/login", response_model=AuthResponse)
-def login(request: Request, user_in: UserLogin, db: Session = Depends(get_db)):
+@app.post("/auth/login")
+@limiter.limit("20/minute")
+async def login(request: Request, user_in: UserLogin, captcha_token: Optional[str] = None, db: Session = Depends(get_db)):
+    ip_addr = request.client.host if request.client else "unknown"
+    lockout_key = f"lockout:{ip_addr}"
+    
+    if auth_cache.exists(lockout_key):
+        raise HTTPException(status_code=403, detail="Account locked due to too many failed attempts. Please try again in 24 hours.")
+
+    attempt_key = f"login_attempts:{user_in.email}"
+    ip_attempt_key = f"login_attempts_ip:{ip_addr}"
+    
+    email_attempts = int(auth_cache.get(attempt_key) or 0)
+    ip_attempts = int(auth_cache.get(ip_attempt_key) or 0)
+    max_attempts = max(email_attempts, ip_attempts)
+
+    # 3. Check for Captcha (2 failed attempts)
+    if max_attempts >= 2:
+        if not captcha_token:
+            raise HTTPException(status_code=400, detail="Captcha required", headers={"X-Requires-Captcha": "true"})
+        
+        is_valid = await verify_google_captcha(captcha_token)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail="Invalid Captcha. Please try again.")
+
     user = db.query(User).filter(User.email == user_in.email).first()
+    
     if not user or not verify_password(user_in.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Incorrect email or password")
+        new_email_attempts = auth_cache.incr_with_expire(attempt_key, 3600)
+        new_ip_attempts = auth_cache.incr_with_expire(ip_attempt_key, 3600)
+        
+        if new_email_attempts >= 10 or new_ip_attempts >= 10:
+            auth_cache.setex(lockout_key, 86400, "locked")
+            raise HTTPException(status_code=403, detail="Too many failed attempts. Your IP has been locked for 24 hours.")
+            
+        raise HTTPException(
+            status_code=401, 
+            detail="Incorrect email or password",
+            headers={"X-Attempts-Left": str(10 - max(new_email_attempts, new_ip_attempts))}
+        )
     
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is disabled. Please contact administrator.")
+
+    auth_cache.delete(attempt_key)
+    auth_cache.delete(ip_attempt_key)
     
-    # Update last login info
-    user.last_login_ip = request.client.host if request.client else None
+    user.last_login_ip = ip_addr
     user.last_login_user_agent = request.headers.get("User-Agent")
     db.commit()
     db.refresh(user)
@@ -143,14 +294,10 @@ def login(request: Request, user_in: UserLogin, db: Session = Depends(get_db)):
     token_key = f"token:{hash_token(access_token)}"
     session_pointer = f"user_session:{user.id}"
 
-    # Thu hồi token cũ nếu có (Single Session)
     old_token_key = auth_cache.get(session_pointer)
     if old_token_key:
-        logging.info(f"Revoking old token for user {user.id}: {old_token_key}")
         auth_cache.delete(old_token_key)
 
-    # Lưu token mới và cập nhật con trỏ session (Đồng bộ TTL)
-    logging.info(f"Setting new token in Redis: {token_key}")
     auth_cache.setex(token_key, ACCESS_TOKEN_EXPIRE_SECONDS, json.dumps(user_data))
     auth_cache.setex(session_pointer, ACCESS_TOKEN_EXPIRE_SECONDS, token_key)
     
