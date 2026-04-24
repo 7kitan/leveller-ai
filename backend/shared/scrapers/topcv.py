@@ -270,10 +270,13 @@ class TopCVScraper:
                     key_match = re.search(f'"{key}"\s*:\s*"(.*?)"', json_str)
                     if key_match:
                         try:
-                            val = key_match.group(1).encode('utf-8').decode('unicode_escape')
+                            # SECURITY & DATA QUALITY: TopCV often escapes slashes as \/ in JS trackers.
+                            # We need to unescape them and also handle unicode escapes like \u00e0.
+                            val = key_match.group(1).replace('\\/', '/')
+                            val = val.encode('utf-8').decode('unicode_escape')
                             data[key] = val
                         except:
-                            data[key] = key_match.group(1)
+                            data[key] = key_match.group(1).replace('\\/', '/')
                 return data
         except: pass
         return {}
