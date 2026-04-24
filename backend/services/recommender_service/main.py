@@ -37,6 +37,7 @@ class GapSkill(BaseModel):
 
 class RecommendRequest(BaseModel):
     gap_skills: List[GapSkill]
+    lang: str = "vi"
 
 
 class CrawlRequest(BaseModel):
@@ -318,9 +319,10 @@ async def recommend_courses(req: RecommendRequest, db: Session = Depends(get_db)
     
     for gap in top_gaps:
         videos = await youtube_service.search_and_cache(
-            query=f"{gap.skill_name} {gap.target_level} tutorial",
+            query=f"{gap.skill_name} {gap.target_level}",
             db=db,
-            limit=2
+            limit=2,
+            lang=req.lang
         )
         for v in videos:
             v["gap_skill"] = gap.skill_name
@@ -656,12 +658,13 @@ async def get_youtube_recommendations(
     skill: str, 
     level: str = "Beginner", 
     limit: int = 3, 
+    lang: str = "vi",
     db: Session = Depends(get_db)
 ):
     """
     Tìm kiếm video YouTube cho một kỹ năng cụ thể.
     Sử dụng Vector Search để tối ưu cache.
     """
-    query = f"{skill} {level} tutorial course"
-    videos = await youtube_service.search_and_cache(query=query, db=db, limit=limit)
+    query = f"{skill} {level}"
+    videos = await youtube_service.search_and_cache(query=query, db=db, limit=limit, lang=lang)
     return videos

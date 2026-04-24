@@ -21,13 +21,15 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
+logger = logging.getLogger("auth_service")
+
 # Google reCAPTCHA Secret Key
 RECAPTCHA_SECRET_KEY = os.getenv("GOOGLE_RECAPTCHA_SECRET_KEY")
 
 async def verify_google_captcha(token: str):
     """Verify Google reCAPTCHA v2/v3 token."""
     if not RECAPTCHA_SECRET_KEY:
-        logging.error("SECURITY ALERT: GOOGLE_RECAPTCHA_SECRET_KEY not set. Cannot verify captcha. Failing securely.")
+        logger.error("SECURITY ALERT: GOOGLE_RECAPTCHA_SECRET_KEY not set. Cannot verify captcha. Failing securely.")
         return False
     
     async with httpx.AsyncClient() as client:
@@ -128,7 +130,7 @@ async def forgot_password(req: ForgotPasswordRequest, request: Request, db: Sess
     
     # TODO: Integrate with Email Service (SendGrid/SMTP)
     reset_link = f"{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/auth/reset-password?token={reset_token}"
-    logging.info(f"PASSWORD RESET LINK for {user.email}: {reset_link}")
+    logger.info(f"PASSWORD RESET LINK for {user.email}: {reset_link}")
     
     # Send email
     send_password_reset_email(user.email, reset_link)
@@ -318,14 +320,14 @@ def verify(token: str, db: Session = Depends(get_db)):
         return user_data
     
     # Cache miss -> Deep Verification (JWT Decode + DB Check)
-    logging.info(f"DEBUG Auth: Cache miss for token. Performing deep verification...")
+    logger.info(f"DEBUG Auth: Cache miss for token. Performing deep verification...")
     payload = decode_access_token(token)
     if not payload:
-        logging.error("DEBUG Auth: JWT decode failed or token expired.")
+        logger.error("DEBUG Auth: JWT decode failed or token expired.")
         raise HTTPException(status_code=401, detail="Invalid or expired token (JWT decode failed)")
         
     if "sub" not in payload:
-        logging.error(f"DEBUG Auth: JWT payload missing 'sub' claim: {payload}")
+        logger.error(f"DEBUG Auth: JWT payload missing 'sub' claim: {payload}")
         raise HTTPException(status_code=401, detail="Invalid token payload (missing sub)")
 
     try:
@@ -334,16 +336,16 @@ def verify(token: str, db: Session = Depends(get_db)):
         try:
             user_uuid = uuid.UUID(user_id_str) if isinstance(user_id_str, str) else user_id_str
         except (ValueError, TypeError):
-            logging.error(f"DEBUG Auth: Invalid UUID format in JWT sub: {user_id_str}")
+            logger.error(f"DEBUG Auth: Invalid UUID format in JWT sub: {user_id_str}")
             raise HTTPException(status_code=401, detail="Invalid user ID format in token")
 
         user = db.query(User).filter(User.id == user_uuid).first()
         if not user:
-            logging.error(f"DEBUG Auth: User {user_uuid} not found in database.")
+            logger.error(f"DEBUG Auth: User {user_uuid} not found in database.")
             raise HTTPException(status_code=401, detail="User not found")
             
         if not user.is_active:
-            logging.error(f"DEBUG Auth: User {user_uuid} is inactive.")
+            logger.error(f"DEBUG Auth: User {user_uuid} is inactive.")
             raise HTTPException(status_code=401, detail="User found but inactive")
             
         # Re-cache user data for subsequent requests (if caching is enabled)
@@ -354,7 +356,7 @@ def verify(token: str, db: Session = Depends(get_db)):
             "full_name": user.full_name
         }
         auth_cache.setex(token_key, ACCESS_TOKEN_EXPIRE_SECONDS, json.dumps(user_data))
-        logging.info(f"DEBUG Auth: Deep verification successful for user {user.email}")
+        logger.info(f"DEBUG Auth: Deep verification successful for user {user.email}")
         
         # Thêm system status vào response
         user_data["maintenance_mode"] = config_manager.get_setting("maintenance_mode", False)
@@ -363,7 +365,7 @@ def verify(token: str, db: Session = Depends(get_db)):
     except Exception as e:
         if isinstance(e, HTTPException):
             raise e
-        logging.error(f"DEBUG Auth: Unexpected error during deep verification: {str(e)}")
+        logger.error(f"DEBUG Auth: Unexpected error during deep verification: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal error during verification")
 
 @app.get("/auth/me", response_model=UserResponse)
@@ -520,7 +522,7 @@ def admin_update_user(user_id: str, user_in: AdminUserUpdate, request: Request, 
             session_pointer = f"user_session:{user.id}"
             old_token_key = auth_cache.get(session_pointer)
             if old_token_key:
-                logging.info(f"Revoking session for banned user {user.id}")
+                logger.info(f"Revoking session for banned user {user.id}")
                 auth_cache.delete(old_token_key)
                 auth_cache.delete(session_pointer)
     
