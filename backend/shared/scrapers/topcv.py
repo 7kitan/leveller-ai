@@ -83,9 +83,12 @@ class TopCVScraper:
             for a in soup.find_all('a', href=True):
                 href = a['href']
                 all_links.append(href)
-                if '/viec-lam/' in href and 'topcv.vn/viec-lam' in href and href not in job_links:
-                    job_links.append(href)
-                    logger.debug(f"[GET_URLS] Found job link: {href}")
+                if '/viec-lam/' in href and 'topcv.vn/viec-lam' in href:
+                    # Clean URL: Truncate at .html
+                    clean_href = href.split('.html')[0] + '.html' if '.html' in href else href
+                    if clean_href not in job_links:
+                        job_links.append(clean_href)
+                        logger.debug(f"[GET_URLS] Found job link: {clean_href}")
             
             logger.info(f"[GET_URLS] Total links found: {len(all_links)}")
             logger.info(f"[GET_URLS] Job links found: {len(job_links)}")
@@ -128,6 +131,10 @@ class TopCVScraper:
                     if attempt < max_retries:
                         continue  # Retry
                     return None
+
+                # Clean URL: Remove tracking parameters after .html
+                if '.html' in job_url:
+                    job_url = job_url.split('.html')[0] + '.html'
 
                 # Extract Job ID for logging and result
                 job_id_match = re.search(r'/(\d+)\.html', job_url)
