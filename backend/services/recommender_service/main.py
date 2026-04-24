@@ -352,7 +352,7 @@ async def get_trending_skills(
         JOIN jobs j ON j.id = jsr.job_id
         JOIN skills s ON s.id = jsr.skill_id
         WHERE j.status = 'active'
-          AND j.created_at >= NOW() - (:days * INTERVAL '1 day')
+          AND j.created_at >= NOW() - (INTERVAL '1 day' * :days)
         GROUP BY s.id, s.name
         ORDER BY job_count DESC
         LIMIT :limit

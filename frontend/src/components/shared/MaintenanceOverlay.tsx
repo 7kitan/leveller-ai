@@ -78,12 +78,6 @@ export default function MaintenanceOverlay() {
               Thử tải lại trang
             </button>
           </div>
-
-          {user?.role === 'admin' && (
-            <div className={styles.adminTip}>
-              <p>💡 <b>Bạn là Admin:</b> Nếu bạn thấy trang này, vui lòng đảm bảo bạn đã đăng nhập để bypass chế độ bảo trì.</p>
-            </div>
-          )}
         </motion.div>
       </div>
     </AnimatePresence>

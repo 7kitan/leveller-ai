@@ -44,10 +44,8 @@ class QuotaManager:
         today = datetime.now().strftime("%Y%m%d")
         quota_key = f"analysis_count:{user.id}:{today}"
         
-        # Increment atomic
-        current = quota_cache.incr(quota_key)
-        if current == 1:
-            quota_cache.expire(quota_key, 86400)
+        # Increment atomic (using Lua script to ensure TTL)
+        current = quota_cache.incr_with_expire(quota_key, 86400)
             
         if current > limit:
             logger.warning(f"User {user.id} analysis quota exceeded: {current}/{limit}")

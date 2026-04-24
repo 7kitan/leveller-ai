@@ -22,6 +22,10 @@ from worker.celery_app import celery_app
 from celery.result import AsyncResult
 
 from shared.database import init_db
+from services.analysis_service.growth_calculator import (
+    calculate_skill_impact,
+    calculate_market_sentiment
+)
 
 app = FastAPI(title="Analysis Service")
 
@@ -258,28 +262,41 @@ async def get_latest_analysis(request: Request, db: Session = Depends(get_db)):
         result["cv_id"] = str(analysis.cv_id)
         result["job_id"] = str(analysis.job_id) if analysis.job_id else None
         
-        # Heuristic fallback for growth metrics if missing
-        course_recs = result.get("course_recommendations") or []
-        matched_jobs_count = len(course_recs)
-        market_fit_pct = int(float(result.get("overall_match_pct") or 0))
+        # Calculate growth metrics using DB data (NEW ALGORITHM)
+        skill_gaps = result.get("skill_gaps") or []
+        current_match = float(result.get("overall_match_pct") or 0)
         
-        if result.get("potential_match_pct") is None or result.get("potential_match_pct") == 0:
-            if matched_jobs_count > 0:
-                # Use logarithmic growth to be more realistic
-                import math
-                boost = math.log2(matched_jobs_count + 1) * 6.5
-                result["potential_match_pct"] = min(98, market_fit_pct + int(boost))
-        
-        if result.get("salary_growth_pct") is None or result.get("salary_growth_pct") == 0:
-            if matched_jobs_count > 0:
-                # Cap salary growth more strictly based on learning volume
-                import math
-                growth = math.log2(matched_jobs_count + 1) * 5.5
-                result["salary_growth_pct"] = min(35, int(growth + 5))
+        if skill_gaps and analysis.job_id:
+            try:
+                potential_match, salary_growth, enriched_gaps = calculate_skill_impact(
+                    skill_gaps=skill_gaps,
+                    job_id=str(analysis.job_id),
+                    current_match_pct=current_match,
+                    db=db
+                )
                 
-        if not result.get("market_sentiment") and matched_jobs_count > 0:
-             # Sentiment based on match density
-             result["market_sentiment"] = "Tăng trưởng cao" if matched_jobs_count > 5 else "Ổn định"
+                # Update result with calculated values
+                result["potential_match_pct"] = round(potential_match, 1)
+                result["salary_growth_pct"] = round(salary_growth, 1)
+                result["skill_gaps"] = enriched_gaps  # Now includes match_impact & salary_impact
+                
+                # Calculate market sentiment from DB data
+                if not result.get("market_sentiment"):
+                    result["market_sentiment"] = calculate_market_sentiment(skill_gaps, db)
+                    
+                logger.info(
+                    f"Growth calculated from DB: potential={potential_match}%, "
+                    f"salary={salary_growth}%, sentiment={result['market_sentiment']}"
+                )
+            except Exception as e:
+                logger.error(f"Error calculating growth metrics: {e}", exc_info=True)
+                # Fallback to simple heuristic if calculation fails
+                course_count = len(result.get("course_recommendations") or [])
+                if course_count > 0:
+                    import math
+                    result["potential_match_pct"] = min(98, current_match + math.log2(course_count + 1) * 6.5)
+                    result["salary_growth_pct"] = min(35, math.log2(course_count + 1) * 5.5 + 5)
+                    result["market_sentiment"] = "Ổn định"
 
     return result
 

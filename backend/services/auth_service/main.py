@@ -13,6 +13,7 @@ from pydantic import BaseModel, EmailStr
 import json
 import logging
 import uuid
+import os
 from typing import Optional, List
 
 app = FastAPI(title="Auth Service")

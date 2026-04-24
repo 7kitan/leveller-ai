@@ -7,11 +7,19 @@ load_dotenv()
 
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", None)  # SECURITY: Support password authentication
 CACHE_ENABLED = os.getenv("CACHE_ENABLED", "true").lower() == "true"
 CACHE_KEY_PREFIX = os.getenv("CACHE_KEY_PREFIX", "advisor:")
 CACHE_DEFAULT_TTL = int(os.getenv("CACHE_DEFAULT_TTL", "3600"))
 
 logger = logging.getLogger(__name__)
+
+# SECURITY: Warn if Redis password is not set in production
+if not REDIS_PASSWORD and os.getenv("ENVIRONMENT", "development").lower() == "production":
+    logger.warning("=" * 80)
+    logger.warning("SECURITY WARNING: Redis password is not set in production!")
+    logger.warning("Please set REDIS_PASSWORD in your .env file.")
+    logger.warning("=" * 80)
 
 class NoOpRedis:
     """Mock Redis client for when cache is disabled."""
@@ -62,6 +70,22 @@ class PrefixedRedis:
     def expire(self, key, time):
         return self._client.expire(self._prefix_key(key), time)
 
+    def incr_with_expire(self, key, ttl):
+        """Atomic increment with expire (via Lua script)."""
+        lua = """
+        local current = redis.call('INCR', KEYS[1])
+        if current == 1 then
+            redis.call('EXPIRE', KEYS[1], ARGV[1])
+        end
+        return current
+        """
+        # Note: If self._client is NoOpRedis, this won't work, but NoOpRedis doesn't have register_script.
+        # However, for NoOpRedis, we should just return 1 or something.
+        if hasattr(self._client, 'register_script'):
+            script = self._client.register_script(lua)
+            return script(keys=[self._prefix_key(key)], args=[ttl])
+        return 1 # Fallback for NoOpRedis
+
 class RedisManager:
     def __init__(self):
         self.clients = {}
@@ -89,7 +113,8 @@ class RedisManager:
             try:
                 pool = redis.ConnectionPool(
                     host=REDIS_HOST, 
-                    port=REDIS_PORT, 
+                    port=REDIS_PORT,
+                    password=REDIS_PASSWORD,  # SECURITY: Use password if configured
                     db=db, 
                     decode_responses=True
                 )

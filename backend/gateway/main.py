@@ -6,11 +6,17 @@ from gateway.auth_middleware import auth_middleware
 
 app = FastAPI(title="AI Career Advisor Gateway")
 
+# SECURITY: Configure allowed origins from environment variable
+# In production, set ALLOWED_ORIGINS to your frontend domain(s)
+# Example: ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3001")
+allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["*"],
 )
 

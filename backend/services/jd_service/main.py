@@ -646,7 +646,7 @@ def get_trending_skills(
     """)
 
     try:
-        safe_query = text(f"""
+        safe_query = text("""
             SELECT
                 s.name as skill_name,
                 s.category as skill_category,
@@ -658,7 +658,7 @@ def get_trending_skills(
             JOIN skills s ON s.id = jsr.skill_id
             JOIN jobs j ON j.id = jsr.job_id
             WHERE j.status = 'active'
-              AND j.created_at >= NOW() - INTERVAL '{days} days'
+              AND j.created_at >= NOW() - (INTERVAL '1 day' * :days)
               AND jsr.skill_id IS NOT NULL
               AND j.min_salary_vnd IS NOT NULL
             GROUP BY s.id, s.name, s.category
@@ -666,7 +666,7 @@ def get_trending_skills(
             ORDER BY job_count DESC
             LIMIT :limit
         """)
-        results = db.execute(safe_query, {"limit": limit}).fetchall()
+        results = db.execute(safe_query, {"limit": limit, "days": days}).fetchall()
     except Exception as e:
         logger.warning(f"Trending skills query failed: {e}")
         return []
@@ -694,7 +694,7 @@ def get_role_analytics(
     """
     Spec 5.2: ThÃ´ng tin nghá» nghiá»‡p â€” vai trÃ² phá»• biáº¿n + má»©c lÆ°Æ¡ng theo role.
     """
-    safe_query = text(f"""
+    safe_query = text("""
         SELECT
             COALESCE(j.title_category, 'Other') as role,
             COUNT(*) as job_count,
@@ -705,7 +705,7 @@ def get_role_analytics(
             COUNT(*) FILTER (WHERE j.has_insurance = true) as insured_count
         FROM jobs j
         WHERE j.status = 'active'
-          AND j.created_at >= NOW() - INTERVAL '{days} days'
+          AND j.created_at >= NOW() - (INTERVAL '1 day' * :days)
           AND j.title_category IS NOT NULL
         GROUP BY j.title_category
         HAVING COUNT(*) >= 2
@@ -714,7 +714,7 @@ def get_role_analytics(
     """)
 
     try:
-        results = db.execute(safe_query, {"limit": limit}).fetchall()
+        results = db.execute(safe_query, {"limit": limit, "days": days}).fetchall()
     except Exception as e:
         logger.warning(f"Role analytics query failed: {e}")
         return []

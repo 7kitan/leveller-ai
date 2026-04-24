@@ -287,7 +287,7 @@ const AdminUsersPage = () => {
                         <div>
                           <div className={styles.userName}>
                             {user.full_name || t("fail")}
-                            {user.is_flagged && <AlertTriangle size={14} className="inline ml-2 text-amber-500" title="Flagged for review" />}
+                            {user.is_flagged && <span title="Flagged for review"><AlertTriangle size={14} className="inline ml-2 text-amber-500" /></span>}
                           </div>
                           <div className={styles.userEmail}>{user.email}</div>
                         </div>
