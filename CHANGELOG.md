@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
  
+## [1.4.0] - 2026-04-24
+
+### Added
+- **Thuật toán Tính Tăng Trưởng Dựa Trên Database**: Triển khai module `growth_calculator.py` mới để tính toán chính xác tiềm năng tăng trưởng (potential_match, salary_growth) dựa trên dữ liệu thực tế từ DB thay vì ước lượng từ LLM.
+    - `calculate_skill_impact()`: Tính toán impact của từng skill dựa trên `JobSkillRequirement.importance_weight` và `MarketSkillStats.salary_premium_pct`.
+    - `calculate_market_sentiment()`: Phân tích xu hướng thị trường dựa trên `growth_rate_30d` và `demand_score`.
+    - Mỗi skill gap giờ hiển thị **match_impact** (+X% match) và **salary_impact** (+Y% salary) riêng biệt.
+- **Hiển thị Impact Badge**: Thêm badges trực quan cho từng skill gap trên giao diện Recommend, giúp người dùng thấy rõ skill nào ảnh hưởng nhiều nhất đến tỷ lệ match và mức lương.
+
+### Changed
+- **Cải tiến Thuật Toán Dự Báo**: Thay thế thuật toán heuristic cũ (chỉ đếm số lượng khóa học: `log2(course_count) * 6.5`) bằng thuật toán dựa trên trọng số thực tế từ Job Description và dữ liệu thị trường.
+    - **Trước**: Học Python (critical, 30% weight) = Học Excel (nice-to-have, 5% weight)
+    - **Sau**: Python (+25% match, +12% salary) ≠ Excel (+3% match, +2% salary)
+- **Tối ưu LLM Prompt**: Loại bỏ các trường `potential_match_pct` và `salary_growth_pct` khỏi LLM prompt vì giờ được tính toán tự động bởi backend.
+- **Cải thiện Layout Trang Recommend**: Chuyển đổi `matchBanner` sang layout dọc (vertical stack) với radar chart căn giữa, tối ưu cho mobile.
+    - Loại bỏ `matchBreakdownSection` trùng lặp (duplicate bar charts).
+    - Radar chart responsive: 350px (mobile) → 400px (tablet) → 450px (desktop).
+    - Thêm padding 1.5-2.5rem để tránh cắt label của radar chart.
+
+### Fixed
+- **Lỗi Build Frontend**: Bổ sung các translation keys thiếu (`admin_jobs_status_inactive`, `admin_settings_load_error`, `cv_processing`, `notify_me`, `will_notify`).
+- **Lỗi TypeScript**: 
+    - Fix `AuthContext.login` return type (Promise<void>).
+    - Fix unreachable code trong `MaintenanceOverlay`.
+    - Fix type errors trong admin pages (jobs, settings, users).
+    - Thêm các fields mới vào `SkillGap` interface (`match_impact`, `salary_impact`, `market_demand`, `avg_salary_range`).
+- **Lỗi CSS Radar Chart**: Loại bỏ các CSS rules trùng lặp ghi đè chiều cao radar chart, đảm bảo sizing nhất quán.
+- **Bug Market Stats Aggregator**: Fix logic extract skills từ `extracted_requirements_json` - trước đây chỉ lấy được `type="skill"` và bỏ qua toàn bộ skills trong `type="group"`, dẫn đến MarketSkillStats table trống. Sau khi fix, đã populate thành công 71 skills với đầy đủ salary premium, demand score, và growth rate.
+
 ## [1.3.0] - 2026-04-24
  
 ### Added
