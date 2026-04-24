@@ -1061,7 +1061,7 @@ async def admin_get_llm_stats(request: Request, db: Session = Depends(get_db)):
 async def admin_get_llm_usage_series(
     request: Request, 
     period: str = Query("day", regex="^(day|hour)$"),
-    days: int = Query(7, ge=1, le=30),
+    days: int = Query(7, ge=1, le=90), # Tăng lên tối đa 90 ngày
     db: Session = Depends(get_db)
 ):
     """Admin only: Lấy chuỗi dữ liệu sử dụng LLM theo thời gian."""

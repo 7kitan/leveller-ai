@@ -33,6 +33,7 @@ const AIUsagePage = () => {
   const [logs, setLogs] = useState<any[]>([]);
   const [usageSeries, setUsageSeries] = useState<any[]>([]);
   const [period, setPeriod] = useState<'day' | 'hour'>('day');
+  const [days, setDays] = useState(7);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -46,7 +47,7 @@ const AIUsagePage = () => {
         axios.get("/api/analysis/admin/llm-logs?limit=20", {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        axios.get(`/api/analysis/admin/llm-usage-series?period=${period}`, {
+        axios.get(`/api/analysis/admin/llm-usage-series?period=${period}&days=${days}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);
@@ -63,7 +64,7 @@ const AIUsagePage = () => {
 
   useEffect(() => {
     if (token) fetchData();
-  }, [token, period]);
+  }, [token, period, days]);
 
   if (loading) {
     return (
@@ -128,29 +129,48 @@ const AIUsagePage = () => {
 
         {/* Chart Section */}
         <div className={cn(styles.statCard, "p-8 mb-8")}>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
             <h2 className="text-2xl font-extrabold flex items-center gap-3 text-[var(--color-text-main)]">
               <BarChart3 size={28} className="text-emerald-500" /> Usage Trends
             </h2>
-            <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
-              <button 
-                onClick={() => setPeriod('hour')}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-xs font-bold transition-all",
-                  period === 'hour' ? "bg-emerald-500 text-white shadow-lg" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]"
-                )}
-              >
-                Hourly
-              </button>
-              <button 
-                onClick={() => setPeriod('day')}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-xs font-bold transition-all",
-                  period === 'day' ? "bg-emerald-500 text-white shadow-lg" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]"
-                )}
-              >
-                Daily
-              </button>
+            <div className="flex flex-wrap items-center gap-4 bg-black/5 dark:bg-white/5 p-2 rounded-2xl">
+              <div className="flex bg-black/10 dark:bg-white/10 p-1 rounded-xl">
+                <button 
+                  onClick={() => { setPeriod('hour'); setDays(1); }}
+                  className={cn(
+                    "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                    period === 'hour' ? "bg-emerald-500 text-white shadow-lg" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]"
+                  )}
+                >
+                  Hourly
+                </button>
+                <button 
+                  onClick={() => setPeriod('day')}
+                  className={cn(
+                    "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                    period === 'day' ? "bg-emerald-500 text-white shadow-lg" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]"
+                  )}
+                >
+                  Daily
+                </button>
+              </div>
+              
+              <div className="h-6 w-[1px] bg-white/10" />
+
+              <div className="flex gap-1">
+                {[7, 30, 90].map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => { setDays(d); if (period === 'hour') setPeriod('day'); }}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all",
+                      days === d && period === 'day' ? "text-emerald-500 bg-emerald-500/10" : "text-[var(--color-text-muted)] hover:bg-white/5"
+                    )}
+                  >
+                    {d}D
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
