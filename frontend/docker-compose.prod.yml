@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: advisor_frontend_prod
+    restart: always
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    networks:
+      - advisor_net_external
+
+networks:
+  advisor_net_external:
+    external: true
+    name: advisor_net_prod

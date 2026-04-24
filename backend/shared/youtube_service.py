@@ -36,8 +36,8 @@ class YouTubeSearchService:
         else:
             final_q = f"{clean_query} tutorial course"
 
-        # 2. Tạo embedding cho query (dùng query gốc để giữ ngữ nghĩa trọn vẹn nhất cho Vector Search)
-        query_vector = get_embedding(query)
+        # 2. Tạo embedding cho query (dùng final_q để đồng bộ với nội dung tìm kiếm thực tế)
+        query_vector = get_embedding(final_q)
         now = datetime.now(timezone.utc)
         
         if query_vector:

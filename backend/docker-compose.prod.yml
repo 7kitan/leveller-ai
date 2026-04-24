@@ -1,0 +1,74 @@
+version: '3.8'
+
+x-service-base: &service-base
+  build:
+    context: .
+    dockerfile: Dockerfile.service
+  env_file: .env
+  restart: always
+  networks:
+    - advisor_net_prod
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  db:
+    image: ankane/pgvector:v0.5.1
+    container_name: advisor_db_prod
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-career_advisor}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d career_advisor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - advisor_net_prod
+
+  redis:
+    image: redis:7-alpine
+    container_name: advisor_redis_prod
+    restart: always
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    command: >
+      sh -c "
+      if [ -n \"$$REDIS_PASSWORD\" ]; then
+        redis-server --requirepass \"$$REDIS_PASSWORD\"
+      else
+        redis-server
+      fi
+      "
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - advisor_net_prod
+
+  gateway:
+    <<: *service-base
+    container_name: advisor_gateway_prod
+    ports:
+      - "8000:8000"
+    command: uvicorn gateway.main:app --host 0.0.0.0 --port 8000
+
+  auth-service:
+    <<: *service-base
+    container_name: advisor_auth_prod
+    command: uvicorn services.auth_service.main:app --host 0.0.0.0 --port 8000
+
+  # ... Add other services as needed for production ...
+
+networks:
+  advisor_net_prod:
+    driver: bridge

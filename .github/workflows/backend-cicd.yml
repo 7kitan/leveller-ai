@@ -1,0 +1,43 @@
+name: Backend CI/CD
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ demo, main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-cicd.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          cd backend
+          pytest tests/
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/demo' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Backend via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd /path/to/your/project/backend
+            git pull origin ${{ github.ref_name }}
+            docker-compose -f docker-compose.prod.yml up -d --build
