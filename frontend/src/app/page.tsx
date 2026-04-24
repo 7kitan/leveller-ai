@@ -259,9 +259,11 @@ export default function LandingPage() {
           
           {/* Desktop Links */}
           <div className={styles.navLinks}>
-            <Link href="#features">Tính năng</Link>
-            <Link href="#philosophy">Tầm nhìn</Link>
-            <Link href="/auth/login" className={styles.navCta}>Hội viên</Link>
+            <Link href="#stats">Thống kê / Stats</Link>
+            <Link href="#how-it-works">Cách hoạt động / How it works</Link>
+            <Link href="#features">Tính năng / Features</Link>
+            <Link href="#testimonials">Đánh giá / Reviews</Link>
+            <Link href="/auth/login" className={styles.navCta}>Đăng nhập / Login</Link>
           </div>
 
           {/* Mobile Toggle */}
@@ -325,9 +327,11 @@ export default function LandingPage() {
             >
               <div className={styles.mobileLinks}>
                 {[
-                  { href: "#features", label: "Tính năng" },
-                  { href: "#philosophy", label: "Tầm nhìn" },
-                  { href: "/auth/login", label: "Hội viên", isCta: true }
+                  { href: "#stats", label: "Thống kê / Stats" },
+                  { href: "#how-it-works", label: "Cách hoạt động / How it works" },
+                  { href: "#features", label: "Tính năng / Features" },
+                  { href: "#testimonials", label: "Đánh giá / Reviews" },
+                  { href: "/auth/login", label: "Đăng nhập / Login", isCta: true }
                 ].map((link) => (
                   <motion.div
                     key={link.href}
@@ -368,7 +372,10 @@ export default function LandingPage() {
       {/* Hero Section - Dark Immersive with Animated Gradient */}
       <div className={`${styles.sectionWrapper} ${styles.bgDark}`}>
         <section className={styles.heroSection}>
-          {/* Animated Gradient Background */}
+          {/* Background Image with Blur */}
+          <div className={styles.heroBackground} />
+          
+          {/* Animated Gradient Overlay */}
           <div className={styles.heroGradient} />
           
           <motion.div 
@@ -385,10 +392,10 @@ export default function LandingPage() {
             </p>
             <div className={styles.heroActions}>
               <Link href="/auth/register" className={styles.primaryBtn}>
-                Learn more
+                Bắt đầu ngay / Get started
               </Link>
-              <Link href="/auth/login" className={styles.secondaryBtn}>
-                Get started <ChevronRight size={18} />
+              <Link href="#how-it-works" className={styles.secondaryBtn}>
+                Tìm hiểu thêm / Learn more <ChevronRight size={18} />
               </Link>
             </div>
           </motion.div>
@@ -396,7 +403,7 @@ export default function LandingPage() {
       </div>
 
       {/* Statistics Section - Social Proof */}
-      <div className={`${styles.sectionWrapper} ${styles.bgLight}`}>
+      <div id="stats" className={`${styles.sectionWrapper} ${styles.bgLight}`}>
         <section className={styles.statsSection}>
           <motion.div 
             className={styles.statsGrid}
@@ -428,28 +435,66 @@ export default function LandingPage() {
       </div>
 
       {/* Philosophy Section - Light Informational */}
-      <div className={`${styles.sectionWrapper} ${styles.bgLight}`}>
-        <section id="philosophy" className={styles.section}>
+      <div id="philosophy" className={`${styles.sectionWrapper} ${styles.bgLight}`}>
+        <section className={styles.section}>
           <motion.div
-            className={styles.centeredText}
+            className={styles.visionSection}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.5 }}
           >
-            <h2 className={styles.sectionHeading}>
-              Tầm nhìn & Sứ mệnh
-            </h2>
-            <p className={styles.sectionSubheading}>
-              Chúng tôi tin rằng tương lai được xây dựng từ những kết nối thông minh. 
-              Lumix AI không chỉ là công cụ, mà là một hệ sinh thái tri thức giúp bạn xóa bỏ mọi giới hạn.
-            </p>
+            <div className={styles.visionContent}>
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+              >
+                <h2 className={styles.visionHeading}>
+                  Tầm nhìn & Sứ mệnh
+                </h2>
+                <div className={styles.visionDivider} />
+                <p className={styles.visionText}>
+                  Chúng tôi tin rằng tương lai được xây dựng từ những kết nối thông minh. 
+                  Lumix AI không chỉ là công cụ, mà là một hệ sinh thái tri thức giúp bạn xóa bỏ mọi giới hạn.
+                </p>
+                <p className={styles.visionSubtext}>
+                  Với công nghệ AI tiên tiến và Knowledge Graph, chúng tôi tạo ra cầu nối giữa 
+                  kỹ năng hiện tại và cơ hội tương lai của bạn.
+                </p>
+              </motion.div>
+              
+              <motion.div 
+                className={styles.visionStats}
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                <div className={styles.visionStatItem}>
+                  <div className={styles.visionStatIcon}>🎯</div>
+                  <h4>Chính xác</h4>
+                  <p>AI phân tích sâu để đưa ra đánh giá chính xác nhất</p>
+                </div>
+                <div className={styles.visionStatItem}>
+                  <div className={styles.visionStatIcon}>⚡</div>
+                  <h4>Nhanh chóng</h4>
+                  <p>Kết quả trong vài phút, không phải vài ngày</p>
+                </div>
+                <div className={styles.visionStatItem}>
+                  <div className={styles.visionStatIcon}>🚀</div>
+                  <h4>Hiệu quả</h4>
+                  <p>Lộ trình cá nhân hóa giúp bạn tiến nhanh hơn</p>
+                </div>
+              </motion.div>
+            </div>
           </motion.div>
         </section>
       </div>
 
       {/* How It Works Section - Dark with Visual Flow */}
-      <div className={`${styles.sectionWrapper} ${styles.bgDark}`}>
+      <div id="how-it-works" className={`${styles.sectionWrapper} ${styles.bgDark}`}>
         <section className={styles.section}>
           <div className={styles.centeredText}>
             <h2 className={styles.sectionHeading}>How it works</h2>
@@ -513,10 +558,20 @@ export default function LandingPage() {
       </div>
 
       {/* Feature Bento Grid - Dark Immersive */}
-      <div className={`${styles.sectionWrapper} ${styles.bgDark}`}>
-        <section id="features" className={styles.section}>
-          <div className={styles.centeredText}>
-            <h2 className={styles.sectionHeading}>The future of knowledge</h2>
+      <div id="features" className={`${styles.sectionWrapper} ${styles.bgDark}`}>
+        <section className={styles.section}>
+          <div className={styles.featuresHeader}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className={styles.sectionHeading}>The future of knowledge</h2>
+              <p className={styles.featuresSubheading}>
+                Giải pháp toàn diện cho mọi đối tượng / Comprehensive solutions for everyone
+              </p>
+            </motion.div>
           </div>
           
           <div className={styles.bentoContainer}>
@@ -587,7 +642,7 @@ export default function LandingPage() {
       </div>
 
       {/* Testimonials Section - Light */}
-      <div className={`${styles.sectionWrapper} ${styles.bgLight}`}>
+      <div id="testimonials" className={`${styles.sectionWrapper} ${styles.bgLight}`}>
         <section className={styles.section}>
           <div className={styles.centeredText}>
             <h2 className={styles.sectionHeading}>Trusted by professionals</h2>
