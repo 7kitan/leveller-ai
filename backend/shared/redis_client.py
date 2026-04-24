@@ -56,6 +56,12 @@ class PrefixedRedis:
         # flushdb remains global to the DB index
         return self._client.flushdb()
 
+    def incr(self, key):
+        return self._client.incr(self._prefix_key(key))
+
+    def expire(self, key, time):
+        return self._client.expire(self._prefix_key(key), time)
+
 class RedisManager:
     def __init__(self):
         self.clients = {}
@@ -106,3 +112,4 @@ llm_cache = cache_manager.get_client("CACHE_DB_LLM", "llm")
 taxonomy_cache = cache_manager.get_client("CACHE_DB_TAXONOMY", "taxonomy")
 cv_parsed_cache = cache_manager.get_client("CACHE_DB_LLM", "cv_parsed_json")
 config_cache = cache_manager.get_client("CACHE_DB_CONFIG", "config")
+quota_cache = cache_manager.get_client("CACHE_DB_QUOTA", "quota")

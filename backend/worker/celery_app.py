@@ -5,8 +5,13 @@ from celery.signals import after_setup_logger
 from dotenv import load_dotenv
 from shared.database import engine, Base
 import shared.models # Ensure all models are registered
-# Ensure tables are created
-Base.metadata.create_all(bind=engine)
+# Ensure tables are created on worker start
+from celery.signals import worker_ready
+
+@worker_ready.connect
+def init_db_on_start(sender, **kwargs):
+    from shared.database import init_db
+    init_db()
 
 load_dotenv()
 

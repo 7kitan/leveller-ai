@@ -8,7 +8,7 @@ from .registry import get_model_info
 from shared.config_utils import config_manager
 from .logger import log_llm_call
 from shared.database import SessionLocal
-from shared.token_manager import is_user_over_limit
+from shared.models import User
 
 logger = logging.getLogger("ai_service")
 
@@ -52,13 +52,12 @@ def generate_completion(
     Handles routing, automatic fallback, logging, and performance tracking.
     """
     if user_id:
-        db = SessionLocal()
-        try:
-            if is_user_over_limit(user_id, db):
+        with SessionLocal() as db:
+            from shared.quota_manager import quota_manager
+            user = db.query(User).filter(User.id == user_id).first()
+            if user and not quota_manager.check_token_quota(user, db):
                 logger.error(f"User {user_id} has exceeded daily token limit. Blocking call.")
                 return None
-        finally:
-            db.close()
 
     model_id = get_active_model_id(model, setting_key=model_key)
     

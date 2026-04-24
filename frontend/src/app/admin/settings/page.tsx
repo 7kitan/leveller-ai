@@ -29,13 +29,14 @@ const AdminSettingsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
-  const [activeTab, setActiveTab] = useState<'ai' | 'parser' | 'automation' | 'system'>('ai');
+  const [activeTab, setActiveTab] = useState<'ai' | 'parser' | 'automation' | 'limits' | 'system'>('ai');
 
   const TABS = [
-    { id: 'ai', label: t("admin_settings_ai_agent_title"), icon: Cpu, keys: ["similarity_threshold", "cv_parsing_model", "gap_analysis_model", "career_advisor_model", "default_provider", "default_model", "fallback_model", "gap_llm_model", "gap_vector_threshold", "global_token_limit", "user_token_limit"], color: "#10b981" },
+    { id: 'ai', label: t("admin_settings_ai_agent_title"), icon: Cpu, keys: ["similarity_threshold", "cv_parsing_model", "gap_analysis_model", "career_advisor_model", "default_provider", "default_model", "fallback_model", "gap_llm_model", "gap_vector_threshold"], color: "#10b981" },
     { id: 'parser', label: t("admin_settings_cv_parser_ocr_title"), icon: ScanLine, keys: ["parser_strategy", "ocr_dpi", "chandra_url", "chandra_key"], color: "#ec4899" },
     { id: 'automation', label: t("admin_settings_crawler_manager_title"), icon: Globe, keys: ["topcv_crawl_enabled", "linkedin_bridge_enabled", "smtp_host", "smtp_port", "smtp_user", "smtp_pass", "smtp_from", "queue_threshold"], color: "#f59e0b" },
-    { id: 'system', label: t("admin_settings_security_ops_title"), icon: ShieldAlert, keys: ["maintenance_mode", "maintenance_duration", "system_broadcast", "daily_analysis_limit", "result_cache_ttl", "gap_cache_ttl", "system_log_ttl_days"], color: "#818cf8" }
+    { id: 'limits', label: t("admin_settings_limits_title"), icon: ShieldAlert, keys: ["global_token_limit", "user_token_limit", "daily_analysis_limit"], color: "#f43f5e" },
+    { id: 'system', label: t("admin_settings_security_ops_title"), icon: ShieldAlert, keys: ["maintenance_mode", "maintenance_duration", "system_broadcast", "result_cache_ttl", "gap_cache_ttl", "system_log_ttl_days"], color: "#818cf8" }
   ];
 
 
@@ -493,7 +494,49 @@ const AdminSettingsPage = () => {
                     ))}
                   </select>
                 </div>
+                </div>
+              </motion.div>
+            </>
+          )}
 
+          {/* QUOTA CONFIG */}
+          {activeTab === 'limits' && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className={cn(
+                styles.settingCard, 
+                isModified("global_token_limit") || 
+                isModified("user_token_limit") || 
+                isModified("daily_analysis_limit") ? styles.settingCardModified : ""
+              )}
+            >
+              <div className={styles.cardHeader}>
+                <div className={styles.cardHeaderLeft}>
+                  <ShieldAlert 
+                    className={styles.cardIcon} 
+                    size={24} 
+                    style={{ color: TABS.find(t => t.id === 'limits')?.color }} 
+                  />
+                  <h2 className={styles.cardTitle}>{t("admin_settings_limits_title")}</h2>
+                </div>
+                <AnimatePresence>
+                  {getSectionModifiedCount(["global_token_limit", "user_token_limit", "daily_analysis_limit"]) > 0 && (
+                    <motion.button
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      onClick={() => handleBulkSave(["global_token_limit", "user_token_limit", "daily_analysis_limit"])}
+                      disabled={isSaving}
+                      className={styles.sectionSaveBtn}
+                    >
+                      <Save size={14} />
+                      <span>{isSaving ? t("processing") : t("save")}</span>
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </div>
+              <div className={styles.formGroup}>
                 <div className={cn(styles.field, isModified("global_token_limit") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
@@ -527,9 +570,24 @@ const AdminSettingsPage = () => {
                     onChange={(e) => handleFieldChange("user_token_limit", parseInt(e.target.value))}
                   />
                 </div>
+
+                <div className={cn(styles.field, isModified("daily_analysis_limit") ? styles.fieldModified : "")}>
+                  <div className={styles.labelArea}>
+                    <label className={styles.label}>
+                        {t("admin_settings_daily_analysis_limit_label")}
+                        {isModified("daily_analysis_limit") && <span className={styles.fieldModifiedDot} />}
+                    </label>
+                    <span className={styles.desc}>{t("admin_settings_daily_analysis_limit_desc")}</span>
+                  </div>
+                  <input 
+                    type="number" 
+                    className={styles.input}
+                    value={getValue("daily_analysis_limit", 10)}
+                    onChange={(e) => handleFieldChange("daily_analysis_limit", parseInt(e.target.value))}
+                  />
                 </div>
-              </motion.div>
-            </>
+              </div>
+            </motion.div>
           )}
 
           {/* CV PARSER & OCR CONFIG */}

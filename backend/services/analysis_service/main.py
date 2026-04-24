@@ -21,7 +21,13 @@ from datetime import datetime, timezone
 from worker.celery_app import celery_app
 from celery.result import AsyncResult
 
+from shared.database import init_db
+
 app = FastAPI(title="Analysis Service")
+
+@app.on_event("startup")
+async def startup_event():
+    init_db()
 logger = logging.getLogger("analysis_service")
 
 
@@ -115,29 +121,21 @@ async def start_gap_analysis(
             detail=f"CV chưa hoàn tất phân tích (status={cv.status}). Vui lòng đợi CV được xử lý xong.",
         )
 
+    # ── Check Daily Quota (Unified QuotaManager) ──────────────────
     from shared.queue_utils import get_queue_length
     from shared.email_utils import notify_queue_delay
     from shared.config_utils import config_manager
+    from shared.quota_manager import quota_manager
+    
+    user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-    # ── Check Daily Quota ──────────────────────────────────────────
-    from datetime import datetime, timedelta
-    day_ago = datetime.now() - timedelta(days=1)
-    analysis_count = (
-        db.query(UserAnalysis)
-        .filter(
-            UserAnalysis.user_id == uuid.UUID(user_id),
-            UserAnalysis.created_at >= day_ago
-        )
-        .count()
-    )
-    
-    daily_limit = int(config_manager.get_setting("daily_analysis_limit") or os.getenv("DAILY_ANALYSIS_LIMIT", "10"))
-    
-    if analysis_count >= daily_limit and not cv.user.is_admin:
-        logger.warning(f"[ANALYSIS GAP] Quota exceeded for user {user_id}: {analysis_count}/{daily_limit}")
+    if not quota_manager.check_analysis_quota(user, db):
+        limit = quota_manager.get_analysis_limit(user)
         raise HTTPException(
             status_code=429, 
-            detail=f"Bạn đã đạt giới hạn phân tích trong ngày ({daily_limit} lượt). Vui lòng quay lại vào ngày mai hoặc liên hệ Admin."
+            detail=f"Bạn đã đạt giới hạn phân tích trong ngày ({limit} lượt). Vui lòng quay lại vào ngày mai hoặc liên hệ Admin."
         )
 
     # Check queue length
@@ -988,13 +986,14 @@ async def admin_get_system_logs(
     total = query.count()
     results = query.order_by(SystemLog.created_at.desc()).offset(offset).limit(limit).all()
 
+    from shared.system_logger import mask_sensitive_data
     items = [
         {
             "id": str(log.id),
             "level": log.level,
             "module": log.module,
             "message": log.message,
-            "details": log.details,
+            "details": mask_sensitive_data(log.details),
             "created_at": log.created_at.isoformat(),
         }
         for log in results
@@ -1056,6 +1055,44 @@ async def admin_get_llm_stats(request: Request, db: Session = Depends(get_db)):
             for u in user_stats
         ]
     }
+
+
+@app.get("/analysis/admin/llm-usage-series")
+async def admin_get_llm_usage_series(
+    request: Request, 
+    period: str = Query("day", regex="^(day|hour)$"),
+    days: int = Query(7, ge=1, le=90), # Tăng lên tối đa 90 ngày
+    db: Session = Depends(get_db)
+):
+    """Admin only: Lấy chuỗi dữ liệu sử dụng LLM theo thời gian."""
+    check_admin(request)
+    from shared.models import LLMLog
+    from datetime import timedelta
+    
+    start_date = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    if period == "hour":
+        time_func = func.date_trunc('hour', LLMLog.created_at)
+    else:
+        time_func = func.date_trunc('day', LLMLog.created_at)
+        
+    usage = db.query(
+        time_func.label("timestamp"),
+        func.sum(LLMLog.total_tokens).label("tokens"),
+        func.count(LLMLog.id).label("calls")
+    ).filter(LLMLog.created_at >= start_date)\
+     .group_by("timestamp")\
+     .order_by("timestamp")\
+     .all()
+     
+    return [
+        {
+            "timestamp": u.timestamp.isoformat(),
+            "tokens": int(u.tokens or 0),
+            "calls": u.calls
+        }
+        for u in usage
+    ]
 
 
 @app.get("/analysis/admin/stats")

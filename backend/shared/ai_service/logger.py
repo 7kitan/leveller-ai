@@ -22,6 +22,7 @@ def log_llm_call(
     Saves an LLM call log entry to the database.
     """
     try:
+        from shared.system_logger import mask_sensitive_data
         with SessionLocal() as db:
             log_entry = LLMLog(
                 user_id=user_id,
@@ -34,7 +35,7 @@ def log_llm_call(
                 latency_ms=latency_ms,
                 status=status,
                 error_message=error_message,
-                request_metadata=request_metadata
+                request_metadata=mask_sensitive_data(request_metadata)
             )
             db.add(log_entry)
             db.commit()

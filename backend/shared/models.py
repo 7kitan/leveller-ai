@@ -41,6 +41,7 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     daily_token_limit = Column(Integer, default=0) # 0 means use global default
+    daily_analysis_limit = Column(Integer, default=0) # 0 means use global default
     is_flagged = Column(Boolean, default=False)
 
     # ── Security & Tracking ──────────────────────────────────────────

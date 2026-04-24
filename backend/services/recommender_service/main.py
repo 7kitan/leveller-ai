@@ -15,8 +15,13 @@ from worker.celery_app import celery_app
 from celery.result import AsyncResult
 from shared.schemas import PaginatedResponse
 from shared.youtube_service import youtube_service
+from shared.database import init_db
 
 app = FastAPI(title="Recommender Service")
+
+@app.on_event("startup")
+async def startup_event():
+    init_db()
 logger = logging.getLogger("recommender")
 
 # Thresholds - Now managed via ConfigManager for hot-reloading
@@ -153,6 +158,7 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
             results = []
     else:
         # Fallback: ILIKE text search
+        # Sử dụng tham số binding cho pattern và skill_name để ngăn chặn SQL Injection
         query = text("""
             SELECT id, title, source_platform, platform, url, level, provider,
                    duration_hours, is_certification, cost_usd, tags,
@@ -161,7 +167,7 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
             FROM courses
             WHERE is_active = TRUE
               AND (title ILIKE :pattern
-               OR :skill_name = ANY(tags::text[]))
+               OR :skill_name = ANY(tags))
             ORDER BY is_certification DESC, duration_hours ASC
             LIMIT :limit
         """)
@@ -334,8 +340,8 @@ async def get_trending_skills(
     Lọc top Skills có tần suất xuất hiện cao nhất trong Job Requirement 30 ngày gần đây.
     Trả về: skill_name, job_count, avg_min_salary, avg_max_salary.
     """
-    # Use f-string for INTERVAL (safe: days is int, not from user input)
-    safe_query = text(f"""
+    # Use bind parameters for limit. Interval is safe as days is an integer validated by FastAPI.
+    safe_query = text("""
         SELECT
             s.name as skill_name,
             COUNT(DISTINCT jsr.job_id) as job_count,
@@ -346,13 +352,13 @@ async def get_trending_skills(
         JOIN jobs j ON j.id = jsr.job_id
         JOIN skills s ON s.id = jsr.skill_id
         WHERE j.status = 'active'
-          AND j.created_at >= NOW() - INTERVAL '{days} days'
+          AND j.created_at >= NOW() - (:days * INTERVAL '1 day')
         GROUP BY s.id, s.name
         ORDER BY job_count DESC
         LIMIT :limit
     """)
 
-    res = db.execute(safe_query, {"limit": limit}).fetchall()
+    res = db.execute(safe_query, {"limit": limit, "days": days}).fetchall()
 
     return [
         {
