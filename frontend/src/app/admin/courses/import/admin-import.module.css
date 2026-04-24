@@ -325,7 +325,7 @@
   transition: border-color 0.2s;
   min-height: 120px;
   resize: vertical;
-  font-family: monospace;
+  font-family: inherit;
 }
 
 .urlTextarea:focus {

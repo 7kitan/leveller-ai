@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Open_Sans, Bricolage_Grotesque } from "next/font/google";
+import { Open_Sans } from "next/font/google";
 import "./globals.css";
 import "../light-mode.css";
 import { AuthProvider } from "@/context/AuthContext";
@@ -10,11 +10,6 @@ import { LanguageProvider } from "@/context/LanguageContext";
 const openSans = Open_Sans({ 
   subsets: ["latin", "vietnamese"], 
   variable: "--font-sans" 
-});
-
-const bricolage = Bricolage_Grotesque({ 
-  subsets: ["latin", "vietnamese"], 
-  variable: "--font-bricolage" 
 });
 
 export const metadata: Metadata = {
@@ -29,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${openSans.variable} ${bricolage.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${openSans.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <LanguageProvider>
           <ThemeProvider>

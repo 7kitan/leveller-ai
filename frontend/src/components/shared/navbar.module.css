@@ -478,7 +478,7 @@
   transition: background 0.2s ease;
   font-size: 12px;
   font-weight: 600;
-  font-family: var(--font-mono), monospace;
+  font-family: inherit;
   justify-content: flex-start;
 }
 
