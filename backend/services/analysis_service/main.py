@@ -1294,7 +1294,9 @@ async def get_interview_prep(req: InterviewPrepRequest, request: Request, db: Se
         prompt=prompt,
         system_prompt="Bạn là một AI Interview Coach chuyên nghiệp. Chỉ trả về JSON.",
         json_mode=True,
-        model_key="career_advisor_model"
+        model_key="career_advisor_model",
+        call_name="interview_questions",
+        user_id=user_id
     )
 
     try:
@@ -1346,7 +1348,9 @@ async def optimize_cv_suggestions(req: OptimizeCVRequest, request: Request, db: 
         prompt=prompt,
         system_prompt="Bạn là một chuyên gia viết CV chuyên nghiệp. Chỉ trả về JSON.",
         json_mode=True,
-        model_key="career_advisor_model"
+        model_key="career_advisor_model",
+        call_name="cv_optimization",
+        user_id=user_id
     )
 
     try:

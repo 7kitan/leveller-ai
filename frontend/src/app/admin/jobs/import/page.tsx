@@ -35,11 +35,20 @@ interface CrawledJobData {
   source_url: string;
   source_label: string;
   raw_text: string;
+  
+  // Structured fields from parsing
+  job_description?: string;
+  requirements?: string;
+  benefits?: string;
+  
+  // Salary & location
   min_salary_vnd: number;
   max_salary_vnd: number;
   location_raw: string;
-  location_normalized: string;
-  location_district: string;
+  location_normalized?: string;
+  location_district?: string;
+  employment_type?: string;
+  
   status: string;
 }
 
@@ -283,12 +292,22 @@ const JobImportPage = () => {
                         </div>
 
                         <div className={styles.formGroup}>
+                          <label className={styles.formLabel}>Loại hình</label>
+                          <input 
+                            className={styles.formInput} 
+                            value={result.data.employment_type || ''} 
+                            onChange={e => handleFieldChange(result.url, 'employment_type', e.target.value)} 
+                            placeholder="Full-time, Part-time, etc."
+                          />
+                        </div>
+
+                        <div className={styles.formGroup}>
                           <label className={styles.formLabel}>Lương Min (VND)</label>
                           <input 
                             type="number"
                             className={styles.formInput} 
-                            value={result.data.min_salary_vnd} 
-                            onChange={e => handleFieldChange(result.url, 'min_salary_vnd', parseInt(e.target.value))} 
+                            value={result.data.min_salary_vnd || 0} 
+                            onChange={e => handleFieldChange(result.url, 'min_salary_vnd', parseInt(e.target.value) || 0)} 
                           />
                         </div>
 
@@ -297,13 +316,13 @@ const JobImportPage = () => {
                           <input 
                             type="number"
                             className={styles.formInput} 
-                            value={result.data.max_salary_vnd} 
-                            onChange={e => handleFieldChange(result.url, 'max_salary_vnd', parseInt(e.target.value))} 
+                            value={result.data.max_salary_vnd || 0} 
+                            onChange={e => handleFieldChange(result.url, 'max_salary_vnd', parseInt(e.target.value) || 0)} 
                           />
                         </div>
 
-                        <div className={cn(styles.formGroup, styles.fullWidth)}>
-                          <label className={styles.formLabel}>Địa chỉ / Khu vực</label>
+                        <div className={styles.formGroup}>
+                          <label className={styles.formLabel}>Địa điểm (Raw)</label>
                           <input 
                             className={styles.formInput} 
                             value={result.data.location_raw} 
@@ -311,12 +330,81 @@ const JobImportPage = () => {
                           />
                         </div>
 
+                        <div className={styles.formGroup}>
+                          <label className={styles.formLabel}>Thành phố</label>
+                          <input 
+                            className={styles.formInput} 
+                            value={result.data.location_normalized || ''} 
+                            onChange={e => handleFieldChange(result.url, 'location_normalized', e.target.value)} 
+                            placeholder="Hà Nội, Hồ Chí Minh, etc."
+                          />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                          <label className={styles.formLabel}>Quận/Huyện</label>
+                          <input 
+                            className={styles.formInput} 
+                            value={result.data.location_district || ''} 
+                            onChange={e => handleFieldChange(result.url, 'location_district', e.target.value)} 
+                          />
+                        </div>
+
+                        {/* Structured sections */}
                         <div className={cn(styles.formGroup, styles.fullWidth)}>
-                          <label className={styles.formLabel}>Mô tả công việc (Raw text)</label>
+                          <label className={styles.formLabel}>
+                            <span className="flex items-center gap-2">
+                              <Briefcase size={16} />
+                              Mô tả công việc
+                            </span>
+                          </label>
+                          <textarea 
+                            className={styles.formTextarea} 
+                            value={result.data.job_description || ''} 
+                            onChange={e => handleFieldChange(result.url, 'job_description', e.target.value)}
+                            rows={6}
+                            placeholder="Mô tả chi tiết về công việc..."
+                          />
+                        </div>
+
+                        <div className={cn(styles.formGroup, styles.fullWidth)}>
+                          <label className={styles.formLabel}>
+                            <span className="flex items-center gap-2">
+                              <CheckCircle2 size={16} />
+                              Yêu cầu ứng viên
+                            </span>
+                          </label>
+                          <textarea 
+                            className={styles.formTextarea} 
+                            value={result.data.requirements || ''} 
+                            onChange={e => handleFieldChange(result.url, 'requirements', e.target.value)}
+                            rows={6}
+                            placeholder="Yêu cầu về kỹ năng, kinh nghiệm..."
+                          />
+                        </div>
+
+                        <div className={cn(styles.formGroup, styles.fullWidth)}>
+                          <label className={styles.formLabel}>
+                            <span className="flex items-center gap-2">
+                              <DollarSign size={16} />
+                              Quyền lợi
+                            </span>
+                          </label>
+                          <textarea 
+                            className={styles.formTextarea} 
+                            value={result.data.benefits || ''} 
+                            onChange={e => handleFieldChange(result.url, 'benefits', e.target.value)}
+                            rows={6}
+                            placeholder="Các quyền lợi, phúc lợi..."
+                          />
+                        </div>
+
+                        <div className={cn(styles.formGroup, styles.fullWidth)}>
+                          <label className={styles.formLabel}>Raw Text (Fallback)</label>
                           <textarea 
                             className={styles.formTextarea} 
                             value={result.data.raw_text} 
                             onChange={e => handleFieldChange(result.url, 'raw_text', e.target.value)} 
+                            rows={4}
                           />
                         </div>
 

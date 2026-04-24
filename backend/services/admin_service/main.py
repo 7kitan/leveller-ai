@@ -124,6 +124,75 @@ def admin_list_ai_models(request: Request):
         raise HTTPException(status_code=403, detail="Admin privileges required")
     return AI_REGISTRY
 
+@app.post("/admin/cache/clear")
+def admin_clear_cache(request: Request):
+    """Admin only: Clear Redis cache (all databases)."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    
+    try:
+        from shared.redis_client import config_cache, result_cache, quota_cache
+        
+        cleared = []
+        
+        # Clear config cache (DB 0)
+        try:
+            config_cache.flushdb()
+            cleared.append("config_cache")
+        except Exception as e:
+            logger.error(f"Failed to clear config_cache: {e}")
+        
+        # Clear result cache (DB 2)
+        try:
+            result_cache.flushdb()
+            cleared.append("result_cache")
+        except Exception as e:
+            logger.error(f"Failed to clear result_cache: {e}")
+        
+        # Clear quota cache (DB 3)
+        try:
+            quota_cache.flushdb()
+            cleared.append("quota_cache")
+        except Exception as e:
+            logger.error(f"Failed to clear quota_cache: {e}")
+        
+        logger.info(f"[ADMIN] Redis cache cleared: {cleared}")
+        return {
+            "status": "success",
+            "message": f"Cleared {len(cleared)} cache databases",
+            "cleared": cleared
+        }
+    except Exception as e:
+        logger.error(f"[ADMIN] Failed to clear cache: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to clear cache: {str(e)}")
+
+
+@app.post("/admin/vector/sync")
+def admin_sync_vector(request: Request, db: Session = Depends(get_db)):
+    """Admin only: Trigger VectorDB sync (rebuild skill/job/course vectors)."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    
+    try:
+        from worker.celery_app import celery_app
+        
+        # Dispatch async task to rebuild vectors
+        task = celery_app.send_task(
+            "worker.tasks.vector_tasks.rebuild_all_vectors",
+            kwargs={}
+        )
+        
+        logger.info(f"[ADMIN] VectorDB sync task dispatched: {task.id}")
+        return {
+            "status": "processing",
+            "message": "VectorDB sync started",
+            "task_id": task.id
+        }
+    except Exception as e:
+        logger.error(f"[ADMIN] Failed to dispatch vector sync: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to start vector sync: {str(e)}")
+
+
 @app.get("/admin/health")
 def health_check():
     return {"status": "ok", "service": "admin_service"}

@@ -62,6 +62,13 @@ interface SkillGap {
   learning_path?: string;
   gap_type?: string;
   learning_effort?: string;
+  match_impact?: number;        // NEW: % tăng match nếu học skill này
+  salary_impact?: number;       // NEW: % tăng lương nếu học skill này
+  market_demand?: number;       // NEW: Điểm nhu cầu thị trường (0-100)
+  avg_salary_range?: {          // NEW: Mức lương trung bình cho skill này
+    min: number | null;
+    max: number | null;
+  };
 }
 
 interface GapResult {

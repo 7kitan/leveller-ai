@@ -1,11 +1,31 @@
 import re
 import time
 import logging
+import os
 from typing import List, Dict, Any, Optional
 from bs4 import BeautifulSoup
 from curl_cffi import requests
+from datetime import datetime
 
+# Setup detailed file logging
 logger = logging.getLogger("topcv_scraper")
+logger.setLevel(logging.DEBUG)
+
+# Create logs directory if not exists
+log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
+os.makedirs(log_dir, exist_ok=True)
+
+# File handler with detailed format
+log_file = os.path.join(log_dir, f"topcv_crawler_{datetime.now().strftime('%Y%m%d')}.log")
+file_handler = logging.FileHandler(log_file, encoding='utf-8')
+file_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+logger.info(f"=" * 80)
+logger.info(f"TopCV Scraper initialized. Logging to: {log_file}")
+logger.info(f"=" * 80)
 
 class TopCVScraper:
     def __init__(self):
@@ -35,89 +55,217 @@ class TopCVScraper:
             # Mặc định Tech sector, sort=new
             search_url = f"{self.base_url}/tim-viec-lam-cong-nghe-thong-tin-cr257?sort=new&type_keyword=1&category_family=r257"
 
+        logger.info(f"\n{'='*80}")
+        logger.info(f"[GET_URLS] Starting job URL collection")
+        logger.info(f"[GET_URLS] Search URL: {search_url}")
+        logger.info(f"[GET_URLS] Limit: {limit}")
+
         if not self._init_session():
+            logger.error(f"[GET_URLS] Session initialization failed")
             return []
 
         try:
-            logger.info(f"[TOPCV] Fetching list from: {search_url}")
+            logger.info(f"[GET_URLS] Fetching search page...")
             resp = self.session.get(search_url, headers=self.headers, impersonate="chrome120", timeout=20)
+            logger.info(f"[GET_URLS] Response status: {resp.status_code}")
+            logger.info(f"[GET_URLS] Response length: {len(resp.text)} chars")
+            
             if resp.status_code != 200:
-                logger.error(f"[TOPCV] Search page returned {resp.status_code}")
+                logger.error(f"[GET_URLS] Search page returned {resp.status_code}")
                 return []
+
+            # Save HTML for debugging
+            html_file = os.path.join(log_dir, f"topcv_search_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html")
+            with open(html_file, 'w', encoding='utf-8') as f:
+                f.write(resp.text)
+            logger.info(f"[GET_URLS] Saved HTML to: {html_file}")
 
             soup = BeautifulSoup(resp.text, 'html.parser')
             job_links = []
+            all_links = []
+            
             # TopCV thường đặt link job trong thẻ a có href chứa /viec-lam/
             for a in soup.find_all('a', href=True):
                 href = a['href']
+                all_links.append(href)
                 if '/viec-lam/' in href and 'topcv.vn/viec-lam' in href and href not in job_links:
                     job_links.append(href)
+                    logger.debug(f"[GET_URLS] Found job link: {href}")
+            
+            logger.info(f"[GET_URLS] Total links found: {len(all_links)}")
+            logger.info(f"[GET_URLS] Job links found: {len(job_links)}")
+            logger.info(f"[GET_URLS] Returning top {min(limit, len(job_links))} links")
+            
+            # Log sample of non-job links for debugging
+            non_job_links = [l for l in all_links[:20] if '/viec-lam/' not in l]
+            logger.debug(f"[GET_URLS] Sample non-job links: {non_job_links[:5]}")
             
             return job_links[:limit]
         except Exception as e:
-            logger.error(f"[TOPCV] Error getting job list: {e}")
+            logger.error(f"[GET_URLS] Error getting job list: {e}", exc_info=True)
             return []
 
-    def scrape_job_details(self, job_url: str) -> Optional[Dict[str, Any]]:
-        """Cào chi tiết 1 job và trả về dict map với Job model."""
-        try:
-            logger.info(f"[TOPCV] Scraping job: {job_url}")
-            resp = self.session.get(job_url, headers=self.headers, impersonate="chrome120", timeout=15)
-            if resp.status_code != 200:
-                logger.error(f"[TOPCV] Job detail page returned {resp.status_code}")
+    def scrape_job_details(self, job_url: str, max_retries: int = 2) -> Optional[Dict[str, Any]]:
+        """
+        Cào chi tiết 1 job và trả về dict map với Job model.
+        
+        Args:
+            job_url: URL of the job posting
+            max_retries: Number of retry attempts if request fails
+        """
+        for attempt in range(max_retries + 1):
+            try:
+                if attempt > 0:
+                    wait_time = attempt * 2  # Exponential backoff: 2s, 4s
+                    logger.info(f"[SCRAPE_JOB] Retry attempt {attempt}/{max_retries} after {wait_time}s...")
+                    time.sleep(wait_time)
+                
+                logger.info(f"\n{'='*80}")
+                logger.info(f"[SCRAPE_JOB] Starting job detail scrape (attempt {attempt + 1}/{max_retries + 1})")
+                logger.info(f"[SCRAPE_JOB] URL: {job_url}")
+                
+                resp = self.session.get(job_url, headers=self.headers, impersonate="chrome120", timeout=20)
+                logger.info(f"[SCRAPE_JOB] Response status: {resp.status_code}")
+                logger.info(f"[SCRAPE_JOB] Response length: {len(resp.text)} chars")
+                
+                if resp.status_code != 200:
+                    logger.error(f"[SCRAPE_JOB] Job detail page returned {resp.status_code}")
+                    if attempt < max_retries:
+                        continue  # Retry
+                    return None
+
+                # Save HTML for debugging
+                job_id_match = re.search(r'/(\d+)\.html', job_url)
+                job_id = job_id_match.group(1) if job_id_match else str(int(time.time()))
+                html_file = os.path.join(log_dir, f"topcv_job_{job_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html")
+                with open(html_file, 'w', encoding='utf-8') as f:
+                    f.write(resp.text)
+                logger.info(f"[SCRAPE_JOB] Saved HTML to: {html_file}")
+
+                soup = BeautifulSoup(resp.text, 'html.parser')
+                html = resp.text
+                
+                # Extract tracking data (very accurate for basic info)
+                logger.info(f"[SCRAPE_JOB] Extracting qg_tracking data...")
+                qg_data = self._extract_qg_tracking(html)
+                logger.info(f"[SCRAPE_JOB] qg_tracking data: {qg_data}")
+                
+                title = qg_data.get('job_title') if qg_data else None
+                company = qg_data.get('recruiter_company') if qg_data else None
+                salary_text = qg_data.get('salary_range') if qg_data else "Thỏa thuận"
+                location_text = qg_data.get('work_location') if qg_data else "N/A"
+
+                logger.info(f"[SCRAPE_JOB] Initial extraction - Title: {title}, Company: {company}")
+                logger.info(f"[SCRAPE_JOB] Initial extraction - Salary: {salary_text}, Location: {location_text}")
+
+                # Fallbacks
+                if not title:
+                    title_tag = soup.find('h1')
+                    title = title_tag.get_text(strip=True) if title_tag else "N/A"
+                    logger.info(f"[SCRAPE_JOB] Fallback title from h1: {title}")
+                
+                if not company:
+                    company_tag = soup.find(['h2', 'div', 'a', 'p'], class_=re.compile('company-name|name-company-detail|recruiter-name'))
+                    company = company_tag.get_text(strip=True) if company_tag else "N/A"
+                    logger.info(f"[SCRAPE_JOB] Fallback company: {company}")
+
+                # Detailed content extraction - use proper job-description div
+                logger.info(f"[SCRAPE_JOB] Looking for job-description div...")
+                job_desc_div = soup.find('div', class_='job-description')
+                
+                if job_desc_div:
+                    logger.info(f"[SCRAPE_JOB] Found job-description div")
+                    # Extract structured sections directly from HTML
+                    sections = self._parse_job_sections_from_html(job_desc_div)
+                    
+                    # Also get raw text for fallback
+                    raw_text = job_desc_div.get_text("\n", strip=True)
+                    logger.info(f"[SCRAPE_JOB] Extracted {len(raw_text)} chars of raw text")
+                else:
+                    logger.warning(f"[SCRAPE_JOB] No job-description div found! Trying fallback...")
+                    # Fallback to old method
+                    content_div = soup.find('div', class_=re.compile('job-detail__information-detail|job-data'))
+                    if content_div:
+                        raw_text = content_div.get_text("\n", strip=True)
+                        sections = self._parse_job_sections_from_text(raw_text)
+                        logger.info(f"[SCRAPE_JOB] Used fallback method, extracted {len(raw_text)} chars")
+                    else:
+                        raw_text = ""
+                        sections = {"job_description": "", "requirements": "", "benefits": "", "working_hours": ""}
+                        logger.error(f"[SCRAPE_JOB] Could not find any job content!")
+                
+                logger.info(f"[SCRAPE_JOB] Parsing complete")
+                logger.info(f"[SCRAPE_JOB] Parsed sections:")
+                logger.info(f"  - job_description: {len(sections.get('job_description', ''))} chars")
+                logger.info(f"  - requirements: {len(sections.get('requirements', ''))} chars")
+                logger.info(f"  - benefits: {len(sections.get('benefits', ''))} chars")
+                
+                # Log section previews
+                for section_name, content in sections.items():
+                    if content and section_name != 'working_hours':
+                        logger.debug(f"[SCRAPE_JOB] {section_name} preview:\n{content[:200]}...")
+                
+                # Extract Job ID
+                external_id = job_id
+
+                # Salary normalization
+                logger.info(f"[SCRAPE_JOB] Parsing salary: {salary_text}")
+                salary_data = self._parse_salary(salary_text)
+                logger.info(f"[SCRAPE_JOB] Parsed salary: min={salary_data['min']}, max={salary_data['max']}")
+                
+                # Location normalization
+                logger.info(f"[SCRAPE_JOB] Parsing location: {location_text}")
+                location_data = self._parse_location(location_text)
+                logger.info(f"[SCRAPE_JOB] Parsed location: city={location_data['city']}, district={location_data['district']}")
+                
+                # Extract employment type from "Thông tin chung" section
+                logger.info(f"[SCRAPE_JOB] Extracting employment type...")
+                employment_type = self._extract_employment_type(soup)
+                logger.info(f"[SCRAPE_JOB] Employment type: {employment_type}")
+
+                result = {
+                    "source_id": f"TOPCV_{external_id}",
+                    "title_raw": title,
+                    "company_name": company,
+                    "source_url": job_url,
+                    "source_label": "topcv",
+                    "raw_text": raw_text,
+                    "job_description": sections.get("job_description", ""),
+                    "requirements": sections.get("requirements", ""),
+                    "benefits": sections.get("benefits", ""),
+                    "min_salary_vnd": salary_data["min"],
+                    "max_salary_vnd": salary_data["max"],
+                    "location_raw": location_text,
+                    "location_normalized": location_data["city"],
+                    "location_district": location_data["district"],
+                    "employment_type": employment_type,
+                    "status": "active"
+                }
+                
+                logger.info(f"[SCRAPE_JOB] ✓ Successfully scraped job: {title}")
+                logger.info(f"[SCRAPE_JOB] Final data summary:")
+                logger.info(f"  - source_id: {result['source_id']}")
+                logger.info(f"  - title: {result['title_raw']}")
+                logger.info(f"  - company: {result['company_name']}")
+                logger.info(f"  - employment_type: {result['employment_type']}")
+                logger.info(f"  - raw_text length: {len(result['raw_text'])}")
+                logger.info(f"  - job_description length: {len(result['job_description'])}")
+                logger.info(f"  - requirements length: {len(result['requirements'])}")
+                logger.info(f"  - benefits length: {len(result['benefits'])}")
+                
+                return result
+                
+            except Exception as e:
+                logger.error(f"[SCRAPE_JOB] ❌ Error scraping job {job_url}: {e}", exc_info=True)
+                if attempt < max_retries:
+                    logger.info(f"[SCRAPE_JOB] Will retry...")
+                    continue
                 return None
+        
+        # If we get here, all retries failed
+        logger.error(f"[SCRAPE_JOB] All {max_retries + 1} attempts failed for {job_url}")
+        return None
 
-            soup = BeautifulSoup(resp.text, 'html.parser')
-            html = resp.text
-            
-            # Extract tracking data (very accurate for basic info)
-            qg_data = self._extract_qg_tracking(html)
-            
-            title = qg_data.get('job_title') if qg_data else None
-            company = qg_data.get('recruiter_company') if qg_data else None
-            salary_text = qg_data.get('salary_range') if qg_data else "Thỏa thuận"
-            location_text = qg_data.get('work_location') if qg_data else "N/A"
-
-            # Fallbacks
-            if not title:
-                title_tag = soup.find('h1')
-                title = title_tag.get_text(strip=True) if title_tag else "N/A"
-            
-            if not company:
-                company_tag = soup.find(['h2', 'div', 'a', 'p'], class_=re.compile('company-name|name-company-detail|recruiter-name'))
-                company = company_tag.get_text(strip=True) if company_tag else "N/A"
-
-            # Detailed content extraction
-            content_div = soup.find('div', class_=re.compile('job-detail__information-detail|job-data'))
-            raw_text = content_div.get_text("\n", strip=True) if content_div else ""
-            
-            # Extract Job ID
-            job_id_match = re.search(r'/(\d+)\.html', job_url)
-            external_id = job_id_match.group(1) if job_id_match else str(time.time())
-
-            # Salary normalization
-            salary_data = self._parse_salary(salary_text)
-            
-            # Location normalization
-            location_data = self._parse_location(location_text)
-
-            return {
-                "source_id": f"TOPCV_{external_id}",
-                "title_raw": title,
-                "company_name": company,
-                "source_url": job_url,
-                "source_label": "topcv",
-                "raw_text": raw_text,
-                "min_salary_vnd": salary_data["min"],
-                "max_salary_vnd": salary_data["max"],
-                "location_raw": location_text,
-                "location_normalized": location_data["city"],
-                "location_district": location_data["district"],
-                "status": "active"
-            }
-        except Exception as e:
-            logger.error(f"[TOPCV] Error scraping job {job_url}: {e}")
-            return None
 
     def _extract_qg_tracking(self, html: str) -> Dict[str, str]:
         try:
@@ -177,3 +325,161 @@ class TopCVScraper:
         if "Đà Nẵng" in city: city = "Đà Nẵng"
         
         return {"city": city, "district": district}
+
+    def _extract_employment_type(self, soup) -> str:
+        """
+        Extract employment type from "Thông tin chung" section.
+        Looks for "Hình thức làm việc" field.
+        """
+        try:
+            # Find all box-general-group divs
+            general_groups = soup.find_all('div', class_='box-general-group')
+            
+            for group in general_groups:
+                title_div = group.find('div', class_='box-general-group-info-title')
+                if title_div and 'hình thức làm việc' in title_div.get_text(strip=True).lower():
+                    value_div = group.find('div', class_='box-general-group-info-value')
+                    if value_div:
+                        raw_value = value_div.get_text(strip=True)
+                        # Normalize employment type
+                        return self._normalize_employment_type(raw_value)
+            
+            return None
+        except Exception as e:
+            logger.warning(f"[SCRAPE_JOB] Error extracting employment type: {e}")
+            return None
+    
+    def _normalize_employment_type(self, raw_text: str) -> str:
+        """Normalize Vietnamese employment type to standard format."""
+        text_lower = raw_text.lower()
+        
+        if 'toàn thời gian' in text_lower or 'full time' in text_lower:
+            return 'Full-time'
+        elif 'bán thời gian' in text_lower or 'part time' in text_lower:
+            return 'Part-time'
+        elif 'thực tập' in text_lower or 'intern' in text_lower:
+            return 'Internship'
+        elif 'hợp đồng' in text_lower or 'contract' in text_lower:
+            return 'Contract'
+        elif 'freelance' in text_lower or 'tự do' in text_lower:
+            return 'Freelance'
+        else:
+            # Return original if no match
+            return raw_text
+
+    def _parse_job_sections_from_html(self, job_desc_div) -> Dict[str, str]:
+        """Parse job sections directly from HTML structure (more accurate)."""
+        logger.info(f"[PARSE_HTML] Starting HTML-based section parsing")
+        
+        sections = {
+            "job_description": "",
+            "requirements": "",
+            "benefits": "",
+            "working_hours": "",  # New field for working hours
+        }
+        
+        # Find all job-description__item divs
+        items = job_desc_div.find_all('div', class_='job-description__item')
+        logger.info(f"[PARSE_HTML] Found {len(items)} job-description__item divs")
+        
+        for i, item in enumerate(items):
+            # Get the header (h3 tag)
+            header = item.find('h3')
+            if not header:
+                logger.debug(f"[PARSE_HTML] Item {i}: No h3 header found, skipping")
+                continue
+            
+            header_text = header.get_text(strip=True).lower()
+            logger.debug(f"[PARSE_HTML] Item {i}: Header = '{header_text}'")
+            
+            # Get the content div
+            content_div = item.find('div', class_='job-description__item--content')
+            if not content_div:
+                logger.debug(f"[PARSE_HTML] Item {i}: No content div found, skipping")
+                continue
+            
+            # Extract clean text from content
+            content_text = content_div.get_text("\n", strip=True)
+            
+            # Map header to section key
+            if 'mô tả công việc' in header_text or 'job description' in header_text:
+                sections['job_description'] = content_text
+                logger.info(f"[PARSE_HTML] Mapped to job_description: {len(content_text)} chars")
+            elif 'yêu cầu' in header_text or 'requirement' in header_text:
+                sections['requirements'] = content_text
+                logger.info(f"[PARSE_HTML] Mapped to requirements: {len(content_text)} chars")
+            elif 'quyền lợi' in header_text or 'benefit' in header_text:
+                sections['benefits'] = content_text
+                logger.info(f"[PARSE_HTML] Mapped to benefits: {len(content_text)} chars")
+            elif 'thời gian làm việc' in header_text or 'working hours' in header_text:
+                sections['working_hours'] = content_text
+                logger.info(f"[PARSE_HTML] Mapped to working_hours: {len(content_text)} chars")
+            else:
+                logger.debug(f"[PARSE_HTML] Item {i}: Unknown header '{header_text}', skipping")
+        
+        logger.info(f"[PARSE_HTML] HTML parsing complete:")
+        logger.info(f"  - job_description: {len(sections['job_description'])} chars")
+        logger.info(f"  - requirements: {len(sections['requirements'])} chars")
+        logger.info(f"  - benefits: {len(sections['benefits'])} chars")
+        logger.info(f"  - working_hours: {len(sections['working_hours'])} chars")
+        
+        return sections
+
+    def _parse_job_sections_from_text(self, full_text: str) -> Dict[str, str]:
+        """Parse job posting into structured sections from plain text (fallback method)."""
+        logger.info(f"[PARSE_TEXT] Starting text-based section parsing")
+        logger.info(f"[PARSE_TEXT] Input text length: {len(full_text)} chars")
+        
+        sections = {
+            "job_description": "",
+            "requirements": "",
+            "benefits": "",
+        }
+        
+        # Section anchors (Vietnamese)
+        anchors = [
+            ("Mô tả công việc", "job_description"),
+            ("Yêu cầu ứng viên", "requirements"),
+            ("Quyền lợi", "benefits"),
+            ("Cách thức ứng tuyển", None),  # Stop parsing here
+        ]
+        
+        lines = full_text.split('\n')
+        logger.info(f"[PARSE_TEXT] Split into {len(lines)} lines")
+        
+        current_section = None
+        section_line_counts = {key: 0 for key in ["job_description", "requirements", "benefits"]}
+        
+        for i, line in enumerate(lines):
+            clean_line = line.strip()
+            found_anchor = False
+            
+            # Check if this line is a section header
+            for anchor_text, key in anchors:
+                if anchor_text.lower() in clean_line.lower() and len(clean_line) < 50:
+                    current_section = key
+                    found_anchor = True
+                    logger.info(f"[PARSE_TEXT] Line {i}: Found section header '{anchor_text}' -> {key}")
+                    logger.debug(f"[PARSE_TEXT] Header line content: '{clean_line}'")
+                    break
+            
+            # Add content to current section
+            if not found_anchor and current_section and clean_line:
+                sections[current_section] += line + "\n"
+                section_line_counts[current_section] += 1
+        
+        # Clean up sections
+        for key in sections:
+            sections[key] = sections[key].strip()
+        
+        logger.info(f"[PARSE_TEXT] Parsing complete:")
+        logger.info(f"  - job_description: {section_line_counts['job_description']} lines, {len(sections['job_description'])} chars")
+        logger.info(f"  - requirements: {section_line_counts['requirements']} lines, {len(sections['requirements'])} chars")
+        logger.info(f"  - benefits: {section_line_counts['benefits']} lines, {len(sections['benefits'])} chars")
+        
+        # Log first few lines of full_text to see what we're working with
+        logger.debug(f"[PARSE_TEXT] First 10 lines of input:")
+        for i, line in enumerate(lines[:10]):
+            logger.debug(f"  Line {i}: '{line.strip()}'")
+        
+        return sections

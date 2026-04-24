@@ -5,7 +5,9 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { Loader2, LogIn, UserPlus, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
+import LandingNavbar from "@/components/landing/LandingNavbar";
+import { useLanguage } from "@/context/LanguageContext";
 import styles from "./auth-form.module.css";
 
 interface AuthFormProps {
@@ -20,6 +22,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
   const [error, setError] = useState("");
   
   const { login } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,7 +41,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
       const userRole = user.role || (user.is_admin ? 'admin' : 'user');
       router.push(`/${userRole}`);
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Đã xảy ra lỗi vui lòng thử lại.");
+      setError(err.response?.data?.detail || t("auth_error"));
     } finally {
       setLoading(false);
     }
@@ -46,7 +49,9 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
 
   return (
     <div className={styles.formWrapper}>
-      <div className={styles.overlay} />
+      <LandingNavbar />
+      
+      <div className={styles.backgroundDecoration} />
       
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
@@ -56,30 +61,34 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
       >
         <div className={styles.header}>
           <h2 className={styles.title}>
-            {isLogin ? "Chào mừng trở lại" : "Tạo tài khoản mới"}
+            {isLogin ? t("login_title") : t("register_title")}
           </h2>
           <p className={styles.subtitle}>
-            {isLogin ? "Đăng nhập để dẫn bước tương lai." : "Bắt đầu định danh giá trị bản thân."}
+            {isLogin ? t("login_subtitle") : t("register_subtitle")}
           </p>
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit}>
-          <input
-            type="email"
-            required
-            className={styles.inputField}
-            placeholder="Địa chỉ Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="password"
-            required
-            className={styles.inputField}
-            placeholder="Mật khẩu"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className={styles.inputGroup}>
+            <input
+              type="email"
+              required
+              className={styles.inputField}
+              placeholder={t("email_placeholder")}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <input
+              type="password"
+              required
+              className={styles.inputField}
+              placeholder={t("password_placeholder")}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
 
           {error && (
             <div className={styles.errorBox}>
@@ -96,7 +105,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
               <Loader2 size={24} className={styles.animateSpin} />
             ) : (
               <span>
-                {isLogin ? "Đăng Nhập" : "Đăng Ký"}
+                {isLogin ? t("login_btn") : t("register_btn")}
               </span>
             )}
           </button>
@@ -106,7 +115,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
           onClick={() => setIsLogin(!isLogin)}
           className={styles.toggleBtn}
         >
-          {isLogin ? "Chưa có tài khoản? Tham gia ngay" : "Đã có tài khoản? Quay lại đăng nhập"}
+          {isLogin ? t("to_register") : t("to_login")}
         </button>
       </motion.div>
     </div>

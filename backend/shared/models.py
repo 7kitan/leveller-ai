@@ -107,6 +107,11 @@ class Job(Base):
     source_url = Column(Text)
     source_label = Column(String(100))
     raw_text = Column(Text)
+    
+    # Parsed sections from job posting
+    job_description = Column(Text)  # Mô tả công việc
+    requirements = Column(Text)      # Yêu cầu ứng viên
+    benefits = Column(Text)          # Quyền lợi
 
     min_salary_vnd = Column(BigInteger, index=True)
     max_salary_vnd = Column(BigInteger, index=True)

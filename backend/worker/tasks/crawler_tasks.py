@@ -7,6 +7,7 @@ from shared.scrapers.topcv import TopCVScraper
 from shared.database import SessionLocal
 from shared.models import Job, SystemSetting, Course
 from shared.llm_utils import get_embedding
+from shared.skill_extraction import extract_and_save_job_skills
 
 logger = logging.getLogger("crawler_worker")
 
@@ -106,12 +107,17 @@ def crawl_course_task(url: str, auto_save: bool = False):
             
 
 @celery_app.task(name="worker.tasks.crawler_tasks.crawl_topcv_jobs_task")
-def crawl_topcv_jobs_task(limit: int = 20, force: bool = False):
+def crawl_topcv_jobs_task(limit: int = 20, force: bool = False, extract_skills: bool = True):
     """
-    Background Task to crawl latest Tehc jobs from TopCV.
+    Background Task to crawl latest Tech jobs from TopCV.
     Runs every 30 mins via Celery Beat.
+    
+    Args:
+        limit: Number of jobs to crawl
+        force: Bypass system settings check
+        extract_skills: Whether to trigger async skill extraction for new jobs
     """
-    logger.info(f"🚀 [TOPCV CRAWLER] Starting crawl cycle (limit={limit}, force={force})...")
+    logger.info(f"🚀 [TOPCV CRAWLER] Starting crawl cycle (limit={limit}, force={force}, extract_skills={extract_skills})...")
     scraper = TopCVScraper()
     urls = scraper.get_latest_job_urls(limit=limit)
     
@@ -130,6 +136,8 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False):
             return {"status": "disabled_by_settings"}
 
     new_jobs_count = 0
+    new_job_ids = []  # Track new job IDs for skill extraction
+    
     try:
         for url in urls:
             # Check ID
@@ -146,9 +154,25 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False):
             data = scraper.scrape_job_details(url)
             if not data: continue
             
-            # Generate Embedding
-            embedding_ctx = f"{data['title_raw']} at {data['company_name']}. {data['location_raw']}. {data['raw_text'][:1000]}"
-            vector = get_embedding(embedding_ctx)
+            # Generate Embedding - ONLY from requirements field for cost optimization
+            # Other fields (job_description, benefits) are saved but not embedded
+            title = data.get('title_raw', '')
+            company = data.get('company_name', '')
+            location = data.get('location_raw', '')
+            requirements = data.get('requirements', '')
+            
+            # Build minimal embedding context - only requirements + basic metadata
+            if requirements:
+                # Primary: Use only requirements (most relevant for matching)
+                embedding_ctx = f"Job: {title} at {company}. Location: {location}. Requirements: {requirements}"
+            else:
+                # Fallback: Use title and location only if no requirements
+                embedding_ctx = f"Job: {title} at {company}. Location: {location}."
+                logger.warning(f"⚠️ [TOPCV CRAWLER] No requirements found for {source_id}, using minimal context")
+            
+            # Generate embedding with cost logging
+            logger.info(f"[TOPCV CRAWLER] Generating embedding for {source_id}...")
+            vector = get_embedding(embedding_ctx, log_cost=True)
             
             # Save
             job = Job(**data)
@@ -156,7 +180,10 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False):
             job.vector = vector
             
             db.add(job)
+            db.flush()  # Get job.id before commit
+            
             new_jobs_count += 1
+            new_job_ids.append(str(job.id))  # Track for skill extraction
             logger.info(f"✨ [TOPCV CRAWLER] Added new job: {data['title_raw']} ({source_id})")
             
             # Sleep a bit between scrapes to be polite
@@ -164,11 +191,140 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False):
             
         db.commit()
         logger.info(f"✅ [TOPCV CRAWLER] Cycle complete. Added {new_jobs_count} new jobs.")
-        return {"status": "success", "new_jobs": new_jobs_count}
+        
+        # Trigger async skill extraction for new jobs
+        if extract_skills and new_job_ids:
+            logger.info(f"[TOPCV CRAWLER] Triggering skill extraction for {len(new_job_ids)} jobs...")
+            for job_id in new_job_ids:
+                try:
+                    celery_app.send_task(
+                        "worker.tasks.crawler_tasks.extract_job_skills_task",
+                        args=[job_id]
+                    )
+                except Exception as e:
+                    logger.error(f"[TOPCV CRAWLER] Failed to trigger skill extraction for {job_id}: {e}")
+            logger.info(f"[TOPCV CRAWLER] ✓ Skill extraction tasks queued")
+        
+        return {"status": "success", "new_jobs": new_jobs_count, "skills_queued": len(new_job_ids) if extract_skills else 0}
         
     except Exception as e:
         db.rollback()
         logger.error(f"💥 [TOPCV CRAWLER] Critical error: {e}", exc_info=True)
+        return {"error": str(e)}
+    finally:
+        db.close()
+
+
+@celery_app.task(name="worker.tasks.crawler_tasks.extract_job_skills_task")
+def extract_job_skills_task(job_id: str):
+    """
+    Background task to extract skills from a single job's requirements.
+    This runs asynchronously after job is saved to avoid blocking crawler.
+    """
+    logger.info(f"🔍 [SKILL EXTRACT] Starting skill extraction for job {job_id}")
+    
+    db = SessionLocal()
+    try:
+        job = db.query(Job).filter(Job.id == job_id).first()
+        if not job:
+            logger.error(f"❌ [SKILL EXTRACT] Job {job_id} not found")
+            return {"error": "job_not_found"}
+        
+        if not job.requirements:
+            logger.warning(f"⚠️ [SKILL EXTRACT] Job {job_id} has no requirements")
+            return {"status": "no_requirements"}
+        
+        # Extract and save skills
+        skills_count = extract_and_save_job_skills(
+            db=db,
+            job=job,
+            model_key="ai_model",
+            commit=True
+        )
+        
+        if skills_count is None:
+            logger.warning(f"⚠️ [SKILL EXTRACT] No skills extracted for job {job_id}")
+            return {"status": "no_skills_extracted"}
+        
+        logger.info(f"✅ [SKILL EXTRACT] Extracted {skills_count} skills for job {job_id}")
+        return {"status": "success", "skills_count": skills_count}
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"💥 [SKILL EXTRACT] Error for job {job_id}: {e}", exc_info=True)
+        return {"error": str(e)}
+    finally:
+        db.close()
+
+
+@celery_app.task(name="worker.tasks.crawler_tasks.batch_extract_skills_task")
+def batch_extract_skills_task(limit: int = 100, skip_existing: bool = True):
+    """
+    Background task to extract skills for multiple jobs in batch.
+    Useful for processing existing jobs that don't have skills extracted yet.
+    
+    Args:
+        limit: Maximum number of jobs to process
+        skip_existing: Skip jobs that already have skills extracted
+    """
+    logger.info(f"🔍 [BATCH SKILL EXTRACT] Starting batch extraction (limit={limit}, skip_existing={skip_existing})")
+    
+    db = SessionLocal()
+    try:
+        # Query jobs that need skill extraction
+        query = db.query(Job).filter(
+            Job.requirements.isnot(None),
+            Job.requirements != ""
+        )
+        
+        if skip_existing:
+            # Skip jobs that already have extracted_requirements_json
+            query = query.filter(Job.extracted_requirements_json.is_(None))
+        
+        jobs = query.limit(limit).all()
+        
+        logger.info(f"[BATCH SKILL EXTRACT] Found {len(jobs)} jobs to process")
+        
+        processed = 0
+        failed = 0
+        total_skills = 0
+        
+        for job in jobs:
+            try:
+                logger.info(f"[BATCH SKILL EXTRACT] Processing job {job.id}: {job.title_raw}")
+                
+                skills_count = extract_and_save_job_skills(
+                    db=db,
+                    job=job,
+                    model_key="ai_model",
+                    commit=True
+                )
+                
+                if skills_count:
+                    processed += 1
+                    total_skills += skills_count
+                    logger.info(f"[BATCH SKILL EXTRACT] ✓ Job {job.id}: {skills_count} skills")
+                else:
+                    logger.warning(f"[BATCH SKILL EXTRACT] ⚠️ Job {job.id}: No skills extracted")
+                
+                # Small delay to avoid rate limiting
+                time.sleep(0.5)
+                
+            except Exception as e:
+                failed += 1
+                logger.error(f"[BATCH SKILL EXTRACT] ❌ Job {job.id} failed: {e}")
+                continue
+        
+        logger.info(f"✅ [BATCH SKILL EXTRACT] Complete: {processed} processed, {failed} failed, {total_skills} total skills")
+        return {
+            "status": "success",
+            "processed": processed,
+            "failed": failed,
+            "total_skills": total_skills
+        }
+        
+    except Exception as e:
+        logger.error(f"💥 [BATCH SKILL EXTRACT] Critical error: {e}", exc_info=True)
         return {"error": str(e)}
     finally:
         db.close()

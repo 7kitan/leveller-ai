@@ -1188,7 +1188,7 @@
 }
 
 .processingSub code {
-  font-family: monospace;
+  font-family: inherit;
   font-size: 10px;
   opacity: 0.8;
   word-break: break-all;

@@ -11,16 +11,17 @@ import os
 import hashlib
 import logging
 import re
+import magic
 from typing import List, Optional
 from pydantic import BaseModel
 
 # SECURITY: File upload constraints
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
-ALLOWED_EXTENSIONS = {'.pdf', '.doc', '.docx'}
+ALLOWED_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png'}
 ALLOWED_MIME_TYPES = {
     'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    'image/jpeg',
+    'image/png'
 }
 
 
@@ -103,12 +104,8 @@ def validate_uploaded_file(file: UploadFile, file_content: bytes) -> None:
     if not file.filename:
         raise HTTPException(status_code=400, detail="Tên file không hợp lệ")
     
-    # Sanitize filename - remove path traversal attempts
-    filename = os.path.basename(file.filename)
-    if '..' in filename or '/' in filename or '\\' in filename:
-        raise HTTPException(status_code=400, detail="Tên file chứa ký tự không hợp lệ")
-    
     # Check file extension
+    filename = os.path.basename(file.filename)
     file_ext = os.path.splitext(filename)[1].lower()
     if file_ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(
@@ -116,11 +113,22 @@ def validate_uploaded_file(file: UploadFile, file_content: bytes) -> None:
             detail=f"Định dạng file không được hỗ trợ. Chỉ chấp nhận: {', '.join(ALLOWED_EXTENSIONS)}"
         )
     
-    # Validate content type (basic check)
-    if file.content_type and file.content_type not in ALLOWED_MIME_TYPES:
-        logger.warning(f"Suspicious content type: {file.content_type} for file {filename}")
-        # Don't reject yet, as some browsers send incorrect MIME types
-    
+    # Validate content type using magic bytes (deep check)
+    try:
+        mime = magic.from_buffer(file_content, mime=True)
+        if mime not in ALLOWED_MIME_TYPES:
+            logger.warning(f"File content type mismatch: detected {mime}, expected one of {ALLOWED_MIME_TYPES}")
+            raise HTTPException(
+                status_code=400,
+                detail="Nội dung file không hợp lệ hoặc định dạng không được hỗ trợ."
+            )
+    except Exception as e:
+        if isinstance(e, HTTPException): raise
+        logger.error(f"Error during magic byte validation: {e}")
+        # Fallback to basic check if magic fails
+        if file.content_type and file.content_type not in ALLOWED_MIME_TYPES:
+             raise HTTPException(status_code=400, detail="Định dạng file không hợp lệ")
+
     # Check for null bytes (potential attack)
     if b'\x00' in file_content[:1024]:  # Check first 1KB
         raise HTTPException(status_code=400, detail="File chứa dữ liệu không hợp lệ")
@@ -211,9 +219,8 @@ async def upload_cv(
         return resp
 
     cv_id = uuid.uuid4()
-    # SECURITY: Use sanitized filename
-    safe_filename = os.path.basename(file.filename)
-    file_ext = os.path.splitext(safe_filename)[1].lower()
+    # SECURITY: Use sanitized filename extension only, generate new name with UUID
+    file_ext = os.path.splitext(os.path.basename(file.filename))[1].lower()
     file_path = os.path.join(UPLOAD_DIR, f"{cv_id}{file_ext}")
 
     with open(file_path, "wb") as buffer:

@@ -31,6 +31,8 @@ class NoOpRedis:
     def flushdb(self, *args, **kwargs): return True
     def __getitem__(self, key): return None
     def __setitem__(self, key, value): pass
+    def incr(self, key): return 1
+    def incr_with_expire(self, key, ttl): return 1
 
 class PrefixedRedis:
     """Wrapper for Redis client to automatically handle key prefixing and default TTLs."""

@@ -955,22 +955,6 @@ const AdminSettingsPage = () => {
                       </div>
                     </div>
 
-                    <div className={cn(styles.field, isModified("daily_analysis_limit") ? styles.fieldModified : "")}>
-                      <div className={styles.labelArea}>
-                        <label className={styles.label}>
-                          {t("admin_settings_daily_analysis_limit_label")}
-                          {isModified("daily_analysis_limit") && <span className={styles.fieldModifiedDot} />}
-                        </label>
-                        <span className={styles.desc}>{t("admin_settings_daily_analysis_limit_desc")}</span>
-                      </div>
-                      <input 
-                        type="number"
-                        className={styles.input}
-                        value={getValue("daily_analysis_limit", 10)}
-                        onChange={(e) => handleFieldChange("daily_analysis_limit", parseInt(e.target.value))}
-                      />
-                    </div>
-
                     <div className={cn(styles.field, isModified("maintenance_duration") ? styles.fieldModified : "")}>
                       <div className={styles.labelArea}>
                         <label className={styles.label}>
@@ -1087,12 +1071,21 @@ const AdminSettingsPage = () => {
                     <div className="flex gap-4">
                       <button 
                         disabled={isSaving}
-                        onClick={() => {
+                        onClick={async () => {
                             setIsSaving(true);
-                            setTimeout(() => {
-                                setIsSaving(false);
-                                showNotification(t("admin_settings_clear_redis_success"));
-                            }, 1000);
+                            try {
+                              await axios.post("/api/admin/cache/clear", {}, {
+                                headers: { 
+                                  Authorization: `Bearer ${token}`,
+                                  "X-Is-Admin": "true"
+                                }
+                              });
+                              showNotification(t("admin_settings_clear_redis_success"));
+                            } catch (err) {
+                              showNotification(t("admin_settings_clear_redis_error"), "error");
+                            } finally {
+                              setIsSaving(false);
+                            }
                         }}
                         className={cn(styles.saveBtn, "bg-amber-600 shadow-amber-200")}
                       >
@@ -1100,12 +1093,21 @@ const AdminSettingsPage = () => {
                       </button>
                       <button 
                         disabled={isSaving}
-                        onClick={() => {
+                        onClick={async () => {
                             setIsSaving(true);
-                            setTimeout(() => {
-                                setIsSaving(false);
-                                showNotification(t("admin_settings_sync_vector_success"));
-                            }, 2000);
+                            try {
+                              await axios.post("/api/admin/vector/sync", {}, {
+                                headers: { 
+                                  Authorization: `Bearer ${token}`,
+                                  "X-Is-Admin": "true"
+                                }
+                              });
+                              showNotification(t("admin_settings_sync_vector_success"));
+                            } catch (err) {
+                              showNotification(t("admin_settings_sync_vector_error"), "error");
+                            } finally {
+                              setIsSaving(false);
+                            }
                         }}
                         className={cn(styles.saveBtn, "bg-blue-600 shadow-blue-200")}
                       >

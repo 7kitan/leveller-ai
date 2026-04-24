@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Bricolage_Grotesque } from "next/font/google";
+import { Open_Sans } from "next/font/google";
 import "./globals.css";
 import "../light-mode.css";
 import { AuthProvider } from "@/context/AuthContext";
@@ -7,14 +7,9 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import { LanguageProvider } from "@/context/LanguageContext";
 
-const jakarta = Plus_Jakarta_Sans({ 
+const openSans = Open_Sans({ 
   subsets: ["latin", "vietnamese"], 
-  variable: "--font-jakarta" 
-});
-
-const bricolage = Bricolage_Grotesque({ 
-  subsets: ["latin", "vietnamese"], 
-  variable: "--font-bricolage" 
+  variable: "--font-sans" 
 });
 
 export const metadata: Metadata = {
@@ -29,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${bricolage.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${openSans.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <LanguageProvider>
           <ThemeProvider>

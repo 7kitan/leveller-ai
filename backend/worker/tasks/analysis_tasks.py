@@ -167,7 +167,7 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
                         if job.raw_text:
                             logger.info(f"[ANALYSIS STEP 2] No extraction found. Triggering AI extraction...")
                             requirements = loop.run_until_complete(
-                                calculator.extract_requirements_from_text(job.raw_text, job_id=job_id)
+                                calculator.extract_requirements_from_text(job.raw_text, job_id=job_id, user_id=user_id)
                             )
                             logger.info(f"[ANALYSIS STEP 2] Extracted {len(requirements)} requirements via AI")
                         else:
@@ -193,7 +193,7 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
                 "[ANALYSIS STEP 2] Extracting requirements from provided jd_text..."
             )
             requirements = loop.run_until_complete(
-                calculator.extract_requirements_from_text(jd_text)
+                calculator.extract_requirements_from_text(jd_text, user_id=user_id)
             )
             jd_context = "Custom JD provided"
             logger.info(
@@ -205,7 +205,7 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
                 "[ANALYSIS STEP 2] No JD provided — inferring market standard requirements from CV..."
             )
             requirements = loop.run_until_complete(
-                calculator.infer_market_requirements_for_cv(cv_id)
+                calculator.infer_market_requirements_for_cv(cv_id, user_id=user_id)
             )
             jd_context = "Market standard requirements (inferred)"
             logger.info(f"[ANALYSIS STEP 2] Inferred {len(requirements)} requirements")

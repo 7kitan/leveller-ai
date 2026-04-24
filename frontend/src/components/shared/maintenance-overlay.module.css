@@ -1,3 +1,6 @@
+@reference "tailwindcss";
+@reference "../../app/globals.css";
+
 .overlayContainer {
   position: fixed;
   inset: 0;
@@ -7,51 +10,27 @@
   justify-content: center;
   padding: 1.5rem;
   overflow: hidden;
-  background-color: #020617;
+  background-color: #FBFBFD; /* Apple-style soft white */
 }
 
 .glassBackground {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.05), transparent),
-              radial-gradient(circle at bottom left, rgba(147, 51, 234, 0.05), transparent);
-  backdrop-filter: blur(100px);
-}
-
-.glow1 {
-  position: absolute;
-  top: 10%;
-  right: 15%;
-  width: 400px;
-  height: 400px;
-  background: rgba(59, 130, 246, 0.1);
-  filter: blur(80px);
-  border-radius: 50%;
-  animation: pulse 8s infinite alternate;
-}
-
-.glow2 {
-  position: absolute;
-  bottom: 10%;
-  left: 15%;
-  width: 300px;
-  height: 300px;
-  background: rgba(147, 51, 234, 0.1);
-  filter: blur(60px);
-  border-radius: 50%;
-  animation: pulse 6s infinite alternate-reverse;
+  background: radial-gradient(circle at top right, rgba(14, 165, 233, 0.05), transparent),
+              radial-gradient(circle at bottom left, rgba(6, 182, 212, 0.05), transparent);
 }
 
 .card {
   position: relative;
   width: 100%;
-  max-width: 560px;
-  background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px);
-  border-radius: 24px;
-  padding: 3rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  max-width: 520px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 28px;
+  padding: 3.5rem 3rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
+  z-index: 10;
+  animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .header {
@@ -63,45 +42,48 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
 }
 
 .mainIcon {
-  color: #3b82f6;
-  filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4));
+  color: #0EA5E9;
+  filter: drop-shadow(0 4px 12px rgba(14, 165, 233, 0.2));
 }
 
 .statusBadge {
-  background: rgba(59, 130, 246, 0.1);
-  color: #60a5fa;
-  padding: 0.25rem 0.75rem;
+  background: rgba(14, 165, 233, 0.08);
+  color: #0EA5E9;
+  padding: 0.4rem 1rem;
   border-radius: 99px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(14, 165, 233, 0.1);
 }
 
 .title {
   font-size: 1.875rem;
-  font-weight: 700;
-  color: #f8fafc;
-  margin-bottom: 0.75rem;
+  font-weight: 800;
+  color: #1d1d1f;
+  margin-bottom: 1rem;
   letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .subtitle {
-  color: #94a3b8;
+  color: rgba(0, 0, 0, 0.6);
   line-height: 1.6;
-  font-size: 1rem;
+  font-size: 1.05rem;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .infoGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.25rem;
+  gap: 1rem;
   margin-bottom: 2.5rem;
 }
 
@@ -113,30 +95,34 @@
 
 .infoItem {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  padding: 1rem;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #f5f5f7;
+  padding: 1.25rem;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
 }
 
 .infoIcon {
-  color: #3b82f6;
-  margin-top: 2px;
+  color: #0EA5E9;
+  flex-shrink: 0;
 }
 
 .infoLabel {
   display: block;
   font-size: 0.75rem;
-  color: #64748b;
-  margin-bottom: 0.25rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.4);
+  margin-bottom: 0.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .infoValue {
-  font-size: 0.875rem;
-  color: #cbd5e1;
-  font-weight: 500;
+  font-size: 0.9rem;
+  color: #1d1d1f;
+  font-weight: 600;
 }
 
 .footer {
@@ -146,51 +132,61 @@
   gap: 1.5rem;
 }
 
-@media (min-width: 640px) {
-  .footer {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-}
-
 .contact {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #64748b;
-  font-size: 0.875rem;
+  gap: 0.6rem;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .refreshBtn {
-  background: #3b82f6;
+  width: 100%;
+  background: linear-gradient(135deg, #0EA5E9 0%, #06B6D4 100%);
   color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
+  padding: 1rem 2rem;
+  border-radius: 980px;
   font-weight: 600;
-  font-size: 0.875rem;
-  transition: all 0.2s;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+  border: none;
+  cursor: pointer;
 }
 
 .refreshBtn:hover {
-  background: #2563eb;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
 }
 
-.adminTip {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 0.8125rem;
-  color: #94a3b8;
-  line-height: 1.5;
+.refreshBtn:active {
+  transform: translateY(0);
 }
 
-.adminTip b {
-  color: #3b82f6;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulse {
-  0% { transform: scale(1); opacity: 0.5; }
-  100% { transform: scale(1.1); opacity: 0.8; }
+.glow1, .glow2 {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.4;
+  z-index: 1;
+}
+
+.glow1 {
+  top: -100px;
+  right: -100px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.1), transparent);
+}
+
+.glow2 {
+  bottom: -100px;
+  left: -100px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.1), transparent);
 }

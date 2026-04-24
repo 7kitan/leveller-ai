@@ -24,8 +24,9 @@
     --color-apple-bright-blue: #2997ff;
 
     /* Fonts */
-    --font-sans: var(--font-jakarta), -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    --font-display: var(--font-bricolage), -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-display: var(--font-sans), "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: var(--font-sans), monospace;
 
     /* Text & Surface */
     --color-text-primary-light: #1d1d1f;
@@ -55,9 +56,8 @@
 @layer base {
     :root {
         /* Fonts */
-        --font-sans: var(--font-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
-        --font-display: var(--font-sans), -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
-
+        --font-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-display: 'Open Sans', -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
 
         --bg-primary: #ffffff;
         --bg-secondary: #fbfbfd;
@@ -105,17 +105,21 @@
         background-color: var(--bg-primary);
         color: var(--text-primary);
         font-family: var(--font-sans);
-        -webkit-font-smoothing: antialiased;
-        transition: background-color 0.5s ease, color 0.5s ease;
+    }
+
+    * {
+        font-family: var(--font-sans);
     }
 
     h1,
     h2,
     h3,
     h4,
-    .font-display {
-        font-family: var(--font-display);
-        letter-spacing: -0.019em;
+    h5,
+    h6 {
+        font-family: var(--font-sans);
+        font-weight: 600;
+        letter-spacing: -0.015em;
     }
 }
 

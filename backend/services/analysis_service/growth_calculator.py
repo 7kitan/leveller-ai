@@ -34,16 +34,28 @@ def calculate_skill_impact(
         logger.warning("No skill gaps or job_id provided, returning current match")
         return current_match_pct, 0.0, skill_gaps
     
-    # Lấy job requirements để biết importance_weight của từng skill
-    job_requirements = db.query(JobSkillRequirement).filter(
-        JobSkillRequirement.job_id == job_id
-    ).all()
+    # Lấy job để đọc extracted_requirements_json
+    job = db.query(Job).filter(Job.id == job_id).first()
     
-    # Tạo mapping: skill_name -> importance_weight
+    # Tạo mapping: skill_name -> importance_weight từ extracted_requirements_json
     skill_weights = {}
-    for req in job_requirements:
-        if req.skill:
-            skill_weights[req.skill.name.lower()] = req.importance_weight or 0
+    if job and job.extracted_requirements_json:
+        requirements = job.extracted_requirements_json
+        if isinstance(requirements, list):
+            for req in requirements:
+                # Handle type="skill"
+                if req.get("type") == "skill":
+                    skill_name = req.get("skill", "").lower()
+                    importance = req.get("importance_weight", 5)
+                    if skill_name:
+                        skill_weights[skill_name] = importance
+                # Handle type="group"
+                elif req.get("type") == "group":
+                    group_importance = req.get("importance_weight", 5)
+                    for skill_obj in req.get("skills", []):
+                        skill_name = skill_obj.get("skill", "").lower()
+                        if skill_name:
+                            skill_weights[skill_name] = group_importance
     
     total_match_gain = 0.0
     total_salary_gain = 0.0
@@ -69,8 +81,10 @@ def calculate_skill_impact(
         
         # 2. Tính salary impact từ MarketSkillStats
         salary_impact = 0.0
+        # SECURITY: Sanitize skill_name for ILIKE query
+        safe_skill_name = skill_name.replace("%", "\\%").replace("_", "\\_")
         market_stat = db.query(MarketSkillStats).filter(
-            MarketSkillStats.skill_name.ilike(f"%{skill_name}%")
+            MarketSkillStats.skill_name.ilike(f"%{safe_skill_name}%")
         ).first()
         
         if market_stat and market_stat.salary_premium_pct:
@@ -136,8 +150,10 @@ def calculate_market_sentiment(
     
     for gap in skill_gaps:
         skill_name = gap.get("skill", "").lower()
+        # SECURITY: Sanitize skill_name for ILIKE query
+        safe_skill_name = skill_name.replace("%", "\\%").replace("_", "\\_")
         market_stat = db.query(MarketSkillStats).filter(
-            MarketSkillStats.skill_name.ilike(f"%{skill_name}%")
+            MarketSkillStats.skill_name.ilike(f"%{safe_skill_name}%")
         ).first()
         
         if market_stat:

@@ -44,7 +44,14 @@ class JobCreate(BaseModel):
     min_salary_vnd: Optional[int] = None
     max_salary_vnd: Optional[int] = None
     location_raw: Optional[str] = None
+    location_normalized: Optional[str] = None
+    location_district: Optional[str] = None
     employment_type: Optional[str] = None
+    
+    # Structured fields from parsing
+    job_description: Optional[str] = None
+    requirements: Optional[str] = None
+    benefits: Optional[str] = None
 
 
 class JobUpdate(BaseModel):
@@ -69,6 +76,9 @@ class JobResponse(BaseModel):
     source_label: Optional[str]
     created_at: Optional[datetime]
     raw_text: Optional[str] = None
+    job_description: Optional[str] = None
+    requirements: Optional[str] = None
+    benefits: Optional[str] = None
     similarity: Optional[float] = None  # For search results
 
     class Config:
@@ -98,6 +108,9 @@ def _job_to_response(job: Job, similarity: float = None) -> dict:
         "title_raw": job.title_raw,
         "company_name": job.company_name,
         "status": job.status,
+        "job_description": job.job_description,
+        "requirements": job.requirements,
+        "benefits": job.benefits,
         "min_salary_vnd": job.min_salary_vnd,
         "max_salary_vnd": job.max_salary_vnd,
         "location_raw": job.location_raw,
@@ -461,28 +474,49 @@ def admin_trigger_crawl(request: Request):
 
 @app.post("/jd/admin/crawl/fetch")
 def admin_crawl_fetch_job(req: CrawlUrlRequest, request: Request):
-    """Admin only: CÃ o dá»¯ liá»‡u tá»« 1 URL TopCV Ä‘á»ƒ hiá»ƒn thá»‹ ra form (chÆ°a lÆ°u)."""
+    """Admin only: Cào dữ liệu từ 1 URL TopCV để hiển thị ra form (chưa lưu)."""
     if request.headers.get("X-Is-Admin") != "true":
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     if "topcv.vn" not in req.url:
-        raise HTTPException(status_code=400, detail="Chá»‰ há»— trá»£ URL tá»« TopCV.vn")
+        raise HTTPException(status_code=400, detail="Chỉ hỗ trợ URL từ TopCV.vn")
 
-    scraper = TopCVScraper()
-    data = scraper.scrape_job_details(req.url)
-    if not data:
-        raise HTTPException(status_code=404, detail="KhÃ´ng thá»ƒ láº¥y dá»¯ liá»‡u tá»« URL nÃ y. CÃ³ thá»ƒ bá»‹ block hoáº·c URL sai.")
-
-    return data
+    try:
+        scraper = TopCVScraper()
+        logger.info(f"[ADMIN CRAWL] Fetching job from URL: {req.url}")
+        
+        data = scraper.scrape_job_details(req.url)
+        
+        if not data:
+            logger.error(f"[ADMIN CRAWL] Scraper returned None for URL: {req.url}")
+            raise HTTPException(
+                status_code=404, 
+                detail="Không thể lấy dữ liệu từ URL này. Vui lòng kiểm tra:\n1. URL có đúng format không?\n2. Job còn active trên TopCV không?\n3. Thử lại sau vài giây."
+            )
+        
+        logger.info(f"[ADMIN CRAWL] Successfully scraped: {data.get('title_raw')}")
+        return data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[ADMIN CRAWL] Unexpected error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Lỗi khi cào dữ liệu: {str(e)}"
+        )
 
 
 @app.post("/jd/admin/bulk")
 def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = Depends(get_db)):
-    """Admin only: LÆ°u nhiá»u job cÃ¹ng lÃºc (tá»« manual import)."""
+    """Admin only: Lưu nhiều job cùng lúc (từ manual import)."""
     if request.headers.get("X-Is-Admin") != "true":
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     new_jobs_count = 0
+    total_tokens = 0
+    total_cost = 0.0
+    
     for job_in in req.jobs:
         # Check if already exists
         job_id_match = re.search(r'/(\d+)\.html', job_in.source_url or "")
@@ -490,11 +524,26 @@ def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = D
         
         existing = db.query(Job).filter(Job.source_id == source_id).first()
         if existing:
+            logger.info(f"[BULK IMPORT] Skipping existing job: {source_id}")
             continue
 
-        # Generate Embedding context
-        embedding_ctx = f"{job_in.title_raw} at {job_in.company_name}. {job_in.location_raw}. {job_in.raw_text[:1000]}"
-        vector = get_embedding(embedding_ctx)
+        # Generate Embedding - ONLY from requirements field
+        title = job_in.title_raw
+        company = job_in.company_name or "Unknown"
+        location = job_in.location_raw or ""
+        requirements = job_in.requirements or ""
+        
+        if requirements:
+            # Primary: Use only requirements (most relevant for matching)
+            embedding_ctx = f"Job: {title} at {company}. Location: {location}. Requirements: {requirements}"
+        else:
+            # Fallback: Use title and location only if no requirements
+            embedding_ctx = f"Job: {title} at {company}. Location: {location}."
+            logger.warning(f"[BULK IMPORT] No requirements found for {source_id}, using minimal context")
+        
+        # Generate embedding with cost logging
+        logger.info(f"[BULK IMPORT] Generating embedding for {source_id}...")
+        vector = get_embedding(embedding_ctx, log_cost=True)
         
         job = Job(
             source_id=source_id,
@@ -506,7 +555,14 @@ def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = D
             min_salary_vnd=job_in.min_salary_vnd,
             max_salary_vnd=job_in.max_salary_vnd,
             location_raw=job_in.location_raw,
+            location_normalized=job_in.location_normalized,
+            location_district=job_in.location_district,
             employment_type=job_in.employment_type,
+            # Structured fields
+            job_description=job_in.job_description,
+            requirements=job_in.requirements,
+            benefits=job_in.benefits,
+            # Embedding
             status="active",
             embedding_context=embedding_ctx,
             vector=vector
@@ -515,7 +571,114 @@ def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = D
         new_jobs_count += 1
 
     db.commit()
+    logger.info(f"[BULK IMPORT] ✅ Successfully imported {new_jobs_count} jobs")
+    
+    # Trigger async skill extraction for imported jobs
+    if new_jobs_count > 0:
+        logger.info(f"[BULK IMPORT] Triggering skill extraction for {new_jobs_count} jobs...")
+        try:
+            celery_app.send_task(
+                "worker.tasks.crawler_tasks.batch_extract_skills_task",
+                kwargs={"limit": new_jobs_count, "skip_existing": False}
+            )
+            logger.info(f"[BULK IMPORT] ✓ Skill extraction task queued")
+        except Exception as e:
+            logger.error(f"[BULK IMPORT] Failed to trigger skill extraction: {e}")
+    
     return {"message": f"Successfully imported {new_jobs_count} jobs", "count": new_jobs_count}
+
+
+# ─── Skill Extraction Endpoints ──────────────────────────────────────────────
+
+@app.post("/jd/admin/extract-skills/{job_id}")
+def admin_extract_job_skills(job_id: str, request: Request, db: Session = Depends(get_db)):
+    """Admin only: Trigger skill extraction for a specific job."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    
+    # Check if job exists
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    if not job.requirements:
+        raise HTTPException(status_code=400, detail="Job has no requirements to extract from")
+    
+    try:
+        # Trigger async task
+        task = celery_app.send_task(
+            "worker.tasks.crawler_tasks.extract_job_skills_task",
+            args=[job_id]
+        )
+        return {
+            "message": "Skill extraction task started",
+            "task_id": task.id,
+            "job_id": job_id
+        }
+    except Exception as e:
+        logger.error(f"Failed to trigger skill extraction: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Could not trigger extraction: {str(e)}")
+
+
+@app.post("/jd/admin/batch-extract-skills")
+def admin_batch_extract_skills(
+    request: Request,
+    limit: int = Query(100, ge=1, le=1000),
+    skip_existing: bool = Query(True)
+):
+    """Admin only: Trigger batch skill extraction for multiple jobs."""
+    if request.headers.get("X-Is-Admin") != "true":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    
+    try:
+        task = celery_app.send_task(
+            "worker.tasks.crawler_tasks.batch_extract_skills_task",
+            kwargs={"limit": limit, "skip_existing": skip_existing}
+        )
+        return {
+            "message": f"Batch skill extraction started for up to {limit} jobs",
+            "task_id": task.id,
+            "limit": limit,
+            "skip_existing": skip_existing
+        }
+    except Exception as e:
+        logger.error(f"Failed to trigger batch extraction: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Could not trigger extraction: {str(e)}")
+
+
+@app.get("/jd/{job_id}/skills")
+def get_job_skills(job_id: str, db: Session = Depends(get_db)):
+    """Get extracted skills for a specific job."""
+    from shared.models import JobSkillRequirement, Skill
+    
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Get skills with their details
+    skills = db.query(JobSkillRequirement, Skill).join(
+        Skill, JobSkillRequirement.skill_id == Skill.id
+    ).filter(
+        JobSkillRequirement.job_id == job_id
+    ).all()
+    
+    return {
+        "job_id": job_id,
+        "job_title": job.title_raw,
+        "skills": [
+            {
+                "skill_name": skill.name,
+                "category": skill.category,
+                "required_level": req.required_level,
+                "min_years_exp": req.min_years_exp,
+                "is_mandatory": req.is_mandatory,
+                "importance_weight": req.importance_weight
+            }
+            for req, skill in skills
+        ],
+        "extracted_at": job.last_analyzed_at,
+        "raw_extraction": job.extracted_requirements_json
+    }
 
 
 # â”€â”€â”€ 5.1 + 5.2: Market Analytics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
