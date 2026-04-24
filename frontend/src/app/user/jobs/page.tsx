@@ -25,7 +25,7 @@ interface Job {
   employment_type?: string;
   source_label?: string;
   created_at?: string;
-  raw_text?: string;
+  source_url?: string;
   job_description?: string;
   requirements?: string;
   benefits?: string;
@@ -321,18 +321,8 @@ export default function JobsPage() {
               </div>
             )}
 
-            {/* Fallback to raw_text if no structured data */}
-            {!selectedJob.job_description && !selectedJob.requirements && !selectedJob.benefits && selectedJob.raw_text && (
-              <div className={styles.modalSection}>
-                <div className={styles.modalSectionLabel}>{t("job_description") || "Chi tiết công việc"}</div>
-                <div className={styles.modalDescription}>
-                  <FormattedText text={selectedJob.raw_text} />
-                </div>
-              </div>
-            )}
-
-            {/* No data at all */}
-            {!selectedJob.job_description && !selectedJob.requirements && !selectedJob.benefits && !selectedJob.raw_text && (
+            {/* No structured data available */}
+            {!selectedJob.job_description && !selectedJob.requirements && !selectedJob.benefits && (
               <div className={styles.modalSection}>
                 <div className={styles.modalDescription} style={{ opacity: 0.6, fontStyle: 'italic' }}>
                   {t("no_description_available") || "Không có thông tin chi tiết."}
@@ -351,6 +341,16 @@ export default function JobsPage() {
                 >
                     {t("jobs_run_analysis")} <Sparkles size={16} />
                 </Link>
+                {selectedJob.source_url && (
+                    <a 
+                        href={selectedJob.source_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={styles.modalSourceBtn}
+                    >
+                        {t("view_original") || "Xem bản gốc"} <Briefcase size={16} />
+                    </a>
+                )}
             </div>
           </div>
         )}

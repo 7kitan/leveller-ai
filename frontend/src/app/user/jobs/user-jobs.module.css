@@ -555,6 +555,28 @@
   gap: 0.75rem;
 }
 
+.modalSourceBtn {
+  flex: 1.5;
+  padding: 1rem;
+  background-color: #10b981;
+  border-radius: 12px;
+  color: white;
+  font-weight: 900;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.modalSourceBtn:hover {
+  background-color: #059669;
+  box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
+}
+
 .loadingWrapper {
   display: flex;
   flex-direction: column;
