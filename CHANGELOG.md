@@ -7,10 +7,21 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **Hệ thống Layout nhất quán**: Hợp nhất `AdminLayout` vào `LayoutWrapper` dùng chung, loại bỏ hiện tượng lồng layout và sai lệch CSS.
 - **Tối ưu Responsive**: Bổ sung cơ chế cuộn ngang (`overflow-x: auto`) cho các bảng dữ liệu rộng và tinh chỉnh padding cho thiết bị di động.
- 
+- **Bảo mật & Hiệu năng (Hardening)**:
+    - **Chống SQL Injection**: Refactor các câu lệnh SQL trong Recommender Service sử dụng bind parameters.
+    - **Log Masking**: Tự động ẩn thông tin nhạy cảm (API Keys, PII) trong `SystemLog` và `LLMLog`.
+    - **Atomic Quota**: Triển khai giới hạn hạn mức phân tích hàng ngày bằng Redis INCR để chống race condition.
+    - **Async Logging**: Chuyển việc ghi log DB sang background thread để tối ưu latency.
+
 ### Changed
 - **Giao diện Navbar**: Thiết kế lại hiệu ứng Glassmorphism hiện đại hơn, chuẩn hóa chiều cao Navbar (60px) và đồng bộ hóa menu điều hướng giữa các vai trò người dùng.
-- **Quản lý Sidebar**: Đồng bộ hóa danh sách menu Admin và duy trì trạng thái đóng/mở Sidebar xuyên suốt quá trình điều hướng giữa các phân vùng chức năng.
+- **Quản lý Sidebar**: Đồng bộ hóa danh sách menu Admin và duy trì trạng thái đóng/mở Sidebar xuyên suốt quá trình điều hướng.
+- **Workflow Deploy**: Cập nhật `deploy-ai-hub.yml` sang `workflow_dispatch` để tránh tự động deploy không kiểm soát.
+
+### Fixed
+- **Lỗ hổng SQL Injection**: Xử lý triệt để các rủi ro từ việc ghép chuỗi SQL trong backend.
+- **Resource Leaks**: Chuẩn hóa việc đóng DB Session bằng Context Manager.
+- **Race Condition**: Di chuyển khởi tạo Schema DB sang sự kiện Startup của ứng dụng.
 
 ## [1.2.0] - 2026-04-24
 

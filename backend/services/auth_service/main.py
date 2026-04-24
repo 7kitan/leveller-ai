@@ -4,7 +4,7 @@ from shared.database import get_db, engine, Base
 import shared.models # Ensure all models are registered
 from shared.models import User
 # Ensure tables are created
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine) - Moved to startup event
 from shared.auth_utils import get_password_hash, verify_password, create_access_token, hash_token, decode_access_token, ACCESS_TOKEN_EXPIRE_SECONDS
 from shared.config_utils import config_manager
 from shared.redis_client import auth_cache
@@ -16,6 +16,11 @@ import uuid
 from typing import Optional, List
 
 app = FastAPI(title="Auth Service")
+
+@app.on_event("startup")
+async def startup_event():
+    from shared.database import init_db
+    init_db()
 
 def is_admin(request: Request) -> bool:
     return request.headers.get("X-Is-Admin") == "true"

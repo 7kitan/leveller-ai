@@ -21,7 +21,13 @@ from datetime import datetime, timezone
 from worker.celery_app import celery_app
 from celery.result import AsyncResult
 
+from shared.database import init_db
+
 app = FastAPI(title="Analysis Service")
+
+@app.on_event("startup")
+async def startup_event():
+    init_db()
 logger = logging.getLogger("analysis_service")
 
 
@@ -119,22 +125,20 @@ async def start_gap_analysis(
     from shared.email_utils import notify_queue_delay
     from shared.config_utils import config_manager
 
-    # ── Check Daily Quota ──────────────────────────────────────────
-    from datetime import datetime, timedelta
-    day_ago = datetime.now() - timedelta(days=1)
-    analysis_count = (
-        db.query(UserAnalysis)
-        .filter(
-            UserAnalysis.user_id == uuid.UUID(user_id),
-            UserAnalysis.created_at >= day_ago
-        )
-        .count()
-    )
+    # ── Check Daily Quota (Atomic with Redis) ─────────────────────
+    from shared.redis_client import quota_cache
+    today = datetime.now().strftime("%Y%m%d")
+    quota_key = f"analysis_count:{user_id}:{today}"
     
+    # Increment first (atomic)
+    current_count = quota_cache.incr(quota_key)
+    if current_count == 1:
+        quota_cache.expire(quota_key, 86400) # 24h
+        
     daily_limit = int(config_manager.get_setting("daily_analysis_limit") or os.getenv("DAILY_ANALYSIS_LIMIT", "10"))
     
-    if analysis_count >= daily_limit and not cv.user.is_admin:
-        logger.warning(f"[ANALYSIS GAP] Quota exceeded for user {user_id}: {analysis_count}/{daily_limit}")
+    if current_count > daily_limit and not cv.user.is_admin:
+        logger.warning(f"[ANALYSIS GAP] Quota exceeded for user {user_id}: {current_count}/{daily_limit}")
         raise HTTPException(
             status_code=429, 
             detail=f"Bạn đã đạt giới hạn phân tích trong ngày ({daily_limit} lượt). Vui lòng quay lại vào ngày mai hoặc liên hệ Admin."
@@ -988,13 +992,14 @@ async def admin_get_system_logs(
     total = query.count()
     results = query.order_by(SystemLog.created_at.desc()).offset(offset).limit(limit).all()
 
+    from shared.system_logger import mask_sensitive_data
     items = [
         {
             "id": str(log.id),
             "level": log.level,
             "module": log.module,
             "message": log.message,
-            "details": log.details,
+            "details": mask_sensitive_data(log.details),
             "created_at": log.created_at.isoformat(),
         }
         for log in results

@@ -52,13 +52,10 @@ def generate_completion(
     Handles routing, automatic fallback, logging, and performance tracking.
     """
     if user_id:
-        db = SessionLocal()
-        try:
+        with SessionLocal() as db:
             if is_user_over_limit(user_id, db):
                 logger.error(f"User {user_id} has exceeded daily token limit. Blocking call.")
                 return None
-        finally:
-            db.close()
 
     model_id = get_active_model_id(model, setting_key=model_key)
     

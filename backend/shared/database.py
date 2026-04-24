@@ -25,3 +25,8 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def init_db():
+    """Initialize database tables. Should be called during app startup."""
+    from . import models # Ensure models are registered
+    Base.metadata.create_all(bind=engine)
