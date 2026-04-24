@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import styles from "./user-analysis.module.css";
 import { AnimatePresence, motion } from "framer-motion";
+import Modal from "@/components/shared/Modal";
 
 const POLLING_INTERVAL = 5000;
 
@@ -646,36 +647,32 @@ function AnalysisPageContent() {
           </p>
 
           {/* Timeout Overlay Dialog */}
-          <AnimatePresence>
-            {showTimeoutOverlay && !notified && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className={styles.timeoutOverlay}
-              >
-                <div className={styles.timeoutIcon}>
-                   <AlertCircle size={32} />
-                </div>
-                <h3 className={styles.timeoutTitle}>
-                  {language === 'vi' ? "Hệ thống đang quá tải?" : "System is Busy?"}
-                </h3>
-                <p className={styles.timeoutText}>
-                  {language === 'vi' 
-                    ? "Quá trình phân tích đang mất nhiều thời gian hơn dự kiến do độ phức tạp của dữ liệu. Bạn có thể quay lại sau, kết quả sẽ được xử lý ngầm và gửi thông báo cho bạn."
-                    : "The analysis is taking longer than expected due to data complexity. You can return later; the results will be processed in the background, and we'll notify you."}
-                </p>
-                <div className={styles.timeoutActions}>
-                   <button onClick={handleNotify} className={styles.timeoutNotifyBtn}>
-                     <Zap size={16} />
-                     {language === 'vi' ? "Đồng ý nhận Email & Quay lại" : "Notify via Email & Go Back"}
-                   </button>
-                   <button onClick={() => setShowTimeoutOverlay(false)} className={styles.timeoutContinueBtn}>
-                     {language === 'vi' ? "Tiếp tục chờ" : "Continue Waiting"}
-                   </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <Modal
+            isOpen={showTimeoutOverlay && !notified}
+            onClose={() => setShowTimeoutOverlay(false)}
+            title={language === 'vi' ? "Hệ thống đang quá tải?" : "System is Busy?"}
+            maxWidth="550px"
+          >
+            <div className={styles.timeoutModalContent}>
+              <div className={styles.timeoutIconBox}>
+                <AlertCircle size={32} />
+              </div>
+              <p className={styles.timeoutDescription}>
+                {language === 'vi' 
+                  ? "Quá trình phân tích đang mất nhiều thời gian hơn dự kiến do độ phức tạp của dữ liệu. Bạn có thể quay lại sau, kết quả sẽ được xử lý ngầm và gửi thông báo cho bạn."
+                  : "The analysis is taking longer than expected due to data complexity. You can return later; the results will be processed in the background, and we'll notify you."}
+              </p>
+              <div className={styles.timeoutActionsRow}>
+                 <button onClick={handleNotify} className={styles.timeoutNotifyBtn}>
+                   <Zap size={16} />
+                   {language === 'vi' ? "Đồng ý nhận Email & Quay lại" : "Notify via Email & Go Back"}
+                 </button>
+                 <button onClick={() => setShowTimeoutOverlay(false)} className={styles.timeoutContinueBtn}>
+                   {language === 'vi' ? "Tiếp tục chờ" : "Continue Waiting"}
+                 </button>
+              </div>
+            </div>
+          </Modal>
 
           <div className={styles.asyncActions}>
             <button 

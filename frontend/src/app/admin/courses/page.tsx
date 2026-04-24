@@ -30,6 +30,8 @@ import styles from "./admin-courses.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
+import Portal from "@/components/shared/Portal";
+import Modal from "@/components/shared/Modal";
 
 interface Course {
   id: string;
@@ -51,6 +53,7 @@ interface Course {
   outcomes?: string[];
   modules?: string[];
   is_certification?: boolean;
+  is_active: boolean;
 }
 
 const TagInput = ({ tags, setTags, placeholder = "Thêm thẻ..." }: { tags: string[], setTags: (tags: string[]) => void, placeholder?: string }) => {
@@ -132,7 +135,8 @@ const AdminCoursesPage = () => {
     skills: [] as string[],
     outcomes: [] as string[],
     modules: "",
-    is_certification: false
+    is_certification: false,
+    is_active: true
   });
 
   const fetchCourses = async (page = 1) => {
@@ -253,7 +257,8 @@ const AdminCoursesPage = () => {
       skills: course.skills_raw || [],
       outcomes: course.outcomes || [],
       modules: (course.modules || []).join("\n"),
-      is_certification: course.is_certification || false
+      is_certification: course.is_certification || false,
+      is_active: course.is_active ?? true
     });
     setIsModalOpen(true);
   };
@@ -302,7 +307,8 @@ const AdminCoursesPage = () => {
                   skills: [],
                   outcomes: [],
                   modules: "",
-                  is_certification: false
+                  is_certification: false,
+                  is_active: true
                 });
                 setIsModalOpen(true);
               }} 
@@ -340,6 +346,7 @@ const AdminCoursesPage = () => {
                   <th className={styles.th}>{t("table_duration_price")}</th>
                   <th className={styles.th}>{t("table_level")}</th>
                   <th className={styles.th}>{t("table_tags")}</th>
+                  <th className={styles.th}>Active</th>
                   <th className={cn(styles.th, styles.thRight)}>{t("table_actions")}</th>
                 </tr>
               </thead>
@@ -409,188 +416,192 @@ const AdminCoursesPage = () => {
           />
         </div>
 
-        <AnimatePresence>
-          {isModalOpen && (
-            <div className={styles.modalOverlay}>
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className={styles.modalContent}
-              >
-                <div className={styles.modalHeader}>
-                    <h2 className={styles.modalTitle}>{editingCourse ? t("edit_course") : t("create_course")}</h2>
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title={
+            <h2 className={styles.modalTitle}>{editingCourse ? t("edit_course") : t("create_course")}</h2>
+          }
+          maxWidth="42rem"
+        >
+          <div className={styles.modalBodyContent}>
+            <div className={styles.formGrid}>
+                <div className={styles.sectionTitle}>{t("modal_main_info")}</div>
+                <div className={cn(styles.formField, styles.formFieldFull)}>
+                  <label>{t("modal_course_name")}</label>
+                  <input 
+                    value={formData.title}
+                    onChange={e => setFormData({...formData, title: e.target.value})}
+                    placeholder="e.g. Advanced Python Patterns"
+                  />
                 </div>
-                <div className={styles.modalBody}>
-                   <div className={styles.formGrid}>
-                      <div className={styles.sectionTitle}>{t("modal_main_info")}</div>
-                      <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>{t("modal_course_name")}</label>
-                         <input 
-                           value={formData.title}
-                           onChange={e => setFormData({...formData, title: e.target.value})}
-                           placeholder="e.g. Advanced Python Patterns"
-                         />
-                      </div>
-                      <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>{t("modal_short_desc")}</label>
-                         <textarea 
-                           value={formData.description}
-                           onChange={e => setFormData({...formData, description: e.target.value})}
-                           placeholder="Mô tả nội dung khóa học..."
-                         />
-                      </div>
-                      <div className={styles.formField}>
-                         <label>{t("modal_platform")}</label>
-                         <input 
-                           value={formData.platform}
-                           onChange={e => setFormData({...formData, platform: e.target.value})}
-                           placeholder="e.g. Coursera, Udemy"
-                         />
-                      </div>
-                      <div className={styles.formField}>
-                         <label>{t("modal_provider")}</label>
-                         <input 
-                           value={formData.provider}
-                           onChange={e => setFormData({...formData, provider: e.target.value})}
-                           placeholder="e.g. Google, IBM"
-                         />
-                      </div>
-                      <div className={styles.formField}>
-                         <label>{t("modal_source")}</label>
-                         <input 
-                           value={formData.source_platform}
-                           onChange={e => setFormData({...formData, source_platform: e.target.value})}
-                           placeholder="e.g. coursera"
-                         />
-                      </div>
-                      <div className={styles.formField}>
-                         <label>{t("modal_source_id")}</label>
-                         <input 
-                           value={formData.source_id}
-                           onChange={e => setFormData({...formData, source_id: e.target.value})}
-                           placeholder="e.g. advanced-patterns"
-                         />
-                      </div>
-                      <div className={styles.formField}>
-                         <label>{t("modal_external_uuid")}</label>
-                         <input 
-                           value={formData.external_uuid}
-                           onChange={e => setFormData({...formData, external_uuid: e.target.value})}
-                           placeholder="e.g. 22-char ID"
-                         />
-                      </div>
-                      <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>{t("modal_url")}</label>
-                         <input 
-                           value={formData.url}
-                           onChange={e => setFormData({...formData, url: e.target.value})}
-                           placeholder="https://..."
-                         />
-                      </div>
-                      
-                      <div className={styles.sectionTitle}>{t("modal_details_price")}</div>
-                      <div className={styles.formField}>
-                         <label>{t("modal_level")}</label>
-                         <select 
-                           value={formData.level}
-                           onChange={e => setFormData({...formData, level: e.target.value})}
-                         >
-                            <option value="Beginner">Beginner</option>
-                            <option value="Intermediate">Intermediate</option>
-                            <option value="Advanced">Advanced</option>
-                         </select>
-                      </div>
-                      <div className={styles.formField}>
-                         <label>{t("modal_price")}</label>
-                         <input 
-                           type="number"
-                           value={formData.cost_usd}
-                           onChange={e => setFormData({...formData, cost_usd: e.target.value})}
-                         />
-                      </div>
-                      <div className={styles.formField}>
-                         <label>{t("modal_duration_hr")}</label>
-                         <input 
-                           type="number"
-                           value={formData.duration_hours}
-                           onChange={e => setFormData({...formData, duration_hours: e.target.value})}
-                         />
-                      </div>
-                      <div className={styles.formField}>
-                         <label>{t("modal_duration_text")}</label>
-                         <input 
-                           value={formData.duration_raw}
-                           onChange={e => setFormData({...formData, duration_raw: e.target.value})}
-                           placeholder="e.g. 4 weeks"
-                         />
-                      </div>
-                      <div className={cn(styles.formField, styles.formFieldFull)}>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input 
-                            type="checkbox"
-                            className="w-4 h-4"
-                            checked={formData.is_certification}
-                            onChange={e => setFormData({...formData, is_certification: e.target.checked})}
-                          />
-                           <span>{t("modal_is_cert")}</span>
-                        </label>
-                      </div>
+                <div className={cn(styles.formField, styles.formFieldFull)}>
+                  <label>{t("modal_short_desc")}</label>
+                  <textarea 
+                    value={formData.description}
+                    onChange={e => setFormData({...formData, description: e.target.value})}
+                    placeholder="Mô tả nội dung khóa học..."
+                  />
+                </div>
+                <div className={styles.formField}>
+                  <label>{t("modal_platform")}</label>
+                  <input 
+                    value={formData.platform}
+                    onChange={e => setFormData({...formData, platform: e.target.value})}
+                    placeholder="e.g. Coursera, Udemy"
+                  />
+                </div>
+                <div className={styles.formField}>
+                  <label>{t("modal_provider")}</label>
+                  <input 
+                    value={formData.provider}
+                    onChange={e => setFormData({...formData, provider: e.target.value})}
+                    placeholder="e.g. Google, IBM"
+                  />
+                </div>
+                <div className={styles.formField}>
+                  <label>{t("modal_source")}</label>
+                  <input 
+                    value={formData.source_platform}
+                    onChange={e => setFormData({...formData, source_platform: e.target.value})}
+                    placeholder="e.g. coursera"
+                  />
+                </div>
+                <div className={styles.formField}>
+                  <label>{t("modal_source_id")}</label>
+                  <input 
+                    value={formData.source_id}
+                    onChange={e => setFormData({...formData, source_id: e.target.value})}
+                    placeholder="e.g. advanced-patterns"
+                  />
+                </div>
+                <div className={styles.formField}>
+                  <label>{t("modal_external_uuid")}</label>
+                  <input 
+                    value={formData.external_uuid}
+                    onChange={e => setFormData({...formData, external_uuid: e.target.value})}
+                    placeholder="e.g. 22-char ID"
+                  />
+                </div>
+                <div className={cn(styles.formField, styles.formFieldFull)}>
+                  <label>{t("modal_url")}</label>
+                  <input 
+                    value={formData.url}
+                    onChange={e => setFormData({...formData, url: e.target.value})}
+                    placeholder="https://..."
+                  />
+                </div>
+                
+                <div className={styles.sectionTitle}>{t("modal_details_price")}</div>
+                <div className={styles.formField}>
+                  <label>{t("modal_level")}</label>
+                  <select 
+                    value={formData.level}
+                    onChange={e => setFormData({...formData, level: e.target.value})}
+                  >
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Advanced">Advanced</option>
+                  </select>
+                </div>
+                <div className={styles.formField}>
+                  <label>{t("modal_price")}</label>
+                  <input 
+                    type="number"
+                    value={formData.cost_usd}
+                    onChange={e => setFormData({...formData, cost_usd: e.target.value})}
+                  />
+                </div>
+                <div className={styles.formField}>
+                  <label>{t("modal_duration_hr")}</label>
+                  <input 
+                    type="number"
+                    value={formData.duration_hours}
+                    onChange={e => setFormData({...formData, duration_hours: e.target.value})}
+                  />
+                </div>
+                <div className={styles.formField}>
+                  <label>{t("modal_duration_text")}</label>
+                  <input 
+                    value={formData.duration_raw}
+                    onChange={e => setFormData({...formData, duration_raw: e.target.value})}
+                    placeholder="e.g. 4 weeks"
+                  />
+                </div>
+                <div className={cn(styles.formField, styles.formFieldFull)}>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox"
+                      className="w-4 h-4"
+                      checked={formData.is_certification}
+                      onChange={e => setFormData({...formData, is_certification: e.target.checked})}
+                    />
+                    <span>{t("modal_is_cert")}</span>
+                  </label>
+                </div>
+                <div className={cn(styles.formField, styles.formFieldFull)}>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox"
+                      className="w-4 h-4"
+                      checked={formData.is_active}
+                      onChange={e => setFormData({...formData, is_active: e.target.checked})}
+                    />
+                    <span className="font-bold text-indigo-500">Enable in Production</span>
+                  </label>
+                </div>
 
-                      <div className={styles.sectionTitle}>{t("modal_learning_content")}</div>
-                      <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>{t("modal_skills")}</label>
-                         <TagInput 
-                            tags={formData.skills}
-                            setTags={(skills) => setFormData({...formData, skills})}
-                            placeholder="Type skill and press Enter..."
-                         />
-                      </div>
-                      <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>{t("modal_outcomes")}</label>
-                         <TagInput 
-                            tags={formData.outcomes}
-                            setTags={(outcomes) => setFormData({...formData, outcomes})}
-                            placeholder="Type outcome and press Enter..."
-                         />
-                      </div>
-                      <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>{t("modal_languages")}</label>
-                         <TagInput 
-                            tags={formData.languages}
-                            setTags={(languages) => setFormData({...formData, languages})}
-                            placeholder="e.g. en, vi"
-                         />
-                      </div>
-                      <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>{t("modal_modules")}</label>
-                         <textarea 
-                           className="h-32"
-                           value={formData.modules}
-                           onChange={e => setFormData({...formData, modules: e.target.value})}
-                           placeholder="Introduction&#10;Basic Syntax&#10;Advanced Patterns..."
-                         />
-                      </div>
-                      <div className={cn(styles.formField, styles.formFieldFull)}>
-                         <label>{t("modal_tags_input")}</label>
-                         <TagInput 
-                            tags={formData.tags}
-                            setTags={(tags) => setFormData({...formData, tags})}
-                            placeholder="Add tag and press Enter..."
-                         />
-                      </div>
-                   </div>
+                <div className={styles.sectionTitle}>{t("modal_learning_content")}</div>
+                <div className={cn(styles.formField, styles.formFieldFull)}>
+                  <label>{t("modal_skills")}</label>
+                  <TagInput 
+                      tags={formData.skills}
+                      setTags={(skills) => setFormData({...formData, skills})}
+                      placeholder="Type skill and press Enter..."
+                  />
                 </div>
-                 <div className={styles.modalFooter}>
-                    <button onClick={() => setIsModalOpen(false)}>{t("cancel")}</button>
-                    <button onClick={handleSave} className={styles.submitBtn}>
-                       {editingCourse ? t("save") : t("save")}
-                    </button>
-                 </div>
-              </motion.div>
+                <div className={cn(styles.formField, styles.formFieldFull)}>
+                  <label>{t("modal_outcomes")}</label>
+                  <TagInput 
+                      tags={formData.outcomes}
+                      setTags={(outcomes) => setFormData({...formData, outcomes})}
+                      placeholder="Type outcome and press Enter..."
+                  />
+                </div>
+                <div className={cn(styles.formField, styles.formFieldFull)}>
+                  <label>{t("modal_languages")}</label>
+                  <TagInput 
+                      tags={formData.languages}
+                      setTags={(languages) => setFormData({...formData, languages})}
+                      placeholder="e.g. en, vi"
+                  />
+                </div>
+                <div className={cn(styles.formField, styles.formFieldFull)}>
+                  <label>{t("modal_modules")}</label>
+                  <textarea 
+                    className="h-32"
+                    value={formData.modules}
+                    onChange={e => setFormData({...formData, modules: e.target.value})}
+                    placeholder="Introduction&#10;Basic Syntax&#10;Advanced Patterns..."
+                  />
+                </div>
+                <div className={cn(styles.formField, styles.formFieldFull)}>
+                  <label>{t("modal_tags_input")}</label>
+                  <TagInput 
+                      tags={formData.tags}
+                      setTags={(tags) => setFormData({...formData, tags})}
+                      placeholder="Add tag and press Enter..."
+                  />
+                </div>
             </div>
-          )}
-        </AnimatePresence>
+          </div>
+            <div className={styles.modalFooter}>
+              <button onClick={() => setIsModalOpen(false)}>{t("cancel")}</button>
+              <button onClick={handleSave} className={styles.submitBtn}>
+                {editingCourse ? t("save") : t("save")}
+              </button>
+            </div>
+        </Modal>
 
         <AnimatePresence>
           {notification && (

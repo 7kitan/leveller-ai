@@ -4,33 +4,37 @@
 .pageRoot {
   display: flex;
   flex-direction: column;
-  gap: 3rem;
-  animation: fadeIn 0.5s ease-out forwards;
+  gap: 3.5rem;
+  padding: 2rem 0;
+  animation: fadeIn 1s var(--ease-premium);
   padding-bottom: 8rem; /* Space for the fixed save bar */
   width: 100%;
 }
 
 .header {
-  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--color-text-main);
+  line-height: 1;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  font-size: 2.25rem;
-  font-weight: 900;
-  color: var(--color-text-main);
-  font-style: italic;
-  letter-spacing: -0.05em;
+  gap: 1.5rem;
 }
 
 .subtitle {
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 1rem;
   color: var(--color-text-muted);
-  margin-top: 0.5rem;
-  opacity: 0.7;
+  margin-top: 1rem;
+  max-width: 40rem;
+  line-height: 1.6;
 }
 
 .settingsGrid {
@@ -45,23 +49,161 @@
   }
 }
 
-.settingCard {
+/* Tabs Styling */
+.tabsContainer {
+  margin-bottom: 3rem;
+  width: 100%;
+}
+
+.tabsList {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 2.5rem;
-  padding: 3rem;
+  border-radius: 9999px;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+  backdrop-filter: blur(10px);
+}
+
+.tabItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.tabItem:hover {
+  color: var(--color-text-main);
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="dark"] .tabItem:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tabItemActive {
+  background-color: var(--tab-accent, var(--color-accent-primary)) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tabBadge {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 900;
+}
+
+
+.settingCard {
+  background-color: var(--color-panel-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2.5rem;
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
-  transition: all 0.3s ease;
+  transition: all 0.4s var(--ease-premium);
   position: relative;
   overflow: hidden;
+}
+
+.settingCard:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-premium);
+  border-color: rgba(79, 70, 229, 0.2);
 }
 
 .settingCardModified {
   border-color: var(--color-accent-primary);
   box-shadow: 0 0 0 1px var(--color-accent-primary), 0 10px 30px rgba(79, 70, 229, 0.1);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.cardHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cardIcon {
+  color: var(--color-accent-primary);
+  opacity: 0.8;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sectionSaveBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background-color: var(--color-accent-primary);
+  color: white;
+  border-radius: 1rem;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+}
+
+.sectionSaveBtn:hover {
+  background-color: #4338ca;
+  transform: translateY(-2px);
+}
+
+.sectionSaveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.testBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background-color: transparent;
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-main);
+  border-radius: 1rem;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+}
+
+.testBtn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-color: var(--color-text-muted);
 }
 
 .formGroup {

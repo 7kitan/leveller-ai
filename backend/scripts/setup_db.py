@@ -17,6 +17,7 @@ from shared.models import (  # Import all to ensure Base knows them
     Job,
     Skill,
     User,
+    LLMLog,
 )
 
 # Logging setup

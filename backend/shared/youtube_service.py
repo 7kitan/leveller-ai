@@ -67,16 +67,18 @@ class YouTubeSearchService:
                     valid_ids = await self.verify_videos_availability([v.video_id for v in to_verify])
                     
                     for v in to_verify:
+                        # Fetch the actual object for ORM update/delete
+                        db_video = db.query(YouTubeCourse).filter(YouTubeCourse.video_id == v.video_id).first()
+                        if not db_video:
+                            continue
+
                         if v.video_id in valid_ids:
-                            # Cập nhật thời điểm xác thực
-                            db.execute(
-                                text("UPDATE youtube_courses SET last_verified_at = :now WHERE video_id = :vid"),
-                                {"now": now, "vid": v.video_id}
-                            )
+                            # Update verification time using ORM
+                            db_video.last_verified_at = now
                             final_results.append(self._format_video_result(v))
                         else:
                             logger.warning(f"[YOUTUBE CACHE] Video {v.video_id} is no longer available. Removing.")
-                            db.execute(text("DELETE FROM youtube_courses WHERE video_id = :vid"), {"vid": v.video_id})
+                            db.delete(db_video)
                     
                     db.commit()
 

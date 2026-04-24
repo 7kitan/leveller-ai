@@ -115,21 +115,61 @@ async def start_gap_analysis(
             detail=f"CV chưa hoàn tất phân tích (status={cv.status}). Vui lòng đợi CV được xử lý xong.",
         )
 
-    task = celery_app.send_task(
-        "worker.tasks.analysis_tasks.run_gap_analysis",
-        args=[
-            str(user_id),
-            str(req.cv_id),
-            str(req.job_id) if req.job_id else None,
-            req.jd_text,
-        ],
-        kwargs={"force": req.force}
+    from shared.queue_utils import get_queue_length
+    from shared.email_utils import notify_queue_delay
+    from shared.config_utils import config_manager
+
+    # ── Check Daily Quota ──────────────────────────────────────────
+    from datetime import datetime, timedelta
+    day_ago = datetime.now() - timedelta(days=1)
+    analysis_count = (
+        db.query(UserAnalysis)
+        .filter(
+            UserAnalysis.user_id == uuid.UUID(user_id),
+            UserAnalysis.created_at >= day_ago
+        )
+        .count()
     )
-    logger.info(
-        f"[ANALYSIS GAP] Task dispatched — task_id={task.id} | "
-        f"cv_id={req.cv_id} | job_id={req.job_id}"
-    )
-    return {"task_id": task.id, "status": "processing"}
+    
+    daily_limit = int(config_manager.get_setting("daily_analysis_limit") or os.getenv("DAILY_ANALYSIS_LIMIT", "10"))
+    
+    if analysis_count >= daily_limit and not cv.user.is_admin:
+        logger.warning(f"[ANALYSIS GAP] Quota exceeded for user {user_id}: {analysis_count}/{daily_limit}")
+        raise HTTPException(
+            status_code=429, 
+            detail=f"Bạn đã đạt giới hạn phân tích trong ngày ({daily_limit} lượt). Vui lòng quay lại vào ngày mai hoặc liên hệ Admin."
+        )
+
+    # Check queue length
+    q_len = get_queue_length("analysis_queue")
+    threshold = int(config_manager.get_setting("queue_threshold") or os.getenv("QUEUE_THRESHOLD", "5"))
+    
+    if q_len >= threshold:
+        user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
+        if user and user.email:
+            logger.info(f"[ANALYSIS GAP] Queue length {q_len} >= {threshold}. Notifying user {user.email}")
+            notify_queue_delay(user.email, q_len)
+
+    try:
+        task = celery_app.send_task(
+            "worker.tasks.analysis_tasks.run_gap_analysis",
+            args=[
+                str(user_id),
+                str(req.cv_id),
+                str(req.job_id) if req.job_id else None,
+                req.jd_text,
+            ],
+            kwargs={"force": req.force}
+        )
+        logger.info(
+            f"[ANALYSIS GAP] Task dispatched — task_id={task.id} | "
+            f"cv_id={req.cv_id} | job_id={req.job_id}"
+        )
+        return {"task_id": task.id, "status": "processing", "queue_position": q_len + 1}
+    except Exception as e:
+        from shared.system_logger import system_logger
+        system_logger.error("Worker", f"Failed to dispatch analysis task: {e}", {"user_id": user_id, "cv_id": str(req.cv_id)})
+        raise HTTPException(status_code=500, detail="Hệ thống đang bận, vui lòng thử lại sau.")
 
 
 @app.get("/analysis/status/{task_id}")
@@ -227,14 +267,21 @@ async def get_latest_analysis(request: Request, db: Session = Depends(get_db)):
         
         if result.get("potential_match_pct") is None or result.get("potential_match_pct") == 0:
             if matched_jobs_count > 0:
-                result["potential_match_pct"] = min(98, market_fit_pct + (matched_jobs_count * 5))
+                # Use logarithmic growth to be more realistic
+                import math
+                boost = math.log2(matched_jobs_count + 1) * 6.5
+                result["potential_match_pct"] = min(98, market_fit_pct + int(boost))
         
         if result.get("salary_growth_pct") is None or result.get("salary_growth_pct") == 0:
             if matched_jobs_count > 0:
-                result["salary_growth_pct"] = matched_jobs_count * 8
+                # Cap salary growth more strictly based on learning volume
+                import math
+                growth = math.log2(matched_jobs_count + 1) * 5.5
+                result["salary_growth_pct"] = min(35, int(growth + 5))
                 
         if not result.get("market_sentiment") and matched_jobs_count > 0:
-             result["market_sentiment"] = "Tăng trưởng cao" if matched_jobs_count > 3 else "Ổn định"
+             # Sentiment based on match density
+             result["market_sentiment"] = "Tăng trưởng cao" if matched_jobs_count > 5 else "Ổn định"
 
     return result
 
@@ -782,9 +829,13 @@ async def simulate_boost(
     # Tính toán điểm tiềm năng (Virtual Match Score)
     base_score = float(result.get("overall_match_pct", 0))
     boost_amount = 0
-    if gaps:
-        boost_per_gap = (100 - base_score) / max(len(gaps), 1)
-        boost_amount = filled_count * boost_per_gap * 0.8 
+    if gaps and filled_count > 0:
+        # Use a non-linear boost: filling first gaps gives more score (diminishing returns)
+        import math
+        total_possible_boost = (100 - base_score) * 0.85 # Cap at 85% of the remaining gap
+        fill_ratio = filled_count / len(gaps)
+        # Apply square root to reward the first few filled gaps more
+        boost_amount = total_possible_boost * math.sqrt(fill_ratio)
 
     potential_score = min(98.5, base_score + boost_amount)
 
@@ -801,6 +852,56 @@ async def simulate_boost(
     }
 
 
+# ─── Admin Testing Endpoints ─────────────────────────────────────────────
+
+
+@app.post("/analysis/admin/test-email")
+async def admin_test_email(request: Request, db: Session = Depends(get_db)):
+    """Admin only: Gửi email test để kiểm tra cấu hình SMTP."""
+    check_admin(request)
+    user_id = request.headers.get("X-User-ID")
+    user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
+    
+    if not user or not user.email:
+        raise HTTPException(status_code=400, detail="Admin user must have an email address")
+
+    from shared.email_utils import send_email
+    success = send_email(
+        to_email=user.email,
+        subject="[Test] Cấu hình SMTP - Team078",
+        content=f"Xin chào {user.email},\n\nĐây là email kiểm tra tính năng SMTP từ hệ thống Admin Dashboard.\nNếu bạn nhận được email này, cấu hình SMTP của bạn đã hoạt động chính xác.\n\nThời gian: {datetime.now().isoformat()}"
+    )
+    
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send test email. Check server logs/configs.")
+    
+    return {"message": f"Test email sent to {user.email}"}
+
+
+@app.post("/analysis/admin/test-llm")
+async def admin_test_llm(request: Request):
+    """Admin only: Gọi thử AI Model để kiểm tra cấu hình."""
+    check_admin(request)
+    from shared.ai_service import generate_completion
+    
+    t0 = datetime.now()
+    response = generate_completion(
+        prompt="Say 'AI configuration is working correctly!' in Vietnamese.",
+        system_prompt="You are a system tester.",
+        call_name="admin_test_call"
+    )
+    duration = (datetime.now() - t0).total_seconds()
+    
+    if not response:
+        raise HTTPException(status_code=500, detail="AI Model failed to respond. Check API keys and Model IDs.")
+    
+    return {
+        "message": "AI Model is working correctly!",
+        "response": response,
+        "latency_sec": round(duration, 2)
+    }
+
+
 
 # ─── Admin Taxonomy Routes ───────────────────────────────────────────────
 
@@ -808,6 +909,153 @@ async def simulate_boost(
 def check_admin(request: Request):
     if request.headers.get("X-Is-Admin") != "true":
         raise HTTPException(status_code=403, detail="Admin privileges required")
+
+
+@app.get("/analysis/admin/llm-logs", response_model=PaginatedResponse[dict])
+async def admin_get_llm_logs(
+    request: Request,
+    db: Session = Depends(get_db),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    model_id: Optional[str] = Query(None),
+    user_id: Optional[str] = Query(None),
+    status: Optional[str] = Query(None)
+):
+    """Admin only: Xem lịch sử gọi LLM."""
+    check_admin(request)
+    from shared.models import LLMLog
+
+    query = db.query(LLMLog, User.email).outerjoin(User, User.id == LLMLog.user_id)
+    
+    if model_id:
+        query = query.filter(LLMLog.model_id == model_id)
+    if user_id:
+        query = query.filter(LLMLog.user_id == uuid.UUID(user_id))
+    if status:
+        query = query.filter(LLMLog.status == status)
+
+    total = query.count()
+    results = query.order_by(LLMLog.created_at.desc()).offset(offset).limit(limit).all()
+
+    items = [
+        {
+            "id": str(log.id),
+            "user_email": email or "System/Guest",
+            "model_id": log.model_id,
+            "provider": log.provider,
+            "call_type": log.call_type,
+            "prompt_tokens": log.prompt_tokens,
+            "completion_tokens": log.completion_tokens,
+            "total_tokens": log.total_tokens,
+            "latency_ms": log.latency_ms,
+            "status": log.status,
+            "error_message": log.error_message,
+            "created_at": log.created_at.isoformat(),
+        }
+        for log, email in results
+    ]
+    
+    return {
+        "items": items,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "page": (offset // limit) + 1,
+        "pages": (total + limit - 1) // limit
+    }
+
+
+@app.get("/analysis/admin/system-logs", response_model=PaginatedResponse[dict])
+async def admin_get_system_logs(
+    request: Request,
+    db: Session = Depends(get_db),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    level: Optional[str] = Query(None),
+    module: Optional[str] = Query(None)
+):
+    """Admin only: Xem nhật ký hệ thống tập trung."""
+    check_admin(request)
+    from shared.models import SystemLog
+
+    query = db.query(SystemLog)
+    
+    if level:
+        query = query.filter(SystemLog.level == level)
+    if module:
+        query = query.filter(SystemLog.module == module)
+
+    total = query.count()
+    results = query.order_by(SystemLog.created_at.desc()).offset(offset).limit(limit).all()
+
+    items = [
+        {
+            "id": str(log.id),
+            "level": log.level,
+            "module": log.module,
+            "message": log.message,
+            "details": log.details,
+            "created_at": log.created_at.isoformat(),
+        }
+        for log in results
+    ]
+    
+    return {
+        "items": items,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "page": (offset // limit) + 1,
+        "pages": (total + limit - 1) // limit
+    }
+
+
+@app.get("/analysis/admin/llm-stats")
+async def admin_get_llm_stats(request: Request, db: Session = Depends(get_db)):
+    """Admin only: Thống kê sử dụng LLM."""
+    check_admin(request)
+    from shared.models import LLMLog
+
+    # Tổng tokens
+    stats = db.query(
+        func.sum(LLMLog.prompt_tokens).label("total_prompt"),
+        func.sum(LLMLog.completion_tokens).label("total_completion"),
+        func.sum(LLMLog.total_tokens).label("total_tokens"),
+        func.avg(LLMLog.latency_ms).label("avg_latency"),
+        func.count(LLMLog.id).label("total_calls")
+    ).first()
+
+    # Tokens theo model
+    model_stats = db.query(
+        LLMLog.model_id,
+        func.sum(LLMLog.total_tokens).label("tokens"),
+        func.count(LLMLog.id).label("calls")
+    ).group_by(LLMLog.model_id).all()
+
+    # Tokens theo user (top 10)
+    user_stats = db.query(
+        User.email,
+        func.sum(LLMLog.total_tokens).label("tokens"),
+        func.count(LLMLog.id).label("calls")
+    ).join(User, User.id == LLMLog.user_id).group_by(User.email).order_by(func.sum(LLMLog.total_tokens).desc()).limit(10).all()
+
+    return {
+        "summary": {
+            "total_calls": stats.total_calls or 0,
+            "total_prompt_tokens": int(stats.total_prompt or 0),
+            "total_completion_tokens": int(stats.total_completion or 0),
+            "total_tokens": int(stats.total_tokens or 0),
+            "avg_latency_ms": int(stats.avg_latency or 0),
+        },
+        "by_model": [
+            {"model_id": m.model_id, "tokens": int(m.tokens or 0), "calls": m.calls}
+            for m in model_stats
+        ],
+        "top_users": [
+            {"email": u.email, "tokens": int(u.tokens or 0), "calls": u.calls}
+            for u in user_stats
+        ]
+    }
 
 
 @app.get("/analysis/admin/stats")

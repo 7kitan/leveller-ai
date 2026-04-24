@@ -83,6 +83,7 @@ class CourseRead(BaseModel):
     outcomes: Optional[List[str]] = None
     modules: Optional[List[str]] = None
     tags: Optional[List[str]] = None
+    is_active: bool = True
     created_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
@@ -106,6 +107,7 @@ class CourseUpdate(BaseModel):
     outcomes: Optional[List[str]] = None
     modules: Optional[List[str]] = None
     tags: Optional[List[str]] = None
+    is_active: Optional[bool] = None
 
 
 def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 12):
@@ -131,6 +133,7 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
                    1 - (vector <=> :vec) as similarity
             FROM courses
             WHERE vector IS NOT NULL
+              AND is_active = TRUE
               AND 1 - (vector <=> :vec) > :sim_threshold
             ORDER BY similarity DESC
             LIMIT :limit
@@ -156,8 +159,9 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
                    skills_raw, modules, outcomes,
                    0.6 as similarity
             FROM courses
-            WHERE title ILIKE :pattern
-               OR :skill_name = ANY(tags::text[])
+            WHERE is_active = TRUE
+              AND (title ILIKE :pattern
+               OR :skill_name = ANY(tags::text[]))
             ORDER BY is_certification DESC, duration_hours ASC
             LIMIT :limit
         """)
@@ -546,6 +550,8 @@ async def admin_update_course(
     if req.tags is not None:
         course.tags = req.tags
         needs_re_embedding = True
+    if req.is_active is not None:
+        course.is_active = req.is_active
 
     if req.url is not None:
         course.url = req.url

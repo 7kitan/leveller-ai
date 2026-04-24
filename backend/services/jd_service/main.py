@@ -68,6 +68,7 @@ class JobResponse(BaseModel):
     remote_friendly: bool
     source_label: Optional[str]
     created_at: Optional[datetime]
+    raw_text: Optional[str] = None
     similarity: Optional[float] = None  # For search results
 
     class Config:
@@ -107,11 +108,12 @@ def _job_to_response(job: Job, similarity: float = None) -> dict:
         "remote_friendly": job.remote_friendly,
         "source_label": job.source_label,
         "created_at": job.created_at,
+        "raw_text": job.raw_text,
         "similarity": similarity,
     }
 
 
-# â”€â”€â”€ Endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ——————————————————————————————————————————————————————————————————————————————
 
 
 @app.post("/jd/import/text", response_model=JobResponse)

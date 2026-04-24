@@ -19,20 +19,23 @@ import {
   Settings,
   LogOut,
   Network,
+  PanelLeft,
+  PanelRight,
+  Layers,
 } from "lucide-react";
 
 import styles from "./sidebar.module.css";
 
 const MENU_ITEMS = {
   admin: [
-    { key: "nav_dashboard",       icon: LayoutDashboard, path: "/admin" },
-    { key: "nav_users",           icon: UserCircle,      path: "/admin/users" },
-    { key: "nav_cv",              icon: FileText,        path: "/admin/cvs" },
-    { key: "nav_courses",         icon: BookOpen,        path: "/admin/courses" },
-    { key: "nav_jobs",            icon: Search,          path: "/admin/jobs" },
-    { key: "nav_taxonomy",        icon: BookOpen,        path: "/admin/taxonomy" },
-    { key: "nav_relations",       icon: Network,         path: "/admin/relations" },
-    { key: "nav_settings",        icon: Settings,        path: "/admin/settings" },
+    { key: "nav_dashboard", icon: LayoutDashboard, path: "/admin" },
+    { key: "nav_users",     icon: UserCircle,      path: "/admin/users" },
+    { key: "nav_cv",        icon: FileText,        path: "/admin/cvs" },
+    { key: "nav_courses",   icon: BookOpen,        path: "/admin/courses" },
+    { key: "nav_jobs",      icon: Layers,          path: "/admin/jobs" },
+    { key: "nav_monitor",   icon: LineChart,       path: "/admin/ai-usage" },
+    { key: "nav_profile",   icon: UserCircle,      path: "/admin/profile" },
+    { key: "nav_settings",  icon: Settings,        path: "/admin/settings" },
   ],
   user: [
     { key: "nav_dashboard",   icon: LayoutDashboard, path: "/user" },
@@ -61,6 +64,7 @@ interface SidebarProps {
   setIsMobileOpen?: (v: boolean) => void;
   /** Pass admin nav items when rendering from admin layout (overrides role-based lookup) */
   adminItems?: NavItem[];
+  toggleSidebar?: () => void;
 }
 
 export default function Sidebar({
@@ -68,6 +72,7 @@ export default function Sidebar({
   isMobileOpen,
   setIsMobileOpen,
   adminItems,
+  toggleSidebar,
 }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuth();
@@ -82,7 +87,10 @@ export default function Sidebar({
   const isMini = isCollapsed && !isMobileOpen;
 
   return (
-    <aside className={`${styles.sidebar} ${isMini ? styles.collapsed : ""} ${isMobileOpen ? styles.mobileOpen : ""}`}>
+    <aside 
+      className={`${styles.sidebar} ${isMini ? styles.collapsed : ""} ${isMobileOpen ? styles.mobileOpen : ""}`}
+      onClick={() => isMini && toggleSidebar?.()}
+    >
       {/* Brand */}
       <div className={styles.brand}>
         <div className={styles.brandIcon}>
@@ -90,12 +98,10 @@ export default function Sidebar({
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
         </div>
-        {!isMini && (
-          <div className={styles.brandTextWrapper}>
-            <div className={styles.brandName}>LUMIX AI</div>
-            <div className={styles.brandSub}>Career Nexus</div>
-          </div>
-        )}
+
+        <button className={styles.collapseToggle} onClick={(e) => { e.stopPropagation(); toggleSidebar?.(); }} title={isMini ? "Open sidebar" : "Close sidebar"}>
+          {isMini ? <PanelRight size={18} /> : <PanelLeft size={18} />}
+        </button>
 
         {isMobileOpen && (
           <button className={styles.mobileClose} onClick={() => setIsMobileOpen?.(false)}>
@@ -115,7 +121,10 @@ export default function Sidebar({
             <Link
               key={item.path}
               href={item.path}
-              onClick={() => setIsMobileOpen?.(false)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMobileOpen?.(false);
+              }}
             >
               <div className={`${styles.item} ${isActive ? styles.active : ""}`}>
                 <item.icon className={styles.icon} width={20} height={20} title={isMini ? translatedName : ""} />

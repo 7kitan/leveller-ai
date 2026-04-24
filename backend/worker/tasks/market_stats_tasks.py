@@ -132,3 +132,21 @@ def cleanup_expired_youtube_courses():
         logger.error(f"[CLEANUP] Failed to cleanup expired YouTube courses: {e}")
     finally:
         db.close()
+
+
+@celery_app.task(name="worker.tasks.market_stats_tasks.cleanup_system_logs")
+def cleanup_system_logs():
+    """
+    Dọn dẹp nhật ký hệ thống định kỳ dựa trên cấu hình TTL.
+    """
+    from shared.system_logger import system_logger
+    from shared.config_utils import config_manager
+    
+    # Lấy số ngày lưu trữ từ config, mặc định 30 ngày
+    ttl_days = int(config_manager.get_setting("system_log_ttl_days") or 30)
+    
+    logger.info(f"[CLEANUP] Starting system log cleanup (TTL: {ttl_days} days)...")
+    count = system_logger.cleanup_old_logs(days=ttl_days)
+    
+    if count > 0:
+        logger.info(f"[CLEANUP] Successfully removed {count} old system logs.")

@@ -19,8 +19,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   // Determine chrome visibility based on route
   const isAuthPage   = pathname.startsWith("/auth");
   const isLandingPage = pathname === "/";
-  const isAdminPage  = pathname.startsWith("/admin");
-  const showChrome  = !isAuthPage && !isLandingPage && !isAdminPage;
+  const showChrome  = !isAuthPage && !isLandingPage;
 
   // Auto-collapse on small screens (but keep expanded on large ones)
   React.useEffect(() => {
@@ -61,6 +60,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           isCollapsed={isCollapsed} 
           isMobileOpen={isMobileOpen} 
           setIsMobileOpen={setIsMobileOpen} 
+          toggleSidebar={toggleSidebar}
         />
       )}
 

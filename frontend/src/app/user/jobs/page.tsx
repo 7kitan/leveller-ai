@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import Pagination from "@/components/shared/Pagination";
 import { useLanguage } from "@/context/LanguageContext";
 import { formatDistanceToNow } from 'date-fns';
+import Modal from "@/components/shared/Modal";
 import { vi, enUS } from 'date-fns/locale';
 
 interface Job {
@@ -24,6 +25,7 @@ interface Job {
   employment_type?: string;
   source_label?: string;
   created_at?: string;
+  raw_text?: string;
 }
 
 export default function JobsPage() {
@@ -35,6 +37,9 @@ export default function JobsPage() {
   const [minSalary, setMinSalary] = useState("");
   const [role, setRole] = useState("");
   const { token } = useAuth();
+
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -73,6 +78,11 @@ export default function JobsPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     fetchJobs(1);
+  };
+
+  const openJobDetails = (job: Job) => {
+    setSelectedJob(job);
+    setShowDetailsModal(true);
   };
 
   return (
@@ -149,7 +159,7 @@ export default function JobsPage() {
             className={styles.grid}
           >
             {jobs.map((job) => (
-              <JobCard key={job.id} job={job} />
+              <JobCard key={job.id} job={job} onShowDetails={openJobDetails} />
             ))}
           </motion.div>
         ) : (
@@ -171,11 +181,94 @@ export default function JobsPage() {
         onPageChange={(p) => fetchJobs(p)}
         className="mt-12"
       />
+
+      {/* ── Job Details Modal ────────────────────────────────────────── */}
+      <Modal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        title={t("job_details_title") || "Job Details"}
+        maxWidth="800px"
+      >
+        {selectedJob && (
+          <div className={styles.modalBodyContent}>
+            <div className={styles.modalSection}>
+                <div className={styles.modalSectionLabel}>{selectedJob.company_name}</div>
+                <h2 className={styles.modalTitle}>{selectedJob.title_raw}</h2>
+            </div>
+
+            <div className={styles.modalMetaGrid}>
+                <div className={styles.modalMetaItem}>
+                    <div className={styles.modalMetaIcon}><MapPin size={20} /></div>
+                    <div className={styles.modalMetaText}>
+                        <span className={styles.modalMetaLabel}>{t("location") || "Location"}</span>
+                        <span className={styles.modalMetaValue}>{selectedJob.location_raw || t("jobs_location_nationwide")}</span>
+                    </div>
+                </div>
+                <div className={styles.modalMetaItem}>
+                    <div className={styles.modalMetaIcon}><DollarSign size={20} /></div>
+                    <div className={styles.modalMetaText}>
+                        <span className={styles.modalMetaLabel}>{t("salary") || "Salary"}</span>
+                        <span className={styles.modalMetaValue}>
+                             {(() => {
+                                const min = selectedJob.min_salary_vnd;
+                                const max = selectedJob.max_salary_vnd;
+                                if (!min && !max) return t("jobs_salary_negotiable");
+                                const format = (val: number) => `${(val / 1000000).toFixed(0)}M`;
+                                if (min && !max) return `${t("jobs_salary_from")} ${format(min)}`;
+                                if (!min && max) return `${t("jobs_salary_up_to")} ${format(max)}`;
+                                return `${format(min!)} - ${format(max!)}`;
+                             })()}
+                        </span>
+                    </div>
+                </div>
+                <div className={styles.modalMetaItem}>
+                    <div className={styles.modalMetaIcon}><Clock size={20} /></div>
+                    <div className={styles.modalMetaText}>
+                        <span className={styles.modalMetaLabel}>{t("posted_at") || "Posted At"}</span>
+                        <span className={styles.modalMetaValue}>
+                            {selectedJob.created_at ? formatDistanceToNow(new Date(selectedJob.created_at), { 
+                                locale: language === 'vi' ? vi : enUS, 
+                                addSuffix: true 
+                            }) : t("jobs_time_recently")}
+                        </span>
+                    </div>
+                </div>
+                <div className={styles.modalMetaItem}>
+                    <div className={styles.modalMetaIcon}><Briefcase size={20} /></div>
+                    <div className={styles.modalMetaText}>
+                        <span className={styles.modalMetaLabel}>{t("employment_type") || "Employment Type"}</span>
+                        <span className={styles.modalMetaValue}>{selectedJob.employment_type || t("jobs_employment_fulltime")}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className={styles.modalSection}>
+                <div className={styles.modalSectionLabel}>{t("job_description") || "Job Description"}</div>
+                <div className={styles.modalDescription}>
+                    {selectedJob.raw_text || t("no_description_available") || "No description available."}
+                </div>
+            </div>
+
+            <div className={styles.modalFooterActions}>
+                <button onClick={() => setShowDetailsModal(false)} className={styles.modalCloseBtn}>
+                    {t("close") || "Close"}
+                </button>
+                <Link
+                    href={`/user/analysis?job_id=${selectedJob.id}`}
+                    className={styles.modalAnalyzeBtn}
+                    onClick={() => setShowDetailsModal(false)}
+                >
+                    {t("jobs_run_analysis")} <Sparkles size={16} />
+                </Link>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
 
-function JobCard({ job }: { job: Job }) {
+function JobCard({ job, onShowDetails }: { job: Job; onShowDetails: (j: Job) => void }) {
   const { t, language } = useLanguage();
   
   const formatSalary = (min?: number, max?: number) => {
@@ -257,12 +350,21 @@ function JobCard({ job }: { job: Job }) {
           </div>
       </div>
       
-      <Link
-        href={`/user/analysis?job_id=${job.id}`}
-        className={styles.actionBtn}
-      >
-        {t("jobs_run_analysis")} <Sparkles size={14} style={{ marginLeft: '8px' }} />
-      </Link>
+      <div className={styles.cardFooter}>
+        <button 
+          onClick={() => onShowDetails(job)}
+          className={styles.detailsBtn}
+          title={t("view_details")}
+        >
+          <Info size={18} />
+        </button>
+        <Link
+          href={`/user/analysis?job_id=${job.id}`}
+          className={styles.actionBtn}
+        >
+          {t("jobs_run_analysis")} <Sparkles size={14} />
+        </Link>
+      </div>
     </motion.div>
   );
 }

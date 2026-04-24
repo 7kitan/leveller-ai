@@ -2,7 +2,7 @@
 @reference "../../app/globals.css";
 
 .sidebar {
-  @apply fixed left-0 top-0 h-screen w-72 flex flex-col z-50 transition-all duration-500 overflow-hidden;
+  @apply fixed left-0 top-0 h-screen w-72 flex flex-col z-50 transition-all duration-500 ease-in-out overflow-hidden;
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(25px);
   border-right: 1px solid rgba(0, 0, 0, 0.05);
@@ -11,6 +11,7 @@
 @media (max-width: 1024px) {
   .sidebar { 
     transform: translateX(-100%); 
+    z-index: 1100;
   }
 }
 
@@ -20,6 +21,7 @@
 
 .collapsed {
   width: 80px !important;
+  cursor: pointer;
 }
 
 [data-theme="dark"] .sidebar {
@@ -28,7 +30,51 @@
 }
 
 .brand {
-  @apply p-8 flex items-center gap-4 relative transition-all duration-500;
+  @apply flex items-center gap-4 relative transition-all duration-500;
+  padding: 0 1rem;
+  height: 48px;
+}
+
+
+.collapseToggle {
+  @apply h-8 w-8 rounded-lg flex items-center justify-center transition-all bg-black/5 text-black/40 hover:bg-black/10 hover:text-black;
+  margin-left: auto;
+}
+
+.collapsed .collapseToggle {
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  z-index: 2;
+  @apply bg-black/10 text-black;
+}
+
+[data-theme="dark"] .collapsed .collapseToggle {
+  @apply bg-white/10 text-white;
+}
+
+.collapsed .brand:hover .collapseToggle {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.collapsed .brand:hover .brandIcon {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+[data-theme="dark"] .collapseToggle {
+  @apply bg-white/5 text-white/40 hover:bg-white/10 hover:text-white;
+}
+
+@media (max-width: 1024px) {
+  .collapseToggle {
+    display: none !important;
+  }
 }
 
 .collapsed .brand {
@@ -36,11 +82,11 @@
 }
 
 .brandIcon {
-  @apply h-11 w-11 rounded-xl flex items-center justify-center border transition-all;
+  @apply h-8 w-8 rounded-lg flex items-center justify-center border transition-all;
   background: #fff;
   color: #000;
   border-color: rgba(0, 0, 0, 0.1);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
 }
 
@@ -51,15 +97,12 @@
 }
 
 .mobileClose {
-  @apply absolute right-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-lg flex items-center justify-center transition-all bg-black/5 text-black/40;
+  @apply h-9 w-9 rounded-lg flex items-center justify-center transition-all bg-black/5 text-black/40 hover:bg-red-500/10 hover:text-red-500;
+  margin-left: auto;
 }
 
 [data-theme="dark"] .mobileClose {
   @apply bg-white/5 text-white/40;
-}
-
-.mobileClose:hover {
-  @apply bg-red-500/10 text-red-500;
 }
 
 @media (min-width: 1025px) {
@@ -92,7 +135,7 @@
 }
 
 .nav {
-  @apply px-4 space-y-1 flex-1 transition-all;
+  @apply px-4 space-y-1 flex-1 transition-all mt-2;
 }
 
 .collapsed .nav {

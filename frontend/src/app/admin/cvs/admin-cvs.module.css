@@ -166,8 +166,11 @@
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 60vh;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+  position: relative;
 }
 
 .table {
@@ -177,6 +180,10 @@
 
 .tableHeader {
   background-color: rgba(0, 0, 0, 0.02);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
 }
 
 .th {

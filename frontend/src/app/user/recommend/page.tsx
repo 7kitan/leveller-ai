@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import AuthGuard from "@/components/auth/AuthGuard";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -205,7 +204,6 @@ const UserRecommendPage = () => {
   /* ── Error state ──────────────────────────────────────────────────────── */
   if (error && !gapResult) {
     return (
-      <AuthGuard>
         <div className={styles.pageRoot}>
           <div className={styles.header}>
             <button onClick={() => router.push("/user/jobs")} className={styles.backLink}>
@@ -228,7 +226,6 @@ const UserRecommendPage = () => {
             </button>
           </div>
         </div>
-      </AuthGuard>
     );
   }
 
@@ -262,8 +259,7 @@ const UserRecommendPage = () => {
   ] as const;
 
   return (
-    <AuthGuard>
-      <div className={styles.pageRoot}>
+    <div className={styles.pageRoot}>
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <div className={styles.header}>
@@ -710,7 +706,6 @@ const UserRecommendPage = () => {
           </p>
         </div>
       </div>
-    </AuthGuard>
   );
 };
 

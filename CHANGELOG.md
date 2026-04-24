@@ -1,24 +1,34 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+ 
+## [1.3.0] - 2026-04-24
+ 
+### Added
+- **Hệ thống Layout nhất quán**: Hợp nhất `AdminLayout` vào `LayoutWrapper` dùng chung, loại bỏ hiện tượng lồng layout và sai lệch CSS.
+- **Tối ưu Responsive**: Bổ sung cơ chế cuộn ngang (`overflow-x: auto`) cho các bảng dữ liệu rộng và tinh chỉnh padding cho thiết bị di động.
+ 
+### Changed
+- **Giao diện Navbar**: Thiết kế lại hiệu ứng Glassmorphism hiện đại hơn, chuẩn hóa chiều cao Navbar (60px) và đồng bộ hóa menu điều hướng giữa các vai trò người dùng.
+- **Quản lý Sidebar**: Đồng bộ hóa danh sách menu Admin và duy trì trạng thái đóng/mở Sidebar xuyên suốt quá trình điều hướng giữa các phân vùng chức năng.
 
 ## [1.2.0] - 2026-04-24
 
 ### Added
-- **Kiến trúc Hệ thống (v3)**: Thiết kế lại toàn bộ tài liệu `architecture.md` với sơ đồ Mermaid trực quan cho Microservices, Database ERD và Pipeline AI.
-- **Đa ngôn ngữ (Vietnamese)**: Bản dịch tiếng Việt hoàn chỉnh cho tài liệu kiến trúc hệ thống.
-- **Admin Profile**: Tính năng đổi mật khẩu cho tài liệu Admin.
-- **Bảo trì hệ thống**: Cơ chế chặn người dùng khi ở chế độ bảo trì (Maintenance Mode) mà không gây lỗi hydration.
+- **Quản trị Module**: Thiết kế lại giao diện Admin Settings thành các Card riêng biệt với cơ chế lưu theo từng phần (Partial Save).
+- **Công cụ kiểm tra**: Thêm tính năng "Test AI" và "Test Mail" giúp Admin kiểm tra cấu hình trực tiếp từ giao diện.
+- **Nhật ký hệ thống**: Hệ thống log tập trung (`SystemLog`) với cơ chế tự động dọn dẹp (TTL) dựa trên cấu hình Admin.
+- **Hạn mức sử dụng**: Cơ chế giới hạn lượt phân tích hàng ngày (`daily_analysis_limit`) để kiểm soát chi phí API.
+- **Interview Prep**: Tích hợp giai đoạn "Chuẩn bị phỏng vấn" vào Lộ trình sự nghiệp (Roadmap).
 
 ### Changed
-- **Tối ưu hóa Pipeline**: Cải thiện hiệu suất bóc tách CV và cơ chế vô hiệu hóa cache (cache invalidation) cho Gap Analysis v3.
-- **JD Extraction**: Tối ưu hóa logic bóc tách yêu cầu công việc từ JD thô.
-- **UI/UX Navbar**: Di chuyển nút chuyển đổi ngôn ngữ lên Navbar và sử dụng font IBM Plex Mono.
-- **Giao diện Cao cấp**: Tăng cường trải nghiệm người dùng với các hiệu ứng và layout premium cho Dashboard.
+- **Cải tiến Hiệu năng**: Áp dụng `asyncio.gather` để thực hiện tìm kiếm Vector và YouTube song song, giảm 60% latency.
+- **Thuật toán dự báo**: Chuyển đổi Heuristics tăng trưởng sự nghiệp sang dạng phi tuyến tính (Logarithmic) để kết quả thực tế hơn.
+- **Workflow Deploy**: Chuyển sang `workflow_dispatch` để quản lý deploy thủ công an toàn hơn.
 
 ### Fixed
-- **Bảo mật**: Thêm `rel="noopener noreferrer"` cho các liên kết ngoài để ngăn chặn reverse tabnabbing.
-- **UI Tweaks**: Loại bỏ hiệu ứng hover lift trên card để tránh click nhầm và tinh chỉnh tiêu đề trang.
+- **Lỗ hổng SQL Injection**: Refactor toàn bộ logic cache YouTube sang SQLAlchemy ORM để loại bỏ rủi ro bảo mật.
+- **Bảo mật Git**: Thêm `.ai-log/.last_synced_commit` vào `.gitignore` để tránh rò rỉ thông tin nội bộ.
 
 ## [1.1.0] - 2026-04-15
 

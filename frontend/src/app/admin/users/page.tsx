@@ -16,6 +16,8 @@ import {
 import { format } from "date-fns";
 import toast from "react-hot-toast";
 import Pagination from "@/components/shared/Pagination";
+import Portal from "@/components/shared/Portal";
+import Modal from "@/components/shared/Modal";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import AuthGuard from "@/components/auth/AuthGuard";
@@ -29,6 +31,9 @@ interface AdminUser {
   full_name: string | null;
   is_admin: boolean;
   is_active: boolean;
+  is_flagged: boolean;
+  daily_token_limit: number;
+  today_usage: number;
   created_at: string | null;
 }
 
@@ -95,7 +100,14 @@ const AdminUsersPage = () => {
 
   const handleOpenCreate = () => {
     setModalMode("create");
-    setCurrentUser({ email: "", full_name: "", is_admin: false, is_active: true });
+    setCurrentUser({ 
+      email: "", 
+      full_name: "", 
+      is_admin: false, 
+      is_active: true,
+      is_flagged: false,
+      daily_token_limit: 0
+    });
     setPassword("");
     setShowModal(true);
   };
@@ -129,6 +141,8 @@ const AdminUsersPage = () => {
         full_name: currentUser.full_name,
         is_admin: currentUser.is_admin,
         is_active: currentUser.is_active,
+        is_flagged: currentUser.is_flagged,
+        daily_token_limit: currentUser.daily_token_limit,
       };
       
       if (password) payload.password = password;
@@ -237,6 +251,7 @@ const AdminUsersPage = () => {
               <tr className={styles.tableHeader}>
                 <th className={styles.th}>{t("admin_users_table_user")}</th>
                 <th className={styles.th}>{t("admin_users_table_role")}</th>
+                <th className={styles.th}>Usage (Today)</th>
                 <th className={styles.th}>{t("admin_users_table_status")}</th>
                 <th className={styles.th}>{t("admin_users_table_date")}</th>
                 <th className={cn(styles.th, styles.thRight)}>{t("admin_users_table_actions")}</th>
@@ -270,7 +285,10 @@ const AdminUsersPage = () => {
                           {(user.full_name?.[0] || user.email[0]).toUpperCase()}
                         </div>
                         <div>
-                          <div className={styles.userName}>{user.full_name || t("fail")}</div>
+                          <div className={styles.userName}>
+                            {user.full_name || t("fail")}
+                            {user.is_flagged && <AlertTriangle size={14} className="inline ml-2 text-amber-500" title="Flagged for review" />}
+                          </div>
                           <div className={styles.userEmail}>{user.email}</div>
                         </div>
                       </div>
@@ -282,6 +300,22 @@ const AdminUsersPage = () => {
                       )}>
                         {user.is_admin ? t("admin_users_role_admin") : t("admin_users_role_user")}
                       </span>
+                    </td>
+                    <td className={styles.td}>
+                       <div className={styles.usageContainer}>
+                          <div className={styles.usageText}>
+                            {user.today_usage.toLocaleString()} / {user.daily_token_limit > 0 ? user.daily_token_limit.toLocaleString() : "Global"}
+                          </div>
+                          <div className={styles.usageBar}>
+                             <div 
+                                className={styles.usageFill} 
+                                style={{ 
+                                  width: `${Math.min(100, (user.today_usage / (user.daily_token_limit || 50000)) * 100)}%`,
+                                  backgroundColor: (user.today_usage / (user.daily_token_limit || 50000)) > 0.8 ? '#f43f5e' : '#10b981'
+                                }} 
+                             />
+                          </div>
+                       </div>
                     </td>
                     <td className={styles.td}>
                       <span className={cn(
@@ -345,125 +379,119 @@ const AdminUsersPage = () => {
 
         <Pagination 
           currentPage={currentPage}
-          totalPages={totalPages}
+        totalPages={totalPages}
           onPageChange={(page) => fetchUsers(page)}
         />
 
-        {/* User Modal (Create/Edit) */}
-        <AnimatePresence>
-          {showModal && (
-            <div className={styles.modalOverlay}>
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className={styles.modalContent}
-              >
-                <div className={styles.modalHeader}>
-                    <h3 className={styles.modalTitle}>
-                        <UsersIcon size={24} /> 
-                        <span>{modalMode === "create" ? t("admin_users_create_modal_title") : t("admin_users_edit_modal_title")}</span>
-                    </h3>
-                </div>
-                <form onSubmit={handleSubmit} className={styles.modalForm}>
-                    <div className={styles.formFieldGroup}>
-                        <div className={styles.formField}>
-                            <label className={styles.inputLabel}>{t("admin_users_email_label")}</label>
-                            <input 
-                                required
-                                type="email"
-                                value={currentUser.email || ""}
-                                onChange={(e) => setCurrentUser({...currentUser, email: e.target.value})}
-                                className={styles.modalInput}
-                            />
-                        </div>
-                        <div className={styles.formField}>
-                            <label className={styles.inputLabel}>{t("admin_users_name_label")}</label>
-                            <input 
-                                type="text"
-                                value={currentUser.full_name || ""}
-                                onChange={(e) => setCurrentUser({...currentUser, full_name: e.target.value})}
-                                className={styles.modalInput}
-                            />
-                        </div>
-                        <div className={styles.formField}>
-                            <label className={styles.inputLabel}>{t("admin_users_password_label")} {modalMode === "edit" && t("admin_users_password_hint")}</label>
-                            <input 
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className={styles.modalInput}
-                            />
-                        </div>
-                        <div className={styles.checkboxGroup}>
-                            <div className={styles.checkboxLabelArea}>
-                                <span className={styles.checkboxTitle}>{t("admin_users_is_admin_label")}</span>
-                                <span className={styles.checkboxDesc}>{t("admin_users_is_admin_desc")}</span>
-                            </div>
-                            <input 
-                                type="checkbox"
-                                checked={currentUser.is_admin || false}
-                                onChange={(e) => setCurrentUser({...currentUser, is_admin: e.target.checked})}
-                                className={styles.checkboxInput}
-                            />
-                        </div>
-                        <div className={styles.checkboxGroup}>
-                            <div className={styles.checkboxLabelArea}>
-                                <span className={styles.checkboxTitle}>{t("admin_users_is_active_label")}</span>
-                                <span className={styles.checkboxDesc}>{t("admin_users_is_active_desc")}</span>
-                            </div>
-                            <input 
-                                type="checkbox"
-                                checked={currentUser.is_active || false}
-                                onChange={(e) => setCurrentUser({...currentUser, is_active: e.target.checked})}
-                                className={styles.checkboxInput}
-                            />
-                        </div>
-                    </div>
+        <Modal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          title={
+            <h3 className={styles.modalTitle}>
+              <UsersIcon size={24} /> 
+              <span>{modalMode === "create" ? t("admin_users_create_modal_title") : t("admin_users_edit_modal_title")}</span>
+            </h3>
+          }
+        >
+          <form onSubmit={handleSubmit} className={styles.modalForm}>
+              <div className={styles.formFieldGroup}>
+                  <div className={styles.formField}>
+                      <label className={styles.inputLabel}>{t("admin_users_email_label")}</label>
+                      <input 
+                          required
+                          type="email"
+                          value={currentUser.email || ""}
+                          onChange={(e) => setCurrentUser({...currentUser, email: e.target.value})}
+                          className={styles.modalInput}
+                      />
+                  </div>
+                  <div className={styles.formField}>
+                      <label className={styles.inputLabel}>{t("admin_users_name_label")}</label>
+                      <input 
+                          type="text"
+                          value={currentUser.full_name || ""}
+                          onChange={(e) => setCurrentUser({...currentUser, full_name: e.target.value})}
+                          className={styles.modalInput}
+                      />
+                  </div>
+                  <div className={styles.formField}>
+                      <label className={styles.inputLabel}>{t("admin_users_password_label")} {modalMode === "edit" && t("admin_users_password_hint")}</label>
+                      <input 
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className={styles.modalInput}
+                      />
+                  </div>
+                  <div className={styles.checkboxGroup}>
+                      <div className={styles.checkboxLabelArea}>
+                          <span className={styles.checkboxTitle}>{t("admin_users_is_admin_label")}</span>
+                          <span className={styles.checkboxDesc}>{t("admin_users_is_admin_desc")}</span>
+                      </div>
+                      <input 
+                          type="checkbox"
+                          checked={currentUser.is_admin || false}
+                          onChange={(e) => setCurrentUser({...currentUser, is_admin: e.target.checked})}
+                          className={styles.checkboxInput}
+                      />
+                  </div>
+                   <div className={styles.checkboxGroup}>
+                      <div className={styles.checkboxLabelArea}>
+                          <span className={styles.checkboxTitle}>Flagged for Review</span>
+                          <span className={styles.checkboxDesc}>Mark user as suspicious</span>
+                      </div>
+                      <input 
+                          type="checkbox"
+                          checked={currentUser.is_flagged || false}
+                          onChange={(e) => setCurrentUser({...currentUser, is_flagged: e.target.checked})}
+                          className={styles.checkboxInput}
+                      />
+                  </div>
+                  <div className={styles.formField}>
+                      <label className={styles.inputLabel}>Daily Token Limit (0 = Default)</label>
+                      <input 
+                          type="number"
+                          value={currentUser.daily_token_limit || 0}
+                          onChange={(e) => setCurrentUser({...currentUser, daily_token_limit: parseInt(e.target.value)})}
+                          className={styles.modalInput}
+                      />
+                  </div>
+              </div>
 
-                    <div className={styles.formActions}>
-                        <button type="button" onClick={() => setShowModal(false)} className={styles.cancelBtn}>
-                          {t("cancel")}
-                        </button>
-                        <button type="submit" disabled={submitting} className={styles.submitBtn}>
-                            {submitting ? t("processing") : t("admin_users_save_btn")}
-                        </button>
-                    </div>
-                </form>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+              <div className={styles.formActions}>
+                  <button type="button" onClick={() => setShowModal(false)} className={styles.cancelBtn}>
+                    {t("cancel")}
+                  </button>
+                  <button type="submit" disabled={submitting} className={styles.submitBtn}>
+                      {submitting ? t("processing") : t("admin_users_save_btn")}
+                  </button>
+              </div>
+          </form>
+        </Modal>
 
-        {/* Delete Confirm */}
-        <AnimatePresence>
-          {showDeleteConfirm && (
-            <div className={styles.modalOverlay}>
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className={styles.deleteModalContent}
-                >
-                    <div className={styles.deleteIconBox}>
-                        <AlertTriangle size={32} className={styles.deleteIcon} />
-                    </div>
-                    <div>
-                      <h3 className={styles.deleteConfirmTitle}>{t("admin_users_delete_title")}</h3>
-                      <p className={styles.deleteConfirmDesc}>{t("admin_users_table_user")} <span className={styles.deleteConfirmTarget}>{userToDelete?.full_name || userToDelete?.email}</span> {t("admin_users_delete_desc")}</p>
-                    </div>
-                    <div className={styles.deleteActions}>
-                        <button onClick={() => setShowDeleteConfirm(false)} className={styles.cancelDeleteBtn}>
-                          {t("cancel")}
-                        </button>
-                        <button onClick={handleDelete} className={styles.confirmDeleteBtn}>
-                          {t("admin_users_delete_confirm")}
-                        </button>
-                    </div>
-                </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+        <Modal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          maxWidth="28rem"
+        >
+          <div className={styles.deleteModalContent}>
+              <div className={styles.deleteIconBox}>
+                  <AlertTriangle size={32} className={styles.deleteIcon} />
+              </div>
+              <div>
+                <h3 className={styles.deleteConfirmTitle}>{t("admin_users_delete_title")}</h3>
+                <p className={styles.deleteConfirmDesc}>{t("admin_users_table_user")} <span className={styles.deleteConfirmTarget}>{userToDelete?.full_name || userToDelete?.email}</span> {t("admin_users_delete_desc")}</p>
+              </div>
+              <div className={styles.deleteActions}>
+                  <button onClick={() => setShowDeleteConfirm(false)} className={styles.cancelDeleteBtn}>
+                    {t("cancel")}
+                  </button>
+                  <button onClick={handleDelete} className={styles.confirmDeleteBtn}>
+                    {t("admin_users_delete_confirm")}
+                  </button>
+              </div>
+          </div>
+        </Modal>
       </div>
     </AuthGuard>
   );
