@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -164,6 +165,7 @@ const UserRecommendPage = () => {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"gaps" | "courses" | "roadmap" | "videos">("gaps");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [processMessage, setProcessMessage] = useState("");
 
   const searchParams = useSearchParams();
@@ -264,16 +266,21 @@ const UserRecommendPage = () => {
       .catch((e: any) => {
         console.error("[RECOMMEND] API Error:", e);
         setError(t("error_connection_failed"));
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, [token]);
 
   const handleRefresh = async () => {
+    if (!token) return;
     setRefreshing(true);
     try {
       const resp = await api.get("/api/analysis/user/latest");
       if (resp.data) {
+        console.log("[RECOMMEND] Refreshed data:", resp.data);
         setGapResult(resp.data);
-        sessionStorage.setItem("gap_result", JSON.stringify(resp.data));
+        sessionStorage.setItem("gap_analysis_result", JSON.stringify(resp.data));
       }
     } catch (e) {
       console.error("[RECOMMEND] Refresh failed:", e);
@@ -388,8 +395,12 @@ const UserRecommendPage = () => {
           <Save size={16} />
           {t("update_cv")}
         </button>
-        <button onClick={fetchLatest} className={styles.refreshBtn}>
-          <RefreshCcw size={16} />
+        <button 
+          onClick={handleRefresh} 
+          className={cn(styles.refreshBtn, refreshing && styles.refreshBtnDisabled)}
+          disabled={refreshing}
+        >
+          {refreshing ? <Loader2 size={16} className={styles.spinIcon} /> : <RefreshCcw size={16} />}
           {t("refresh")}
         </button>
         <button 
