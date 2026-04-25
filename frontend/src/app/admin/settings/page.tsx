@@ -1089,7 +1089,7 @@ const AdminSettingsPage = () => {
                         onClick={async () => {
                             setIsSaving(true);
                             try {
-                              await axios.post("/api/admin/cache/clear", {}, {
+                              await axios.post("/admin/cache/clear", {}, {
                                 headers: { 
                                   Authorization: `Bearer ${token}`,
                                   "X-Is-Admin": "true"
@@ -1111,7 +1111,7 @@ const AdminSettingsPage = () => {
                         onClick={async () => {
                             setIsSaving(true);
                             try {
-                              await axios.post("/api/admin/vector/sync", {}, {
+                              await axios.post("/admin/vector/sync", {}, {
                                 headers: { 
                                   Authorization: `Bearer ${token}`,
                                   "X-Is-Admin": "true"
@@ -1191,3 +1191,4 @@ const AdminSettingsPage = () => {
 };
 
 export default AdminSettingsPage;
+

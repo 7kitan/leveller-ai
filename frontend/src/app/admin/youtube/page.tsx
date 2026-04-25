@@ -18,13 +18,13 @@ import toast from "react-hot-toast";
 import Pagination from "@/components/shared/Pagination";
 import Modal from "@/components/shared/Modal";
 import { useAuth } from "@/context/AuthContext";
+import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import AuthGuard from "@/components/auth/AuthGuard";
 import styles from "./youtube-admin.module.css";
 import { useLanguage } from "@/context/LanguageContext";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
-import axios from "axios";
 
 interface YouTubeCourse {
   id: string;
@@ -66,12 +66,10 @@ const AdminYouTubePage = () => {
     try {
       setLoading(true);
       const offset = (page - 1) * pageSize;
-      const url = `/api/admin/youtube?limit=${pageSize}&offset=${offset}${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ""}`;
+      const url = `/admin/youtube?limit=${pageSize}&offset=${offset}${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ""}`;
       
-      const res = await axios.get(url, {
-        headers: { 
-          "Authorization": `Bearer ${token}`
-        }
+      const res = await api.get(url, {
+        headers: { "X-Is-Admin": "true" }
       });
       
       setCourses(res.data || []);
@@ -114,10 +112,8 @@ const AdminYouTubePage = () => {
     setSubmitting(true);
 
     try {
-      const res = await axios.delete(`/api/admin/youtube/${videoToDelete.video_id}`, {
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
+      const res = await api.delete(`/admin/youtube/${videoToDelete.video_id}`, {
+        headers: { "X-Is-Admin": "true" }
       });
 
       if (res.status === 200) {
@@ -136,8 +132,8 @@ const AdminYouTubePage = () => {
     if (!token) return;
     try {
       setSubmitting(true);
-      const res = await axios.post("/api/admin/youtube/verify-all", {}, {
-        headers: { "Authorization": `Bearer ${token}` }
+      const res = await api.post("/admin/youtube/verify-all", {}, {
+        headers: { "X-Is-Admin": "true" }
       });
       toast.success(t("admin_youtube_verify_success"));
     } catch (err) {
@@ -455,3 +451,5 @@ const AdminYouTubePage = () => {
 };
 
 export default AdminYouTubePage;
+
+

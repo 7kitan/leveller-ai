@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import api from "@/lib/api";
 import { Loader2, AlertCircle } from "lucide-react";
 import LandingNavbar from "@/components/landing/LandingNavbar";
 import { useLanguage } from "@/context/LanguageContext";
@@ -34,7 +34,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
   React.useEffect(() => {
     const checkCaptchaStatus = async () => {
       try {
-        const res = await axios.get("/api/auth/captcha-status");
+        const res = await api.get("/auth/captcha-status");
         if (res.data.requires_captcha) {
           setShowCaptcha(true);
         }
@@ -51,11 +51,11 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
     setError("");
 
     try {
-      const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+      const endpoint = isLogin ? "/auth/login" : "/auth/register";
       const payload = isLogin 
         ? { email, password, captcha_token: captchaToken } 
         : { email, password, full_name: fullName, captcha_token: captchaToken };
-      const res = await axios.post(endpoint, payload);
+      const res = await api.post(endpoint, payload);
       
       const { access_token, user } = res.data;
       
@@ -188,3 +188,4 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
     </div>
   );
 }
+

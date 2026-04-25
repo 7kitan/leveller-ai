@@ -186,7 +186,7 @@ const UserCVPage = () => {
 
   const fetchHistory = async () => {
     try {
-      const resp = await api.get("/api/cv/list");
+      const resp = await api.get("/cv/list");
       setHistory(resp.data);
     } catch (err) {
       console.error("Fetch history error:", err);
@@ -255,7 +255,7 @@ const UserCVPage = () => {
     formData.append("file", file);
 
     try {
-      const resp = await api.post("/api/cv/upload", formData, {
+      const resp = await api.post("/cv/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -274,7 +274,7 @@ const UserCVPage = () => {
 
       if (uploadStatus === "completed") {
         try {
-          const detailResp = await api.get(`/api/cv/${cv_id}`);
+          const detailResp = await api.get(`/cv/${cv_id}`);
           setParsedData(detailResp.data);
           setStatus("viewing");
           fetchHistory();
@@ -300,7 +300,7 @@ const UserCVPage = () => {
     setStatus("processing");
     const interval = setInterval(async () => {
       try {
-        const resp = await api.get(`/api/cv/status/${parserId}`);
+        const resp = await api.get(`/cv/status/${parserId}`);
         const { status: taskStatus, result } = resp.data;
 
         if (taskStatus === "completed") {
@@ -308,7 +308,7 @@ const UserCVPage = () => {
           if (result) {
             setParsedData(result);
           } else {
-            const detailResp = await api.get(`/api/cv/${cvId}`);
+            const detailResp = await api.get(`/cv/${cvId}`);
             setParsedData(detailResp.data);
           }
           setStatus("viewing");
@@ -330,7 +330,7 @@ const UserCVPage = () => {
     setError(null);
     setSelectedHistoryId(cvId);
     try {
-      const resp = await api.get(`/api/cv/${cvId}`);
+      const resp = await api.get(`/cv/${cvId}`);
       setParsedData(resp.data);
       setStatus("viewing");
     } catch (err) {
@@ -348,7 +348,7 @@ const UserCVPage = () => {
     setError(null);
     setSelectedHistoryId(item.id);
     try {
-      const resp = await api.get(`/api/cv/${item.id}`);
+      const resp = await api.get(`/cv/${item.id}`);
       setParsedData(resp.data);
       setStatus("viewing");
     } catch (err) {
@@ -514,7 +514,7 @@ const UserCVPage = () => {
         certifications: parsedData?.certifications,
         seniority: parsedData?.seniority || "Unknown"
       };
-      await api.post("/api/cv/finalize", payload);
+      await api.post("/cv/finalize", payload);
       if (parsedData) {
         setParsedData({ ...parsedData, is_verified: true });
       }
@@ -1217,3 +1217,5 @@ const UserCVPage = () => {
 };
 
 export default UserCVPage;
+
+

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
-import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types/roles";
 import {
@@ -55,11 +55,11 @@ const UserDashboard = () => {
     if (!token) return;
     const fetchData = async () => {
       try {
-        const [marketRes, latestRes] = await Promise.all([
-          axios.get(`/api/analysis/market-fit?period=${period}`, { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get("/api/analysis/user/latest", { headers: { Authorization: `Bearer ${token}` } }),
+        const [marketFitRes, latestRes] = await Promise.all([
+          api.get(`/analysis/market-fit?period=${period}`),
+          api.get("/analysis/user/latest"),
         ]);
-        setMarketData(marketRes.data);
+        setMarketData(marketFitRes.data);
         setLatestAnalysis(latestRes.data);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
@@ -438,3 +438,5 @@ function severityColor(sev: string) {
 }
 
 export default UserDashboard;
+
+

@@ -147,7 +147,7 @@ const AdminCoursesPage = () => {
     setIsLoading(true);
     try {
       const offset = (page - 1) * pageSize;
-      const resp = await api.get("/api/recommend/admin/courses", {
+      const resp = await api.get("/recommend/admin/courses", {
         params: {
           limit: pageSize,
           offset: offset,
@@ -199,12 +199,12 @@ const AdminCoursesPage = () => {
       };
 
       if (editingCourse) {
-        await api.patch(`/api/recommend/admin/courses/${editingCourse.id}`, payload, {
+        await api.patch(`/recommend/admin/courses/${editingCourse.id}`, payload, {
           headers: { "X-Is-Admin": "true" }
         });
         showNotification("Đã cập nhật khóa học");
       } else {
-        await api.post("/api/recommend/admin/courses", payload, {
+        await api.post("/recommend/admin/courses", payload, {
           headers: { "X-Is-Admin": "true" }
         });
         showNotification("Đã tạo khóa học mới");
@@ -219,7 +219,7 @@ const AdminCoursesPage = () => {
   const handleDelete = async (id: string) => {
     if (!confirm("Xóa khóa học này?")) return;
     try {
-      await api.delete(`/api/recommend/admin/courses/${id}`, {
+      await api.delete(`/recommend/admin/courses/${id}`, {
         headers: { "X-Is-Admin": "true" }
       });
       showNotification("Đã xóa khóa học");
@@ -619,3 +619,5 @@ const AdminCoursesPage = () => {
 };
 
 export default AdminCoursesPage;
+
+

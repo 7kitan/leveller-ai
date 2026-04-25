@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
-import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { 
   Users, 
@@ -39,8 +39,8 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get("/api/analysis/admin/stats", {
-          headers: { Authorization: `Bearer ${token}` }
+        const res = await api.get("/analysis/admin/stats", {
+          headers: { "X-Is-Admin": "true" }
         });
         setStats(res.data);
       } catch (err) {
@@ -213,3 +213,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import axios from "axios";
+import api from "@/lib/api";
 import { Loader2, AlertCircle, CheckCircle, ArrowLeft, Lock } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -43,7 +43,7 @@ export default function ResetPasswordPage() {
     setError("");
 
     try {
-      await axios.post("/api/auth/reset-password", { 
+      await api.post("/auth/reset-password", { 
         token, 
         new_password: password 
       });
@@ -139,3 +139,4 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
+

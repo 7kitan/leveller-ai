@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { 
@@ -100,7 +101,7 @@ const JobImportPage = () => {
 
     newResults.forEach(async (res) => {
       try {
-        const resp = await axios.post("/api/jd/admin/crawl/fetch", { url: res.url }, {
+        const resp = await api.post("/jd/admin/crawl/fetch", { url: res.url }, {
           headers: { 
             Authorization: `Bearer ${token}`,
             "X-Is-Admin": "true"
@@ -142,7 +143,7 @@ const JobImportPage = () => {
 
     updateResult(url, { isSavingIndividual: true });
     try {
-      await axios.post("/api/jd/admin/bulk", { jobs: [result.data] }, {
+      await api.post("/jd/admin/bulk", { jobs: [result.data] }, {
         headers: { 
           Authorization: `Bearer ${token}`,
           "X-Is-Admin": "true"
@@ -164,7 +165,7 @@ const JobImportPage = () => {
 
     setIsSavingAll(true);
     try {
-      await axios.post("/api/jd/admin/bulk", {
+      await api.post("/jd/admin/bulk", {
         jobs: validResults.map(r => r.data)
       }, {
         headers: { 
@@ -472,3 +473,4 @@ const JobImportPage = () => {
 };
 
 export default JobImportPage;
+

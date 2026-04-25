@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -272,8 +272,7 @@ export default function StudentCoursesPage() {
     const fetchCourses = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("/api/recommend/courses", {
-          headers: { Authorization: `Bearer ${token}` },
+        const res = await api.get("/recommend/courses", {
           params: { limit: 100 },
         });
         setCourses(Array.isArray(res.data) ? res.data : res.data.courses ?? []);
@@ -438,3 +437,4 @@ export default function StudentCoursesPage() {
     </div>
   );
 }
+

@@ -127,7 +127,7 @@ function AnalysisPageContent() {
         });
       } else {
         // Fetch job info if title is missing
-        api.get(`/api/jd/${initialJobId}`)
+        api.get(`/jd/${initialJobId}`)
           .then(r => {
             setSelectedJob(r.data);
           })
@@ -153,7 +153,7 @@ function AnalysisPageContent() {
   useEffect(() => {
     if (!token) return;
     api
-      .get("/api/cv/list")
+      .get("/cv/list")
       .then((r) => {
         const done = (r.data as CVOption[]).filter((c) => c.status === "completed");
         setCvs(done);
@@ -173,7 +173,7 @@ function AnalysisPageContent() {
     if (!token) return;
     setSearchingJobs(true);
     api
-      .get("/api/jd/search", {
+      .get("/jd/search", {
         params: { q: q || undefined, limit: 10 },
       })
       .then((r) => setJobResults(r.data.items as JobOption[]))
@@ -232,7 +232,7 @@ function AnalysisPageContent() {
         payload.job_id = selectedJobId;
       }
 
-      const resp = await api.post("/api/analysis/gap", payload);
+      const resp = await api.post("/analysis/gap", payload);
 
       const tid = resp.data.task_id as string;
       setTaskId(tid);
@@ -250,7 +250,7 @@ function AnalysisPageContent() {
   const pollStatus = (tid: string) => {
     const interval = setInterval(async () => {
       try {
-        const resp = await api.get(`/api/analysis/status/${tid}`);
+        const resp = await api.get(`/analysis/status/${tid}`);
         const { status, result } = resp.data as { status: string; result?: unknown };
         console.log(`[ANALYSIS] poll — status=${status}`);
 
@@ -342,7 +342,7 @@ function AnalysisPageContent() {
   const handleCancel = async () => {
     if (!taskId || !token) return;
     try {
-      await api.delete(`/api/analysis/status/${taskId}`);
+      await api.delete(`/analysis/status/${taskId}`);
       console.log(`[ANALYSIS] Revoke request sent — task_id=${taskId}`);
       setError(t("analysis_cancelled"));
       setPhase("setup");
@@ -356,7 +356,7 @@ function AnalysisPageContent() {
   const handleNotify = async () => {
     if (!taskId || !token) return;
     try {
-      await api.post(`/api/analysis/notify/${taskId}`, {});
+      await api.post(`/analysis/notify/${taskId}`, {});
       setNotified(true);
     } catch (err) {
       console.error("[ANALYSIS] Notify failed:", err);
@@ -716,3 +716,5 @@ export default function AnalysisPage() {
     </Suspense>
   );
 }
+
+

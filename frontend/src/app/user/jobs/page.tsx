@@ -64,7 +64,7 @@ export default function JobsPage() {
     setLoading(true);
     try {
       const offset = (page - 1) * pageSize;
-      const res = await api.get("/api/jd/search", {
+      const res = await api.get("/jd/search", {
         params: {
           q: searchTerm || undefined,
           location: location || undefined,
@@ -422,3 +422,4 @@ function JobCard({ job, onShowDetails }: { job: Job; onShowDetails: (j: Job) => 
     </motion.div>
   );
 }
+

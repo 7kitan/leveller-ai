@@ -69,7 +69,7 @@ const AdminUsersPage = () => {
     try {
       setLoading(true);
       const offset = (page - 1) * pageSize;
-      const url = `/api/auth/admin/users?limit=${pageSize}&offset=${offset}${searchTerm ? `&q=${encodeURIComponent(searchTerm)}` : ""}`;
+      const url = `/auth/admin/users?limit=${pageSize}&offset=${offset}${searchTerm ? `&q=${encodeURIComponent(searchTerm)}` : ""}`;
       
       const res = await api.get(url);
       const data = res.data;
@@ -129,8 +129,8 @@ const AdminUsersPage = () => {
 
     try {
       const url = modalMode === "create" 
-        ? "/api/auth/admin/users" 
-        : `/api/auth/admin/users/${currentUser.id}`;
+        ? "/auth/admin/users" 
+        : `/auth/admin/users/${currentUser.id}`;
       
       const method = modalMode === "create" ? "POST" : "PATCH";
       
@@ -173,7 +173,7 @@ const AdminUsersPage = () => {
     setSubmitting(true);
 
     try {
-      const res = await api.delete(`/api/auth/admin/users/${userToDelete.id}`);
+      const res = await api.delete(`/auth/admin/users/${userToDelete.id}`);
 
       if (res.status === 200 || res.status === 204) {
         toast.success(t("admin_users_delete_success"));
@@ -318,7 +318,7 @@ const AdminUsersPage = () => {
                           <button 
                             onClick={async () => {
                               if (!token) return;
-                              const res = await fetch(`/api/auth/admin/users/${user.id}`, {
+                              const res = await fetch(`/auth/admin/users/${user.id}`, {
                                 method: "PATCH",
                                 headers: {
                                   "Content-Type": "application/json",
@@ -486,3 +486,5 @@ const AdminUsersPage = () => {
 };
 
 export default AdminUsersPage;
+
+

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { 
   ArrowLeft, 
@@ -138,7 +139,7 @@ const CourseImportPage = () => {
 
     newResults.forEach(async (res) => {
       try {
-        const resp = await axios.post("/api/recommend/admin/courses/crawl", { url: res.url }, {
+        const resp = await api.post("/recommend/admin/courses/crawl", { url: res.url }, {
           headers: { 
             Authorization: `Bearer ${token}`,
             "X-Is-Admin": "true"
@@ -156,7 +157,7 @@ const CourseImportPage = () => {
   const pollStatus = (url: string, taskId: string) => {
     const interval = setInterval(async () => {
       try {
-        const resp = await axios.get(`/api/recommend/admin/courses/crawl/status/${taskId}`, {
+        const resp = await api.get(`/recommend/admin/courses/crawl/status/${taskId}`, {
           headers: { 
             Authorization: `Bearer ${token}`,
             "X-Is-Admin": "true"
@@ -226,7 +227,7 @@ const CourseImportPage = () => {
         tags: [...d.skills, d.provider].filter(Boolean)
       };
 
-      await axios.post("/api/recommend/admin/courses", payload, {
+      await api.post("/recommend/admin/courses", payload, {
         headers: { 
           Authorization: `Bearer ${token}`,
           "X-Is-Admin": "true"
@@ -271,7 +272,7 @@ const CourseImportPage = () => {
         })
       };
 
-      await axios.post("/api/recommend/admin/courses/bulk", payload, {
+      await api.post("/recommend/admin/courses/bulk", payload, {
         headers: { 
           Authorization: `Bearer ${token}`,
           "X-Is-Admin": "true"
@@ -532,3 +533,5 @@ const CourseImportPage = () => {
 };
 
 export default CourseImportPage;
+
+

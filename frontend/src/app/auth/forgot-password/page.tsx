@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import axios from "axios";
+import api from "@/lib/api";
 import { Loader2, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -31,7 +31,7 @@ export default function ForgotPasswordPage() {
     setError("");
 
     try {
-      await axios.post("/api/auth/forgot-password", { 
+      await api.post("/auth/forgot-password", { 
         email,
         captcha_token: captchaToken 
       });
@@ -127,3 +127,4 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
+

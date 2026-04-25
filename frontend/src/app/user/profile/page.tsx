@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "./user-profile.module.css";
 import { User, Lock, Mail, ShieldCheck, Save, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
-import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import PageHeader from "@/components/common/PageHeader";
@@ -35,9 +35,7 @@ export default function ProfilePage() {
     if (!token) return;
     try {
       setIsLoading(true);
-      const res = await axios.get("/api/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/auth/me");
       setProfile({
         email: res.data.email,
         full_name: res.data.full_name || "",
@@ -68,9 +66,7 @@ export default function ProfilePage() {
         updateData.password = passwords.newPassword;
       }
 
-      await axios.patch("/api/auth/profile", updateData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.patch("/auth/profile", updateData);
 
       setSuccess(t("profile_update_success"));
       setPasswords({ oldPassword: "", newPassword: "", confirmPassword: "" });
@@ -216,3 +212,4 @@ export default function ProfilePage() {
     </PageContainer>
   );
 }
+
