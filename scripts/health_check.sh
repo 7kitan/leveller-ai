@@ -11,7 +11,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-PROJECT_DIR="$HOME/projects/A20-App-078"
+PROJECT_DIR="${PROJECT_DIR:-/opt/k109}"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  Lumix AI - Health Check${NC}"

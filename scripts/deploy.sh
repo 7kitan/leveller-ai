@@ -14,8 +14,8 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Configuration
-PROJECT_DIR="$HOME/projects/A20-App-078"
-BACKUP_DIR="$HOME/backups"
+PROJECT_DIR="${PROJECT_DIR:-/opt/k109}"
+BACKUP_DIR="${BACKUP_DIR:-$HOME/backups}"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  Lumix AI - Deployment Script${NC}"

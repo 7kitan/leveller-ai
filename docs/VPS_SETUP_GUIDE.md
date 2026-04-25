@@ -197,13 +197,14 @@ sudo systemctl restart docker
 ### 3.1. Clone Repository
 
 ```bash
-# Tạo thư mục project
-mkdir -p ~/projects
-cd ~/projects
+# Tạo thư mục project (nếu chưa có)
+sudo mkdir -p /opt/k109
+sudo chown deploy:deploy /opt/k109
 
 # Clone repository
-git clone https://github.com/a20-ai-thuc-chien/A20-App-078.git
-cd A20-App-078
+cd /opt
+git clone https://github.com/a20-ai-thuc-chien/A20-App-078.git k109
+cd k109
 
 # Checkout branch demo (hoặc main)
 git checkout demo
@@ -333,7 +334,7 @@ Thêm các secrets sau:
 | `DEPLOY_HOST` | `YOUR_VPS_IP` | IP address của VPS |
 | `DEPLOY_USER` | `deploy` | Username để SSH |
 | `DEPLOY_KEY` | `<private_key_content>` | Nội dung file `~/.ssh/github_actions_deploy` |
-| `PROJECT_DIR` | `/home/deploy/projects/A20-App-078` | Đường dẫn project trên VPS |
+| `PROJECT_DIR` | `/opt/k109` | Đường dẫn project trên VPS |
 
 **Cách copy DEPLOY_KEY:**
 ```bash
@@ -360,7 +361,7 @@ ssh -i ~/.ssh/github_actions_deploy deploy@YOUR_VPS_IP
 ### 5.1. Build và Start Backend Services
 
 ```bash
-cd ~/projects/A20-App-078/backend
+cd /opt/k109/backend
 
 # Build images
 docker compose -f docker-compose.prod.yml build
@@ -434,7 +435,7 @@ curl http://localhost:8000/analysis/health
 ### 5.6. Deploy Frontend
 
 ```bash
-cd ~/projects/A20-App-078/frontend
+cd /opt/k109/frontend
 
 # Build and start
 docker compose -f docker-compose.prod.yml build
@@ -462,7 +463,7 @@ curl http://localhost:3000
 **Option 1: Sử dụng file coursera_links.txt**
 
 ```bash
-cd ~/projects/A20-App-078
+cd /opt/k109
 
 # Tạo thư mục dataset nếu chưa có
 mkdir -p dataset
@@ -504,7 +505,7 @@ vim dataset/courses.json
 **Method 1: Sử dụng Celery Worker (Recommended)**
 
 ```bash
-cd ~/projects/A20-App-078/backend
+cd /opt/k109/backend
 
 # Đảm bảo Celery workers đang chạy
 docker compose -f docker-compose.prod.yml ps | grep worker
@@ -700,7 +701,7 @@ sudo certbot renew --dry-run
 
 ```bash
 # Backend .env
-cd ~/projects/A20-App-078/backend
+cd /opt/k109/backend
 vim .env
 
 # Update:
@@ -708,17 +709,17 @@ FRONTEND_URL=https://yourdomain.com
 ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 
 # Frontend .env
-cd ~/projects/A20-App-078/frontend
+cd /opt/k109/frontend
 vim .env
 
 # Update:
 NEXT_PUBLIC_API_URL=https://api.yourdomain.com
 
 # Restart services
-cd ~/projects/A20-App-078/backend
+cd /opt/k109/backend
 docker compose -f docker-compose.prod.yml restart
 
-cd ~/projects/A20-App-078/frontend
+cd /opt/k109/frontend
 docker compose -f docker-compose.prod.yml restart
 ```
 
@@ -749,7 +750,7 @@ sudo vim /etc/logrotate.d/docker-containers
 
 ```bash
 # Create monitoring script
-vim ~/monitor.sh
+vim /opt/k109/scripts/monitor.sh
 ```
 
 ```bash
@@ -774,14 +775,14 @@ docker exec advisor_db_prod psql -U postgres -d career_advisor -c \
   "SELECT COUNT(*) as total_courses FROM courses;"
 
 echo -e "\n=== Recent Errors (Last 50 lines) ==="
-docker compose -f ~/projects/A20-App-078/backend/docker-compose.prod.yml logs --tail=50 | grep -i error
+docker compose -f /opt/k109/backend/docker-compose.prod.yml logs --tail=50 | grep -i error
 ```
 
 ```bash
-chmod +x ~/monitor.sh
+chmod +x /opt/k109/scripts/monitor.sh
 
 # Run monitoring
-~/monitor.sh
+/opt/k109/scripts/monitor.sh
 ```
 
 ### 8.3. Setup Cron Jobs
@@ -799,10 +800,10 @@ crontab -e
 0 3 * * * find ~/backups -name "db_backup_*.sql" -mtime +7 -delete
 
 # Monitor system every hour
-0 * * * * ~/monitor.sh >> ~/monitor.log 2>&1
+0 * * * * /opt/k109/scripts/health_check.sh >> ~/monitor.log 2>&1
 
 # Restart services weekly (Sunday 3 AM)
-0 3 * * 0 cd ~/projects/A20-App-078/backend && docker compose -f docker-compose.prod.yml restart
+0 3 * * 0 cd /opt/k109/backend && docker compose -f docker-compose.prod.yml restart
 ```
 
 ### 8.4. Database Backup Script
@@ -925,7 +926,7 @@ docker compose -f docker-compose.prod.yml restart
 # 4. Health check failed → Check service logs
 
 # Manual deployment
-cd ~/projects/A20-App-078
+cd /opt/k109
 git pull origin main
 cd backend
 docker compose -f docker-compose.prod.yml up -d --build

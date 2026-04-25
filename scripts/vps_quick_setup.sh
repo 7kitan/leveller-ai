@@ -79,7 +79,8 @@ fi
 
 # Step 5: Setup directories
 echo -e "${YELLOW}[5/8] Setting up directories...${NC}"
-sudo -u deploy mkdir -p /home/deploy/projects
+sudo mkdir -p /opt/k109
+sudo chown deploy:deploy /opt/k109
 sudo -u deploy mkdir -p /home/deploy/backups
 sudo -u deploy mkdir -p /home/deploy/.ssh
 chmod 700 /home/deploy/.ssh
@@ -125,8 +126,8 @@ echo -e "${YELLOW}⚠️  SAVE THESE VALUES! You'll need them for .env configura
 echo ""
 echo -e "${GREEN}Next Steps:${NC}"
 echo "1. Switch to deploy user: su - deploy"
-echo "2. Clone repository: git clone https://github.com/a20-ai-thuc-chien/A20-App-078.git"
+echo "2. Clone repository: cd /opt && git clone https://github.com/a20-ai-thuc-chien/A20-App-078.git k109"
 echo "3. Configure .env files with the values above"
-echo "4. Run deployment script"
+echo "4. Run deployment script: cd /opt/k109 && bash scripts/deploy.sh"
 echo ""
 echo -e "${GREEN}✅ VPS is ready for deployment!${NC}"
