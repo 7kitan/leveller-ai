@@ -551,6 +551,12 @@ async def update_cv_metadata(
     }
 
 
+@app.get("/cv/health")
+def health_check():
+    """Health check endpoint for Docker and monitoring."""
+    return {"status": "ok", "service": "cv_service"}
+
+
 @app.get("/cv/{cv_id}")
 async def get_cv_detail(cv_id: str, request: Request, db: Session = Depends(get_db)):
     """
@@ -954,8 +960,4 @@ async def get_cv_analysis_history(
     ]
 
 # ─── Health Check ───────────────────────────────────────────────────────────
-
-@app.get("/cv/health")
-def health_check():
-    """Health check endpoint for Docker and monitoring."""
-    return {"status": "ok", "service": "cv_service"}
+# Moved to top of file before parameterized routes

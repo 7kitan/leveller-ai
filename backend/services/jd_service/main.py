@@ -335,6 +335,12 @@ def search_jobs(
     }
 
 
+@app.get("/jd/health")
+def health_check():
+    """Health check endpoint for Docker and monitoring."""
+    return {"status": "ok", "service": "jd_service"}
+
+
 @app.get("/jd/{job_id}", response_model=JobResponse)
 def get_job(job_id: uuid.UUID, db: Session = Depends(get_db)):
     """Láº¥y chi tiáº¿t 1 job."""
