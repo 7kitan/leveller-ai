@@ -25,7 +25,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import styles from "./student.module.css";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -336,12 +336,7 @@ const StudentDashboard = () => {
       if (!token || !user) return;
       
       try {
-        const response = await axios.get("/api/analysis/user/latest", {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "X-User-ID": user.id
-          }
-        });
+        const response = await api.get("analysis/user/latest");
         if (response.data) {
           setAnalysis(response.data);
         } else {
@@ -363,15 +358,10 @@ const StudentDashboard = () => {
     setSimulating(true);
     try {
       const cv_id = analysis.cv_id || analysis.cv_parsed_json?.id;
-      const resp = await axios.post("/api/analysis/simulate-boost", {
+      const resp = await api.post("analysis/simulate-boost", {
           cv_id: cv_id,
           selected_course_ids: [courseId],
           job_id: analysis.job_id
-      }, {
-          headers: {
-              "Authorization": `Bearer ${token}`,
-              "X-User-ID": user.id
-          }
       });
       setSimData(resp.data);
     } catch (err) {
@@ -737,3 +727,5 @@ const StudentDashboard = () => {
 };
 
 export default StudentDashboard;
+
+

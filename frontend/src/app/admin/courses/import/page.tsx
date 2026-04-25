@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { 
   ArrowLeft, 
@@ -138,10 +139,9 @@ const CourseImportPage = () => {
 
     newResults.forEach(async (res) => {
       try {
-        const resp = await axios.post("/api/recommend/admin/courses/crawl", { url: res.url }, {
+        const resp = await api.post("recommend/admin/courses/crawl", { url: res.url }, {
           headers: { 
-            Authorization: `Bearer ${token}`,
-            "X-Is-Admin": "true"
+            Authorization: `Bearer ${token}`
           }
         });
         
@@ -156,10 +156,9 @@ const CourseImportPage = () => {
   const pollStatus = (url: string, taskId: string) => {
     const interval = setInterval(async () => {
       try {
-        const resp = await axios.get(`/api/recommend/admin/courses/crawl/status/${taskId}`, {
+        const resp = await api.get(`recommend/admin/courses/crawl/status/${taskId}`, {
           headers: { 
-            Authorization: `Bearer ${token}`,
-            "X-Is-Admin": "true"
+            Authorization: `Bearer ${token}`
           }
         });
         
@@ -226,10 +225,9 @@ const CourseImportPage = () => {
         tags: [...d.skills, d.provider].filter(Boolean)
       };
 
-      await axios.post("/api/recommend/admin/courses", payload, {
+      await api.post("recommend/admin/courses", payload, {
         headers: { 
-          Authorization: `Bearer ${token}`,
-          "X-Is-Admin": "true"
+          Authorization: `Bearer ${token}`
         }
       });
       
@@ -271,10 +269,9 @@ const CourseImportPage = () => {
         })
       };
 
-      await axios.post("/api/recommend/admin/courses/bulk", payload, {
+      await api.post("recommend/admin/courses/bulk", payload, {
         headers: { 
-          Authorization: `Bearer ${token}`,
-          "X-Is-Admin": "true"
+          Authorization: `Bearer ${token}`
         }
       });
       
@@ -501,7 +498,7 @@ const CourseImportPage = () => {
               <div className={styles.actionInfo}>
                  <div className={styles.countBadge}>{successCount}</div>
                  <span className="text-gray-400 font-medium">{t("admin_courses_import_ready")}</span>
-                 <button className={styles.discardBtn} onClick={() => setResults([])}>{t("admin_courses_import_discard")} {t("admin_dash_all") as any}</button>
+                 <button className={styles.discardBtn} onClick={() => setResults([])}>{t("admin_courses_import_discard_all")}</button>
               </div>
               <button 
                 className={styles.bulkSaveBtn} 
@@ -532,3 +529,6 @@ const CourseImportPage = () => {
 };
 
 export default CourseImportPage;
+
+
+

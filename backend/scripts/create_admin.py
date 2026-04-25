@@ -19,8 +19,11 @@ logger = logging.getLogger("create_admin")
 POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
 POSTGRES_DB = os.getenv("POSTGRES_DB", "career_advisor")
-POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")  # Use localhost for local script running
-DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:5432/{POSTGRES_DB}"
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "db")  # Default to 'db' for Docker, can override for local
+POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
+DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+
+logger.info(f"Connecting to database at {POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

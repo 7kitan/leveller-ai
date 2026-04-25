@@ -22,7 +22,9 @@ async def auth_middleware(request: Request, call_next):
         if not path:
             path = "/"
 
-    is_public = path == "/" or any(path.startswith(p) for p in public_paths)
+    # Allow all health endpoints (gateway + all services)
+    is_health_endpoint = path.endswith("/health") or path == "/health"
+    is_public = path == "/" or is_health_endpoint or any(path.startswith(p) for p in public_paths)
     
     # Preflight requests should always pass
     if request.method == "OPTIONS":

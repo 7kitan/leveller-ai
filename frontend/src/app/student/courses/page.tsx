@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -44,6 +44,7 @@ interface FilterState {
 
 // ─── Level Badge ─────────────────────────────────────────────────────────────
 function LevelBadge({ level }: { level: string }) {
+  const { t } = useLanguage();
   const cls =
     level === "Beginner"     ? styles.levelBeginner     :
     level === "Intermediate" ? styles.levelIntermediate :
@@ -54,6 +55,7 @@ function LevelBadge({ level }: { level: string }) {
 
 // ─── Course Card ───────────────────────────────────────────────────────────────
 function CourseCard({ course, index }: { course: Course; index: number }) {
+  const { t } = useLanguage();
   const isFree = (course.cost_usd ?? 0) === 0;
   const platformStrip =
     course.platform === "Coursera" ? styles.stripCoursera :
@@ -148,6 +150,7 @@ function FilterBar({
   platforms: string[];
   levels: string[];
 }) {
+  const { t } = useLanguage();
   return (
     <div className={styles.filterBar}>
       <div className={styles.filterRow}>
@@ -269,8 +272,7 @@ export default function StudentCoursesPage() {
     const fetchCourses = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("/api/recommend/courses", {
-          headers: { Authorization: `Bearer ${token}` },
+        const res = await api.get("recommend/courses", {
           params: { limit: 100 },
         });
         setCourses(Array.isArray(res.data) ? res.data : res.data.courses ?? []);
@@ -435,3 +437,5 @@ export default function StudentCoursesPage() {
     </div>
   );
 }
+
+

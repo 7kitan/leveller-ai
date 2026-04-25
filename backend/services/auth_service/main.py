@@ -541,8 +541,8 @@ def admin_list_users(
             "full_name": u.full_name,
             "role": u.role,
             "is_active": u.is_active,
-            "is_flagged": getattr(u, "is_flagged", False),
-            "daily_token_limit": getattr(u, "daily_token_limit", 0),
+            "is_flagged": u.is_flagged if u.is_flagged is not None else False,
+            "daily_token_limit": u.daily_token_limit if u.daily_token_limit is not None else 0,
             "today_usage": get_user_daily_usage(str(u.id), db),
             "created_at": u.created_at.isoformat() if u.created_at else None
         }
@@ -632,8 +632,8 @@ def admin_update_user(user_id: str, user_in: AdminUserUpdate, request: Request, 
         "full_name": user.full_name,
         "role": user.role,
         "is_active": user.is_active,
-        "is_flagged": user.is_flagged,
-        "daily_token_limit": user.daily_token_limit,
+        "is_flagged": user.is_flagged if user.is_flagged is not None else False,
+        "daily_token_limit": user.daily_token_limit if user.daily_token_limit is not None else 0,
         "created_at": user.created_at.isoformat() if user.created_at else None
     }
 

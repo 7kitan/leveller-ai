@@ -10,8 +10,8 @@ Module này đóng vai trò là reverse proxy, điều hướng tất cả reque
 
 Author: Lumix AI Team
 Date: 2026-04-25
+# CRITICAL: Force rebuild to ensure code sync
 """
-
 from fastapi import FastAPI, Request, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
@@ -52,7 +52,7 @@ allowed_headers = [
     "Origin",            # Origin của request
     "X-Requested-With",  # Để phát hiện AJAX requests
     "X-User-ID",         # User ID được inject bởi gateway
-    "X-User-Role"        # User role (user/admin)
+    "X-User-Role"        # User role (user/admin) - TRUSTED, injected by gateway only
 ]
 
 # Thêm CORS middleware vào app
@@ -135,6 +135,15 @@ async def add_auth_middleware(request: Request, call_next):
     Returns:
         Response từ service phía sau
     """
+    # DEBUG: Log all incoming requests with headers
+    origin = request.headers.get("origin", "NO_ORIGIN")
+    if request.method == "OPTIONS":
+        req_headers = request.headers.get("access-control-request-headers", "NONE")
+        req_method = request.headers.get("access-control-request-method", "NONE")
+        logger.info(f"[MIDDLEWARE] OPTIONS {request.url.path} | Origin: {origin} | Req-Headers: {req_headers} | Req-Method: {req_method}")
+    else:
+        logger.info(f"[MIDDLEWARE] {request.method} {request.url.path} | Origin: {origin} | Client: {request.client.host if request.client else 'unknown'}")
+    
     # Set request vào ContextVar để rate limiter có thể access
     token = request_var.set(request)
     try:
@@ -167,44 +176,13 @@ client = httpx.AsyncClient()
 # PROXY ENDPOINT - Điều hướng requests đến các microservices
 # ============================================================================
 @app.api_route("/{service_name}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
-@limiter.limit(get_dynamic_limit)  # Apply rate limiting
 async def proxy(service_name: str, path: str, request: Request):
     """
     Reverse proxy chính - điều hướng requests đến đúng microservice.
-    
-    URL Pattern: /{service_name}/{path}
-    Ví dụ:
-    - /cv/upload -> cv-service/cv/upload
-    - /auth/login -> auth-service/auth/login
-    - /jd/list -> jd-service/jd/list
-    
-    Flow:
-    1. Parse service_name từ URL
-    2. Kiểm tra service có tồn tại không
-    3. Forward request đến service URL
-    4. Inject user info vào headers (nếu đã login)
-    5. Trả response về client
-    
-    Args:
-        service_name: Tên service (cv, auth, jd, analysis, etc.)
-        path: Path còn lại sau service_name
-        request: FastAPI Request object
-        
-    Returns:
-        Response từ microservice
-        
-    Raises:
-        HTTPException 404: Service không tồn tại
-        HTTPException 502: Service không available
     """
-    # Xử lý trường hợp có /api prefix (từ Next.js)
-    # Ví dụ: /api/cv/upload -> service_name="api", path="cv/upload"
-    # Cần shift để service_name="cv", path="upload"
-    if service_name == "api":
-        parts = path.split("/", 1)
-        service_name = parts[0]
-        path = parts[1] if len(parts) > 1 else ""
-
+    # CORSMiddleware handles OPTIONS automatically, no need for manual handling
+    logger.info(f"[PROXY] {request.method} /{service_name}/{path} | Origin: {request.headers.get('origin', 'NO_ORIGIN')}")
+    
     # Kiểm tra service có tồn tại không
     if service_name not in SERVICES:
         raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found")

@@ -19,8 +19,11 @@ dist/
 .idea/
 
 # Environment
-.env
-.env.*
+# NOTE: .env is needed during Docker build to pass NEXT_PUBLIC_* variables
+# It's still gitignored via .gitignore
+.env.local
+.env.*.local
+!.env
 !.env.example
 
 # Git

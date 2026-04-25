@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "",
+  },
   async redirects() {
     return [
       {
@@ -17,14 +20,6 @@ const nextConfig: NextConfig = {
         source: "/jobs",
         destination: "/user/jobs",
         permanent: true,
-      },
-    ];
-  },
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: "http://localhost:8000/:path*", // Proxy sang Gateway
       },
     ];
   },

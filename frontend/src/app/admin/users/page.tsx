@@ -27,6 +27,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { UserRole } from "@/types/roles";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
+import api from "@/lib/api";
 
 interface AdminUser {
   id: string;
@@ -68,15 +69,10 @@ const AdminUsersPage = () => {
     try {
       setLoading(true);
       const offset = (page - 1) * pageSize;
-      const url = `/api/auth/admin/users?limit=${pageSize}&offset=${offset}${searchTerm ? `&q=${encodeURIComponent(searchTerm)}` : ""}`;
+      const url = `/auth/admin/users?limit=${pageSize}&offset=${offset}${searchTerm ? `&q=${encodeURIComponent(searchTerm)}` : ""}`;
       
-      const res = await fetch(url, {
-        headers: { 
-          "Authorization": `Bearer ${token}`
-        }
-      });
-      if (!res.ok) throw new Error("Failed to fetch users");
-      const data = await res.json();
+      const res = await api.get(url);
+      const data = res.data;
       setUsers(data.items || []);
       setTotalPages(data.pages || 0);
       setCurrentPage(page);
@@ -133,8 +129,8 @@ const AdminUsersPage = () => {
 
     try {
       const url = modalMode === "create" 
-        ? "/api/auth/admin/users" 
-        : `/api/auth/admin/users/${currentUser.id}`;
+        ? "/auth/admin/users" 
+        : `/auth/admin/users/${currentUser.id}`;
       
       const method = modalMode === "create" ? "POST" : "PATCH";
       
@@ -154,22 +150,16 @@ const AdminUsersPage = () => {
           return;
       }
 
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
+      const res = modalMode === "create"
+        ? await api.post(url, payload)
+        : await api.patch(url, payload);
 
-      if (res.ok) {
+      if (res.status === 200 || res.status === 201) {
         toast.success(modalMode === "create" ? t("admin_users_create_success") : t("admin_users_update_success"));
         setShowModal(false);
         fetchUsers();
       } else {
-        const err = await res.json();
-        toast.error(err.detail || t("error"));
+        toast.error(t("error"));
       }
     } catch (err) {
       toast.error(t("error"));
@@ -183,14 +173,9 @@ const AdminUsersPage = () => {
     setSubmitting(true);
 
     try {
-      const res = await fetch(`/api/auth/admin/users/${userToDelete.id}`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      });
+      const res = await api.delete(`auth/admin/users/${userToDelete.id}`);
 
-      if (res.ok) {
+      if (res.status === 200 || res.status === 204) {
         toast.success(t("admin_users_delete_success"));
         setShowDeleteConfirm(false);
         fetchUsers();
@@ -333,7 +318,7 @@ const AdminUsersPage = () => {
                           <button 
                             onClick={async () => {
                               if (!token) return;
-                              const res = await fetch(`/api/auth/admin/users/${user.id}`, {
+                              const res = await fetch(`/auth/admin/users/${user.id}`, {
                                 method: "PATCH",
                                 headers: {
                                   "Content-Type": "application/json",
@@ -501,3 +486,6 @@ const AdminUsersPage = () => {
 };
 
 export default AdminUsersPage;
+
+
+

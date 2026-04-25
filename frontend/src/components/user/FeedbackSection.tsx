@@ -58,7 +58,7 @@ const FeedbackSection: React.FC<FeedbackSectionProps> = ({ analysisId, hasFeedba
     setIsSubmitting(true);
     setError("");
     try {
-      await api.post("/analysis/feedback", {
+      await api.post("analysis/feedback", {
         analysis_id: analysisId,
         rating,
         is_accurate: isAccurate,
@@ -247,3 +247,4 @@ const FeedbackSection: React.FC<FeedbackSectionProps> = ({ analysisId, hasFeedba
 };
 
 export default FeedbackSection;
+

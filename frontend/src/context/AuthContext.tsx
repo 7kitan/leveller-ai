@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         // Verify token with backend - retrieves user data AND maintenance status
         // Added 8s timeout to prevent hanging the app forever
-        const res = await api.get("/auth/verify", {
+        const res = await api.get("auth/verify", {
           params: { token: storedToken },
           timeout: 8000 
         });
@@ -123,3 +123,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

@@ -1,13 +1,24 @@
 # Stage 1: Building the app
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
+
+# Accept build arguments
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+ARG NEXT_PUBLIC_ENVIRONMENT=production
+
+# Set as environment variables for build
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_RECAPTCHA_SITE_KEY=$NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+ENV NEXT_PUBLIC_ENVIRONMENT=$NEXT_PUBLIC_ENVIRONMENT
+
 COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
 
 # Stage 2: Running the app
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV production
 COPY --from=builder /app/next.config.ts ./

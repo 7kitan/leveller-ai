@@ -71,6 +71,14 @@ class PrefixedRedis:
 
     def expire(self, key, time):
         return self._client.expire(self._prefix_key(key), time)
+    
+    def eval(self, script, numkeys, *keys_and_args):
+        """Execute Lua script with automatic key prefixing."""
+        # Prefix the keys (first numkeys arguments after script)
+        prefixed_keys = [self._prefix_key(k) for k in keys_and_args[:numkeys]]
+        # Keep the rest of arguments as-is
+        args = keys_and_args[numkeys:]
+        return self._client.eval(script, numkeys, *prefixed_keys, *args)
 
     def incr_with_expire(self, key, ttl):
         """Atomic increment with expire (via Lua script)."""

@@ -43,7 +43,7 @@ export default function AdminFeedbackPage() {
   const fetchFeedback = async () => {
     setLoading(true);
     try {
-      const resp = await api.get("/api/analysis/admin/feedback", {
+      const resp = await api.get("analysis/admin/feedback", {
         params: {
           limit,
           offset: (page - 1) * limit,
@@ -178,8 +178,7 @@ export default function AdminFeedbackPage() {
           <div className={styles.pagination}>
             <Pagination 
               currentPage={page} 
-              totalItems={total} 
-              itemsPerPage={limit} 
+              totalPages={Math.ceil(total / limit)} 
               onPageChange={setPage} 
             />
           </div>
@@ -189,3 +188,5 @@ export default function AdminFeedbackPage() {
     </AuthGuard>
   );
 }
+
+

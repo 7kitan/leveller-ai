@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import styles from "./PageHeader.module.css";
 
 interface PageHeaderProps {
-  title: string;
+  title: React.ReactNode;
   subtitle?: string;
   showAccent?: boolean;
   compact?: boolean;

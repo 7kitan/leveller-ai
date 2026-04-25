@@ -186,7 +186,7 @@ const UserCVPage = () => {
 
   const fetchHistory = async () => {
     try {
-      const resp = await api.get("/api/cv/list");
+      const resp = await api.get("cv/list");
       setHistory(resp.data);
     } catch (err) {
       console.error("Fetch history error:", err);
@@ -255,7 +255,7 @@ const UserCVPage = () => {
     formData.append("file", file);
 
     try {
-      const resp = await api.post("/api/cv/upload", formData, {
+      const resp = await api.post("cv/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -274,7 +274,7 @@ const UserCVPage = () => {
 
       if (uploadStatus === "completed") {
         try {
-          const detailResp = await api.get(`/api/cv/${cv_id}`);
+          const detailResp = await api.get(`cv/${cv_id}`);
           setParsedData(detailResp.data);
           setStatus("viewing");
           fetchHistory();
@@ -300,7 +300,7 @@ const UserCVPage = () => {
     setStatus("processing");
     const interval = setInterval(async () => {
       try {
-        const resp = await api.get(`/api/cv/status/${parserId}`);
+        const resp = await api.get(`cv/status/${parserId}`);
         const { status: taskStatus, result } = resp.data;
 
         if (taskStatus === "completed") {
@@ -308,7 +308,7 @@ const UserCVPage = () => {
           if (result) {
             setParsedData(result);
           } else {
-            const detailResp = await api.get(`/api/cv/${cvId}`);
+            const detailResp = await api.get(`cv/${cvId}`);
             setParsedData(detailResp.data);
           }
           setStatus("viewing");
@@ -330,7 +330,7 @@ const UserCVPage = () => {
     setError(null);
     setSelectedHistoryId(cvId);
     try {
-      const resp = await api.get(`/api/cv/${cvId}`);
+      const resp = await api.get(`cv/${cvId}`);
       setParsedData(resp.data);
       setStatus("viewing");
     } catch (err) {
@@ -348,7 +348,7 @@ const UserCVPage = () => {
     setError(null);
     setSelectedHistoryId(item.id);
     try {
-      const resp = await api.get(`/api/cv/${item.id}`);
+      const resp = await api.get(`cv/${item.id}`);
       setParsedData(resp.data);
       setStatus("viewing");
     } catch (err) {
@@ -514,7 +514,7 @@ const UserCVPage = () => {
         certifications: parsedData?.certifications,
         seniority: parsedData?.seniority || "Unknown"
       };
-      await api.post("/api/cv/finalize", payload);
+      await api.post("cv/finalize", payload);
       if (parsedData) {
         setParsedData({ ...parsedData, is_verified: true });
       }
@@ -1071,7 +1071,8 @@ const UserCVPage = () => {
               <div
                 className={cn(
                   styles.dropZone,
-                  isDragging ? styles.dropZoneActive : styles.dropZoneIdle
+                  isDragging ? styles.dropZoneActive : styles.dropZoneIdle,
+                  file && styles.dropZoneWithFile
                 )}
                 onDragOver={(e) => {
                   e.preventDefault();
@@ -1084,46 +1085,68 @@ const UserCVPage = () => {
                   if (e.dataTransfer.files?.[0]) setFile(e.dataTransfer.files[0]);
                 }}
               >
-                <div className={styles.dropZoneContent}>
-                  <div className={styles.cloudIconWrapper}>
-                    <UploadCloud size={48} className={styles.cloudIcon} />
-                  </div>
-                  <h3 className={styles.uploadTitle}>{t("cv_dropzone_idle")}</h3>
-                  <p className={styles.uploadSub}>{t("cv_dropzone_hint")}</p>
+                <AnimatePresence mode="wait">
+                  {!file ? (
+                    <motion.div 
+                      key="idle"
+                      className={styles.dropZoneContent}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className={styles.cloudIconWrapper}>
+                        <UploadCloud size={48} className={styles.cloudIcon} />
+                      </div>
+                      <h3 className={styles.uploadTitle}>{t("cv_dropzone_idle")}</h3>
+                      <p className={styles.uploadSub}>{t("cv_dropzone_hint")}</p>
 
-                  <div className={styles.fileTypes}>
-                    <span>PDF</span>
-                    <span className={styles.dotSeparator}>•</span>
-                    <span>DOCX</span>
-                  </div>
+                      <div className={styles.fileTypes}>
+                        <span>PDF</span>
+                        <span className={styles.dotSeparator}>•</span>
+                        <span>DOCX</span>
+                      </div>
 
-                  <label className={styles.browseBtn}>
-                    {t("cv_browse_files")}
-                    <input
-                      type="file"
-                      hidden
-                      accept=".pdf,.docx"
-                      onChange={(e) => {
-                        if (e.target.files?.[0]) setFile(e.target.files[0]);
-                      }}
-                    />
-                  </label>
-                </div>
+                      <label className={styles.browseBtn}>
+                        {t("cv_browse_files")}
+                        <input
+                          type="file"
+                          hidden
+                          accept=".pdf,.docx"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) setFile(e.target.files[0]);
+                          }}
+                        />
+                      </label>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="file"
+                      className={styles.selectedFile}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <FileText className={styles.fileIcon} size={40} />
+                      <div className={styles.fileInfo}>
+                        <span className={styles.fileName}>{file.name}</span>
+                        <p className={styles.fileSize}>{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                      </div>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFile(null);
+                        }} 
+                        className={styles.removeFile}
+                      >
+                        <X size={14} />
+                        {t("cancel")}
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-
-              {file && (
-                <motion.div
-                  className={styles.selectedFile}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <FileText className={styles.fileIcon} size={20} />
-                  <span className={styles.fileName}>{file.name}</span>
-                  <button onClick={() => setFile(null)} className={styles.removeFile}>
-                    <X size={16} />
-                  </button>
-                </motion.div>
-              )}
 
               <button
                 disabled={!file || status === "uploading"}
@@ -1217,3 +1240,6 @@ const UserCVPage = () => {
 };
 
 export default UserCVPage;
+
+
+

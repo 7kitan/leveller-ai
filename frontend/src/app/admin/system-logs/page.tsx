@@ -37,7 +37,7 @@ const SystemLogsPage = () => {
   const fetchLogs = async (newOffset = 0) => {
     setRefreshing(true);
     try {
-      const res = await api.get(`/admin/system/logs?limit=${limit}&offset=${newOffset}&level=${level}&module=${module}`);
+      const res = await api.get(`admin/system/logs?limit=${limit}&offset=${newOffset}&level=${level}&module=${module}`);
       setLogs(res.data);
       setOffset(newOffset);
     } catch (err) {
@@ -51,7 +51,7 @@ const SystemLogsPage = () => {
   const cleanupLogs = async () => {
     if (!confirm(t("admin_logs_cleanup_confirm" as any))) return;
     try {
-      await api.delete("/admin/system/logs/cleanup?days=30");
+      await api.delete("admin/system/logs/cleanup?days=30");
       fetchLogs(0);
     } catch (err) {
       console.error("Cleanup logs error:", err);
@@ -235,3 +235,4 @@ const SystemLogsPage = () => {
 };
 
 export default SystemLogsPage;
+

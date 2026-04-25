@@ -20,10 +20,15 @@ class ConfigManager:
     2. Database (Source of Truth for dynamic settings)
     3. Environment Variables (Default/Static)
     4. Hardcoded Default
+    
+    NOTE: All keys are normalized to UPPERCASE for consistency with env vars.
     """
     
     @staticmethod
     def get_setting(key: str, default: Any = None, cast: Optional[Type[T]] = None) -> Any:
+        # Normalize key to UPPERCASE for consistency
+        key = key.upper()
+        
         # 1. Check Redis Cache
         try:
             cached_val = config_cache.get(key)
@@ -49,7 +54,7 @@ class ConfigManager:
             return ConfigManager._cast_value(db_val, cast)
 
         # 3. Check Environment Variables
-        env_val = os.getenv(key.upper())
+        env_val = os.getenv(key)  # Already uppercase
         if env_val is not None:
             return ConfigManager._cast_value(env_val, cast)
 
@@ -59,6 +64,8 @@ class ConfigManager:
     @staticmethod
     def invalidate_cache(key: str):
         """Remove a key from Redis to force a refresh from DB."""
+        # Normalize key to UPPERCASE
+        key = key.upper()
         try:
             config_cache.delete(key)
         except Exception as e:

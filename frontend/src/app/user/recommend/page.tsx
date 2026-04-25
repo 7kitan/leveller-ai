@@ -189,7 +189,7 @@ const UserRecommendPage = () => {
 
     const interval = setInterval(async () => {
       try {
-        const resp = await api.get(`/analysis/status/${taskIdFromUrl}`);
+        const resp = await api.get(`analysis/status/${taskIdFromUrl}`);
         
         const { status, result, partial_result, message } = resp.data;
         
@@ -197,20 +197,92 @@ const UserRecommendPage = () => {
 
         if (partial_result) {
           console.log("[RECOMMEND] Received partial update:", partial_result.node);
-          setGapResult(prev => ({
-            ...prev,
-            ...partial_result,
-            // Merge specialized arrays to avoid losing data
-            course_recommendations: partial_result.course_recommendations?.length > 0 
+          setGapResult(prev => {
+            // Deep merge to preserve all previously loaded data
+            const merged = {
+              ...prev,
+              ...partial_result,
+              // Preserve arrays - only update if new data exists
+              skill_gaps: (partial_result.skill_gaps?.length ?? 0) > 0 
+                ? partial_result.skill_gaps 
+                : (prev?.skill_gaps || []),
+              course_recommendations: (partial_result.course_recommendations?.length ?? 0) > 0 
                 ? partial_result.course_recommendations 
-                : (prev?.course_recommendations || [])
-          } as GapResult));
+                : (prev?.course_recommendations || []),
+              youtube_videos: (partial_result.youtube_videos?.length ?? 0) > 0
+                ? partial_result.youtube_videos
+                : (prev?.youtube_videos || []),
+              strengths: (partial_result.strengths?.length ?? 0) > 0
+                ? partial_result.strengths
+                : (prev?.strengths || []),
+              weaknesses: (partial_result.weaknesses?.length ?? 0) > 0
+                ? partial_result.weaknesses
+                : (prev?.weaknesses || []),
+              transferable_insights: (partial_result.transferable_insights?.length ?? 0) > 0
+                ? partial_result.transferable_insights
+                : (prev?.transferable_insights || []),
+              // Preserve objects
+              career_roadmap: partial_result.career_roadmap || prev?.career_roadmap,
+              match_breakdown: partial_result.match_breakdown || prev?.match_breakdown || {},
+              gap_summary: partial_result.gap_summary || prev?.gap_summary,
+              // Preserve scalar values - only update if defined
+              overall_match_pct: partial_result.overall_match_pct ?? prev?.overall_match_pct,
+              potential_match_pct: partial_result.potential_match_pct ?? prev?.potential_match_pct,
+              salary_growth_pct: partial_result.salary_growth_pct ?? prev?.salary_growth_pct,
+              overall_assessment: partial_result.overall_assessment || prev?.overall_assessment,
+              jd_context: partial_result.jd_context || prev?.jd_context,
+              market_sentiment: partial_result.market_sentiment || prev?.market_sentiment,
+            } as GapResult;
+            
+            console.log("[RECOMMEND] Merged state:", {
+              skill_gaps: merged.skill_gaps?.length,
+              courses: merged.course_recommendations?.length,
+              videos: merged.youtube_videos?.length,
+              roadmap: merged.career_roadmap ? 'present' : 'missing',
+              potential_match: merged.potential_match_pct,
+              salary_growth: merged.salary_growth_pct
+            });
+            
+            return merged;
+          });
           setLoading(false);
         }
 
         if (status === "completed") {
           console.log("[RECOMMEND] Analysis completed!");
-          setGapResult(result as GapResult);
+          // Merge final result with existing partial data to avoid losing anything
+          setGapResult(prev => {
+            const finalResult = result as GapResult;
+            return {
+              ...prev,
+              ...finalResult,
+              // Ensure we keep the most complete version of each array
+              skill_gaps: (finalResult.skill_gaps?.length ?? 0) > 0 
+                ? finalResult.skill_gaps 
+                : (prev?.skill_gaps || []),
+              course_recommendations: (finalResult.course_recommendations?.length ?? 0) > 0 
+                ? finalResult.course_recommendations 
+                : (prev?.course_recommendations || []),
+              youtube_videos: (finalResult.youtube_videos?.length ?? 0) > 0
+                ? finalResult.youtube_videos
+                : (prev?.youtube_videos || []),
+              strengths: (finalResult.strengths?.length ?? 0) > 0
+                ? finalResult.strengths
+                : (prev?.strengths || []),
+              weaknesses: (finalResult.weaknesses?.length ?? 0) > 0
+                ? finalResult.weaknesses
+                : (prev?.weaknesses || []),
+              career_roadmap: finalResult.career_roadmap || prev?.career_roadmap,
+              match_breakdown: finalResult.match_breakdown || prev?.match_breakdown || {},
+              // Preserve scalar values - only update if defined
+              overall_match_pct: finalResult.overall_match_pct ?? prev?.overall_match_pct,
+              potential_match_pct: finalResult.potential_match_pct ?? prev?.potential_match_pct,
+              salary_growth_pct: finalResult.salary_growth_pct ?? prev?.salary_growth_pct,
+              overall_assessment: finalResult.overall_assessment || prev?.overall_assessment,
+              jd_context: finalResult.jd_context || prev?.jd_context,
+              market_sentiment: finalResult.market_sentiment || prev?.market_sentiment,
+            } as GapResult;
+          });
           setIsProcessing(false);
           setLoading(false);
           clearInterval(interval);
@@ -271,7 +343,7 @@ const UserRecommendPage = () => {
     if (!token) return;
     setRefreshing(true);
     try {
-      const resp = await api.get("/analysis/user/latest");
+      const resp = await api.get("analysis/user/latest");
       if (resp.data) {
         console.log("[RECOMMEND] Refreshed data:", resp.data);
         setGapResult(resp.data);
@@ -400,16 +472,18 @@ const UserRecommendPage = () => {
         </button>
         <button 
           onClick={() => {
-            if (gapResult.job_id) {
-              router.push(`/user/analysis?job_id=${gapResult.job_id}&auto_run=true`);
+            // Redirect to analysis page to try with different JD
+            // Pre-select the same CV if available
+            if (gapResult.cv_id) {
+              router.push(`/user/analysis?cv_id=${gapResult.cv_id}`);
             } else {
               router.push(`/user/analysis`);
             }
           }} 
           className={styles.refreshBtn}
         >
-          <Zap size={16} />
-          {t("reanalyze")}
+          <Target size={16} />
+          {t("try_different_jd")}
         </button>
       </div>
 
@@ -423,6 +497,7 @@ const UserRecommendPage = () => {
           {/* Radar Chart - Gap Analysis */}
           <div className={styles.radarSection}>
             <ReactECharts
+              key={`radar-chart-${Object.keys(match_breakdown).join('-')}-${overall_match_pct}`}
               option={{
                 radar: {
                   indicator: (Object.keys(match_breakdown).length > 0 
@@ -729,6 +804,7 @@ const UserRecommendPage = () => {
                 </div>
                 <div className={styles.impactChartContainer}>
                   <ReactECharts
+                    key={`impact-chart-${skill_gaps.map(g => g.skill).join('-')}-${skill_gaps.length}`}
                     option={{
                       tooltip: {
                         trigger: 'axis',
@@ -806,7 +882,6 @@ const UserRecommendPage = () => {
                     style={{ height: '100%', width: '100%' }}
                     opts={{ renderer: 'svg' }}
                     notMerge={true}
-                    lazyUpdate={true}
                   />
                 </div>
               </div>

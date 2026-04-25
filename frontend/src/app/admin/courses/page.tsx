@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
-import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import Pagination from "@/components/shared/Pagination";
 import { 
@@ -58,8 +58,10 @@ interface Course {
   is_active: boolean;
 }
 
-const TagInput = ({ tags, setTags, placeholder = t("admin_courses_tag_placeholder") }: { tags: string[], setTags: (tags: string[]) => void, placeholder?: string }) => {
+const TagInput = ({ tags, setTags, placeholder }: { tags: string[], setTags: (tags: string[]) => void, placeholder?: string }) => {
+  const { t } = useLanguage();
   const [input, setInput] = useState("");
+  const resolvedPlaceholder = placeholder || t("admin_courses_tag_placeholder");
 
   const addTag = (val: string) => {
     const trimmed = val.trim();
@@ -97,7 +99,7 @@ const TagInput = ({ tags, setTags, placeholder = t("admin_courses_tag_placeholde
         onChange={e => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={() => addTag(input)}
-        placeholder={tags.length === 0 ? placeholder : ""}
+        placeholder={tags.length === 0 ? resolvedPlaceholder : ""}
         className={styles.tagInnerInput}
       />
     </div>
@@ -145,15 +147,11 @@ const AdminCoursesPage = () => {
     setIsLoading(true);
     try {
       const offset = (page - 1) * pageSize;
-      const resp = await axios.get("/api/recommend/admin/courses", {
+      const resp = await api.get("recommend/admin/courses", {
         params: {
           limit: pageSize,
           offset: offset,
           q: searchTerm || undefined
-        },
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          "X-Is-Admin": "true"
         }
       });
       setCourses(resp.data.items);
@@ -200,20 +198,10 @@ const AdminCoursesPage = () => {
       };
 
       if (editingCourse) {
-        await axios.patch(`/api/recommend/admin/courses/${editingCourse.id}`, payload, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            "X-Is-Admin": "true"
-          }
-        });
+        await api.patch(`recommend/admin/courses/${editingCourse.id}`, payload);
         showNotification("Đã cập nhật khóa học");
       } else {
-        await axios.post("/api/recommend/admin/courses", payload, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            "X-Is-Admin": "true"
-          }
-        });
+        await api.post("recommend/admin/courses", payload);
         showNotification("Đã tạo khóa học mới");
       }
       setIsModalOpen(false);
@@ -226,12 +214,7 @@ const AdminCoursesPage = () => {
   const handleDelete = async (id: string) => {
     if (!confirm("Xóa khóa học này?")) return;
     try {
-      await axios.delete(`/api/recommend/admin/courses/${id}`, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          "X-Is-Admin": "true"
-        }
-      });
+      await api.delete(`recommend/admin/courses/${id}`);
       showNotification("Đã xóa khóa học");
       fetchCourses();
     } catch (err) {
@@ -629,3 +612,6 @@ const AdminCoursesPage = () => {
 };
 
 export default AdminCoursesPage;
+
+
+

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
-import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import Pagination from "@/components/shared/Pagination";
 import { 
@@ -44,14 +44,12 @@ const AdminCVsPage = () => {
   const fetchCVs = async (page = 1) => {
     setLoading(true);
     try {
-      const offset = (page - 1) * pageSize;
-      const resp = await axios.get("/api/analysis/admin/cvs", {
+      const resp = await api.get("analysis/admin/cvs", {
         params: {
           limit: pageSize,
-          offset: offset,
+          offset: (page - 1) * pageSize,
           q: searchTerm || undefined
-        },
-        headers: { Authorization: `Bearer ${token}` }
+        }
       });
       setCvs(resp.data.items || []);
       setTotalPages(resp.data.pages || 0);
@@ -78,9 +76,7 @@ const AdminCVsPage = () => {
   const handleDelete = async (id: string) => {
     if (!confirm(t("admin_cvs_delete_confirm"))) return;
     try {
-      await axios.delete(`/api/analysis/admin/cvs/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`analysis/admin/cvs/${id}`);
       fetchCVs();
     } catch (err) {
       console.error("Delete CV error:", err);
@@ -238,3 +234,6 @@ const AdminCVsPage = () => {
 };
 
 export default AdminCVsPage;
+
+
+
