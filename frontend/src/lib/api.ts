@@ -16,8 +16,8 @@ const api = axios.create({
 // Request interceptor: Add Authorization header and fix baseURL stripping
 api.interceptors.request.use((config) => {
   // Fix: Axios strips the path from baseURL if the URL starts with a leading slash
-  // e.g. baseURL: 'http://localhost:8000/api', url: '/auth' -> 'http://localhost:8000/auth'
-  // Removing the leading slash ensures it becomes 'http://localhost:8000/api/auth'
+  // e.g. baseURL: 'http://localhost:8000', url: '/auth' -> 'http://localhost:8000/auth'
+  // Removing the leading slash ensures it becomes 'http://localhost:8000/auth'
   if (config.url && config.url.startsWith("/")) {
     config.url = config.url.substring(1);
   }

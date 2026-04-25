@@ -136,7 +136,12 @@ def admin_update_setting(
     db: Session = Depends(get_db),
     admin_user: User = Depends(get_current_admin_user)
 ):
-    """Admin only: Cập nhật hoặc tạo một setting."""
+    """Admin only: Cập nhật hoặc tạo một setting.
+    
+    NOTE: Key will be automatically normalized to UPPERCASE for consistency.
+    """
+    # Normalize key to UPPERCASE
+    key = key.upper()
     
     setting = db.query(SystemSetting).filter(SystemSetting.key == key).first()
     if not setting:
@@ -159,12 +164,18 @@ def admin_bulk_update_settings(
     db: Session = Depends(get_db),
     admin_user: User = Depends(get_current_admin_user)
 ):
-    """Admin only: Cập nhật nhiều settings cùng lúc."""
+    """Admin only: Cập nhật nhiều settings cùng lúc.
+    
+    NOTE: All keys will be automatically normalized to UPPERCASE for consistency.
+    """
     
     updated_settings = []
     for item in bulk_in.settings:
         key = item.get("key")
         value = item.get("value")
+        
+        # Normalize key to UPPERCASE
+        key = key.upper()
         
         setting = db.query(SystemSetting).filter(SystemSetting.key == key).first()
         if not setting:
@@ -467,31 +478,14 @@ def admin_delete_youtube_cache(
     return {"status": "success", "message": f"Video {video_id} removed from cache"}
 
 @app.post("/admin/youtube/verify-all")
-async def admin_verify_youtube_availability(
-    db: Session = Depends(get_db),
-    admin_user: User = Depends(get_current_admin_user)
-):
+def admin_verify_all_youtube_videos(request: Request):
     """Admin only: Kích hoạt tiến trình kiểm tra lại tính khả dụng của toàn bộ video trong cache."""
-    try:
-        from worker.celery_app import celery_app
-        
-        # Dispatch async task
-        task = celery_app.send_task(
-            "worker.tasks.youtube_tasks.verify_all_cached_videos",
-            kwargs={}
-        )
-        
-        logger.info(f"[ADMIN] YouTube verification task dispatched: {task.id}")
-        return {
-            "status": "processing",
-            "message": "YouTube availability verification started",
-            "task_id": task.id
-        }
-    except Exception as e:
-        logger.error(f"[ADMIN] Failed to dispatch YouTube verification: {e}")
-        # Fallback if celery is not available or task is not found
-        # We might want to implement a sync version or just error out
-        raise HTTPException(status_code=500, detail=f"Failed to start verification: {str(e)}")
+    # TODO: Implement youtube_tasks.verify_all_cached_videos task
+    # Currently this task module doesn't exist
+    raise HTTPException(
+        status_code=501, 
+        detail="YouTube verification task not implemented yet. Task module 'worker.tasks.youtube_tasks' does not exist."
+    )
 
 
 @app.get("/admin/health")

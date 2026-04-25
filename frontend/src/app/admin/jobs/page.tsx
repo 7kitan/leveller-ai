@@ -102,9 +102,6 @@ const AdminJobsPage = () => {
           limit: pageSize,
           offset: offset,
           q: searchTerm || undefined
-        },
-        headers: { 
-          "X-Is-Admin": "true"
         }
       });
       setJobs(resp.data.items);
@@ -119,11 +116,7 @@ const AdminJobsPage = () => {
 
   const fetchSettings = async () => {
     try {
-      const resp = await api.get("admin/settings", {
-        headers: { 
-          "X-Is-Admin": "true"
-        }
-      });
+      const resp = await api.get("admin/settings");
       const topcvSetting = resp.data.find((s: SystemSetting) => s.key === "topcv_crawl_enabled");
       if (topcvSetting) {
         setCrawlEnabled(topcvSetting.value);
@@ -138,12 +131,7 @@ const AdminJobsPage = () => {
     try {
       const newValue = !crawlEnabled;
       await api.patch(`admin/settings/topcv_crawl_enabled`, 
-        { value: newValue },
-        {
-          headers: { 
-            "X-Is-Admin": "true"
-          }
-        }
+        { value: newValue }
       );
       setCrawlEnabled(newValue);
       showNotification(newValue ? t("admin_jobs_crawl_success") : t("admin_jobs_status_inactive"));
@@ -195,18 +183,10 @@ const AdminJobsPage = () => {
       };
 
       if (editingJob) {
-        await api.patch(`jd/admin/${editingJob.id}`, payload, {
-          headers: { 
-            "X-Is-Admin": "true"
-          }
-        });
+        await api.patch(`jd/admin/${editingJob.id}`, payload);
         showNotification(t("admin_jobs_save_success"));
       } else {
-        await api.post("jd/admin", payload, {
-          headers: { 
-            "X-Is-Admin": "true"
-          }
-        });
+        await api.post("jd/admin", payload);
         showNotification(t("admin_jobs_save_success"));
       }
       setIsModalOpen(false);
@@ -219,11 +199,7 @@ const AdminJobsPage = () => {
   const handleDelete = async (id: string) => {
     if (!confirm(t("admin_jobs_delete_confirm"))) return;
     try {
-      await api.delete(`jd/admin/${id}`, {
-        headers: { 
-          "X-Is-Admin": "true"
-        }
-      });
+      await api.delete(`jd/admin/${id}`);
       showNotification(t("admin_jobs_delete_success"));
       fetchJobs();
     } catch (err) {
@@ -279,11 +255,7 @@ const AdminJobsPage = () => {
     if (!confirm(t("admin_jobs_crawl_success"))) return;
     setIsLoading(true);
     try {
-      await api.post("jd/admin/crawl", {}, {
-        headers: { 
-          "X-Is-Admin": "true"
-        }
-      });
+      await api.post("jd/admin/crawl", {});
       showNotification(t("admin_jobs_crawl_success"));
       // Refresh sau 5s để xem có tin mới chưa
       setTimeout(() => fetchJobs(1), 5000);

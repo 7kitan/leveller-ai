@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text, or_, and_
 from sqlalchemy.dialects.postgresql import UUID
 from shared.database import get_db
-from shared.models import Job, SystemSetting
+from shared.models import Job, SystemSetting, UserRole
 from shared.config_utils import config_manager
 from shared.llm_utils import get_embedding, build_job_embedding_context, normalize_location
 from shared.ai_service import AI_REGISTRY
@@ -360,7 +360,7 @@ def admin_list_jobs(
     q: Optional[str] = Query(None)
 ):
     """Admin only: Láº¥y táº¥t cáº£ Job vá»›i phÃ¢n trang."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     query = db.query(Job)
@@ -399,7 +399,7 @@ def admin_update_job(
     db: Session = Depends(get_db),
 ):
     """Admin only: Cáº­p nháº­t Job."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     job = db.query(Job).filter(Job.id == job_id).first()
@@ -425,7 +425,7 @@ def admin_delete_job(
     job_id: uuid.UUID, request: Request, db: Session = Depends(get_db)
 ):
     """Admin only: XÃ³a Job."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     job = db.query(Job).filter(Job.id == job_id).first()
@@ -440,7 +440,7 @@ def admin_delete_job(
 @app.post("/jd/admin", response_model=JobResponse)
 def admin_create_job(job_in: JobCreate, request: Request, db: Session = Depends(get_db)):
     """Admin only: Táº¡o má»›i Job thá»§ cÃ´ng."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     source_id = f"manual_{uuid.uuid4()}"
@@ -489,7 +489,7 @@ def admin_create_job(job_in: JobCreate, request: Request, db: Session = Depends(
 @app.post("/jd/admin/crawl")
 def admin_trigger_crawl(request: Request):
     """Admin only: KÃ­ch hoáº¡t cÃ o tin TopCV ngay láº­p tá»©c."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     try:
@@ -510,7 +510,7 @@ def admin_trigger_crawl(request: Request):
 @app.post("/jd/admin/crawl/fetch")
 def admin_crawl_fetch_job(req: CrawlUrlRequest, request: Request):
     """Admin only: Cào dữ liệu từ 1 URL TopCV để hiển thị ra form (chưa lưu)."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     if "topcv.vn" not in req.url:
@@ -545,7 +545,7 @@ def admin_crawl_fetch_job(req: CrawlUrlRequest, request: Request):
 @app.post("/jd/admin/bulk")
 def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = Depends(get_db)):
     """Admin only: Lưu nhiều job cùng lúc (từ manual import)."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     new_jobs_count = 0
@@ -628,7 +628,7 @@ def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = D
 @app.post("/jd/admin/extract-skills/{job_id}")
 def admin_extract_job_skills(job_id: str, request: Request, db: Session = Depends(get_db)):
     """Admin only: Trigger skill extraction for a specific job."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
     
     # Check if job exists
@@ -662,7 +662,7 @@ def admin_batch_extract_skills(
     skip_existing: bool = Query(True)
 ):
     """Admin only: Trigger batch skill extraction for multiple jobs."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
     
     try:

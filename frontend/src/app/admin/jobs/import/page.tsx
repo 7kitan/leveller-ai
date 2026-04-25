@@ -103,8 +103,7 @@ const JobImportPage = () => {
       try {
         const resp = await api.post("jd/admin/crawl/fetch", { url: res.url }, {
           headers: { 
-            Authorization: `Bearer ${token}`,
-            "X-Is-Admin": "true"
+            Authorization: `Bearer ${token}`
           }
         });
         
@@ -145,8 +144,7 @@ const JobImportPage = () => {
     try {
       await api.post("jd/admin/bulk", { jobs: [result.data] }, {
         headers: { 
-          Authorization: `Bearer ${token}`,
-          "X-Is-Admin": "true"
+          Authorization: `Bearer ${token}`
         }
       });
       
@@ -169,8 +167,7 @@ const JobImportPage = () => {
         jobs: validResults.map(r => r.data)
       }, {
         headers: { 
-          Authorization: `Bearer ${token}`,
-          "X-Is-Admin": "true"
+          Authorization: `Bearer ${token}`
         }
       });
       

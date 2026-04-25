@@ -33,6 +33,7 @@ celery_app = Celery(
         "worker.langgraph_agents.gap_v3.tasks.cv_parsing_v3_task",  # CV parsing v3 (khi USE_LLM_GAP_AGENT_V3=true)
         "worker.tasks.crawler_tasks",  # Course metadata crawler
         "worker.tasks.market_stats_tasks", # Daily market data aggregation
+        "worker.tasks.vector_tasks",  # Vector embedding rebuild (admin-triggered)
     ],
 )
 
@@ -74,9 +75,25 @@ celery_app.conf.update(
     timezone="Asia/Ho_Chi_Minh",
     enable_utc=True,
     task_routes={
-        "worker.tasks.analysis_tasks.*": {"queue": "analysis_queue"},
-        "worker.langgraph_agents.gap_v3.tasks.cv_parsing_v3_task.*": {"queue": "parsing_queue"},
-        "worker.tasks.crawler_tasks.*": {"queue": "crawler_queue"},
+        # Analysis tasks → analysis queue
+        "worker.tasks.analysis_tasks.*": {"queue": "analysis"},
+        
+        # CV parsing tasks → cv_parsing queue
+        "worker.tasks.cv_parsing_v3_task.*": {"queue": "cv_parsing"},
+        "worker.langgraph_agents.gap_v3.tasks.cv_parsing_v3_task.*": {"queue": "cv_parsing"},
+        "worker.tasks.parse_cv_task.*": {"queue": "cv_parsing"},
+        
+        # Crawler tasks → market_stats queue (reuse existing worker)
+        "worker.tasks.crawler_tasks.*": {"queue": "market_stats"},
+        
+        # Market stats tasks → market_stats queue
+        "worker.tasks.market_stats_tasks.*": {"queue": "market_stats"},
+        
+        # Vector tasks → market_stats queue (low priority, admin-triggered)
+        "worker.tasks.vector_tasks.*": {"queue": "market_stats"},
+        
+        # Email tasks → email queue (if implemented)
+        "worker.tasks.email_tasks.*": {"queue": "email"},
     },
     beat_schedule={
         "auto-crawl-topcv-every-30-mins": {

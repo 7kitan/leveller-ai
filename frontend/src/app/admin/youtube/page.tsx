@@ -68,9 +68,7 @@ const AdminYouTubePage = () => {
       const offset = (page - 1) * pageSize;
       const url = `/admin/youtube?limit=${pageSize}&offset=${offset}${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ""}`;
       
-      const res = await api.get(url, {
-        headers: { "X-Is-Admin": "true" }
-      });
+      const res = await api.get(url);
       
       setCourses(res.data || []);
       // Logic for total pages might need total count from backend, 
@@ -112,9 +110,7 @@ const AdminYouTubePage = () => {
     setSubmitting(true);
 
     try {
-      const res = await api.delete(`admin/youtube/${videoToDelete.video_id}`, {
-        headers: { "X-Is-Admin": "true" }
-      });
+      const res = await api.delete(`admin/youtube/${videoToDelete.video_id}`);
 
       if (res.status === 200) {
         toast.success(t("admin_users_delete_success"));
@@ -132,9 +128,7 @@ const AdminYouTubePage = () => {
     if (!token) return;
     try {
       setSubmitting(true);
-      const res = await api.post("admin/youtube/verify-all", {}, {
-        headers: { "X-Is-Admin": "true" }
-      });
+      const res = await api.post("admin/youtube/verify-all", {});
       toast.success(t("admin_youtube_verify_success"));
     } catch (err) {
       toast.error(t("admin_youtube_verify_error"));

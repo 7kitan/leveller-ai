@@ -141,8 +141,7 @@ const CourseImportPage = () => {
       try {
         const resp = await api.post("recommend/admin/courses/crawl", { url: res.url }, {
           headers: { 
-            Authorization: `Bearer ${token}`,
-            "X-Is-Admin": "true"
+            Authorization: `Bearer ${token}`
           }
         });
         
@@ -159,8 +158,7 @@ const CourseImportPage = () => {
       try {
         const resp = await api.get(`recommend/admin/courses/crawl/status/${taskId}`, {
           headers: { 
-            Authorization: `Bearer ${token}`,
-            "X-Is-Admin": "true"
+            Authorization: `Bearer ${token}`
           }
         });
         
@@ -229,8 +227,7 @@ const CourseImportPage = () => {
 
       await api.post("recommend/admin/courses", payload, {
         headers: { 
-          Authorization: `Bearer ${token}`,
-          "X-Is-Admin": "true"
+          Authorization: `Bearer ${token}`
         }
       });
       
@@ -274,8 +271,7 @@ const CourseImportPage = () => {
 
       await api.post("recommend/admin/courses/bulk", payload, {
         headers: { 
-          Authorization: `Bearer ${token}`,
-          "X-Is-Admin": "true"
+          Authorization: `Bearer ${token}`
         }
       });
       

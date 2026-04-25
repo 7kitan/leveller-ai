@@ -13,18 +13,18 @@ from shared.config_utils import config_manager
 class ChandraOCRClient:
     def __init__(self):
         # We'll fetch these dynamically in each call to ensure they're up-to-date
-        self.default_api_url = os.getenv("CHANDRA_API_URL")
-        self.default_api_key = os.getenv("CHANDRA_API_KEY")
+        self.default_api_url = os.getenv("CHANDRA_OCR_URL")
+        self.default_api_key = os.getenv("CHANDRA_OCR_API_KEY")
         self.timeout = float(os.getenv("OCR_TIMEOUT", "300.0"))
         self.poll_interval = 5.0
 
     @property
     def api_url(self):
-        return config_manager.get_setting("chandra_api_url") or self.default_api_url
+        return config_manager.get_setting("chandra_ocr_url") or self.default_api_url
 
     @property
     def api_key(self):
-        return config_manager.get_setting("chandra_api_key") or self.default_api_key
+        return config_manager.get_setting("chandra_ocr_api_key") or self.default_api_key
 
     async def ocr_file(self, file_path: str) -> Dict[str, Any]:
         """
@@ -32,8 +32,8 @@ class ChandraOCRClient:
         Dữ liệu được gửi dưới dạng Base64 JSON.
         """
         if not self.api_url:
-            logger.error("[OCR] CHANDRA_API_URL is not set")
-            return {"status": "error", "error": "CHANDRA_API_URL not configured"}
+            logger.error("[OCR] CHANDRA_OCR_URL is not set")
+            return {"status": "error", "error": "CHANDRA_OCR_URL not configured"}
 
 
 

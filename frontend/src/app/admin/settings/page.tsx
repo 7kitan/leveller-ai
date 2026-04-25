@@ -1074,9 +1074,7 @@ const AdminSettingsPage = () => {
                         onClick={async () => {
                             setIsSaving(true);
                             try {
-                              await api.post("admin/cache/clear", {}, {
-                                headers: { "X-Is-Admin": "true" }
-                              });
+                              await api.post("admin/cache/clear", {});
                               showNotification(t("admin_settings_clear_redis_success"));
                             } catch (err) {
                               showNotification(t("admin_settings_clear_redis_error"), "error");
@@ -1093,9 +1091,7 @@ const AdminSettingsPage = () => {
                         onClick={async () => {
                             setIsSaving(true);
                             try {
-                              await api.post("admin/vector/sync", {}, {
-                                headers: { "X-Is-Admin": "true" }
-                              });
+                              await api.post("admin/vector/sync", {});
                               showNotification(t("admin_settings_sync_vector_success"));
                             } catch (err) {
                               showNotification(t("admin_settings_sync_vector_error"), "error");

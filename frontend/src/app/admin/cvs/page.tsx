@@ -49,8 +49,7 @@ const AdminCVsPage = () => {
           limit: pageSize,
           offset: (page - 1) * pageSize,
           q: searchTerm || undefined
-        },
-        headers: { "X-Is-Admin": "true" }
+        }
       });
       setCvs(resp.data.items || []);
       setTotalPages(resp.data.pages || 0);
@@ -77,9 +76,7 @@ const AdminCVsPage = () => {
   const handleDelete = async (id: string) => {
     if (!confirm(t("admin_cvs_delete_confirm"))) return;
     try {
-      await api.delete(`analysis/admin/cvs/${id}`, {
-        headers: { "X-Is-Admin": "true" }
-      });
+      await api.delete(`analysis/admin/cvs/${id}`);
       fetchCVs();
     } catch (err) {
       console.error("Delete CV error:", err);

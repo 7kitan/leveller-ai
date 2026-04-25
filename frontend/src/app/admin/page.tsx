@@ -39,9 +39,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await api.get("analysis/admin/stats", {
-          headers: { "X-Is-Admin": "true" }
-        });
+        const res = await api.get("analysis/admin/stats");
         setStats(res.data);
       } catch (err) {
         console.error("Fetch stats error:", err);

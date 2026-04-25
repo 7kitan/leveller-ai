@@ -363,6 +363,12 @@ function AnalysisPageContent() {
     }
   };
 
+  /* -- Handle Continue Waiting - Reset timer to prevent loop ----- */
+  const handleContinueWaiting = () => {
+    setShowTimeoutOverlay(false);
+    setProcessingTime(0); // Reset timer to give another 45 seconds
+  };
+
   /* -- Retry / back ------------------------------------------------ */
   const handleRetry = () => {
     setPhase("setup");
@@ -657,12 +663,12 @@ function AnalysisPageContent() {
               <p className={styles.timeoutDescription}>
                 {t("analysis_timeout_desc")}
               </p>
-              <div className={styles.timeoutActionsRow}>
+               <div className={styles.timeoutActionsRow}>
                  <button onClick={handleNotify} className={styles.timeoutNotifyBtn}>
                    <Zap size={16} />
                    {t("analysis_notify_and_back")}
                  </button>
-                 <button onClick={() => setShowTimeoutOverlay(false)} className={styles.timeoutContinueBtn}>
+                 <button onClick={handleContinueWaiting} className={styles.timeoutContinueBtn}>
                    {t("analysis_continue_waiting")}
                  </button>
               </div>

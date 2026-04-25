@@ -4,6 +4,9 @@ x-service-base: &service-base
     context: .
     dockerfile: Dockerfile.service
   env_file: .env
+  environment:
+    - POSTGRES_HOST=db
+    - REDIS_HOST=redis
   restart: always
   networks:
     - advisor_net_prod
@@ -26,6 +29,9 @@ x-worker-base: &worker-base
     context: .
     dockerfile: Dockerfile.worker
   env_file: .env
+  environment:
+    - POSTGRES_HOST=db
+    - REDIS_HOST=redis
   restart: always
   networks:
     - advisor_net_prod
@@ -180,6 +186,8 @@ services:
     <<: *worker-base
     container_name: advisor_worker_cv_parser_prod
     command: celery -A worker.celery_app worker -Q cv_parsing -n cv_parser@%h --loglevel=info --concurrency=${WORKER_CV_PARSER_CONCURRENCY:-2}
+    volumes:
+      - ./data/cv_uploads:/app/data/cv_uploads
 
   worker-analysis:
     <<: *worker-base
