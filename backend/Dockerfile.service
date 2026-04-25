@@ -22,6 +22,10 @@ COPY gateway/ ./gateway/
 COPY services/ ./services/
 COPY worker/ ./worker/
 
+# CRITICAL: Create upload directory with proper permissions
+# This ensures CV uploads work even if host directory doesn't exist
+RUN mkdir -p /app/data/cv_uploads && chmod 777 /app/data/cv_uploads
+
 # Mặc định sử dụng biến môi trường để quyết định module chạy
 # Giá trị này sẽ được ghi đè trong docker-compose.yml
 ENV APP_MODULE=gateway.main:app
