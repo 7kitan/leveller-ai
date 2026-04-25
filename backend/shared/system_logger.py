@@ -1,4 +1,5 @@
 import logging
+from shared.logging_utils import setup_logger
 import json
 import traceback
 import concurrent.futures
@@ -8,7 +9,7 @@ from sqlalchemy.orm import Session
 from shared.database import SessionLocal
 from shared.models import SystemLog
 
-logger = logging.getLogger("system_logger")
+logger = setup_logger("system_logger", log_file="system.log")
 log_executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 
 def shutdown_logger():

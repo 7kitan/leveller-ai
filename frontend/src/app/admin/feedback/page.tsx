@@ -14,6 +14,9 @@ import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import styles from "./admin-feedback.module.css";
 import Pagination from "@/components/shared/Pagination";
+import AuthGuard from "@/components/auth/AuthGuard";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 
 interface FeedbackItem {
   id: string;
@@ -77,12 +80,12 @@ export default function AdminFeedbackPage() {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>{t("admin_feedback_title")}</h1>
-          <p className={styles.subtitle}>{t("admin_feedback_sub")}</p>
-        </div>
+    <AuthGuard requireAdmin>
+      <PageContainer>
+        <PageHeader 
+          title={t("admin_feedback_title")}
+          subtitle={t("admin_feedback_sub")}
+        >
         <div className={styles.filters}>
           <div className={styles.filterGroup}>
             <Filter size={16} />
@@ -94,8 +97,8 @@ export default function AdminFeedbackPage() {
               }}
               className={styles.select}
             >
-              <option value="">{t("table_rating")}: All</option>
-              {[5, 4, 3, 2, 1].map(r => <option key={r} value={r}>{r} Stars</option>)}
+              <option value="">{t("table_rating")}: {t("admin_feedback_all")}</option>
+              {[5, 4, 3, 2, 1].map(r => <option key={r} value={r}>{r} {t("admin_feedback_stars")}</option>)}
             </select>
           </div>
           <div className={styles.filterGroup}>
@@ -107,13 +110,13 @@ export default function AdminFeedbackPage() {
               }}
               className={styles.select}
             >
-              <option value="">{t("table_accurate")}: All</option>
+              <option value="">{t("table_accurate")}: {t("admin_feedback_all")}</option>
               <option value="true">{t("feedback_accurate_yes")}</option>
               <option value="false">{t("feedback_accurate_no")}</option>
             </select>
           </div>
-        </div>
-      </div>
+          </div>
+        </PageHeader>
 
       <div className={styles.tableCard}>
         <table className={styles.table}>
@@ -151,7 +154,7 @@ export default function AdminFeedbackPage() {
                     )}
                   </td>
                   <td className={styles.commentCell}>
-                    <div className={styles.commentText}>{item.comment || <span className={styles.noComment}>No comment</span>}</div>
+                    <div className={styles.commentText}>{item.comment || <span className={styles.noComment}>{t("admin_feedback_no_comment")}</span>}</div>
                     {item.missing_skills?.length > 0 && (
                       <div className={styles.missingSkills}>
                         {item.missing_skills.map(s => <span key={s} className={styles.skillPill}>{s}</span>)}
@@ -182,6 +185,7 @@ export default function AdminFeedbackPage() {
           </div>
         )}
       </div>
-    </div>
+    </PageContainer>
+    </AuthGuard>
   );
 }

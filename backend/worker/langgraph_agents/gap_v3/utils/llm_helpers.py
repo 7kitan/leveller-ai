@@ -10,12 +10,86 @@ import logging
 import asyncio
 import time
 import uuid
-from typing import Dict, Any, Optional
+import re
+from typing import Dict, Any, Optional, List
 from shared.config_utils import config_manager
 from shared.ai_service import generate_completion
 from worker.langgraph_agents.gap_v3.config import GAP_LLM_MODEL as LLM_MODEL
 
 logger = logging.getLogger(__name__)
+
+# ─── Prompt Size Limits ────────────────────────────────────────────────────────
+# SECURITY: Prevent prompt overflow and excessive token usage
+MAX_PROMPT_CHARS = 100000  # ~25K tokens - safe for GPT-4o-mini (128K context)
+MAX_PROMPT_TOKENS_ESTIMATE = 25000  # Conservative estimate (4 chars per token)
+
+# ─── Prompt Injection Detection ────────────────────────────────────────────────
+INJECTION_PATTERNS = [
+    r"ignore\s+(all\s+)?previous\s+instructions",
+    r"disregard\s+(all\s+)?previous",
+    r"forget\s+(all\s+)?previous",
+    r"new\s+instructions?:",
+    r"system\s*:\s*you\s+are",
+    r"override\s+system",
+    r"bypass\s+security",
+]
+
+
+def validate_prompt_size(messages: List[Dict[str, str]], call_name: str = "llm_call") -> None:
+    """
+    SECURITY: Validate total prompt size to prevent overflow and excessive costs.
+    
+    Args:
+        messages: List of message dicts with 'role' and 'content'
+        call_name: Name of the calling function for logging
+        
+    Raises:
+        ValueError: If prompt exceeds size limits
+    """
+    total_chars = sum(len(m.get("content", "")) for m in messages)
+    
+    if total_chars > MAX_PROMPT_CHARS:
+        error_msg = (
+            f"[{call_name}] Prompt too large: {total_chars:,} chars "
+            f"(max {MAX_PROMPT_CHARS:,}). "
+            f"Estimated {total_chars // 4:,} tokens (max {MAX_PROMPT_TOKENS_ESTIMATE:,}). "
+            f"Please reduce input size (shorter JD, fewer skills, etc.)"
+        )
+        logger.error(f"[PROMPT SIZE VIOLATION] {error_msg}")
+        raise ValueError(error_msg)
+    
+    # Log warning if approaching limit (>80%)
+    if total_chars > MAX_PROMPT_CHARS * 0.8:
+        logger.warning(
+            f"[{call_name}] Prompt size approaching limit: {total_chars:,} chars "
+            f"({total_chars / MAX_PROMPT_CHARS * 100:.1f}% of max)"
+        )
+
+
+def detect_prompt_injection(text: str) -> bool:
+    """
+    SECURITY: Detect potential prompt injection attempts.
+    
+    Args:
+        text: User-provided text to check
+        
+    Returns:
+        True if suspicious patterns detected, False otherwise
+    """
+    if not text:
+        return False
+    
+    text_lower = text.lower()
+    for pattern in INJECTION_PATTERNS:
+        if re.search(pattern, text_lower):
+            logger.warning(
+                f"[PROMPT INJECTION DETECTED] Pattern matched: {pattern} "
+                f"in text: {text[:200]}..."
+            )
+            return True
+    
+    return False
+
 
 # ─── JSON Completion ───────────────────────────────────────────────────────────
 
@@ -58,6 +132,13 @@ async def llm_json_completion(
             {"role": "system", "content": f"Additional context:\n{context}"}
         )
     messages.append({"role": "user", "content": prompt})
+
+    # ── SECURITY: Validate prompt size ───────────────────────────────────────
+    try:
+        validate_prompt_size(messages, call_name)
+    except ValueError as e:
+        logger.error(f"[LLM][{call_id}] Prompt size validation failed: {e}")
+        return {"error": str(e), "error_type": "prompt_too_large"}
 
     # ── Log BUILDING (prompt stats) ──────────────────────────────────────────
     _log_llm_input(call_id, effective_model, messages, prompt, context, call_name)
@@ -255,6 +336,13 @@ async def llm_text_completion(
     if context:
         messages.append({"role": "system", "content": context})
     messages.append({"role": "user", "content": prompt})
+
+    # ── SECURITY: Validate prompt size ───────────────────────────────────────
+    try:
+        validate_prompt_size(messages, call_name)
+    except ValueError as e:
+        logger.error(f"[LLM][{call_id}] Prompt size validation failed: {e}")
+        return ""
 
     _log_llm_input(call_id, effective_model, messages, prompt, context, call_name)
 

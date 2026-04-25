@@ -1,13 +1,6 @@
 @reference "tailwindcss";
 @reference "../globals.css";
 
-.pageRoot {
-  display: flex;
-  flex-direction: column;
-  gap: 3.5rem;
-  padding: 2rem 0;
-  animation: fadeIn 1s var(--ease-premium);
-}
 
 .headerWrapper {
   display: flex;

@@ -85,19 +85,27 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
                 logger.info(f"[STEP 1] ✓ File DISCOVERED on disk: {file_path}")
                 break
     
-    # ── Cache hit: raw_text đã có trong DB ──────────────────────────────────
+    # BUG-001 FIX: Cache hit validation - Check both raw_text AND cv_parsed_json exist
+    # If raw_text exists but cv_parsed_json is missing, re-parse is needed
     if cv_record.raw_text and len(cv_record.raw_text) > 100:
-        logger.info(
-            f"[STEP 1] ✓ CACHE HIT — using existing raw_text "
-            f"({len(cv_record.raw_text)} chars) | is_ocr={getattr(cv_record, 'is_ocr', False)}"
-        )
-        return {
-            **state,
-            "raw_text": cv_record.raw_text,
-            "is_ocr": getattr(cv_record, "is_ocr", False),
-            "status": "text_extracted",
-            "file_path": file_path,
-        }
+        # Additional validation: check if cv_parsed_json exists
+        if cv_record.cv_parsed_json:
+            logger.info(
+                f"[STEP 1] ✓ CACHE HIT — using existing raw_text "
+                f"({len(cv_record.raw_text)} chars) | is_ocr={getattr(cv_record, 'is_ocr', False)}"
+            )
+            return {
+                **state,
+                "raw_text": cv_record.raw_text,
+                "is_ocr": getattr(cv_record, "is_ocr", False),
+                "status": "text_extracted",
+                "file_path": file_path,
+            }
+        else:
+            logger.warning(
+                f"[STEP 1] CACHE PARTIAL — raw_text exists but cv_parsed_json missing. "
+                f"Will re-extract and re-parse."
+            )
     
     logger.info("[STEP 1] CACHE MISS — extracting text from file...")
     
@@ -184,11 +192,12 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
     else:
         logger.info(f"[STEP 1] File is not PDF ({file_ext}), skipping pymupdf, going to OCR fallback.")
 
-    # ── OCR fallback: text too short → scan pages ────────────────────────────
+    # BUG-002 FIX: OCR fallback threshold - Lowered from 200 to 100 chars
+    # Some valid single-page CVs may have 150-180 chars, so 200 was too high
     is_ocr = False
-    if len(raw_text.strip()) < 200:
+    if len(raw_text.strip()) < 100:
         logger.warning(
-            f"[STEP 1] ⚠ LOW TEXT YIELD ({len(raw_text)} chars < 200) — "
+            f"[STEP 1] ⚠ LOW TEXT YIELD ({len(raw_text)} chars < 100) — "
             f"attempting OCR fallback..."
         )
         try:
@@ -277,13 +286,10 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
         )
         return {**state, "error": "Raw text too short or empty", "status": "failed"}
 
-    # ── PII Masking ───────────────────────────────────────────────────────────
-    if ENABLE_PII_MASKING:
-        logger.info("[STEP 2] Masking PII before sending to LLM...")
-        masked_text = mask_pii(raw_text)
-    else:
-        logger.info("[STEP 2] PII Masking is DISABLED. Sending raw text to LLM.")
-        masked_text = raw_text
+    # BUG-003 FIX: PII Masking is now MANDATORY for GDPR compliance
+    # Removed ENABLE_PII_MASKING flag - always mask PII before sending to LLM
+    logger.info("[STEP 2] Masking PII before sending to LLM (MANDATORY for GDPR compliance)...")
+    masked_text = mask_pii(raw_text)
 
     logger.info(
         f"[STEP 2] PII masking complete | before={len(raw_text)} chars | "
@@ -501,10 +507,14 @@ async def normalize_cv_node(state: CVParsingState) -> CVParsingState:
             logger.debug(f"  skill[{idx}] skipped: empty name")
             continue
 
-        name_lower = raw_name.lower()
+        # BUG-004 FIX: Normalize skill name to title case for consistency
+        # This ensures "python", "Python", "PYTHON" all become "Python"
+        name_normalized = raw_name.title() if len(raw_name) > 2 else raw_name.upper()
+        name_lower = name_normalized.lower()
+        
         if name_lower in seen_names:
             skill_dedup_count += 1
-            logger.debug(f"  skill[{idx}] deduplicated: '{raw_name}'")
+            logger.debug(f"  skill[{idx}] deduplicated: '{raw_name}' (normalized: '{name_normalized}')")
             continue
 
         raw_level = (skill.get("level") or "Junior").lower().strip()
@@ -518,7 +528,7 @@ async def normalize_cv_node(state: CVParsingState) -> CVParsingState:
 
         normalized_skills.append(
             {
-                "name": raw_name,
+                "name": name_normalized,  # BUG-004 FIX: Use normalized name
                 "category": raw_cat,
                 "years_exp": max(0.0, float(skill.get("experience_years") or skill.get("years_exp") or 0)),
                 "level": normalized,
@@ -526,7 +536,7 @@ async def normalize_cv_node(state: CVParsingState) -> CVParsingState:
         )
         seen_names.add(name_lower)
         logger.debug(
-            f"  skill[{idx}] kept: name='{raw_name}' | "
+            f"  skill[{idx}] kept: name='{raw_name}' → '{name_normalized}' | "
             f"level='{skill.get('level')}' → '{normalized}' | "
             f"yrs_exp={skill.get('experience_years', 0)}"
         )
@@ -763,9 +773,10 @@ async def _upsert_skills_from_cv(skills: list, cv_id: str, db) -> int:
 
 async def _upsert_work_history_from_cv(work_history: list, cv_id: str, db) -> int:
     """
-    Upsert work history từ parsed CV vào user_work_experiences table.
+    BUG-005 FIX: Upsert work history with PII masking before database storage.
     """
     from shared.models import UserWorkExperience
+    from shared.work_history_masking import mask_work_history
     
     upserted_count = 0
     cv_uuid = uuid.UUID(cv_id)
@@ -773,7 +784,10 @@ async def _upsert_work_history_from_cv(work_history: list, cv_id: str, db) -> in
     # Xóa cũ ghi mới (đồng bộ với finalize_cv)
     db.query(UserWorkExperience).filter(UserWorkExperience.cv_id == cv_uuid).delete()
     
-    for w in (work_history or []):
+    # BUG-005 FIX: Apply PII masking to work history
+    masked_work_history = mask_work_history(work_history or [])
+    
+    for w in masked_work_history:
         new_work = UserWorkExperience(
             id=uuid.uuid4(),
             cv_id=cv_uuid,

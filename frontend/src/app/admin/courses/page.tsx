@@ -30,6 +30,8 @@ import styles from "./admin-courses.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 import Portal from "@/components/shared/Portal";
 import Modal from "@/components/shared/Modal";
 
@@ -56,7 +58,7 @@ interface Course {
   is_active: boolean;
 }
 
-const TagInput = ({ tags, setTags, placeholder = "Thêm thẻ..." }: { tags: string[], setTags: (tags: string[]) => void, placeholder?: string }) => {
+const TagInput = ({ tags, setTags, placeholder = t("admin_courses_tag_placeholder") }: { tags: string[], setTags: (tags: string[]) => void, placeholder?: string }) => {
   const [input, setInput] = useState("");
 
   const addTag = (val: string) => {
@@ -270,15 +272,11 @@ const AdminCoursesPage = () => {
 
   return (
     <AuthGuard requireAdmin>
-      <div className={styles.pageRoot}>
-        <div className={styles.header}>
-          <div>
-            <h1 className={styles.title}>
-              <BookOpen size={40} className={styles.headerIcon} /> 
-              <span>{t("admin_courses_title")}</span>
-            </h1>
-            <p className={styles.subtitle}>{t("admin_courses_sub")}</p>
-          </div>
+      <PageContainer>
+        <PageHeader 
+          title={t("admin_courses_title")}
+          subtitle={t("admin_courses_sub")}
+        >
           <div className="flex gap-3">
             <Link href="/admin/courses/import">
               <button className={cn(styles.addBtn, "bg-blue-600 hover:bg-blue-700")}>
@@ -318,8 +316,7 @@ const AdminCoursesPage = () => {
               {t("add_course")}
             </button>
           </div>
-        </div>
-
+        </PageHeader>
         <div className={styles.contentStack}>
           <div className={styles.controlBar}>
             <div className={styles.searchContainer}>
@@ -330,6 +327,7 @@ const AdminCoursesPage = () => {
                 className={styles.searchInput}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                maxLength={200}
               />
             </div>
             <button onClick={() => fetchCourses(currentPage)} className={styles.refreshBtn}>
@@ -432,7 +430,7 @@ const AdminCoursesPage = () => {
                   <input 
                     value={formData.title}
                     onChange={e => setFormData({...formData, title: e.target.value})}
-                    placeholder="e.g. Advanced Python Patterns"
+                    placeholder={t("admin_courses_eg_title")}
                   />
                 </div>
                 <div className={cn(styles.formField, styles.formFieldFull)}>
@@ -440,7 +438,8 @@ const AdminCoursesPage = () => {
                   <textarea 
                     value={formData.description}
                     onChange={e => setFormData({...formData, description: e.target.value})}
-                    placeholder="Mô tả nội dung khóa học..."
+                    placeholder={t("admin_courses_desc_placeholder")}
+                    maxLength={5000}
                   />
                 </div>
                 <div className={styles.formField}>
@@ -499,9 +498,9 @@ const AdminCoursesPage = () => {
                     value={formData.level}
                     onChange={e => setFormData({...formData, level: e.target.value})}
                   >
-                      <option value="Beginner">Beginner</option>
-                      <option value="Intermediate">Intermediate</option>
-                      <option value="Advanced">Advanced</option>
+                      <option value="Beginner">{t("level_beginner")}</option>
+                      <option value="Intermediate">{t("level_intermediate")}</option>
+                      <option value="Advanced">{t("level_advanced")}</option>
                   </select>
                 </div>
                 <div className={styles.formField}>
@@ -510,6 +509,8 @@ const AdminCoursesPage = () => {
                     type="number"
                     value={formData.cost_usd}
                     onChange={e => setFormData({...formData, cost_usd: e.target.value})}
+                    min={0}
+                    max={999999}
                   />
                 </div>
                 <div className={styles.formField}>
@@ -518,6 +519,8 @@ const AdminCoursesPage = () => {
                     type="number"
                     value={formData.duration_hours}
                     onChange={e => setFormData({...formData, duration_hours: e.target.value})}
+                    min={0}
+                    max={10000}
                   />
                 </div>
                 <div className={styles.formField}>
@@ -547,7 +550,7 @@ const AdminCoursesPage = () => {
                       checked={formData.is_active}
                       onChange={e => setFormData({...formData, is_active: e.target.checked})}
                     />
-                    <span className="font-bold text-indigo-500">Enable in Production</span>
+                    <span className="font-bold text-indigo-500">{t("admin_courses_prod_enable")}</span>
                   </label>
                 </div>
 
@@ -557,7 +560,7 @@ const AdminCoursesPage = () => {
                   <TagInput 
                       tags={formData.skills}
                       setTags={(skills) => setFormData({...formData, skills})}
-                      placeholder="Type skill and press Enter..."
+                      placeholder={t("admin_courses_skill_placeholder")}
                   />
                 </div>
                 <div className={cn(styles.formField, styles.formFieldFull)}>
@@ -565,7 +568,7 @@ const AdminCoursesPage = () => {
                   <TagInput 
                       tags={formData.outcomes}
                       setTags={(outcomes) => setFormData({...formData, outcomes})}
-                      placeholder="Type outcome and press Enter..."
+                      placeholder={t("admin_courses_outcome_placeholder")}
                   />
                 </div>
                 <div className={cn(styles.formField, styles.formFieldFull)}>
@@ -573,7 +576,7 @@ const AdminCoursesPage = () => {
                   <TagInput 
                       tags={formData.languages}
                       setTags={(languages) => setFormData({...formData, languages})}
-                      placeholder="e.g. en, vi"
+                      placeholder={t("admin_courses_lang_placeholder")}
                   />
                 </div>
                 <div className={cn(styles.formField, styles.formFieldFull)}>
@@ -583,6 +586,7 @@ const AdminCoursesPage = () => {
                     value={formData.modules}
                     onChange={e => setFormData({...formData, modules: e.target.value})}
                     placeholder="Introduction&#10;Basic Syntax&#10;Advanced Patterns..."
+                    maxLength={5000}
                   />
                 </div>
                 <div className={cn(styles.formField, styles.formFieldFull)}>
@@ -590,7 +594,7 @@ const AdminCoursesPage = () => {
                   <TagInput 
                       tags={formData.tags}
                       setTags={(tags) => setFormData({...formData, tags})}
-                      placeholder="Add tag and press Enter..."
+                      placeholder={t("admin_courses_tag_input_placeholder")}
                   />
                 </div>
             </div>
@@ -619,7 +623,7 @@ const AdminCoursesPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </PageContainer>
     </AuthGuard>
   );
 };

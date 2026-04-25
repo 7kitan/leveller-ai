@@ -15,12 +15,16 @@ import {
   BookOpen,
   ChevronRight,
   Zap,
-  Settings
+  Settings,
+  Activity,
+  Video
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import styles from "./admin-dashboard.module.css";
 import { useLanguage } from "@/context/LanguageContext";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 
 const AdminDashboard = () => {
   const { token } = useAuth();
@@ -90,28 +94,42 @@ const AdminDashboard = () => {
       color: "#64748b"
     },
     { 
-      title: "AI Usage", 
-      desc: "Monitor token usage, model performance, and costs.", 
+      title: t("admin_dash_module_ai_usage_title"), 
+      desc: t("admin_dash_module_ai_usage_desc"), 
       icon: Cpu, 
       path: "/admin/ai-usage",
       color: "#10b981"
+    },
+    { 
+      title: t("admin_dash_module_system_logs_title"), 
+      desc: t("admin_dash_module_system_logs_desc"), 
+      icon: Activity, 
+      path: "/admin/system-logs",
+      color: "#f43f5e"
+    },
+    { 
+      title: t("admin_dash_module_youtube_title"), 
+      desc: t("admin_dash_module_youtube_desc"), 
+      icon: Video, 
+      path: "/admin/youtube",
+      color: "#ef4444"
     }
   ];
 
   return (
     <AuthGuard requireAdmin>
-      <div className={styles.pageRoot}>
+      <PageContainer>
         {/* Header Section */}
-        <div className={styles.headerWrapper}>
-          <div>
-            <h1 className={styles.headerTitle}>{t("admin_dash_title")}</h1>
-            <p className={styles.headerSubtitle}>{t("admin_dash_subtitle")}</p>
-          </div>
+        <PageHeader
+          title={t("admin_dash_title")}
+          subtitle={t("admin_dash_subtitle")}
+          compact
+        >
           <div className={styles.statusIndicator}>
             <div className={cn(styles.badgeDot, styles.indicatorSuccess)} />
             <span className={styles.statusLabel}>{t("admin_dash_status_online")}</span>
           </div>
-        </div>
+        </PageHeader>
 
         {/* Quick Stats Grid */}
         <div className={styles.statsGrid}>
@@ -189,7 +207,7 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </AuthGuard>
   );
 };

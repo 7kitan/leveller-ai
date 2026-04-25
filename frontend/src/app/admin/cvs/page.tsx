@@ -16,6 +16,9 @@ import {
 import { cn } from "@/lib/utils";
 import styles from "./admin-cvs.module.css";
 import { format } from "date-fns";
+import { useLanguage } from "@/context/LanguageContext";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 
 interface AdminCV {
   id: string;
@@ -28,6 +31,7 @@ interface AdminCV {
 
 const AdminCVsPage = () => {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const [cvs, setCvs] = useState<AdminCV[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -72,7 +76,7 @@ const AdminCVsPage = () => {
   }, [searchTerm]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Xóa hồ sơ này? Hành động này không thể hoàn tác.")) return;
+    if (!confirm(t("admin_cvs_delete_confirm"))) return;
     try {
       await axios.delete(`/api/analysis/admin/cvs/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -96,34 +100,29 @@ const AdminCVsPage = () => {
 
   return (
     <AuthGuard requireAdmin>
-      <div className={styles.pageRoot}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div>
-            <h1 className={styles.title}>
-              <FileText size={40} className={styles.titleIcon} /> 
-              <span>Giám sát Kho hồ sơ</span>
-            </h1>
-            <p className={styles.subtitle}>Quản lý trạng thái bóc tách CV và liên kết thực thể người dùng.</p>
-          </div>
-          <div className={styles.statsGrid}>
-             <div className={styles.statCard}>
-                <div className={styles.statLabel}>Tổng hồ sơ</div>
-                <div className={styles.statValue}>{cvs.length}</div>
-             </div>
-             <div className={styles.statCard}>
-                <div className={styles.statLabel}>Đã bóc tách</div>
-                <div className={cn(styles.statValue, styles.statValueSuccess)}>{cvs.filter(c => c.status === "completed").length}</div>
-             </div>
-             <div className={styles.statCard}>
-                <div className={styles.statLabel}>Đang xử lý</div>
-                <div className={cn(styles.statValue, styles.statValueWarning)}>{cvs.filter(c => c.status === "processing").length}</div>
-             </div>
-             <div className={styles.statCard}>
-                <div className={styles.statLabel}>Lỗi AI</div>
-                <div className={cn(styles.statValue, styles.statValueDanger)}>{cvs.filter(c => c.status === "failed").length}</div>
-             </div>
-          </div>
+      <PageContainer>
+        <PageHeader 
+          title={t("admin_cvs_title")}
+          subtitle={t("admin_cvs_subtitle")}
+        />
+
+        <div className={styles.statsGrid}>
+           <div className={styles.statCard}>
+              <div className={styles.statLabel}>{t("admin_cvs_total")}</div>
+              <div className={styles.statValue}>{cvs.length}</div>
+           </div>
+           <div className={styles.statCard}>
+              <div className={styles.statLabel}>{t("admin_cvs_parsed")}</div>
+              <div className={cn(styles.statValue, styles.statValueSuccess)}>{cvs.filter(c => c.status === "completed").length}</div>
+           </div>
+           <div className={styles.statCard}>
+              <div className={styles.statLabel}>{t("admin_cvs_processing")}</div>
+              <div className={cn(styles.statValue, styles.statValueWarning)}>{cvs.filter(c => c.status === "processing").length}</div>
+           </div>
+           <div className={styles.statCard}>
+              <div className={styles.statLabel}>{t("admin_cvs_error")}</div>
+              <div className={cn(styles.statValue, styles.statValueDanger)}>{cvs.filter(c => c.status === "failed").length}</div>
+           </div>
         </div>
 
         <div className={styles.verticalStack8}>
@@ -133,7 +132,7 @@ const AdminCVsPage = () => {
                  <Search className={styles.searchIcon} />
                  <input 
                     type="text" 
-                    placeholder="Tìm theo tên hoặc email..." 
+                    placeholder={t("admin_cvs_search_placeholder")} 
                     className={styles.searchInput}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -149,11 +148,11 @@ const AdminCVsPage = () => {
               <table className={styles.table}>
                  <thead>
                     <tr className={styles.tableHeader}>
-                       <th className={styles.th}>Chủ sở hữu</th>
-                       <th className={styles.th}>Trạng thái</th>
-                       <th className={styles.th}>Ngày tải lên</th>
-                       <th className={styles.th}>ID Parser</th>
-                       <th className={cn(styles.th, styles.thRight)}>Thao tác</th>
+                       <th className={styles.th}>{t("admin_cvs_table_owner")}</th>
+                       <th className={styles.th}>{t("admin_cvs_table_status")}</th>
+                       <th className={styles.th}>{t("admin_cvs_table_date")}</th>
+                       <th className={styles.th}>{t("admin_cvs_table_parser_id")}</th>
+                       <th className={cn(styles.th, styles.thRight)}>{t("admin_cvs_table_actions")}</th>
                     </tr>
                  </thead>
                  <tbody>
@@ -162,7 +161,7 @@ const AdminCVsPage = () => {
                           <td colSpan={5}>
                              <div className={styles.emptyState}>
                                 <div className={styles.spinner}></div>
-                                <span className={styles.emptyStateTextSmall}>Fetching repository...</span>
+                                <span className={styles.emptyStateTextSmall}>{t("admin_cvs_fetching")}</span>
                              </div>
                           </td>
                        </tr>
@@ -171,7 +170,7 @@ const AdminCVsPage = () => {
                           <td colSpan={5}>
                              <div className={styles.emptyState}>
                                 <FileText size={48} />
-                                <span className={styles.emptyStateTextMain}>Không tìm thấy hồ sơ phù hợp.</span>
+                                <span className={styles.emptyStateTextMain}>{t("admin_cvs_no_results")}</span>
                              </div>
                           </td>
                        </tr>
@@ -180,7 +179,7 @@ const AdminCVsPage = () => {
                           <tr key={cv.id} className={styles.tr}>
                              <td className={styles.td}>
                                 <div className={styles.userCell}>
-                                   <span className={styles.userName}>{cv.full_name || "Unknown User"}</span>
+                                   <span className={styles.userName}>{cv.full_name || t("admin_cvs_unknown_user")}</span>
                                    <span className={styles.userEmail}>{cv.user_email}</span>
                                 </div>
                              </td>
@@ -233,7 +232,7 @@ const AdminCVsPage = () => {
               className="mt-6"
             />
         </div>
-      </div>
+      </PageContainer>
     </AuthGuard>
   );
 };

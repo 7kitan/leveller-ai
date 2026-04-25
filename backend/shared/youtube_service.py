@@ -52,7 +52,7 @@ class YouTubeSearchService:
         
         # 2. Build optimized query with domain context
         if lang == "vi":
-            # Vietnamese: "Lập trình Python cơ bản" or "Học Docker DevOps"
+            # Vietnamese: "Khóa học Lập trình Python trọn bộ" or "Hướng dẫn Docker DevOps đầy đủ"
             domain_prefix = {
                 "programming": "Lập trình",
                 "devops": "DevOps",
@@ -62,15 +62,15 @@ class YouTubeSearchService:
             }.get(domain, "Lập trình")
             
             if level_suffix:
-                final_q = f"{domain_prefix} {skill_name} {level_suffix} tutorial"
+                final_q = f"Khóa học {domain_prefix} {skill_name} {level_suffix} trọn bộ"
             else:
-                final_q = f"{domain_prefix} {skill_name} hướng dẫn"
+                final_q = f"Khóa học {domain_prefix} {skill_name} đầy đủ nhất"
         else:
-            # English: "Python programming tutorial beginner" or "Docker DevOps course"
+            # English: "Python programming full course beginner" or "Docker DevOps complete tutorial"
             if level_suffix:
-                final_q = f"{skill_name} {domain} tutorial {level_suffix}"
+                final_q = f"{skill_name} {domain} full course {level_suffix}"
             else:
-                final_q = f"{skill_name} {domain} tutorial course"
+                final_q = f"{skill_name} {domain} complete tutorial course"
 
         # 2. Tạo embedding cho query (dùng final_q để đồng bộ với nội dung tìm kiếm thực tế)
         query_vector = get_embedding(final_q)
@@ -139,12 +139,12 @@ class YouTubeSearchService:
                 "part": "snippet",
                 "q": final_q,
                 "type": "video",
-                "maxResults": limit * 2,  # Fetch more to filter later
+                "maxResults": limit * 3,  # Fetch more to filter later
                 "key": self.api_key,
                 "relevanceLanguage": lang,
-                "videoDuration": "medium",  # Filter out shorts (<4min) and very long (>20min)
-                "videoDefinition": "any",  # Accept both HD and SD
-                "order": "relevance",  # Sort by relevance first
+                "videoDuration": "long",  # Changed from 'medium' to 'long' (>20min) to get real courses
+                "videoDefinition": "high",  # Prioritize HD
+                "order": "relevance",
                 "safeSearch": "moderate"
             }
             if lang == "vi":
@@ -191,6 +191,7 @@ class YouTubeSearchService:
                 # Use specific keywords that appear in tutorials but NOT in interviews
                 strong_learning_indicators = [
                     "tutorial", "course", "hướng dẫn", "khóa học",
+                    "full course", "trọn bộ", "đầy đủ", "complete tutorial",
                     "beginner", "cơ bản", "co ban",
                     "step by step", "từng bước", "tu tung buoc",
                     "complete guide", "hướng dẫn đầy đủ",

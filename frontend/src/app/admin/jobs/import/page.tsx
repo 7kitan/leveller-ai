@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { 
   ArrowLeft, 
   Search, 
@@ -26,6 +27,8 @@ import {
 import { cn } from "@/lib/utils";
 import styles from "./admin-import.module.css";
 import { motion, AnimatePresence } from "framer-motion";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 import Link from "next/link";
 
 interface CrawledJobData {
@@ -63,6 +66,7 @@ interface ImportResult {
 
 const JobImportPage = () => {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const [urlsText, setUrlsText] = useState("");
   const [results, setResults] = useState<ImportResult[]>([]);
   const [isSavingAll, setIsSavingAll] = useState(false);
@@ -81,7 +85,7 @@ const JobImportPage = () => {
     const lines = urlsText.split("\n").map(l => l.trim()).filter(l => l && l.includes("topcv.vn"));
     
     if (lines.length === 0) {
-      showNotification("Vui lòng nhập ít nhất một URL TopCV hợp lệ", "error");
+      showNotification(t('admin_jobs_import_notif_invalid_url'), "error");
       return;
     }
 
@@ -109,8 +113,8 @@ const JobImportPage = () => {
           isExpanded: true 
         });
       } catch (err) {
-        const errorMsg = axios.isAxiosError(err) ? err.response?.data?.detail : "Lỗi cào dữ liệu";
-        updateResult(res.url, { status: 'error', error: typeof errorMsg === 'string' ? errorMsg : "Lỗi cào dữ liệu" });
+        const errorMsg = axios.isAxiosError(err) ? err.response?.data?.detail : t('admin_jobs_import_notif_fetch_error');
+        updateResult(res.url, { status: 'error', error: typeof errorMsg === 'string' ? errorMsg : t('admin_jobs_import_notif_fetch_error') });
       }
     });
   };
@@ -145,11 +149,11 @@ const JobImportPage = () => {
         }
       });
       
-      showNotification(`Đã lưu "${result.data.title_raw}" thành công!`);
+      showNotification(t('admin_jobs_import_notif_save_success').replace('{title}', result.data.title_raw));
       setResults(prev => prev.filter(r => r.url !== url));
     } catch (err) {
-      const msg = axios.isAxiosError(err) ? err.response?.data?.detail : "Lỗi khi lưu";
-      showNotification(typeof msg === 'string' ? msg : "Lỗi khi lưu", "error");
+      const msg = axios.isAxiosError(err) ? err.response?.data?.detail : t('admin_jobs_import_notif_save_error');
+      showNotification(typeof msg === 'string' ? msg : t('admin_jobs_import_notif_save_error'), "error");
       updateResult(url, { isSavingIndividual: false });
     }
   };
@@ -169,11 +173,11 @@ const JobImportPage = () => {
         }
       });
       
-      showNotification(`Đã lưu thành công ${validResults.length} tin tuyển dụng!`);
+      showNotification(t('admin_jobs_import_notif_bulk_success').replace('{count}', validResults.length.toString()));
       setResults(prev => prev.filter(r => r.status !== 'success'));
     } catch (err) {
-      const msg = axios.isAxiosError(err) ? err.response?.data?.detail : "Lỗi khi lưu hàng loạt";
-      showNotification(typeof msg === 'string' ? msg : "Lỗi khi lưu hàng loạt", "error");
+      const msg = axios.isAxiosError(err) ? err.response?.data?.detail : t('admin_jobs_import_notif_bulk_error');
+      showNotification(typeof msg === 'string' ? msg : t('admin_jobs_import_notif_bulk_error'), "error");
     } finally {
       setIsSavingAll(false);
     }
@@ -184,30 +188,27 @@ const JobImportPage = () => {
 
   return (
     <AuthGuard requireAdmin>
-      <div className={styles.pageRoot}>
-        <div className={styles.header}>
-            <div className="flex flex-col gap-2">
-              <Link href="/admin/jobs" className={styles.backBtn}>
-                <ArrowLeft size={18} /> Quay lại danh sách
-              </Link>
-              <h1 className={styles.title}>
-                <Globe size={40} className="text-emerald-500" />
-                <span>Job Importer PRO</span>
-              </h1>
-              <p className={styles.subtitle}>Click vào từng tin để xem/sửa chi tiết trước khi lưu.</p>
-            </div>
-        </div>
+      <PageContainer>
+        <PageHeader 
+          title="Job Importer PRO"
+          subtitle={t('admin_jobs_import_subtitle')}
+        >
+          <Link href="/admin/jobs" className={styles.backBtn}>
+            <ArrowLeft size={18} /> {t('admin_jobs_import_back')}
+          </Link>
+        </PageHeader>
 
         <div className={styles.importContainer}>
           <div className={styles.inputSection}>
-             <h3>Nhập Danh Sách Link TopCV</h3>
+             <h3>{t('admin_jobs_import_input_title')}</h3>
              <div className={styles.urlInputGroup}>
                <textarea 
                  className={styles.urlTextarea}
-                 placeholder="Một URL trên mỗi dòng (https://topcv.vn/viec-lam/...)"
+                 placeholder={t('admin_jobs_import_input_placeholder')}
                  value={urlsText}
                  onChange={e => setUrlsText(e.target.value)}
                  disabled={isProcessing}
+                 maxLength={50000}
                />
                <button 
                  className={styles.crawlBtn} 
@@ -215,7 +216,7 @@ const JobImportPage = () => {
                  disabled={isProcessing || !urlsText.trim()}
                >
                  {isProcessing ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
-                 {isProcessing ? "Đang Xử Lý..." : "Fetch Info Tất Cả"}
+                 {isProcessing ? t('admin_jobs_import_processing') : t('admin_jobs_import_fetch_all')}
                </button>
              </div>
           </div>
@@ -225,7 +226,7 @@ const JobImportPage = () => {
               {results.length === 0 && !isProcessing && (
                 <div className={styles.emptyState}>
                   <FileJson size={60} className="mx-auto mb-4 opacity-10" />
-                  <p>Hãy nhập URL phía trên để bắt đầu lấy dữ liệu.</p>
+                  <p>{t('admin_jobs_import_empty_state')}</p>
                 </div>
               )}
               {results.map((result) => (
@@ -246,7 +247,7 @@ const JobImportPage = () => {
                           {result.data?.title_raw || result.url}
                         </div>
                         <div className="text-xs text-gray-500 flex items-center gap-2 overflow-hidden">
-                          {result.status === 'loading' && "Đang lấy dữ liệu..."}
+                          {result.status === 'loading' && t('admin_jobs_import_fetching_data')}
                           {result.status === 'error' && <span className="text-red-400">{result.error}</span>}
                           {result.status === 'success' && (
                             <>
@@ -274,25 +275,27 @@ const JobImportPage = () => {
                     <div className="border-t border-white/5 bg-black/20">
                       <div className={styles.editForm}>
                         <div className={cn(styles.formGroup, styles.fullWidth)}>
-                          <label className={styles.formLabel}>Tiêu đề công việc</label>
+                          <label className={styles.formLabel}>{t('admin_jobs_import_job_title')}</label>
                           <input 
                             className={styles.formInput} 
                             value={result.data.title_raw} 
-                            onChange={e => handleFieldChange(result.url, 'title_raw', e.target.value)} 
+                            onChange={e => handleFieldChange(result.url, 'title_raw', e.target.value)}
+                            maxLength={200}
                           />
                         </div>
                         
                         <div className={styles.formGroup}>
-                          <label className={styles.formLabel}>Công ty</label>
+                          <label className={styles.formLabel}>{t('admin_jobs_import_company')}</label>
                           <input 
                             className={styles.formInput} 
                             value={result.data.company_name} 
-                            onChange={e => handleFieldChange(result.url, 'company_name', e.target.value)} 
+                            onChange={e => handleFieldChange(result.url, 'company_name', e.target.value)}
+                            maxLength={255}
                           />
                         </div>
 
                         <div className={styles.formGroup}>
-                          <label className={styles.formLabel}>Loại hình</label>
+                          <label className={styles.formLabel}>{t('admin_jobs_import_employment_type')}</label>
                           <input 
                             className={styles.formInput} 
                             value={result.data.employment_type || ''} 
@@ -302,27 +305,31 @@ const JobImportPage = () => {
                         </div>
 
                         <div className={styles.formGroup}>
-                          <label className={styles.formLabel}>Lương Min (VND)</label>
+                          <label className={styles.formLabel}>{t('admin_jobs_import_salary_min')}</label>
                           <input 
                             type="number"
                             className={styles.formInput} 
                             value={result.data.min_salary_vnd || 0} 
-                            onChange={e => handleFieldChange(result.url, 'min_salary_vnd', parseInt(e.target.value) || 0)} 
+                            onChange={e => handleFieldChange(result.url, 'min_salary_vnd', parseInt(e.target.value) || 0)}
+                            min={0}
+                            max={999999999}
                           />
                         </div>
 
                         <div className={styles.formGroup}>
-                          <label className={styles.formLabel}>Lương Max (VND)</label>
+                          <label className={styles.formLabel}>{t('admin_jobs_import_salary_max')}</label>
                           <input 
                             type="number"
                             className={styles.formInput} 
                             value={result.data.max_salary_vnd || 0} 
-                            onChange={e => handleFieldChange(result.url, 'max_salary_vnd', parseInt(e.target.value) || 0)} 
+                            onChange={e => handleFieldChange(result.url, 'max_salary_vnd', parseInt(e.target.value) || 0)}
+                            min={0}
+                            max={999999999}
                           />
                         </div>
 
                         <div className={styles.formGroup}>
-                          <label className={styles.formLabel}>Địa điểm (Raw)</label>
+                          <label className={styles.formLabel}>{t('admin_jobs_import_location_raw')}</label>
                           <input 
                             className={styles.formInput} 
                             value={result.data.location_raw} 
@@ -331,7 +338,7 @@ const JobImportPage = () => {
                         </div>
 
                         <div className={styles.formGroup}>
-                          <label className={styles.formLabel}>Thành phố</label>
+                          <label className={styles.formLabel}>{t('admin_jobs_import_city')}</label>
                           <input 
                             className={styles.formInput} 
                             value={result.data.location_normalized || ''} 
@@ -341,7 +348,7 @@ const JobImportPage = () => {
                         </div>
 
                         <div className={styles.formGroup}>
-                          <label className={styles.formLabel}>Quận/Huyện</label>
+                          <label className={styles.formLabel}>{t('admin_jobs_import_district')}</label>
                           <input 
                             className={styles.formInput} 
                             value={result.data.location_district || ''} 
@@ -354,7 +361,7 @@ const JobImportPage = () => {
                           <label className={styles.formLabel}>
                             <span className="flex items-center gap-2">
                               <Briefcase size={16} />
-                              Mô tả công việc
+                              {t('admin_jobs_import_job_desc')}
                             </span>
                           </label>
                           <textarea 
@@ -362,7 +369,8 @@ const JobImportPage = () => {
                             value={result.data.job_description || ''} 
                             onChange={e => handleFieldChange(result.url, 'job_description', e.target.value)}
                             rows={6}
-                            placeholder="Mô tả chi tiết về công việc..."
+                            placeholder={t('admin_jobs_import_job_desc')}
+                            maxLength={10000}
                           />
                         </div>
 
@@ -370,7 +378,7 @@ const JobImportPage = () => {
                           <label className={styles.formLabel}>
                             <span className="flex items-center gap-2">
                               <CheckCircle2 size={16} />
-                              Yêu cầu ứng viên
+                              {t('admin_jobs_import_requirements')}
                             </span>
                           </label>
                           <textarea 
@@ -378,7 +386,8 @@ const JobImportPage = () => {
                             value={result.data.requirements || ''} 
                             onChange={e => handleFieldChange(result.url, 'requirements', e.target.value)}
                             rows={6}
-                            placeholder="Yêu cầu về kỹ năng, kinh nghiệm..."
+                            placeholder={t('admin_jobs_import_requirements')}
+                            maxLength={10000}
                           />
                         </div>
 
@@ -386,7 +395,7 @@ const JobImportPage = () => {
                           <label className={styles.formLabel}>
                             <span className="flex items-center gap-2">
                               <DollarSign size={16} />
-                              Quyền lợi
+                              {t('admin_jobs_import_benefits')}
                             </span>
                           </label>
                           <textarea 
@@ -394,12 +403,13 @@ const JobImportPage = () => {
                             value={result.data.benefits || ''} 
                             onChange={e => handleFieldChange(result.url, 'benefits', e.target.value)}
                             rows={6}
-                            placeholder="Các quyền lợi, phúc lợi..."
+                            placeholder={t('admin_jobs_import_benefits')}
+                            maxLength={5000}
                           />
                         </div>
 
                         <div className={cn(styles.formGroup, styles.fullWidth)}>
-                          <label className={styles.formLabel}>Raw Text (Fallback)</label>
+                          <label className={styles.formLabel}>{t('admin_jobs_import_raw_text')}</label>
                           <textarea 
                             className={styles.formTextarea} 
                             value={result.data.raw_text} 
@@ -409,14 +419,14 @@ const JobImportPage = () => {
                         </div>
 
                         <div className={cn(styles.fullWidth, "flex justify-end gap-3 pt-6 border-t border-white/5 mt-4")}>
-                           <button className={styles.discardBtn} onClick={() => removeResult(result.url)}>Gỡ bỏ</button>
+                           <button className={styles.discardBtn} onClick={() => removeResult(result.url)}>{t('admin_jobs_import_remove')}</button>
                            <button 
                              className={styles.bulkSaveBtn} 
                              disabled={result.isSavingIndividual}
                              onClick={() => handleSaveSingle(result.url)}
                            >
                              {result.isSavingIndividual ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                             {result.isSavingIndividual ? "Đang lưu..." : "Lưu tin này"}
+                             {result.isSavingIndividual ? t('admin_jobs_import_saving') : t('admin_jobs_import_save_single')}
                            </button>
                         </div>
                       </div>
@@ -432,8 +442,8 @@ const JobImportPage = () => {
           <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className={styles.bulkActionsBar}>
             <div className={styles.actionInfo}>
                <div className={styles.countBadge}>{successCount}</div>
-               <span className="text-gray-400 font-medium">Tin sẵn sàng</span>
-               <button className={styles.discardBtn} onClick={() => setResults([])}>Hủy tất cả</button>
+               <span className="text-gray-400 font-medium">{t('admin_jobs_import_ready_count')}</span>
+               <button className={styles.discardBtn} onClick={() => setResults([])}>{t('admin_jobs_import_discard_all')}</button>
             </div>
             <button 
               className={styles.bulkSaveBtn} 
@@ -441,7 +451,7 @@ const JobImportPage = () => {
               disabled={isSavingAll}
             >
               {isSavingAll ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-              {isSavingAll ? "Đang lưu..." : `LƯU ${successCount} TIN TUYỂN DỤNG`}
+              {isSavingAll ? t('admin_jobs_import_saving') : t('admin_jobs_import_save_bulk').replace('{count}', successCount.toString())}
             </button>
           </motion.div>
         )}
@@ -456,7 +466,7 @@ const JobImportPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </PageContainer>
     </AuthGuard>
   );
 };

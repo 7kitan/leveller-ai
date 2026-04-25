@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
-import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { 
   Cpu, Layers, Globe, ShieldAlert, Database, ScanLine, Save, RefreshCcw, 
@@ -13,6 +13,9 @@ import { cn } from "@/lib/utils";
 import styles from "./admin-settings.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
+import Portal from "@/components/shared/Portal";
 
 interface SystemSetting {
   key: string;
@@ -49,8 +52,8 @@ const AdminSettingsPage = () => {
       };
       
       const [settingsResp, modelsResp] = await Promise.all([
-        axios.get("/api/admin/settings", { headers }),
-        axios.get("/api/admin/ai-models", { headers })
+        api.get("/admin/settings"),
+        api.get("/admin/ai-models")
       ]);
 
       setSettings(settingsResp.data);
@@ -98,9 +101,8 @@ const AdminSettingsPage = () => {
         settings: changes.map(([key, value]) => ({ key, value }))
       };
       
-      await axios.post("/api/admin/settings/bulk", payload, {
+      await api.post("/admin/settings/bulk", payload, {
         headers: { 
-          Authorization: `Bearer ${token}`,
           "X-Is-Admin": "true"
         }
       });
@@ -113,8 +115,8 @@ const AdminSettingsPage = () => {
       setPendingChanges(remainingChanges);
       
       // Refresh original settings
-      const headers = { Authorization: `Bearer ${token}`, "X-Is-Admin": "true" };
-      const settingsResp = await axios.get("/api/admin/settings", { headers });
+      const headers = { "X-Is-Admin": "true" };
+      const settingsResp = await api.get("/admin/settings", { headers });
       setSettings(settingsResp.data);
       
     } catch (err) {
@@ -131,8 +133,8 @@ const AdminSettingsPage = () => {
   const handleTestEmail = async () => {
     setIsSaving(true);
     try {
-      await axios.post("/api/analysis/admin/test-email", {}, {
-        headers: { Authorization: `Bearer ${token}`, "X-Is-Admin": "true" }
+      await api.post("/analysis/admin/test-email", {}, {
+        headers: { "X-Is-Admin": "true" }
       });
       showNotification(t("admin_settings_test_mail_success"), "success");
     } catch (err) {
@@ -145,8 +147,8 @@ const AdminSettingsPage = () => {
   const handleTestLLM = async () => {
     setIsSaving(true);
     try {
-      const resp = await axios.post("/api/analysis/admin/test-llm", {}, {
-        headers: { Authorization: `Bearer ${token}`, "X-Is-Admin": "true" }
+      const resp = await api.post("/analysis/admin/test-llm", {}, {
+        headers: { "X-Is-Admin": "true" }
       });
       showNotification(`${t("admin_settings_test_llm_success")}${resp.data.response}`, "success");
     } catch (err) {
@@ -171,14 +173,11 @@ const AdminSettingsPage = () => {
 
   return (
     <AuthGuard requireAdmin>
-      <div className={styles.pageRoot}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>
-            <Settings size={40} className="text-indigo-500" />
-            <span>{t("admin_settings_title")}</span>
-          </h1>
-          <p className={styles.subtitle}>{t("admin_settings_subtitle")}</p>
-        </div>
+      <PageContainer>
+        <PageHeader 
+          title={t("admin_settings_title")}
+          subtitle={t("admin_settings_subtitle")}
+        />
 
         {isLoading ? (
           <div className="flex items-center justify-center p-20">
@@ -551,6 +550,8 @@ const AdminSettingsPage = () => {
                     className={styles.input}
                     value={getValue("global_token_limit", 0)}
                     onChange={(e) => handleFieldChange("global_token_limit", parseInt(e.target.value))}
+                    min={0}
+                    max={1000000}
                   />
                 </div>
 
@@ -568,6 +569,8 @@ const AdminSettingsPage = () => {
                     className={styles.input}
                     value={getValue("user_token_limit", 0)}
                     onChange={(e) => handleFieldChange("user_token_limit", parseInt(e.target.value))}
+                    min={0}
+                    max={1000000}
                   />
                 </div>
 
@@ -584,6 +587,8 @@ const AdminSettingsPage = () => {
                     className={styles.input}
                     value={getValue("daily_analysis_limit", 10)}
                     onChange={(e) => handleFieldChange("daily_analysis_limit", parseInt(e.target.value))}
+                    min={0}
+                    max={1000}
                   />
                 </div>
               </div>
@@ -643,8 +648,8 @@ const AdminSettingsPage = () => {
                     value={getValue("cv_parser_strategy", "direct")}
                     onChange={(e) => handleFieldChange("cv_parser_strategy", e.target.value)}
                   >
-                    <option value="direct">Direct (Local PDF Extract)</option>
-                    <option value="chandra">Chandra Hub (Advanced OCR)</option>
+                    <option value="direct">{t("admin_settings_parser_strategy_direct")}</option>
+                    <option value="chandra">{t("admin_settings_parser_strategy_chandra")}</option>
                   </select>
                 </div>
 
@@ -661,6 +666,8 @@ const AdminSettingsPage = () => {
                     className={styles.input}
                     value={getValue("ocr_dpi", 200)}
                     onChange={(e) => handleFieldChange("ocr_dpi", parseInt(e.target.value))}
+                    min={72}
+                    max={600}
                   />
                 </div>
 
@@ -678,6 +685,7 @@ const AdminSettingsPage = () => {
                     placeholder="https://api.datalab.to/..."
                     value={getValue("chandra_api_url", "")}
                     onChange={(e) => handleFieldChange("chandra_api_url", e.target.value)}
+                    maxLength={500}
                   />
                 </div>
 
@@ -696,6 +704,7 @@ const AdminSettingsPage = () => {
                       placeholder="sk-..."
                       value={getValue("chandra_api_key", "")}
                       onChange={(e) => handleFieldChange("chandra_api_key", e.target.value)}
+                      maxLength={255}
                     />
                     <Key className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                   </div>
@@ -836,6 +845,7 @@ const AdminSettingsPage = () => {
                         placeholder="smtp.gmail.com"
                         value={getValue("smtp_host", "")}
                         onChange={(e) => handleFieldChange("smtp_host", e.target.value)}
+                        maxLength={255}
                       />
                     </div>
                     <div className={cn(styles.field, isModified("smtp_port") ? styles.fieldModified : "")}>
@@ -847,6 +857,8 @@ const AdminSettingsPage = () => {
                         className={styles.input}
                         value={getValue("smtp_port", 587)}
                         onChange={(e) => handleFieldChange("smtp_port", parseInt(e.target.value))}
+                        min={1}
+                        max={65535}
                       />
                     </div>
                     <div className={cn(styles.field, isModified("smtp_user") ? styles.fieldModified : "")}>
@@ -858,6 +870,7 @@ const AdminSettingsPage = () => {
                         className={styles.input}
                         value={getValue("smtp_user", "")}
                         onChange={(e) => handleFieldChange("smtp_user", e.target.value)}
+                        maxLength={255}
                       />
                     </div>
                     <div className={cn(styles.field, isModified("smtp_pass") ? styles.fieldModified : "")}>
@@ -869,6 +882,7 @@ const AdminSettingsPage = () => {
                         className={styles.input}
                         value={getValue("smtp_pass", "")}
                         onChange={(e) => handleFieldChange("smtp_pass", e.target.value)}
+                        maxLength={255}
                       />
                     </div>
                     <div className={cn(styles.field, isModified("smtp_from") ? styles.fieldModified : "")}>
@@ -1121,36 +1135,38 @@ const AdminSettingsPage = () => {
           </div>
         </>
         )}
-        <AnimatePresence>
-          {hasChanges && (
-            <motion.div 
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className={cn(styles.saveBar, styles.saveBarAnimation)}
-            >
-                <div className={styles.saveBarText}>
-                    {t("admin_settings_unsaved_changes")} ({Object.keys(pendingChanges).length})
-                </div>
-                <div className={styles.saveBarActions}>
-                    <button 
-                        onClick={handleDiscard}
-                        className={styles.discardBtn}
-                        disabled={isSaving}
-                    >
-                        {t("admin_settings_discard_btn")}
-                    </button>
-                    <button 
-                        onClick={() => handleBulkSave()}
-                        className={styles.mainSaveBtn}
-                        disabled={isSaving}
-                    >
-                        {isSaving ? t("processing") : t("admin_settings_save_all_btn")}
-                    </button>
-                </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <Portal>
+          <AnimatePresence>
+            {hasChanges && (
+              <motion.div 
+                initial={{ opacity: 0, y: 50, x: "-50%" }}
+                animate={{ opacity: 1, y: 0, x: "-50%" }}
+                exit={{ opacity: 0, y: 50, x: "-50%" }}
+                className={styles.saveBar}
+              >
+                  <div className={styles.saveBarText}>
+                      {t("admin_settings_unsaved_changes")} ({Object.keys(pendingChanges).length})
+                  </div>
+                  <div className={styles.saveBarActions}>
+                      <button 
+                          onClick={handleDiscard}
+                          className={styles.discardBtn}
+                          disabled={isSaving}
+                      >
+                          {t("admin_settings_discard_btn")}
+                      </button>
+                      <button 
+                          onClick={() => handleBulkSave()}
+                          className={styles.mainSaveBtn}
+                          disabled={isSaving}
+                      >
+                          {isSaving ? t("processing") : t("admin_settings_save_all_btn")}
+                      </button>
+                  </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Portal>
 
         <AnimatePresence>
           {notification && (
@@ -1168,7 +1184,7 @@ const AdminSettingsPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </PageContainer>
     </AuthGuard>
   );
 };

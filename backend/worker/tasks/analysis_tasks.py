@@ -9,6 +9,7 @@ from worker.celery_app import celery_app
 from shared.database import SessionLocal
 from services.analysis_service.gap_calculator import GapCalculator
 from shared.models import UserAnalysis, Job
+from shared.system_logger import system_logger
 
 logger = logging.getLogger("analysis_worker")
 
@@ -62,6 +63,20 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
         f"  job_id  : {job_id or 'None'}\n"
         f"  jd_text : {'provided' if jd_text else 'None'}\n"
         f"  v3 mode : {USE_LLM_GAP_AGENT}\n" + "=" * 60
+    )
+
+    # LOG: Analysis started (important event)
+    system_logger.info(
+        "Analysis",
+        f"Gap analysis started",
+        {
+            "user_id": user_id,
+            "cv_id": cv_id,
+            "job_id": job_id,
+            "has_jd_text": bool(jd_text),
+            "force": force,
+            "mode": "v3" if USE_LLM_GAP_AGENT else "legacy"
+        }
     )
 
     try:
@@ -377,6 +392,23 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
             f"  courses      : {len(report.get('recommended_courses', []))}\n"
             f"  gap_context  : {jd_context}\n" + "=" * 60
         )
+        
+        # LOG: Analysis completed successfully (important event)
+        system_logger.info(
+            "Analysis",
+            f"Gap analysis completed",
+            {
+                "user_id": user_id,
+                "cv_id": cv_id,
+                "job_id": job_id,
+                "analysis_id": str(new_analysis.id),
+                "match_score": report.get('overall_match_pct', 0),
+                "skill_gaps_count": len(report.get('skill_gaps', [])),
+                "courses_count": len(report.get('recommended_courses', [])),
+                "duration_sec": round(total_elapsed, 2)
+            }
+        )
+        
         # Ensure cv_id and job_id are in the report for frontend redirection
         if isinstance(report, dict):
             report["cv_id"] = str(cv_id)
@@ -396,6 +428,21 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
             f"  message  : {e}\n" + "=" * 60,
             exc_info=True,
         )
+        
+        # LOG: Analysis failed (error visibility)
+        system_logger.error(
+            "Analysis",
+            f"Gap analysis failed: {str(e)}",
+            {
+                "user_id": user_id,
+                "cv_id": cv_id,
+                "job_id": job_id,
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+                "duration_sec": round(total_elapsed, 2)
+            }
+        )
+        
         return {"error": str(e)}
 
     finally:

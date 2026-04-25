@@ -353,9 +353,10 @@
 
 /* Unified Save Bar */
 .saveBar {
-  position: sticky;
-  bottom: 2rem;
-  margin: 4rem auto 0;
+  position: fixed;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
   width: fit-content;
   max-width: 90%;
   background-color: var(--color-panel-bg);
@@ -413,11 +414,23 @@
   transform: translateY(-2px);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+.notification {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 2rem;
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1.5rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  color: var(--color-text-main);
+  font-weight: 700;
 }
 
-.saveBarAnimation {
-  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
+.notifSuccess { border-left: 4px solid #10b981; }
+.notifError { border-left: 4px solid #f43f5e; }

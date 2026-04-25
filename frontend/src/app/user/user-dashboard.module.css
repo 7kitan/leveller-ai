@@ -1,36 +1,6 @@
 @reference "tailwindcss";
 @reference "../globals.css";
 
-.pageRoot {
-  display: flex;
-  flex-direction: column;
-  gap: 4rem;
-  padding: 2rem 0;
-  animation: fadeIn 1s var(--ease-premium);
-}
-
-.headerSection {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
-.headerTitle {
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1;
-  color: var(--color-text-main);
-}
-
-.headerSubtitle {
-  font-size: var(--font-size-xl);
-  color: var(--color-text-muted);
-  max-width: 40rem;
-  line-height: 1.5;
-}
-
 /* --- Bento Grid Foundation --- */
 .bentoGrid {
   display: grid;
@@ -192,13 +162,27 @@
 }
 
 .miniSeverity {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
 }
 
-.miniSeverity.high { color: var(--color-danger); }
-.miniSeverity.medium { color: var(--color-warning); }
-.miniSeverity.low { color: var(--color-success); }
+.learningEffort {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
 /* --- Growth Forecast --- */
 .forecastSection {
@@ -254,21 +238,6 @@
   font-weight: 700;
 }
 
-.sentimentBox {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: rgba(79, 70, 229, 0.05);
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
-  color: var(--color-text-main);
-  border-left: 3px solid var(--color-accent-primary);
-}
-
-.sentimentBox strong {
-  color: var(--color-accent-primary);
-}
 
 /* --- Bottom Stats --- */
 .bottomStats {
@@ -444,17 +413,42 @@
   margin-bottom: 1.5rem;
 }
 
-.topGainerBadge {
-  display: inline-flex;
-  align-items: center;
+.marketSnapshot {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.snapshotItem {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: rgba(16, 185, 129, 0.1);
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-success);
-  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.snapshotItem:hover {
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateY(-2px);
+}
+
+.snapshotLabel {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.snapshotValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text-main);
+  letter-spacing: -0.02em;
 }
 
 /* Vertical Stack */
@@ -522,7 +516,7 @@
 .ctaTitle {
   font-size: clamp(2rem, 4vw, 3.5rem);
   font-weight: 800;
-  line-height: 1;
+  line-height: 1.2;
   letter-spacing: -0.05em;
   margin-bottom: 1.5rem;
 }
@@ -610,4 +604,173 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE (max-width: 768px)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Bento Grid */
+  .bentoGrid {
+    gap: 1rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
+
+  /* Upload Card */
+  .uploadCard {
+    padding: 2rem 1.5rem;
+  }
+
+  .uploadIcon {
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .uploadBtn {
+    padding: 0.875rem 1.75rem;
+    font-size: 10px;
+  }
+
+  /* Stats Grid */
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .statCard {
+    padding: 1.5rem;
+  }
+
+  .statValue {
+    font-size: 2rem;
+  }
+
+  /* Trends Card */
+  .trendsCard {
+    padding: 1.5rem;
+  }
+
+  .trendHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .periodSelector {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .periodBtn {
+    flex: 1;
+    padding: 0.5rem;
+    font-size: 10px;
+  }
+
+  /* Market Snapshot */
+  .marketSnapshot {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .snapshotItem {
+    padding: 1rem;
+  }
+
+  .snapshotValue {
+    font-size: 1.25rem;
+  }
+
+  /* Bar Chart */
+  .barLabel {
+    width: 5rem;
+    font-size: 0.75rem;
+  }
+
+  .barValue {
+    width: 2.5rem;
+    font-size: 0.7rem;
+  }
+
+  /* Gap Grid */
+  .gapGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .gapMiniCard {
+    padding: 1rem;
+  }
+
+  .gapMiniTitle {
+    font-size: 0.875rem;
+  }
+
+  .gapMiniMeta {
+    font-size: 0.7rem;
+    gap: 0.5rem;
+  }
+
+  /* Forecast Section */
+  .forecastGrid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .forecastValue {
+    font-size: 1.25rem;
+  }
+
+  /* Bottom Stats */
+  .bottomStats {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: flex-start;
+  }
+
+  .bottomStatValue {
+    font-size: 1rem;
+  }
+
+  /* Job Grid */
+  .jobGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* CTA Card */
+  .ctaCard {
+    padding: 1.5rem !important;
+    gap: 1.5rem;
+  }
+
+  .ctaTitle {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .ctaMainBtn {
+    padding: 0.875rem 1.5rem;
+    font-size: 10px;
+  }
+
+  /* Radar Container */
+  .radarContainer {
+    min-height: 150px;
+  }
+
+  .radarScan {
+    width: 80px;
+    height: 80px;
+  }
+
+  .bowArrowIcon svg {
+    width: 48px !important;
+    height: 48px !important;
+  }
 }

@@ -6,11 +6,12 @@ import { useEffect } from "react";
 import styles from "./auth-guard.module.css";
 import { cn } from "@/lib/utils";
 import MaintenanceOverlay from "@/components/shared/MaintenanceOverlay";
+import { UserRole } from "@/types/roles";
 
 interface AuthGuardProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
-  requireRole?: 'admin' | 'user' | 'student';
+  requireRole?: UserRole;
 }
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin, requireRole }) => {
@@ -40,11 +41,11 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin, requireRo
 
         // 2. Prevent accessing wrong role dashboards - ONLY if role exists
         if (userRole) {
-          if (pathname.startsWith("/admin") && userRole !== "admin") {
+          if (pathname.startsWith("/admin") && userRole !== UserRole.ADMIN) {
             router.push(`/${userRole}`);
-          } else if (pathname.startsWith("/user") && userRole !== "user") {
+          } else if (pathname.startsWith("/user") && userRole !== UserRole.USER) {
             router.push(`/${userRole}`);
-          } else if (pathname.startsWith("/student") && userRole !== "student") {
+          } else if (pathname.startsWith("/student") && userRole !== UserRole.STUDENT) {
             router.push(`/${userRole}`);
           }
         }
@@ -53,7 +54,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin, requireRo
         if (requireRole && userRole !== requireRole) {
           router.push(`/${userRole}`);
         }
-        if (requireAdmin && userRole !== "admin") {
+        if (requireAdmin && userRole !== UserRole.ADMIN) {
           router.push(`/${userRole}`);
         }
       }
@@ -73,7 +74,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin, requireRo
   }
 
   // ── 3. Rendering ───────────────────────────────────────────────────
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === UserRole.ADMIN;
   const isCriticalPath = ["/auth/login", "/login"].includes(pathname);
   const showMaintenance = maintenanceMode && !isAdmin && !isCriticalPath;
 

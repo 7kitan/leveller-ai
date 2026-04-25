@@ -1,12 +1,14 @@
 from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from shared.database import get_db
-from shared.models import SystemSetting
+from shared.models import SystemSetting, User, LLMLog, SystemLog, YouTubeCourse
 from shared.config_utils import config_manager
 from shared.ai_service import AI_REGISTRY
-from pydantic import BaseModel
-from typing import List, Optional, Any
+from shared.admin_auth import get_current_admin_user, require_admin
+from pydantic import BaseModel, ConfigDict
+from typing import List, Optional, Any, Dict
 from datetime import datetime
+from uuid import UUID
 import logging
 
 app = FastAPI(title="Admin Service")
@@ -29,22 +31,86 @@ class SettingResponse(BaseModel):
     class Config:
         from_attributes = True
 
+# --- NEW: LLM & System Log Schemas ---
+
+class LLMLogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: Any
+    user_id: Optional[Any] = None
+    user_email: Optional[str] = None
+    model_id: str
+    provider: Optional[str] = None
+    call_type: str
+    prompt_tokens: Optional[int] = 0
+    completion_tokens: Optional[int] = 0
+    total_tokens: Optional[int] = 0
+    latency_ms: Optional[int] = 0
+    status: str
+    error_message: Optional[str] = None
+    created_at: datetime
+
+class SystemLogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: Any
+    level: str
+    module: str
+    message: str
+    details: Optional[Any] = None
+    created_at: datetime
+
+class LLMUsageSummary(BaseModel):
+    summary: Dict[str, Any] # For total_calls etc.
+    total_tokens: int
+    total_cost_usd: float
+    avg_latency_ms: float
+    success_rate: float
+    model_breakdown: List[Dict[str, Any]]
+    top_users: List[Dict[str, Any]]
+
+# --- YouTube Schemas ---
+
+class YouTubeCourseResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: Any
+    video_id: str
+    title: str
+    description: Optional[str] = None
+    channel_name: Optional[str] = None
+    thumbnail: Optional[str] = None
+    url: str
+    embedding_context: Optional[str] = None
+    duration_raw: Optional[str] = None
+
+    published_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
+    last_verified_at: Optional[datetime] = None
+    created_at: datetime
+
+
+
 # --- Endpoints ---
 
 @app.get("/admin/settings", response_model=List[SettingResponse])
-def admin_list_settings(request: Request, db: Session = Depends(get_db)):
+def admin_list_settings(
+    request: Request, 
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
     """Admin only: Lấy danh sách settings hệ thống."""
-    if request.headers.get("X-Is-Admin") != "true":
-        raise HTTPException(status_code=403, detail="Admin privileges required")
-    
     settings = db.query(SystemSetting).all()
     return settings
 
 @app.get("/admin/settings/{key}", response_model=SettingResponse)
-def admin_get_setting(key: str, request: Request, db: Session = Depends(get_db)):
+def admin_get_setting(
+    key: str, 
+    request: Request, 
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
     """Admin only: Lấy một setting cụ thể."""
-    if request.headers.get("X-Is-Admin") != "true":
-        raise HTTPException(status_code=403, detail="Admin privileges required")
     
     setting = db.query(SystemSetting).filter(SystemSetting.key == key).first()
     if not setting:
@@ -64,11 +130,13 @@ def admin_get_setting(key: str, request: Request, db: Session = Depends(get_db))
 
 @app.patch("/admin/settings/{key}", response_model=SettingResponse)
 def admin_update_setting(
-    key: str, setting_in: SettingUpdate, request: Request, db: Session = Depends(get_db)
+    key: str, 
+    setting_in: SettingUpdate, 
+    request: Request, 
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
 ):
     """Admin only: Cập nhật hoặc tạo một setting."""
-    if request.headers.get("X-Is-Admin") != "true":
-        raise HTTPException(status_code=403, detail="Admin privileges required")
     
     setting = db.query(SystemSetting).filter(SystemSetting.key == key).first()
     if not setting:
@@ -88,11 +156,10 @@ def admin_update_setting(
 def admin_bulk_update_settings(
     bulk_in: BulkSettingUpdate, 
     request: Request, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
 ):
     """Admin only: Cập nhật nhiều settings cùng lúc."""
-    if request.headers.get("X-Is-Admin") != "true":
-        raise HTTPException(status_code=403, detail="Admin privileges required")
     
     updated_settings = []
     for item in bulk_in.settings:
@@ -118,18 +185,21 @@ def admin_bulk_update_settings(
     return updated_settings
 
 @app.get("/admin/ai-models")
-def admin_list_ai_models(request: Request):
+def admin_list_ai_models(
+    request: Request,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
     """Admin only: Lấy danh sách các AI model và provider được hỗ trợ."""
-    if request.headers.get("X-Is-Admin") != "true":
-        raise HTTPException(status_code=403, detail="Admin privileges required")
     return AI_REGISTRY
 
 @app.post("/admin/cache/clear")
-def admin_clear_cache(request: Request):
+def admin_clear_cache(
+    request: Request,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
     """Admin only: Clear Redis cache (all databases)."""
-    if request.headers.get("X-Is-Admin") != "true":
-        raise HTTPException(status_code=403, detail="Admin privileges required")
-    
     try:
         from shared.redis_client import config_cache, result_cache, quota_cache
         
@@ -168,11 +238,12 @@ def admin_clear_cache(request: Request):
 
 
 @app.post("/admin/vector/sync")
-def admin_sync_vector(request: Request, db: Session = Depends(get_db)):
+def admin_sync_vector(
+    request: Request, 
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
     """Admin only: Trigger VectorDB sync (rebuild skill/job/course vectors)."""
-    if request.headers.get("X-Is-Admin") != "true":
-        raise HTTPException(status_code=403, detail="Admin privileges required")
-    
     try:
         from worker.celery_app import celery_app
         
@@ -191,6 +262,236 @@ def admin_sync_vector(request: Request, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"[ADMIN] Failed to dispatch vector sync: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to start vector sync: {str(e)}")
+
+
+# --- LLM Stats & Logs ---
+
+@app.get("/admin/stats/llm/summary", response_model=LLMUsageSummary)
+def admin_get_llm_summary(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Tổng hợp chi phí và hiệu suất LLM."""
+    logs = db.query(LLMLog).all()
+    if not logs:
+        return {
+            "summary": {"total_calls": 0},
+            "total_tokens": 0,
+            "total_cost_usd": 0.0,
+            "avg_latency_ms": 0.0,
+            "success_rate": 0.0,
+            "model_breakdown": [],
+            "top_users": []
+        }
+
+    total_calls = len(logs)
+    total_tokens = sum(l.total_tokens for l in logs)
+    total_latency = sum(l.latency_ms for l in logs)
+    success_count = sum(1 for l in logs if l.status == "success")
+    
+    total_cost = 0.0
+    model_stats = {}
+    user_stats = {} # {user_id: {"email": "...", "calls": 0, "tokens": 0}}
+
+    for l in logs:
+        # Model stats
+        m = l.model_id.lower()
+        if m not in model_stats:
+            model_stats[m] = {"count": 0, "tokens": 0, "cost": 0.0}
+        
+        cost = 0.0
+        if "gpt-4o-mini" in m:
+            cost = (l.prompt_tokens * 0.15 / 1_000_000) + (l.completion_tokens * 0.6 / 1_000_000)
+        elif "gpt-4o" in m:
+            cost = (l.prompt_tokens * 5.0 / 1_000_000) + (l.completion_tokens * 15.0 / 1_000_000)
+        elif "gemini" in m:
+            cost = (l.prompt_tokens * 0.075 / 1_000_000) + (l.completion_tokens * 0.3 / 1_000_000)
+            
+        total_cost += cost
+        model_stats[m]["count"] += 1
+        model_stats[m]["tokens"] += l.total_tokens
+        model_stats[m]["cost"] += cost
+
+        # User stats
+        u_id = str(l.user_id) if l.user_id else "Anonymous"
+        if u_id not in user_stats:
+            user_stats[u_id] = {"calls": 0, "tokens": 0}
+        user_stats[u_id]["calls"] += 1
+        user_stats[u_id]["tokens"] += l.total_tokens
+
+    breakdown = []
+    for model_name, stats in model_stats.items():
+        breakdown.append({
+            "model": model_name,
+            "calls": stats["count"],
+            "tokens": stats["tokens"],
+            "cost_usd": round(stats["cost"], 6)
+        })
+
+    # Enrich user stats with emails
+    user_breakdown = []
+    # Get user emails for the IDs we found
+    valid_uids = [u for u in user_stats.keys() if u != "Anonymous"]
+    email_map = {}
+    if valid_uids:
+        users = db.query(User).filter(User.id.in_(valid_uids)).all()
+        email_map = {str(u.id): u.email for u in users}
+
+    for u_id, stats in user_stats.items():
+        user_breakdown.append({
+            "user_id": u_id,
+            "email": email_map.get(u_id, "Anonymous"),
+            "calls": stats["calls"],
+            "tokens": stats["tokens"]
+        })
+    
+    # Sort by calls descending and take top 10
+    top_users = user_breakdown
+    top_users.sort(key=lambda x: x["calls"], reverse=True)
+    top_users = top_users[:10]
+
+    return {
+        "summary": {"total_calls": total_calls},
+        "total_tokens": total_tokens,
+        "total_cost_usd": round(total_cost, 4),
+        "avg_latency_ms": total_latency / total_calls,
+        "success_rate": success_count / total_calls,
+        "model_breakdown": breakdown,
+        "top_users": top_users
+    }
+
+@app.get("/admin/stats/llm/logs", response_model=List[LLMLogResponse])
+def admin_list_llm_logs(
+    limit: int = 100,
+    offset: int = 0,
+    status: Optional[str] = None,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Danh sách chi tiết các cuộc gọi LLM."""
+    query = db.query(LLMLog)
+    if status:
+        query = query.filter(LLMLog.status == status)
+    
+    logs = query.order_by(LLMLog.created_at.desc()).offset(offset).limit(limit).all()
+    
+    # Get user emails for logs
+    user_ids = {str(log.user_id) for log in logs if log.user_id}
+    email_map = {}
+    if user_ids:
+        users = db.query(User).filter(User.id.in_(list(user_ids))).all()
+        email_map = {str(u.id): u.email for u in users}
+
+    # Explicitly stringify UUIDs for safety and add user_email
+    for log in logs:
+        u_id = str(log.user_id) if log.user_id else None
+        if hasattr(log, 'id'): log.id = str(log.id)
+        if u_id: log.user_id = u_id
+        setattr(log, 'user_email', email_map.get(u_id, "Anonymous") if u_id else "Anonymous")
+        
+    return logs
+
+# --- System Logs ---
+
+@app.get("/admin/system/logs", response_model=List[SystemLogResponse])
+def admin_list_system_logs(
+    level: Optional[str] = None,
+    module: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Xem log hệ thống tập trung."""
+    query = db.query(SystemLog)
+    if level:
+        query = query.filter(SystemLog.level == level.upper())
+    if module:
+        query = query.filter(SystemLog.module.ilike(f"%{module}%"))
+        
+    logs = query.order_by(SystemLog.created_at.desc()).offset(offset).limit(limit).all()
+    for log in logs:
+        if hasattr(log, 'id'): log.id = str(log.id)
+    return logs
+
+@app.delete("/admin/system/logs/cleanup")
+def admin_cleanup_logs(
+    days: int = 30,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Dọn dẹp log cũ."""
+    from shared.system_logger import system_logger
+    count = system_logger.cleanup_old_logs(days=days)
+    return {"message": f"Successfully cleaned up {count} logs older than {days} days."}
+
+# --- YouTube Management ---
+
+@app.get("/admin/youtube", response_model=List[YouTubeCourseResponse])
+def admin_list_youtube_cache(
+    search: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Danh sách các video YouTube được lưu trong cache."""
+    query = db.query(YouTubeCourse)
+    if search:
+        query = query.filter(
+            (YouTubeCourse.title.ilike(f"%{search}%")) | 
+            (YouTubeCourse.channel_name.ilike(f"%{search}%"))
+        )
+    
+    courses = query.order_by(YouTubeCourse.created_at.desc()).offset(offset).limit(limit).all()
+    
+    # Stringify UUIDs
+    for c in courses:
+        if hasattr(c, 'id'): c.id = str(c.id)
+        
+    return courses
+
+@app.delete("/admin/youtube/{video_id}")
+def admin_delete_youtube_cache(
+    video_id: str,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Xóa một video khỏi cache YouTube."""
+    course = db.query(YouTubeCourse).filter(YouTubeCourse.video_id == video_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Video not found in cache")
+    
+    db.delete(course)
+    db.commit()
+    return {"status": "success", "message": f"Video {video_id} removed from cache"}
+
+@app.post("/admin/youtube/verify-all")
+async def admin_verify_youtube_availability(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Kích hoạt tiến trình kiểm tra lại tính khả dụng của toàn bộ video trong cache."""
+    try:
+        from worker.celery_app import celery_app
+        
+        # Dispatch async task
+        task = celery_app.send_task(
+            "worker.tasks.youtube_tasks.verify_all_cached_videos",
+            kwargs={}
+        )
+        
+        logger.info(f"[ADMIN] YouTube verification task dispatched: {task.id}")
+        return {
+            "status": "processing",
+            "message": "YouTube availability verification started",
+            "task_id": task.id
+        }
+    except Exception as e:
+        logger.error(f"[ADMIN] Failed to dispatch YouTube verification: {e}")
+        # Fallback if celery is not available or task is not found
+        # We might want to implement a sync version or just error out
+        raise HTTPException(status_code=500, detail=f"Failed to start verification: {str(e)}")
 
 
 @app.get("/admin/health")

@@ -23,7 +23,7 @@ jobs:
 
   deploy:
     needs: build-and-test
-    if: github.ref == 'refs/heads/demo' || github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Frontend via SSH
@@ -33,7 +33,35 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
-            cd /path/to/your/project/frontend
+            set -e
+            echo "========================================="
+            echo "🚀 Deploying Frontend..."
+            echo "========================================="
+            
+            # Navigate to project directory
+            cd ${{ secrets.PROJECT_DIR }}/frontend
+            
+            # Pull latest code
+            echo "📥 Pulling latest code..."
             git pull origin ${{ github.ref_name }}
-            # Check if Dockerfile exists, if not, might need a generic one or use the one we created
+            
+            # Build and deploy with docker-compose
+            echo "🔨 Building and starting containers..."
             docker-compose -f docker-compose.prod.yml up -d --build
+            
+            # Wait for frontend to start
+            echo "⏳ Waiting for frontend to start (20 seconds)..."
+            sleep 20
+            
+            # Health check
+            echo "🏥 Running health check..."
+            curl -f http://localhost:3000 || (echo "❌ Frontend health check failed" && exit 1)
+            
+            # Verify container is running
+            echo "🔍 Verifying container status..."
+            docker-compose ps | grep "frontend" | grep -v "Exit" || (echo "❌ Frontend container is not running" && exit 1)
+            
+            echo "========================================="
+            echo "✅ Frontend deployment complete!"
+            echo "✅ Health check passed!"
+            echo "========================================="

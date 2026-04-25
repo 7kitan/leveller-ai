@@ -181,3 +181,92 @@
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE (max-width: 768px)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Page Root */
+  .pageRoot {
+    gap: 2rem;
+    padding-bottom: 3rem;
+  }
+
+  /* Header */
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+  }
+
+  /* Profile Card */
+  .profileCard {
+    padding: 2rem 1.5rem;
+    gap: 2rem;
+  }
+
+  /* Card Section */
+  .cardSection {
+    gap: 1.25rem;
+  }
+
+  .sectionTitle {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+  }
+
+  /* Input Group */
+  .inputGroup {
+    gap: 0.5rem;
+  }
+
+  .label {
+    font-size: 0.8rem;
+  }
+
+  .input {
+    padding: 1rem 1rem 1rem 3rem;
+    font-size: 0.875rem;
+  }
+
+  .inputIcon {
+    left: 1rem;
+  }
+
+  /* Action Row */
+  .actionRow {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .submitBtn {
+    width: 100%;
+    justify-content: center;
+    padding: 1rem 2rem;
+    font-size: 10px;
+  }
+
+  /* Error/Success Box */
+  .errorBox,
+  .successBox {
+    padding: 1rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   TABLET RESPONSIVE (768px - 1024px)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .profileCard {
+    padding: 3rem 2.5rem;
+  }
+
+  .title {
+    font-size: 2.5rem;
+  }
+}

@@ -7,6 +7,8 @@ import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import AuthGuard from "@/components/auth/AuthGuard";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 
 export default function AdminProfilePage() {
   const { token } = useAuth();
@@ -74,7 +76,7 @@ export default function AdminProfilePage() {
       setSuccess(t("profile_update_success"));
       setPasswords({ oldPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err: any) {
-      setError(err.response?.data?.detail || t("error"));
+      setError(err.response?.data?.detail || t("auth_error"));
     } finally {
       setIsSaving(false);
     }
@@ -90,11 +92,11 @@ export default function AdminProfilePage() {
 
   return (
     <AuthGuard requireAdmin>
-      <div className={styles.pageRoot}>
-        <header className={styles.header}>
-          <h1 className={styles.title}>{t("profile_title")}</h1>
-          <p className={styles.subtitle}>{t("profile_subtitle")}</p>
-        </header>
+      <PageContainer>
+        <PageHeader 
+          title={t("profile_title")}
+          subtitle={t("profile_subtitle")}
+        />
 
         <form onSubmit={handleUpdateProfile} className={styles.profileCard}>
           <div className={styles.cardSection}>
@@ -125,6 +127,7 @@ export default function AdminProfilePage() {
                   value={profile.full_name}
                   onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
                   className={styles.input}
+                  maxLength={255}
                 />
               </div>
             </div>
@@ -145,6 +148,7 @@ export default function AdminProfilePage() {
                   value={passwords.oldPassword}
                   onChange={(e) => setPasswords({ ...passwords, oldPassword: e.target.value })}
                   className={styles.input}
+                  maxLength={128}
                 />
               </div>
             </div>
@@ -159,6 +163,8 @@ export default function AdminProfilePage() {
                   value={passwords.newPassword}
                   onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
                   className={styles.input}
+                  maxLength={128}
+                  minLength={8}
                 />
               </div>
             </div>
@@ -173,6 +179,8 @@ export default function AdminProfilePage() {
                   value={passwords.confirmPassword}
                   onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
                   className={styles.input}
+                  maxLength={128}
+                  minLength={8}
                 />
               </div>
             </div>
@@ -207,7 +215,7 @@ export default function AdminProfilePage() {
             </button>
           </div>
         </form>
-      </div>
+      </PageContainer>
     </AuthGuard>
   );
 }

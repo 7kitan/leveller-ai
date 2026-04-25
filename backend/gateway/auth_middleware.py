@@ -8,12 +8,13 @@ from fastapi.responses import JSONResponse
 from shared.redis_client import auth_cache
 from shared.auth_utils import hash_token
 from shared.config_utils import config_manager
+from shared.models import UserRole
 
 AUTH_SVC_URL = os.getenv("AUTH_SVC_URL", "http://auth-service:8000")
 
 async def auth_middleware(request: Request, call_next):
     # Public endpoints & preflight requests
-    public_paths = ["/health", "/auth/login", "/auth/register", "/user/login", "/user/register", "/jd/list", "/auth/verify", "/auth/forgot-password", "/auth/reset-password"]
+    public_paths = ["/health", "/auth/login", "/auth/register", "/user/login", "/user/register", "/jd/list", "/auth/verify", "/auth/forgot-password", "/auth/reset-password", "/auth/captcha-status", "/user/captcha-status"]
     
     path = request.url.path
     if path.startswith("/api"):
@@ -83,18 +84,17 @@ async def auth_middleware(request: Request, call_next):
 
         if user_data:
             user_id = user_data.get("id")
+            user_role = user_data.get("role", UserRole.USER)
             # Inject user info into headers for microservices
             request.scope["headers"].append((b"x-user-id", str(user_id).encode()))
+            request.scope["headers"].append((b"x-user-role", str(user_role).encode()))
             
-            # Inject Admin status if applicable
-            if user_data.get("is_admin"):
-                request.scope["headers"].append((b"x-is-admin", b"true"))
-                
             request.state.user = user_data
             
             # --- Maintenance Mode Enforcement ---
             if maintenance_mode:
-                is_admin_user = user_data.get("is_admin", False)
+                # SECURITY: Use the new role-based check for maintenance bypass
+                is_admin_user = (user_role == UserRole.ADMIN)
                 if not is_admin_user and not is_critical:
                     logging.warning(f"Maintenance Mode: Blocking non-admin user {user_id} for path {request.url.path}")
                     return JSONResponse(

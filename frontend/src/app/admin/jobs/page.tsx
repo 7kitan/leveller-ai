@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
-import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import Pagination from "@/components/shared/Pagination";
 import { 
@@ -24,18 +24,31 @@ import { cn } from "@/lib/utils";
 import styles from "./admin-jobs.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 import Portal from "@/components/shared/Portal";
 import Modal from "@/components/shared/Modal";
 
 interface Job {
   id: string;
+  source_id: string;
   title: string;
   company_name: string;
   location: string;
+  source_url?: string;
+  source_label?: string;
+  raw_text?: string;
+  job_description?: string;
+  requirements?: string;
+  benefits?: string;
   min_salary_vnd: number | null;
   max_salary_vnd: number | null;
+  required_exp_years: number | null;
+  employment_type?: string;
   status: string;
-  source_label?: string;
+  has_insurance?: boolean;
+  has_13th_month?: boolean;
+  remote_friendly?: boolean;
   created_at: string;
 }
 
@@ -67,6 +80,16 @@ const AdminJobsPage = () => {
     company_name: "",
     location: "",
     description: "",
+    requirements: "",
+    benefits: "",
+    min_salary: 0,
+    max_salary: 0,
+    employment_type: "Full-time",
+    required_exp: 0,
+    source_url: "",
+    has_insurance: false,
+    has_13th_month: false,
+    remote_friendly: false,
     status: "active"
   });
 
@@ -74,14 +97,13 @@ const AdminJobsPage = () => {
     setIsLoading(true);
     try {
       const offset = (page - 1) * pageSize;
-      const resp = await axios.get("/api/jd/admin/list", {
+      const resp = await api.get("/jd/admin/list", {
         params: {
           limit: pageSize,
           offset: offset,
           q: searchTerm || undefined
         },
         headers: { 
-          Authorization: `Bearer ${token}`,
           "X-Is-Admin": "true"
         }
       });
@@ -97,9 +119,8 @@ const AdminJobsPage = () => {
 
   const fetchSettings = async () => {
     try {
-      const resp = await axios.get("/api/admin/settings", {
+      const resp = await api.get("/admin/settings", {
         headers: { 
-          Authorization: `Bearer ${token}`,
           "X-Is-Admin": "true"
         }
       });
@@ -116,11 +137,10 @@ const AdminJobsPage = () => {
     setIsUpdatingSetting(true);
     try {
       const newValue = !crawlEnabled;
-      await axios.patch(`/api/admin/settings/topcv_crawl_enabled`, 
+      await api.patch(`/admin/settings/topcv_crawl_enabled`, 
         { value: newValue },
         {
           headers: { 
-            Authorization: `Bearer ${token}`,
             "X-Is-Admin": "true"
           }
         }
@@ -160,22 +180,30 @@ const AdminJobsPage = () => {
         title_raw: formData.title,
         company_name: formData.company_name,
         location_raw: formData.location,
-        raw_text: formData.description,
+        job_description: formData.description,
+        requirements: formData.requirements,
+        benefits: formData.benefits,
+        min_salary_vnd: formData.min_salary,
+        max_salary_vnd: formData.max_salary,
+        employment_type: formData.employment_type,
+        required_exp_years: formData.required_exp,
+        source_url: formData.source_url,
+        has_insurance: formData.has_insurance,
+        has_13th_month: formData.has_13th_month,
+        remote_friendly: formData.remote_friendly,
         status: formData.status
       };
 
       if (editingJob) {
-        await axios.patch(`/api/jd/admin/${editingJob.id}`, payload, {
+        await api.patch(`/jd/admin/${editingJob.id}`, payload, {
           headers: { 
-            Authorization: `Bearer ${token}`,
             "X-Is-Admin": "true"
           }
         });
         showNotification(t("admin_jobs_save_success"));
       } else {
-        await axios.post("/api/jd/admin", payload, {
+        await api.post("/jd/admin", payload, {
           headers: { 
-            Authorization: `Bearer ${token}`,
             "X-Is-Admin": "true"
           }
         });
@@ -191,9 +219,8 @@ const AdminJobsPage = () => {
   const handleDelete = async (id: string) => {
     if (!confirm(t("admin_jobs_delete_confirm"))) return;
     try {
-      await axios.delete(`/api/jd/admin/${id}`, {
+      await api.delete(`/jd/admin/${id}`, {
         headers: { 
-          Authorization: `Bearer ${token}`,
           "X-Is-Admin": "true"
         }
       });
@@ -222,7 +249,17 @@ const AdminJobsPage = () => {
       title: job.title,
       company_name: job.company_name,
       location: job.location,
-      description: "", // Description is typically long, we might want to fetch it or leave blank for update
+      description: job.job_description || "",
+      requirements: job.requirements || "",
+      benefits: job.benefits || "",
+      min_salary: job.min_salary_vnd || 0,
+      max_salary: job.max_salary_vnd || 0,
+      employment_type: job.employment_type || "Full-time",
+      required_exp: job.required_exp_years || 0,
+      source_url: job.source_url || "",
+      has_insurance: job.has_insurance || false,
+      has_13th_month: job.has_13th_month || false,
+      remote_friendly: job.remote_friendly || false,
       status: job.status
     });
     setIsModalOpen(true);
@@ -232,9 +269,8 @@ const AdminJobsPage = () => {
     if (!confirm(t("admin_jobs_crawl_success"))) return;
     setIsLoading(true);
     try {
-      await axios.post("/api/jd/admin/crawl", {}, {
+      await api.post("/jd/admin/crawl", {}, {
         headers: { 
-          Authorization: `Bearer ${token}`,
           "X-Is-Admin": "true"
         }
       });
@@ -256,15 +292,11 @@ const AdminJobsPage = () => {
 
   return (
     <AuthGuard requireAdmin>
-      <div className={styles.pageRoot}>
-        <div className={styles.header}>
-          <div>
-            <h1 className={styles.title}>
-              <Briefcase size={40} className={styles.headerIcon} /> 
-              <span>{t("admin_jobs_title")}</span>
-            </h1>
-            <p className={styles.subtitle}>{t("admin_jobs_subtitle")}</p>
-          </div>
+      <PageContainer>
+        <PageHeader 
+          title={t("admin_jobs_title")}
+          subtitle={t("admin_jobs_subtitle")}
+        >
           <div className="flex gap-4">
             <div className={styles.settingToggle}>
                <div className={styles.toggleLabel}>{t("admin_jobs_auto_crawl")}</div>
@@ -301,7 +333,7 @@ const AdminJobsPage = () => {
               {t("admin_jobs_crawl_now")}
             </button>
           </div>
-        </div>
+        </PageHeader>
 
         <div className={styles.contentStack}>
           <div className={styles.controlBar}>
@@ -313,6 +345,7 @@ const AdminJobsPage = () => {
                 className={styles.searchInput}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                maxLength={200}
               />
             </div>
             <button onClick={() => fetchJobs(currentPage)} className={styles.refreshBtn}>
@@ -351,7 +384,7 @@ const AdminJobsPage = () => {
                          styles.sourceLabel,
                          job.source_label === 'topcv' ? styles.sourceTopcv : styles.sourceManual
                        )}>
-                         {job.source_label || "MANUAL"}
+                         {job.source_label || t("admin_jobs_source_manual")}
                        </span>
                     </td>
                     <td className={styles.td}>
@@ -371,7 +404,7 @@ const AdminJobsPage = () => {
                          styles.statusBadge,
                          job.status === 'active' ? styles.statusActive : styles.statusInactive
                        )}>
-                         {job.status}
+                         {job.status === 'active' ? t("admin_jobs_status_active") : t("admin_jobs_status_inactive")}
                        </span>
                     </td>
                     <td className={styles.td}>
@@ -400,22 +433,13 @@ const AdminJobsPage = () => {
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
+          maxWidth="64rem"
           title={
             <h3 className={styles.modalTitle}>{editingJob ? t("admin_jobs_modal_edit_title") : t("admin_jobs_modal_create_title")}</h3>
           }
         >
           <div className={styles.modalBodyContent}>
             <div className={styles.formGrid}>
-                <div className={styles.formFieldFull}>
-                  <label>{t("admin_jobs_modal_desc_label")}</label>
-                  <textarea 
-                    className={styles.textarea}
-                    rows={6}
-                    placeholder={t("admin_jobs_modal_desc_placeholder")}
-                    value={formData.description}
-                    onChange={e => setFormData({...formData, description: e.target.value})}
-                  />
-                </div>
                 <div className={styles.formField}>
                   <label>{t("admin_jobs_modal_title_label")}</label>
                   <input 
@@ -431,6 +455,52 @@ const AdminJobsPage = () => {
                   />
                 </div>
                 <div className={styles.formField}>
+                  <label>{t("admin_jobs_table_location")}</label>
+                  <input 
+                    value={formData.location}
+                    onChange={e => setFormData({...formData, location: e.target.value})}
+                  />
+                </div>
+                <div className={styles.formField}>
+                  <label>Employment Type</label>
+                  <select 
+                    value={formData.employment_type}
+                    onChange={e => setFormData({...formData, employment_type: e.target.value})}
+                  >
+                      <option value="Full-time">Full-time</option>
+                      <option value="Part-time">Part-time</option>
+                      <option value="Contract">Contract</option>
+                      <option value="Freelance">Freelance</option>
+                  </select>
+                </div>
+                
+                <div className={styles.formField}>
+                  <label>Min Salary (VND)</label>
+                  <input 
+                    type="number"
+                    value={formData.min_salary}
+                    onChange={e => setFormData({...formData, min_salary: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                <div className={styles.formField}>
+                  <label>Max Salary (VND)</label>
+                  <input 
+                    type="number"
+                    value={formData.max_salary}
+                    onChange={e => setFormData({...formData, max_salary: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                
+                <div className={styles.formField}>
+                  <label>Required Experience (Years)</label>
+                  <input 
+                    type="number"
+                    step="0.5"
+                    value={formData.required_exp}
+                    onChange={e => setFormData({...formData, required_exp: parseFloat(e.target.value) || 0})}
+                  />
+                </div>
+                <div className={styles.formField}>
                   <label>{t("admin_jobs_modal_status_label")}</label>
                   <select 
                     value={formData.status}
@@ -439,6 +509,71 @@ const AdminJobsPage = () => {
                       <option value="active">Active</option>
                       <option value="inactive">Inactive</option>
                   </select>
+                </div>
+
+                <div className={styles.formFieldFull}>
+                  <label>Source URL</label>
+                  <input 
+                    value={formData.source_url}
+                    onChange={e => setFormData({...formData, source_url: e.target.value})}
+                  />
+                </div>
+
+                <div className={styles.formFieldFull}>
+                  <label>{t("admin_jobs_modal_desc_label")}</label>
+                  <textarea 
+                    className={styles.textarea}
+                    rows={4}
+                    value={formData.description}
+                    onChange={e => setFormData({...formData, description: e.target.value})}
+                  />
+                </div>
+
+                <div className={styles.formFieldFull}>
+                  <label>Requirements</label>
+                  <textarea 
+                    className={styles.textarea}
+                    rows={4}
+                    value={formData.requirements}
+                    onChange={e => setFormData({...formData, requirements: e.target.value})}
+                  />
+                </div>
+
+                <div className={styles.formFieldFull}>
+                  <label>Benefits</label>
+                  <textarea 
+                    className={styles.textarea}
+                    rows={3}
+                    value={formData.benefits}
+                    onChange={e => setFormData({...formData, benefits: e.target.value})}
+                  />
+                </div>
+
+                <div className={styles.checkboxGroup}>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox"
+                      checked={formData.has_insurance}
+                      onChange={e => setFormData({...formData, has_insurance: e.target.checked})}
+                    />
+                    <span>Insurance</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox"
+                      checked={formData.has_13th_month}
+                      onChange={e => setFormData({...formData, has_13th_month: e.target.checked})}
+                    />
+                    <span>13th Month Salary</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox"
+                      checked={formData.remote_friendly}
+                      onChange={e => setFormData({...formData, remote_friendly: e.target.checked})}
+                    />
+                    <span>Remote Friendly</span>
+                  </label>
                 </div>
             </div>
           </div>
@@ -466,7 +601,7 @@ const AdminJobsPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </PageContainer>
     </AuthGuard>
   );
 };

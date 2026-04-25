@@ -5,6 +5,7 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { UserRole } from "@/types/roles";
 import {
   UploadCloud,
   FileText,
@@ -29,12 +30,15 @@ import {
   X,
   Check,
   ChevronDown,
+  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import styles from "./user-cv.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import Modal from "@/components/shared/Modal";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 
 const POLLING_INTERVAL = 5000;
 
@@ -287,7 +291,7 @@ const UserCVPage = () => {
         setStatus("idle");
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Lỗi khi tải file. Vui lòng thử lại.");
+      setError(err.response?.data?.detail || t("cv_upload_error"));
       setStatus("idle");
     }
   };
@@ -490,9 +494,9 @@ const UserCVPage = () => {
     try {
       // Normalize categories to English for database consistency
       const normalizedSkills = (parsedData?.skills || []).map(skill => {
-        let cat = skill.category || "Uncategorized";
+        let cat = skill.category || t('uncategorized');
         const lowerCat = cat.toLowerCase().trim();
-        if (lowerCat === "công nghệ") {
+        if (lowerCat === t('cat_technical').toLowerCase() || lowerCat === "công nghệ") {
           cat = "Technology";
         }
         return { ...skill, category: cat };
@@ -541,22 +545,24 @@ const UserCVPage = () => {
   // ── Processing state ────────────────────────────────────────────────────────
   if (status === "processing") {
     return (
-      <div className={styles.processingPanel}>
-        <div className={styles.spinnerWrapper}>
-          <div className={styles.spinnerRing}></div>
-          <Loader2 size={48} className={styles.pulseIcon} />
+      <PageContainer>
+        <div className={styles.processingPanel}>
+          <div className={styles.spinnerWrapper}>
+            <div className={styles.spinnerRing}></div>
+            <Loader2 size={48} className={styles.pulseIcon} />
+          </div>
+          <div>
+            <h2 className={styles.processingTitle}>
+              {selectedHistoryId ? t("cv_processing_detail") : t("cv_processing_ai")}
+            </h2>
+            <p className={styles.processingDesc}>
+              {selectedHistoryId
+                ? t("cv_processing_detail_sub")
+                : t("cv_processing_ai_sub")}
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className={styles.processingTitle}>
-            {selectedHistoryId ? t("cv_processing_detail") : t("cv_processing_ai")}
-          </h2>
-          <p className={styles.processingDesc}>
-            {selectedHistoryId
-              ? t("cv_processing_detail_sub")
-              : t("cv_processing_ai_sub")}
-          </p>
-        </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -564,18 +570,6 @@ const UserCVPage = () => {
   if (status === "viewing" && parsedData) {
     // Include the original index for accurate updates
     const skillsWithIndex = (parsedData.skills || []).map((s, i) => ({ ...s, originalIndex: i }));
-    const groupedSkills = skillsWithIndex.reduce((acc: any, skill) => {
-      let cat = skill.category || "Uncategorized";
-      // Normalize common categories to unify English/Vietnamese versions
-      const lowerCat = cat.toLowerCase().trim();
-      if (lowerCat === "technology") {
-        cat = t("cv_skill_default_cat");
-      }
-
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(skill);
-      return acc;
-    }, {});
 
     // Filter out suggestions that are already present in the CV (case-insensitive)
     const filteredSuggestions = suggestedSkills.filter(s =>
@@ -594,19 +588,23 @@ const UserCVPage = () => {
     const sc = seniorityColor[parsedData.seniority as keyof typeof seniorityColor] || "#9ca3af";
 
     return (
-      <motion.div
-        className={styles.stackSection}
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
-        {/* ── Back button ──────────────────────────────────────────────── */}
-        <div className={styles.backRow}>
+      <PageContainer>
+        <PageHeader 
+          title={parsedData.full_name || t("cv_repository_title")}
+          subtitle={t("cv_processing_ai_sub")}
+        >
           <button onClick={handleBack} className={styles.backBtn}>
             <ArrowLeft size={16} />
             {t("cv_back_to_history")}
           </button>
-        </div>
+        </PageHeader>
+
+        <motion.div
+          className={styles.pageRoot}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
 
         {/* ── Smart Suggestions Banner ───────────────────────────────── */}
         {filteredSuggestions.length > 0 && parsedData.id === analysisContext?.cv_id && (
@@ -674,6 +672,7 @@ const UserCVPage = () => {
                     onChange={(e) => handleUpdateBasic("full_name", e.target.value)}
                     className={styles.nameInput}
                     placeholder={t("cv_full_name_placeholder")}
+                    maxLength={100}
                   />
                   <CustomDropdown
                     value={getSeniorityLabel(parsedData.seniority || "Unknown")}
@@ -695,13 +694,15 @@ const UserCVPage = () => {
                       value={parsedData.experience_years_total ?? 0}
                       onChange={(e) => handleUpdateBasic("experience_years_total", parseFloat(e.target.value) || 0)}
                       className={styles.inlineEditInput}
+                      min={0}
+                      max={60}
                     />
                     {t("cv_years_exp")}
                   </div>
                   {parsedData.is_ocr && (
                     <div className={styles.ocrBadge}>
                       <AlertCircle size={13} />
-                      OCR
+                      {t('ocr_label')}
                     </div>
                   )}
                   <div className={cn(styles.secureBadge, styles.secureBadgeVerified)}>
@@ -750,273 +751,265 @@ const UserCVPage = () => {
                 onChange={(e) => handleUpdateBasic("summary", e.target.value)}
                 className={styles.summaryTextarea}
                 placeholder={t("cv_summary_placeholder")}
+                maxLength={2000}
               />
             </div>
           )}
         </div>
 
-        {/* ── Three-column grid ───────────────────────────────────────── */}
-        <div className={styles.detailGrid}>
-          {/* Left: Skills Matrix */}
-          <div className={styles.matrixPanel}>
-            <h2 className={styles.matrixTitle}>
-              <Sparkles size={20} className={styles.matrixTitleIcon} />
-              {t("cv_competency_matrix")}
-            </h2>
-
-            {Object.keys(groupedSkills).length === 0 ? (
-              <p className={styles.emptyText}>{t("cv_no_skills")}</p>
-            ) : (
-              Object.keys(groupedSkills).map((cat) => (
-                <div key={cat} className={styles.catGroup}>
-                  <h5 className={styles.catLabel}>{cat}</h5>
-                  <div className={styles.flexWrapGap}>
-                    {groupedSkills[cat].map((skill: any, idx: number) => (
-                      <div key={idx} className={styles.skillItem}>
-                        <input
-                          type="text"
-                          value={skill.name}
-                          onChange={(e) =>
-                            handleUpdateSkill(skill.originalIndex, "name", e.target.value)
-                          }
-                          className={styles.skillNameInput}
-                          placeholder={t("cv_skill_name_placeholder")}
-                        />
-                        <input
-                          type="number"
-                          value={skill.experience_years ?? 0}
-                          onChange={(e) =>
-                            handleUpdateSkill(skill.originalIndex, "experience_years", parseInt(e.target.value) || 0)
-                          }
-                          className={styles.editInput}
-                          min={0}
-                        />
-                        <span className={styles.yrsLabel}>{t("cv_years_short")}</span>
-                        <CustomDropdown
-                          value={getSeniorityLabel(skill.level || "Junior")}
-                          options={SKILL_LEVELS.map(getSeniorityLabel)}
-                          onChange={(val) => {
-                            const key = SKILL_LEVELS.find(k => getSeniorityLabel(k) === val);
-                            if (key) handleUpdateSkill(skill.originalIndex, "level", key);
-                          }}
-                          className={styles.skillLevelSelect}
-                        />
-                        <button
-                          onClick={() => handleDeleteSkill(skill.originalIndex)}
-                          className={styles.deleteSkillBtn}
-                        >
-                          <X size={13} />
-                        </button>
-                      </div>
-                    ))}
+        {/* ── Skills Matrix ───────────────────────────────────────────── */}
+        <div className={styles.matrixPanel}>
+          <div className={styles.matrixTitle}>
+            <Layers size={20} className={styles.matrixTitleIcon} />
+            {t("cv_competency_matrix")}
+          </div>
+          <div className={styles.matrixGrid}>
+            {skillsWithIndex.map((skill: any) => (
+              <div key={skill.originalIndex} className={styles.skillItem}>
+                <div className={styles.skillMain}>
+                  <input
+                    type="text"
+                    value={skill.name}
+                    onChange={(e) => handleUpdateSkill(skill.originalIndex, "name", e.target.value)}
+                    className={styles.skillNameInput}
+                    maxLength={50}
+                    placeholder={t("cv_skill_default_name")}
+                  />
+                  <div className={styles.skillMeta}>
+                    <div className={styles.skillExpGroup}>
+                      <Clock size={12} />
+                      <input
+                        type="number"
+                        step="0.5"
+                        value={skill.experience_years}
+                        onChange={(e) => handleUpdateSkill(skill.originalIndex, "experience_years", e.target.value)}
+                        className={styles.editInput}
+                        min={0}
+                        max={60}
+                      />
+                      <span>{t("cv_years_short")}</span>
+                    </div>
+                    <CustomDropdown
+                      value={getSeniorityLabel(skill.level)}
+                      options={SKILL_LEVELS.map(getSeniorityLabel)}
+                      onChange={(val) => {
+                        const key = SKILL_LEVELS.find(k => getSeniorityLabel(k) === val);
+                        if (key) handleUpdateSkill(skill.originalIndex, "level", key);
+                      }}
+                      className={styles.skillLevelSelect}
+                      style={{ color: seniorityColor[skill.level as keyof typeof seniorityColor] }}
+                    />
                   </div>
                 </div>
-              ))
-            )}
-
+                <button
+                  onClick={() => handleDeleteSkill(skill.originalIndex)}
+                  className={styles.deleteSkillBtn}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+            
             <button onClick={handleManualAddSkill} className={styles.addSkillBtn}>
-              <Plus size={14} />
-              {t("cv_add_skill")}
+              <div className={styles.addSkillIcon}>
+                <Plus size={24} />
+              </div>
+              <span className={styles.addSkillText}>{t("cv_add_skill")}</span>
             </button>
           </div>
+        </div>
 
-          {/* Middle: Work History + Education */}
-          <div className={styles.middleCol}>
-            <div className={styles.sectionCard}>
-              <h3 className={styles.sectionTitle}>
-                <Briefcase size={18} className={styles.sectionTitleIcon} />
-                {t("cv_work_history")}
-              </h3>
-              <div className={styles.timelineList}>
-                {(parsedData.work_history || []).map((w, idx) => (
-                  <div key={idx} className={styles.timelineItem}>
-                    <div className={styles.timelineDot} />
-                    <div className={styles.timelineContent}>
-                      <div className={styles.timelineHeader}>
-                        <input
-                          type="text"
-                          value={w.position || ""}
-                          onChange={(e) => handleUpdateWork(idx, "position", e.target.value)}
-                          className={styles.timelineInput}
-                          placeholder={t("cv_position_placeholder")}
-                        />
-                        <input
-                          type="number"
-                          step="0.1"
-                          value={w.duration_years || 0}
-                          onChange={(e) => handleUpdateWork(idx, "duration_years", parseFloat(e.target.value) || 0)}
-                          className={styles.timelineSmallInput}
-                        />
-                        <span className={styles.yrsLabel}>{t("cv_years_short")}</span>
-                        <button onClick={() => handleDeleteWork(idx)} className={styles.itemDeleteBtn}>
-                          <X size={14} />
-                        </button>
-                      </div>
+        <div className={styles.detailGrid}>
+          {/* Work History */}
+          <div className={styles.sectionCard}>
+            <div className={styles.sectionTitle}>
+              <Briefcase size={18} className={styles.sectionTitleIcon} />
+              {t("cv_work_history")}
+            </div>
+            <div className={styles.timelineList}>
+              {(parsedData.work_history || []).map((work, i) => (
+                <div key={i} className={styles.timelineItem}>
+                  <div className={styles.timelineDot} />
+                  <div className={styles.timelineContent}>
+                    <div className={styles.timelineHeader}>
                       <input
                         type="text"
-                        value={w.company || ""}
-                        onChange={(e) => handleUpdateWork(idx, "company", e.target.value)}
-                        className={styles.timelineSubInput}
-                        placeholder={t("cv_company_placeholder")}
+                        value={work.position}
+                        onChange={(e) => handleUpdateWork(i, "position", e.target.value)}
+                        className={styles.timelineInput}
+                        placeholder={t("cv_position_placeholder")}
+                        maxLength={100}
                       />
-                      <textarea
-                        value={w.description || ""}
-                        onChange={(e) => handleUpdateWork(idx, "description", e.target.value)}
-                        className={styles.timelineDescTextarea}
-                        placeholder={t("cv_work_desc_placeholder")}
-                      />
-                    </div>
-                  </div>
-                ))}
-                <button
-                  onClick={() => {
-                    const next = [...(parsedData.work_history || []), { position: t("cv_new_pos"), company: t("cv_new_company"), duration_years: 1, description: "" }];
-                    handleUpdateBasic("work_history", next);
-                  }}
-                  className={styles.addItemBtn}
-                >
-                  <Plus size={14} /> {t("cv_add_exp")}
-                </button>
-              </div>
-            </div>
-
-            <div className={styles.sectionCard}>
-              <h3 className={styles.sectionTitle}>
-                <GraduationCap size={18} className={styles.sectionTitleIcon} />
-                {t("cv_education")}
-              </h3>
-              <div className={styles.timelineList}>
-                {(parsedData.education || []).map((e, idx) => (
-                  <div key={idx} className={styles.timelineItem}>
-                    <div className={styles.timelineDot} />
-                    <div className={styles.timelineContent}>
-                      <div className={styles.timelineHeader}>
-                        <input
-                          type="text"
-                          value={e.degree || ""}
-                          onChange={(e) => handleUpdateEdu(idx, "degree", e.target.value)}
-                          className={styles.timelineInput}
-                          placeholder={t("cv_degree_placeholder")}
-                        />
-                        <input
-                          type="text"
-                          value={e.year || ""}
-                          onChange={(e) => handleUpdateEdu(idx, "year", e.target.value)}
-                          className={styles.timelineSmallInput}
-                          placeholder={t("cv_year_placeholder")}
-                        />
-                        <button onClick={() => handleDeleteEdu(idx)} className={styles.itemDeleteBtn}>
-                          <X size={14} />
+                      <div className={styles.timelineActions}>
+                        <div className={styles.timelineDuration}>
+                          <input
+                            type="number"
+                            step="0.5"
+                            value={work.duration_years || 0}
+                            onChange={(e) => handleUpdateWork(i, "duration_years", e.target.value)}
+                            className={styles.timelineSmallInput}
+                          />
+                          <span>{t("cv_years_short")}</span>
+                        </div>
+                        <button onClick={() => handleDeleteWork(i)} className={styles.itemDeleteBtn}>
+                          <Trash2 size={14} />
                         </button>
                       </div>
-                      <input
-                        type="text"
-                        value={e.institution || ""}
-                        onChange={(e) => handleUpdateEdu(idx, "institution", e.target.value)}
-                        className={styles.timelineSubInput}
-                        placeholder={t("cv_institution_placeholder")}
-                      />
                     </div>
-                  </div>
-                ))}
-                <button
-                  onClick={() => {
-                    const next = [...(parsedData.education || []), { degree: t("cv_new_degree"), institution: t("cv_new_institution"), year: "2024" }];
-                    handleUpdateBasic("education", next);
-                  }}
-                  className={styles.addItemBtn}
-                >
-                  <Plus size={14} /> {t("cv_add_edu")}
-                </button>
-              </div>
-            </div>
-
-            <div className={styles.sectionCard}>
-              <h3 className={styles.sectionTitle}>
-                <Award size={18} className={styles.sectionTitleIcon} />
-                {t("cv_certifications")}
-              </h3>
-              <div className={styles.certList}>
-                {(parsedData.certifications || []).map((cert, idx) => (
-                  <div key={idx} className={styles.certItemEditable}>
-                    <BadgeCheck size={16} className={styles.certIcon} />
                     <input
                       type="text"
-                      value={cert || ""}
-                      onChange={(e) => handleUpdateCert(idx, e.target.value)}
-                      className={styles.certInput}
+                      value={work.company}
+                      onChange={(e) => handleUpdateWork(i, "company", e.target.value)}
+                      className={styles.timelineSubInput}
+                      placeholder={t("cv_company_placeholder")}
+                      maxLength={100}
                     />
-                    <button
-                      onClick={() => {
-                        const next = (parsedData.certifications || []).filter((_, i) => i !== idx);
-                        handleUpdateBasic("certifications", next);
-                      }}
-                      className={styles.certDeleteBtn}
-                    >
-                      <X size={14} />
-                    </button>
+                    <textarea
+                      value={work.description || ""}
+                      onChange={(e) => handleUpdateWork(i, "description", e.target.value)}
+                      className={styles.timelineDescTextarea}
+                      placeholder={t("cv_work_desc_placeholder")}
+                      maxLength={1000}
+                    />
                   </div>
-                ))}
-                <button
-                  onClick={() => {
-                    const next = [...(parsedData.certifications || []), t("cv_new_cert")];
-                    handleUpdateBasic("certifications", next);
-                  }}
-                  className={styles.addItemBtn}
-                >
-                  <Plus size={14} /> {t("cv_add_cert")}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Sidebar */}
-          <div className={styles.verifyPanel}>
-            <h4 className={styles.scoringTitle}>{t("cv_overview")}</h4>
-            <div className={styles.stackTight}>
-              <div className={styles.statRow}>
-                <span className={styles.statLabel}>{t("nav_skills")}</span>
-                <span className={styles.statValue}>
-                  {(parsedData.skills || []).length}
-                </span>
-              </div>
-              <div className={styles.statRow}>
-                <span className={styles.statLabel}>{t("cv_experience")}</span>
-                <span className={styles.statValue}>
-                  {parsedData.experience_years_total ?? 0} {t("cv_years_short")}
-                </span>
-              </div>
-              <div className={styles.statRow}>
-                <span className={styles.statLabel}>{t("cv_education")}</span>
-                <span className={styles.statValue}>
-                  {(parsedData.education || []).length} {t("cv_stages")}
-                </span>
-              </div>
-              <div className={styles.statRow}>
-                <span className={styles.statLabel}>{t("cv_certifications")}</span>
-                <span className={styles.statValue}>
-                  {(parsedData.certifications || []).length} {t("cv_items")}
-                </span>
-              </div>
-            </div>
-
-            <div className={styles.infoBox}>
-              <p className={styles.infoText}>
-                {t("cv_save_matrix_desc")}
-              </p>
+                </div>
+              ))}
               <button
-                onClick={handleSaveMatrix}
-                className={cn(styles.uploadBtn, styles.checkBtn)}
+                onClick={() => {
+                  const next = [...(parsedData.work_history || [])];
+                  next.unshift({ position: "", company: "" });
+                  setParsedData({ ...parsedData, work_history: next });
+                  setIsDirty(true);
+                }}
+                className={styles.addItemBtn}
               >
-                {saving ? (
-                  <Loader2 size={16} className={styles.animateSpin} />
-                ) : (
-                  <CheckCircle2 size={20} />
-                )}
-                {t("cv_save_changes")}
+                <Plus size={14} />
+                {t("cv_add_exp")}
               </button>
             </div>
           </div>
+
+          {/* Education */}
+          <div className={styles.sectionCard}>
+            <div className={styles.sectionTitle}>
+              <GraduationCap size={18} className={styles.sectionTitleIcon} />
+              {t("cv_education")}
+            </div>
+            <div className={styles.timelineList}>
+              {(parsedData.education || []).map((edu, i) => (
+                <div key={i} className={styles.timelineItem}>
+                  <div className={styles.timelineDot} />
+                  <div className={styles.timelineContent}>
+                    <div className={styles.timelineHeader}>
+                      <input
+                        type="text"
+                        value={edu.degree}
+                        onChange={(e) => handleUpdateEdu(i, "degree", e.target.value)}
+                        className={styles.timelineInput}
+                        placeholder={t("cv_degree_placeholder")}
+                        maxLength={100}
+                      />
+                      <div className={styles.timelineActions}>
+                        <div className={styles.timelineDuration}>
+                          <input
+                            type="number"
+                            value={edu.year || new Date().getFullYear()}
+                            onChange={(e) => handleUpdateEdu(i, "year", e.target.value)}
+                            className={styles.timelineSmallInput}
+                            style={{ width: '4rem' }}
+                          />
+                        </div>
+                        <button onClick={() => handleDeleteEdu(i)} className={styles.itemDeleteBtn}>
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      value={edu.institution}
+                      onChange={(e) => handleUpdateEdu(i, "institution", e.target.value)}
+                      className={styles.timelineSubInput}
+                      placeholder={t("cv_institution_placeholder")}
+                      maxLength={100}
+                    />
+                  </div>
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  const next = [...(parsedData.education || [])];
+                  next.unshift({ degree: "", institution: "" });
+                  setParsedData({ ...parsedData, education: next });
+                  setIsDirty(true);
+                }}
+                className={styles.addItemBtn}
+              >
+                <Plus size={14} />
+                {t("cv_add_edu")}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Certifications */}
+        <div className={styles.sectionCard}>
+          <div className={styles.sectionTitle}>
+            <BadgeCheck size={18} className={styles.sectionTitleIcon} />
+            {t("cv_certifications")}
+          </div>
+          <div className={styles.certList}>
+            {(parsedData.certifications || []).map((cert, i) => (
+              <div key={i} className={styles.certItemEditable}>
+                <input
+                  type="text"
+                  value={cert}
+                  onChange={(e) => handleUpdateCert(i, e.target.value)}
+                  className={styles.certInput}
+                  placeholder={t("cv_new_cert")}
+                  maxLength={200}
+                />
+                <button
+                  onClick={() => {
+                    const next = (parsedData.certifications || []).filter((_, j) => j !== i);
+                    setParsedData({ ...parsedData, certifications: next });
+                    setIsDirty(true);
+                  }}
+                  className={styles.itemDeleteBtn}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={() => {
+                const next = [...(parsedData.certifications || [])];
+                next.unshift("");
+                setParsedData({ ...parsedData, certifications: next });
+                setIsDirty(true);
+              }}
+              className={styles.addItemBtn}
+            >
+              <Plus size={14} />
+              {t("cv_add_cert")}
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.infoBox}>
+          <p className={styles.infoText}>
+            {t("cv_save_matrix_desc")}
+          </p>
+          <button
+            onClick={handleSaveMatrix}
+            className={cn(styles.uploadBtn, styles.checkBtn)}
+          >
+            {saving ? (
+              <Loader2 size={16} className={styles.animateSpin} />
+            ) : (
+              <CheckCircle2 size={20} />
+            )}
+            {t("cv_save_changes")}
+          </button>
         </div>
 
         {/* ── Rerun Confirmation Modal ───────────────────────────────── */}
@@ -1050,30 +1043,24 @@ const UserCVPage = () => {
             </div>
           </div>
         </Modal>
-      </motion.div>
+        </motion.div>
+      </PageContainer>
     );
   }
 
   // ── Idle / Upload state ───────────────────────────────────────────────────
   return (
-    <AuthGuard requireRole="user">
-      <div className={styles.pageRoot}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div>
-            <h1 className={styles.title}>
-              <Zap size={40} className={styles.zapIcon} />
-              {t("cv_repository_title")}
-            </h1>
-            <p className={styles.subtitle}>
-              {t("cv_repository_subtitle")}
-            </p>
-          </div>
+    <AuthGuard requireRole={UserRole.USER}>
+      <PageContainer>
+        <PageHeader 
+          title={t("cv_repository_title")}
+          subtitle={t("cv_repository_subtitle")}
+        >
           <div className={styles.secureBadge}>
             <ShieldCheck size={18} className={styles.shieldIcon} />
             <span className={styles.secureText}>{t("cv_secure_iso")}</span>
           </div>
-        </div>
+        </PageHeader>
 
         <div className={styles.uploadGrid}>
           {/* Left: Upload Area */}
@@ -1097,139 +1084,134 @@ const UserCVPage = () => {
                   if (e.dataTransfer.files?.[0]) setFile(e.dataTransfer.files[0]);
                 }}
               >
-                <div
-                  className={cn(
-                    styles.uploadIcon,
-                    (file || isDragging) && styles.uploadIconActive
-                  )}
-                >
-                  <UploadCloud size={48} />
-                </div>
+                <div className={styles.dropZoneContent}>
+                  <div className={styles.cloudIconWrapper}>
+                    <UploadCloud size={48} className={styles.cloudIcon} />
+                  </div>
+                  <h3 className={styles.uploadTitle}>{t("cv_dropzone_idle")}</h3>
+                  <p className={styles.uploadSub}>{t("cv_dropzone_hint")}</p>
 
-                <div className={styles.uploadTextCenter}>
-                  <h3 className={styles.uploadH3}>
-                    {file ? file.name : t("cv_dropzone_idle")}
-                  </h3>
-                  <p className={styles.uploadP}>
-                    {t("cv_dropzone_hint")}
-                  </p>
-                </div>
+                  <div className={styles.fileTypes}>
+                    <span>PDF</span>
+                    <span className={styles.dotSeparator}>•</span>
+                    <span>DOCX</span>
+                  </div>
 
-                <div className={styles.loaderWrapper}>
-                  <input
-                    type="file"
-                    className="hidden"
-                    id="cv-upload"
-                    onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    accept=".pdf,image/*"
-                  />
-                  <label htmlFor="cv-upload" className={styles.browseLabel}>
+                  <label className={styles.browseBtn}>
                     {t("cv_browse_files")}
+                    <input
+                      type="file"
+                      hidden
+                      accept=".pdf,.docx"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) setFile(e.target.files[0]);
+                      }}
+                    />
                   </label>
                 </div>
               </div>
 
-              {error && (
-                <div className={styles.errorStack}>
-                  <div className={styles.errorBox}>
-                    <AlertCircle size={18} className={styles.errorIcon} />
-                    {error}
-                  </div>
-                  <button onClick={handleGoManual} className={styles.manualEntryBtn}>
-                    <Plus size={14} />
-                    {t("cv_manual_entry")}
+              {file && (
+                <motion.div
+                  className={styles.selectedFile}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <FileText className={styles.fileIcon} size={20} />
+                  <span className={styles.fileName}>{file.name}</span>
+                  <button onClick={() => setFile(null)} className={styles.removeFile}>
+                    <X size={16} />
                   </button>
-                </div>
+                </motion.div>
               )}
 
               <button
-                onClick={handleUpload}
                 disabled={!file || status === "uploading"}
-                className={styles.uploadBtn}
+                onClick={handleUpload}
+                className={cn(styles.uploadBtn, file && styles.uploadBtnActive)}
               >
                 {status === "uploading" ? (
                   <Loader2 size={20} className={styles.animateSpin} />
                 ) : (
-                  <Sparkles size={20} />
+                  <Zap size={20} />
                 )}
-                {status === "uploading" ? t("cv_analyzing") : t("cv_start_extract")}
+                {status === "uploading" ? t("cv_uploading") : t("cv_start_extract")}
               </button>
+
+              <div className={styles.manualEntryHint}>
+                <span>{t("cv_or_use")}</span>
+                <button onClick={handleGoManual} className={styles.manualLink}>
+                  {t("cv_manual_entry")}
+                </button>
+              </div>
+
+              {error && (
+                <div className={styles.errorBanner}>
+                  <AlertCircle size={16} />
+                  {error}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right: History */}
-          <div className={styles.historySection}>
-            <div className={styles.historyTitle}>
-              {t("cv_history_title")}
-              <div className={styles.historyTitleLine} />
+          {/* Right: History List */}
+          <div className={styles.historyZone}>
+            <div className={styles.historyHeader}>
+              <h3 className={styles.historyTitle}>
+                <Clock size={20} />
+                {t("cv_history_title")}
+              </h3>
+              <span className={styles.historyCount}>
+                {history.length} {t("cv_files")}
+              </span>
             </div>
 
-            <AnimatePresence>
-              {history.map((item) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={cn(
-                    styles.historyItem,
-                    item.id === selectedHistoryId && styles.historyItemActive
-                  )}
-                  onClick={() => handleHistoryClick(item)}
-                >
-                  <div className={styles.historyItemContent}>
-                    <div
-                      className={cn(
-                        styles.historyIcon,
-                        item.status === "completed"
-                          ? styles.historyIconCompleted
-                          : item.status === "failed"
-                            ? styles.historyIconFailed
-                            : styles.historyIconProcessing
-                      )}
-                    >
-                      {item.status === "completed" ? (
-                        <CheckCircle2 size={20} />
-                      ) : item.status === "failed" ? (
-                        <AlertCircle size={20} />
-                      ) : (
-                        <Loader2 size={20} className={styles.animateSpin} />
-                      )}
+            <div className={styles.historyList}>
+              {history.length > 0 ? (
+                history.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => handleHistoryClick(item)}
+                    className={cn(
+                      styles.historyItem,
+                      item.status === "completed" ? styles.historyItemClickable : styles.historyItemDisabled,
+                      selectedHistoryId === item.id && styles.historyItemActive
+                    )}
+                  >
+                    <div className={styles.historyIcon}>
+                      <FileText size={20} />
                     </div>
-                    <div>
-                      <h4 className={styles.historyFileName}>
-                        {item.full_name || item.file_name || `CV ${item.id.slice(0, 8)}`}
-                      </h4>
-                      <p className={styles.historyDate}>
-                        {item.status === "completed"
-                          ? `${t("cv_analyzed")} · ${new Date(item.created_at).toLocaleString(language === 'vi' ? "vi-VN" : "en-US")}`
-                          : item.status === "failed"
-                            ? `${t("cv_analysis_error")} · ${new Date(item.created_at).toLocaleString(language === 'vi' ? "vi-VN" : "en-US")}`
-                            : `${t("cv_processing")} · ${new Date(item.created_at).toLocaleString(language === 'vi' ? "vi-VN" : "en-US")}`}
-                      </p>
-                      {item.status === "failed" && item.error_message && (
-                        <div className={styles.historyErrorText}>
-                          <AlertCircle size={12} />
-                          <span>{item.error_message}</span>
-                        </div>
+                    <div className={styles.historyInfo}>
+                      <div className={styles.historyName}>
+                        {item.full_name || item.file_name || t("cv_candidate_name_placeholder")}
+                      </div>
+                      <div className={styles.historyMeta}>
+                        {new Date(item.created_at).toLocaleDateString(language === 'vi' ? "vi-VN" : "en-US")}
+                      </div>
+                    </div>
+                    <div className={cn(styles.historyStatus, styles[item.status])}>
+                      {item.status === "completed" && <CheckCircle2 size={16} />}
+                      {item.status === "processing" && (
+                        <Loader2 size={16} className={styles.animateSpin} />
                       )}
+                      {item.status === "failed" && <AlertCircle size={16} />}
                     </div>
                   </div>
-                  {item.status === "completed" && (
-                    <ChevronRight size={18} className={styles.historyChevron} />
-                  )}
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                ))
+              ) : (
+                <div className={styles.emptyHistory}>
+                  <FileText size={40} className={styles.emptyIcon} />
+                  <p>{t("cv_no_history")}</p>
+                </div>
+              )}
+            </div>
 
-            {history.length === 0 && (
-              <div className={styles.historyEmptyState}>
-                <Clock size={48} className={styles.historyEmptyIcon} />
-                <p className={styles.historyEmptyText}>{t("cv_no_history")}</p>
-              </div>
-            )}
+            <div className={styles.historyFooter}>
+              <p>{t("cv_history_footer")}</p>
+            </div>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </AuthGuard>
   );
 };

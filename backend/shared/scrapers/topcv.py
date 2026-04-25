@@ -166,6 +166,19 @@ class TopCVScraper:
                 salary_text = qg_data.get('salary_range') if qg_data else "Thỏa thuận"
                 location_text = qg_data.get('work_location') if qg_data else "N/A"
 
+                # NEW: Robust DOM-based location extraction (often more specific than tracking data)
+                dom_location = self._extract_location_from_soup(soup)
+                if dom_location and len(dom_location) > 5:
+                    # If tracking location is very long (likely a list of all wards), 
+                    # or if DOM location is more specific, prefer DOM.
+                    if len(location_text) > 200 or location_text == "N/A":
+                         logger.info(f"[SCRAPE_JOB] Preferring DOM location: {dom_location} over {location_text[:50]}...")
+                         location_text = dom_location
+                    elif "Quận" in dom_location or "Huyện" in dom_location:
+                         # Specific address in sidebar is usually better than city-level in tracking
+                         logger.info(f"[SCRAPE_JOB] Found specific DOM address: {dom_location}")
+                         location_text = dom_location
+
                 logger.info(f"[SCRAPE_JOB] Initial extraction - Title: {title}, Company: {company}")
                 logger.info(f"[SCRAPE_JOB] Initial extraction - Salary: {salary_text}, Location: {location_text}")
 
@@ -327,23 +340,114 @@ class TopCVScraper:
             res["max"] *= 25000
             
         return res
-
     def _parse_location(self, text: str) -> Dict[str, str]:
-        parts = [p.strip() for p in text.split(',')]
-        city = parts[0] if parts else "N/A"
-        district = "N/A"
-        if len(parts) > 1:
-            district = parts[1].split('-')[0].strip()
-        elif '-' in text:
-            city = text.split('-')[0].strip()
-            district = text.split('-')[1].strip()
-            
-        # Clean up common cities
-        if "Hà Nội" in city: city = "Hà Nội"
-        if "Hồ Chí Minh" in city or "TP.HCM" in city: city = "Hồ Chí Minh"
-        if "Đà Nẵng" in city: city = "Đà Nẵng"
+        """
+        Phân tích địa chỉ tiếng Việt để lấy City và District.
+        Chiến thuật: Tìm City trước (quét từ cuối lên), sau đó tìm District ở các phần còn lại bên trái.
+        """
+        if not text or text == "N/A":
+            return {"city": "N/A", "district": "N/A"}
+
+        # Tách chuỗi bằng nhiều loại dấu phân cách: , - \n ; :
+        parts = [p.strip() for p in re.split(r'[,|\n|\r|;]|\s-\s', text) if p.strip()]
+        if not parts:
+            return {"city": "N/A", "district": "N/A"}
         
+        city = "N/A"
+        district = "N/A"
+        
+        cities_map = {
+            "Hồ Chí Minh": ["HỒ CHÍ MINH", "TP.HCM", "TP. HCM", "HCM", "SÀI GÒN", "SAI GON", "HCMC"],
+            "Hà Nội": ["HÀ NỘI", "HA NOI", "HN"],
+            "Đà Nẵng": ["ĐÀ NẴNG", "DA NANG"],
+            "Bình Dương": ["BÌNH DƯƠNG", "BINH DUONG"],
+            "Đồng Nai": ["ĐỒNG NAI", "DONG NAI"],
+            "Long An": ["LONG AN"],
+            "Cần Thơ": ["CẦN THƠ", "CAN THO"],
+            "Bắc Ninh": ["BẮC NINH", "BAC NINH"],
+            "Hải Phòng": ["HẢI PHÒNG", "HAI PHONG"]
+        }
+
+        city_index = -1
+        # 1. Tìm City (Quét từ cuối lên)
+        for i in range(len(parts) - 1, -1, -1):
+            p_upper = parts[i].upper()
+            found = False
+            for standard_city, variants in cities_map.items():
+                if any(v in p_upper for v in variants):
+                    city = standard_city
+                    city_index = i
+                    found = True
+                    break
+            if found: break
+        
+        if city == "N/A":
+            # Nếu không mapping được, lấy phần tử cuối cùng làm City giả định
+            city = parts[-1]
+            city_index = len(parts) - 1
+
+        # 2. Tìm District (Quét từ phần tử bên trái City trở về trước)
+        for i in range(city_index - 1, -1, -1):
+            p = parts[i]
+            p_upper = p.upper()
+            # Nếu chứa từ khóa chỉ quận huyện
+            if any(kw in p_upper for kw in ["QUẬN", "HUYỆN", "THỊ XÃ", "THÀNH PHỐ", "Q.", "H.", "DISTRICT"]):
+                # Kiểm tra để không lấy nhầm phần City (nếu City được lặp lại ở District)
+                is_city_alias = False
+                for variants in cities_map.values():
+                    if p_upper in [v.upper() for v in variants]:
+                        is_city_alias = True
+                        break
+                
+                if not is_city_alias:
+                    district = p
+                    break
+        
+        # 3. Fallback cho District: Nếu vẫn N/A và có phần tử bên trái City, lấy phần tử đó
+        if district == "N/A" and city_index > 0:
+            maybe_district = parts[city_index - 1]
+            # Đảm bảo không phải là tên thành phố lặp lại
+            is_city_alias = False
+            for variants in cities_map.values():
+                if maybe_district.upper() in [v.upper() for v in variants]:
+                    is_city_alias = True
+                    break
+            if not is_city_alias:
+                district = maybe_district
+
         return {"city": city, "district": district}
+
+    def _extract_location_from_soup(self, soup) -> Optional[str]:
+        """Trích xuất địa điểm từ DOM để tránh lỗi qgTracking chứa list phường."""
+        try:
+            # 1. Company address in sidebar (most specific)
+            sidebar_addr = soup.select_one('.company-address .company-value')
+            if sidebar_addr:
+                addr = sidebar_addr.get_text(strip=True)
+                if addr: return addr
+
+            # 2. General location header
+            gen_loc = soup.select_one('.section-location .job-detail__info--section-content-value')
+            if gen_loc:
+                addr = gen_loc.get_text(strip=True)
+                if addr: return addr
+
+            # 3. Old template addresses
+            box_addr = soup.select_one('.box-address .item-address')
+            if box_addr:
+                addr = box_addr.get_text(strip=True)
+                if addr: return addr
+            
+            # 4. Search in specific labels
+            for div in soup.find_all('div', class_='job-detail__info--section'):
+                title = div.find('div', class_='job-detail__info--section-content-title')
+                if title and 'địa điểm' in title.get_text().lower():
+                    value = div.find('div', class_='job-detail__info--section-content-value')
+                    if value: return value.get_text(strip=True)
+
+            return None
+        except:
+            return None
 
     def _extract_employment_type(self, soup) -> str:
         """

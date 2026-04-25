@@ -20,6 +20,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
   const [isLogin, setIsLogin] = useState(initialMode === "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   
@@ -30,6 +31,20 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
   const { t } = useLanguage();
   const router = useRouter();
 
+  React.useEffect(() => {
+    const checkCaptchaStatus = async () => {
+      try {
+        const res = await axios.get("/api/auth/captcha-status");
+        if (res.data.requires_captcha) {
+          setShowCaptcha(true);
+        }
+      } catch (err) {
+        // Silently ignore pre-check errors
+      }
+    };
+    checkCaptchaStatus();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -37,14 +52,16 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
 
     try {
       const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
-      const payload = isLogin ? { email, password, captcha_token: captchaToken } : { email, password };
+      const payload = isLogin 
+        ? { email, password, captcha_token: captchaToken } 
+        : { email, password, full_name: fullName, captcha_token: captchaToken };
       const res = await axios.post(endpoint, payload);
       
       const { access_token, user } = res.data;
       
       login(access_token, user);
       
-      const userRole = user.role || (user.is_admin ? 'admin' : 'user');
+      const userRole = user.role;
       router.push(`/${userRole}`);
     } catch (err: any) {
       if (err.response?.headers?.['x-requires-captcha'] === 'true') {
@@ -80,6 +97,20 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit}>
+          {!isLogin && (
+            <div className={styles.inputGroup}>
+              <input
+                type="text"
+                required
+                className={styles.inputField}
+                placeholder={t("full_name_placeholder")}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                maxLength={255}
+                minLength={2}
+              />
+            </div>
+          )}
           <div className={styles.inputGroup}>
             <input
               type="email"
@@ -88,6 +119,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
               placeholder={t("email_placeholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              maxLength={255}
             />
           </div>
           <div className={styles.inputGroup}>
@@ -98,6 +130,8 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
               placeholder={t("password_placeholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              maxLength={128}
+              minLength={8}
             />
           </div>
 

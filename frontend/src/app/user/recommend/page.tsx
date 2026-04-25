@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import axios from "axios";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -190,9 +189,7 @@ const UserRecommendPage = () => {
 
     const interval = setInterval(async () => {
       try {
-        const resp = await axios.get(`/api/analysis/status/${taskIdFromUrl}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const resp = await api.get(`/analysis/status/${taskIdFromUrl}`);
         
         const { status, result, partial_result, message } = resp.data;
         
@@ -250,10 +247,8 @@ const UserRecommendPage = () => {
     }
 
     // 2. Fallback: fetch from backend latest analysis
-    axios
-      .get("/api/analysis/user/latest", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+    api
+      .get("/analysis/user/latest")
       .then((r) => {
         if (r.data) {
           console.log("[RECOMMEND] Loaded from /analysis/user/latest");
@@ -276,7 +271,7 @@ const UserRecommendPage = () => {
     if (!token) return;
     setRefreshing(true);
     try {
-      const resp = await api.get("/api/analysis/user/latest");
+      const resp = await api.get("/analysis/user/latest");
       if (resp.data) {
         console.log("[RECOMMEND] Refreshed data:", resp.data);
         setGapResult(resp.data);
@@ -848,7 +843,11 @@ const UserRecommendPage = () => {
                   <div className={styles.gapCardMeta}>
                     {gap.required_level && (
                       <span className={styles.gapLevel}>
-                         {t('level_label')} <b>{t(`level_${gap.required_level?.toLowerCase()}` as any)}</b>
+                         {t('level_label')} <b>{
+                           t(`level_${gap.required_level?.toLowerCase()}` as any).startsWith('level_') 
+                           ? gap.required_level 
+                           : t(`level_${gap.required_level?.toLowerCase()}` as any)
+                         }</b>
                       </span>
                     )}
                     <span className={styles.gapMonths}>

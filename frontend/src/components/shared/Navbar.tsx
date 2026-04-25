@@ -15,6 +15,7 @@ import {
 import styles from "./navbar.module.css";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { UserRole } from "@/types/roles";
 
 // MENU_ITEMS removed - unified in Sidebar.tsx
 
@@ -56,9 +57,9 @@ export default function Navbar({
   if (!user) return null;
 
   const dashboardPath =
-    user.role === "admin"
+    user.role === UserRole.ADMIN
       ? "/admin"
-      : user.role === "student"
+      : user.role === UserRole.STUDENT
       ? "/student"
       : "/user";
 
@@ -163,11 +164,11 @@ export default function Navbar({
                   <div className={styles.dropdownDivider} />
                   
                   <div className={styles.dropdownBody}>
-                    <Link href={user.role === 'admin' ? '/admin/profile' : '/user/profile'} className={styles.dropdownItem}>
+                    <Link href={user.role === UserRole.ADMIN ? '/admin/profile' : '/user/profile'} className={styles.dropdownItem}>
                       <UserCircle width={18} height={18} />
                       <span>{t("profile_info")}</span>
                     </Link>
-                    {user.role === 'admin' && (
+                    {user.role === UserRole.ADMIN && (
                       <Link href="/admin/settings" className={styles.dropdownItem}>
                         <Settings width={18} height={18} />
                         <span>{t("nav_settings")}</span>
