@@ -27,6 +27,7 @@ MIGRATIONS = [
     "migrate_add_security_and_budget_fields.py",
     "migrate_add_quota_fields.py",
     "migrate_add_system_settings.py",
+    "migrate_init_chandra_settings.py",  # Initialize Chandra OCR settings from .env
     "migrate_add_is_verified.py",
     "migrate_add_last_analysis_id.py",
     "migrate_add_cv_parsed_fields.py",
