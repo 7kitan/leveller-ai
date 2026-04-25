@@ -43,7 +43,7 @@ export default function AdminFeedbackPage() {
   const fetchFeedback = async () => {
     setLoading(true);
     try {
-      const resp = await api.get("/analysis/admin/feedback", {
+      const resp = await api.get("analysis/admin/feedback", {
         params: {
           limit,
           offset: (page - 1) * limit,
@@ -188,4 +188,5 @@ export default function AdminFeedbackPage() {
     </AuthGuard>
   );
 }
+
 

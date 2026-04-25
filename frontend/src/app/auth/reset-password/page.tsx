@@ -43,7 +43,7 @@ export default function ResetPasswordPage() {
     setError("");
 
     try {
-      await api.post("/auth/reset-password", { 
+      await api.post("auth/reset-password", { 
         token, 
         new_password: password 
       });
@@ -139,4 +139,5 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
+
 

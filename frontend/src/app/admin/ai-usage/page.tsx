@@ -41,9 +41,9 @@ const AIUsagePage = () => {
     setRefreshing(true);
     try {
       const [statsRes, logsRes, seriesRes] = await Promise.all([
-        api.get("/admin/stats/llm/summary"),
-        api.get("/admin/stats/llm/logs?limit=20"),
-        api.get(`/analysis/admin/llm-usage-series?period=${period}&days=${days}`)
+        api.get("admin/stats/llm/summary"),
+        api.get("admin/stats/llm/logs?limit=20"),
+        api.get(`analysis/admin/llm-usage-series?period=${period}&days=${days}`)
       ]);
       setStats(statsRes.data);
       setLogs(logsRes.data);
@@ -342,3 +342,4 @@ const StatCard = ({ label, value, icon: Icon, color }: any) => {
 };
 
 export default AIUsagePage;
+

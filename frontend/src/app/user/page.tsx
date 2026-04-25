@@ -56,8 +56,8 @@ const UserDashboard = () => {
     const fetchData = async () => {
       try {
         const [marketFitRes, latestRes] = await Promise.all([
-          api.get(`/analysis/market-fit?period=${period}`),
-          api.get("/analysis/user/latest"),
+          api.get(`analysis/market-fit?period=${period}`),
+          api.get("analysis/user/latest"),
         ]);
         setMarketData(marketFitRes.data);
         setLatestAnalysis(latestRes.data);
@@ -438,5 +438,6 @@ function severityColor(sev: string) {
 }
 
 export default UserDashboard;
+
 
 

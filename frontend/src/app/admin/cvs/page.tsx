@@ -44,7 +44,7 @@ const AdminCVsPage = () => {
   const fetchCVs = async (page = 1) => {
     setLoading(true);
     try {
-      const resp = await api.get("/analysis/admin/cvs", {
+      const resp = await api.get("analysis/admin/cvs", {
         params: {
           limit: pageSize,
           offset: (page - 1) * pageSize,
@@ -77,7 +77,7 @@ const AdminCVsPage = () => {
   const handleDelete = async (id: string) => {
     if (!confirm(t("admin_cvs_delete_confirm"))) return;
     try {
-      await api.delete(`/analysis/admin/cvs/${id}`, {
+      await api.delete(`analysis/admin/cvs/${id}`, {
         headers: { "X-Is-Admin": "true" }
       });
       fetchCVs();
@@ -237,5 +237,6 @@ const AdminCVsPage = () => {
 };
 
 export default AdminCVsPage;
+
 
 

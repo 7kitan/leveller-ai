@@ -189,7 +189,7 @@ const UserRecommendPage = () => {
 
     const interval = setInterval(async () => {
       try {
-        const resp = await api.get(`/analysis/status/${taskIdFromUrl}`);
+        const resp = await api.get(`analysis/status/${taskIdFromUrl}`);
         
         const { status, result, partial_result, message } = resp.data;
         
@@ -271,7 +271,7 @@ const UserRecommendPage = () => {
     if (!token) return;
     setRefreshing(true);
     try {
-      const resp = await api.get("/analysis/user/latest");
+      const resp = await api.get("analysis/user/latest");
       if (resp.data) {
         console.log("[RECOMMEND] Refreshed data:", resp.data);
         setGapResult(resp.data);

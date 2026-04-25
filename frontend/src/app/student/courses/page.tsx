@@ -272,7 +272,7 @@ export default function StudentCoursesPage() {
     const fetchCourses = async () => {
       setLoading(true);
       try {
-        const res = await api.get("/recommend/courses", {
+        const res = await api.get("recommend/courses", {
           params: { limit: 100 },
         });
         setCourses(Array.isArray(res.data) ? res.data : res.data.courses ?? []);
@@ -437,4 +437,5 @@ export default function StudentCoursesPage() {
     </div>
   );
 }
+
 

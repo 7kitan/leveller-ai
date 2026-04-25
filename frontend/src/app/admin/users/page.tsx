@@ -173,7 +173,7 @@ const AdminUsersPage = () => {
     setSubmitting(true);
 
     try {
-      const res = await api.delete(`/auth/admin/users/${userToDelete.id}`);
+      const res = await api.delete(`auth/admin/users/${userToDelete.id}`);
 
       if (res.status === 200 || res.status === 204) {
         toast.success(t("admin_users_delete_success"));
@@ -486,5 +486,6 @@ const AdminUsersPage = () => {
 };
 
 export default AdminUsersPage;
+
 
 

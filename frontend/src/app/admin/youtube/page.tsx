@@ -112,7 +112,7 @@ const AdminYouTubePage = () => {
     setSubmitting(true);
 
     try {
-      const res = await api.delete(`/admin/youtube/${videoToDelete.video_id}`, {
+      const res = await api.delete(`admin/youtube/${videoToDelete.video_id}`, {
         headers: { "X-Is-Admin": "true" }
       });
 
@@ -132,7 +132,7 @@ const AdminYouTubePage = () => {
     if (!token) return;
     try {
       setSubmitting(true);
-      const res = await api.post("/admin/youtube/verify-all", {}, {
+      const res = await api.post("admin/youtube/verify-all", {}, {
         headers: { "X-Is-Admin": "true" }
       });
       toast.success(t("admin_youtube_verify_success"));
@@ -451,5 +451,6 @@ const AdminYouTubePage = () => {
 };
 
 export default AdminYouTubePage;
+
 
 

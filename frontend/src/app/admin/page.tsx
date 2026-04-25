@@ -39,7 +39,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await api.get("/analysis/admin/stats", {
+        const res = await api.get("analysis/admin/stats", {
           headers: { "X-Is-Admin": "true" }
         });
         setStats(res.data);
@@ -213,4 +213,5 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
 

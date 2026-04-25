@@ -127,7 +127,7 @@ function AnalysisPageContent() {
         });
       } else {
         // Fetch job info if title is missing
-        api.get(`/jd/${initialJobId}`)
+        api.get(`jd/${initialJobId}`)
           .then(r => {
             setSelectedJob(r.data);
           })
@@ -232,7 +232,7 @@ function AnalysisPageContent() {
         payload.job_id = selectedJobId;
       }
 
-      const resp = await api.post("/analysis/gap", payload);
+      const resp = await api.post("analysis/gap", payload);
 
       const tid = resp.data.task_id as string;
       setTaskId(tid);
@@ -250,7 +250,7 @@ function AnalysisPageContent() {
   const pollStatus = (tid: string) => {
     const interval = setInterval(async () => {
       try {
-        const resp = await api.get(`/analysis/status/${tid}`);
+        const resp = await api.get(`analysis/status/${tid}`);
         const { status, result } = resp.data as { status: string; result?: unknown };
         console.log(`[ANALYSIS] poll — status=${status}`);
 
@@ -342,7 +342,7 @@ function AnalysisPageContent() {
   const handleCancel = async () => {
     if (!taskId || !token) return;
     try {
-      await api.delete(`/analysis/status/${taskId}`);
+      await api.delete(`analysis/status/${taskId}`);
       console.log(`[ANALYSIS] Revoke request sent — task_id=${taskId}`);
       setError(t("analysis_cancelled"));
       setPhase("setup");
@@ -356,7 +356,7 @@ function AnalysisPageContent() {
   const handleNotify = async () => {
     if (!taskId || !token) return;
     try {
-      await api.post(`/analysis/notify/${taskId}`, {});
+      await api.post(`analysis/notify/${taskId}`, {});
       setNotified(true);
     } catch (err) {
       console.error("[ANALYSIS] Notify failed:", err);
@@ -716,5 +716,6 @@ export default function AnalysisPage() {
     </Suspense>
   );
 }
+
 
 

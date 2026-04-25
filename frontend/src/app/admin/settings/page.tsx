@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
-import axios from "axios";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { 
@@ -47,14 +46,9 @@ const AdminSettingsPage = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const headers = { 
-        Authorization: `Bearer ${token}`,
-        "X-Is-Admin": "true"
-      };
-      
       const [settingsResp, modelsResp] = await Promise.all([
-        api.get("/admin/settings"),
-        api.get("/admin/ai-models")
+        api.get("admin/settings"),
+        api.get("admin/ai-models")
       ]);
 
       setSettings(settingsResp.data);
@@ -102,11 +96,7 @@ const AdminSettingsPage = () => {
         settings: changes.map(([key, value]) => ({ key, value }))
       };
       
-      await api.post("/admin/settings/bulk", payload, {
-        headers: { 
-          "X-Is-Admin": "true"
-        }
-      });
+      await api.post("admin/settings/bulk", payload);
       
       showNotification(t("admin_settings_save_success"));
       
@@ -116,8 +106,7 @@ const AdminSettingsPage = () => {
       setPendingChanges(remainingChanges);
       
       // Refresh original settings
-      const headers = { "X-Is-Admin": "true" };
-      const settingsResp = await api.get("/admin/settings", { headers });
+      const settingsResp = await api.get("admin/settings");
       setSettings(settingsResp.data);
       
     } catch (err) {
@@ -134,9 +123,7 @@ const AdminSettingsPage = () => {
   const handleTestEmail = async () => {
     setIsSaving(true);
     try {
-      await api.post("/analysis/admin/test-email", {}, {
-        headers: { "X-Is-Admin": "true" }
-      });
+      await api.post("analysis/admin/test-email", {});
       showNotification(t("admin_settings_test_mail_success"), "success");
     } catch (err) {
       showNotification(t("admin_settings_test_mail_error"), "error");
@@ -148,9 +135,7 @@ const AdminSettingsPage = () => {
   const handleTestLLM = async () => {
     setIsSaving(true);
     try {
-      const resp = await api.post("/analysis/admin/test-llm", {}, {
-        headers: { "X-Is-Admin": "true" }
-      });
+      const resp = await api.post("analysis/admin/test-llm", {});
       showNotification(`${t("admin_settings_test_llm_success")}${resp.data.response}`, "success");
     } catch (err) {
       showNotification(t("admin_settings_test_llm_error"), "error");
@@ -1089,11 +1074,8 @@ const AdminSettingsPage = () => {
                         onClick={async () => {
                             setIsSaving(true);
                             try {
-                              await axios.post("/admin/cache/clear", {}, {
-                                headers: { 
-                                  Authorization: `Bearer ${token}`,
-                                  "X-Is-Admin": "true"
-                                }
+                              await api.post("admin/cache/clear", {}, {
+                                headers: { "X-Is-Admin": "true" }
                               });
                               showNotification(t("admin_settings_clear_redis_success"));
                             } catch (err) {
@@ -1111,11 +1093,8 @@ const AdminSettingsPage = () => {
                         onClick={async () => {
                             setIsSaving(true);
                             try {
-                              await axios.post("/admin/vector/sync", {}, {
-                                headers: { 
-                                  Authorization: `Bearer ${token}`,
-                                  "X-Is-Admin": "true"
-                                }
+                              await api.post("admin/vector/sync", {}, {
+                                headers: { "X-Is-Admin": "true" }
                               });
                               showNotification(t("admin_settings_sync_vector_success"));
                             } catch (err) {
@@ -1191,4 +1170,5 @@ const AdminSettingsPage = () => {
 };
 
 export default AdminSettingsPage;
+
 

@@ -35,7 +35,7 @@ export default function ProfilePage() {
     if (!token) return;
     try {
       setIsLoading(true);
-      const res = await api.get("/auth/me");
+      const res = await api.get("auth/me");
       setProfile({
         email: res.data.email,
         full_name: res.data.full_name || "",
@@ -66,7 +66,7 @@ export default function ProfilePage() {
         updateData.password = passwords.newPassword;
       }
 
-      await api.patch("/auth/profile", updateData);
+      await api.patch("auth/profile", updateData);
 
       setSuccess(t("profile_update_success"));
       setPasswords({ oldPassword: "", newPassword: "", confirmPassword: "" });
@@ -212,4 +212,5 @@ export default function ProfilePage() {
     </PageContainer>
   );
 }
+
 

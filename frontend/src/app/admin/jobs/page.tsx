@@ -97,7 +97,7 @@ const AdminJobsPage = () => {
     setIsLoading(true);
     try {
       const offset = (page - 1) * pageSize;
-      const resp = await api.get("/jd/admin/list", {
+      const resp = await api.get("jd/admin/list", {
         params: {
           limit: pageSize,
           offset: offset,
@@ -119,7 +119,7 @@ const AdminJobsPage = () => {
 
   const fetchSettings = async () => {
     try {
-      const resp = await api.get("/admin/settings", {
+      const resp = await api.get("admin/settings", {
         headers: { 
           "X-Is-Admin": "true"
         }
@@ -137,7 +137,7 @@ const AdminJobsPage = () => {
     setIsUpdatingSetting(true);
     try {
       const newValue = !crawlEnabled;
-      await api.patch(`/admin/settings/topcv_crawl_enabled`, 
+      await api.patch(`admin/settings/topcv_crawl_enabled`, 
         { value: newValue },
         {
           headers: { 
@@ -195,14 +195,14 @@ const AdminJobsPage = () => {
       };
 
       if (editingJob) {
-        await api.patch(`/jd/admin/${editingJob.id}`, payload, {
+        await api.patch(`jd/admin/${editingJob.id}`, payload, {
           headers: { 
             "X-Is-Admin": "true"
           }
         });
         showNotification(t("admin_jobs_save_success"));
       } else {
-        await api.post("/jd/admin", payload, {
+        await api.post("jd/admin", payload, {
           headers: { 
             "X-Is-Admin": "true"
           }
@@ -219,7 +219,7 @@ const AdminJobsPage = () => {
   const handleDelete = async (id: string) => {
     if (!confirm(t("admin_jobs_delete_confirm"))) return;
     try {
-      await api.delete(`/jd/admin/${id}`, {
+      await api.delete(`jd/admin/${id}`, {
         headers: { 
           "X-Is-Admin": "true"
         }
@@ -279,7 +279,7 @@ const AdminJobsPage = () => {
     if (!confirm(t("admin_jobs_crawl_success"))) return;
     setIsLoading(true);
     try {
-      await api.post("/jd/admin/crawl", {}, {
+      await api.post("jd/admin/crawl", {}, {
         headers: { 
           "X-Is-Admin": "true"
         }
@@ -617,3 +617,4 @@ const AdminJobsPage = () => {
 };
 
 export default AdminJobsPage;
+

@@ -34,7 +34,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
   React.useEffect(() => {
     const checkCaptchaStatus = async () => {
       try {
-        const res = await api.get("/auth/captcha-status");
+        const res = await api.get("auth/captcha-status");
         if (res.data.requires_captcha) {
           setShowCaptcha(true);
         }
@@ -188,4 +188,5 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
     </div>
   );
 }
+
 

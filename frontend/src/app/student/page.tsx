@@ -336,7 +336,7 @@ const StudentDashboard = () => {
       if (!token || !user) return;
       
       try {
-        const response = await api.get("/analysis/user/latest");
+        const response = await api.get("analysis/user/latest");
         if (response.data) {
           setAnalysis(response.data);
         } else {
@@ -358,7 +358,7 @@ const StudentDashboard = () => {
     setSimulating(true);
     try {
       const cv_id = analysis.cv_id || analysis.cv_parsed_json?.id;
-      const resp = await api.post("/analysis/simulate-boost", {
+      const resp = await api.post("analysis/simulate-boost", {
           cv_id: cv_id,
           selected_course_ids: [courseId],
           job_id: analysis.job_id
@@ -727,4 +727,5 @@ const StudentDashboard = () => {
 };
 
 export default StudentDashboard;
+
 

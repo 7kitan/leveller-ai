@@ -31,7 +31,7 @@ export default function ForgotPasswordPage() {
     setError("");
 
     try {
-      await api.post("/auth/forgot-password", { 
+      await api.post("auth/forgot-password", { 
         email,
         captcha_token: captchaToken 
       });
@@ -127,4 +127,5 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
+
 
