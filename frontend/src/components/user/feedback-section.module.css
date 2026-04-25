@@ -1,7 +1,7 @@
 .section {
   margin-top: 4rem;
   padding: 2rem 0;
-  border-top: 1px solid rgba(var(--text-rgb), 0.1);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .header {
@@ -12,9 +12,10 @@
 .title {
   font-size: 1.5rem;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--accent) 0%, #0ea5e9 100%);
+  background: linear-gradient(135deg, var(--accent-color) 0%, #0ea5e9 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: 0.5rem;
 }
 
@@ -26,9 +27,9 @@
 .card {
   max-width: 600px;
   margin: 0 auto;
-  background: rgba(var(--card-bg-rgb), 0.5);
+  background: var(--bg-secondary);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(var(--text-rgb), 0.08);
+  border: 1px solid var(--border-subtle);
   border-radius: 1.5rem;
   padding: 2.5rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
@@ -78,18 +79,24 @@
   gap: 0.5rem;
   padding: 0.75rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(var(--text-rgb), 0.1);
-  background: rgba(var(--text-rgb), 0.03);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
   color: var(--text-secondary);
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.toggleBtn:hover {
+  border-color: var(--accent-color);
+  background: var(--bg-primary);
 }
 
 .toggleActive {
-  background: var(--accent-light);
-  border-color: var(--accent);
-  color: var(--accent);
+  background: rgba(41, 151, 255, 0.1);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
 }
 
 .skillInputRow {
@@ -99,8 +106,8 @@
 
 .input, .textarea {
   flex: 1;
-  background: rgba(var(--text-rgb), 0.05);
-  border: 1px solid rgba(var(--text-rgb), 0.1);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
   border-radius: 0.75rem;
   padding: 0.75rem 1rem;
   color: var(--text-primary);
@@ -110,12 +117,12 @@
 
 .input:focus, .textarea:focus {
   outline: none;
-  border-color: var(--accent);
-  background: rgba(var(--card-bg-rgb), 0.8);
+  border-color: var(--accent-color);
+  background: var(--bg-primary);
 }
 
 .addBtn {
-  background: var(--accent);
+  background: var(--accent-color);
   color: white;
   width: 42px;
   height: 42px;
@@ -124,11 +131,13 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
 }
 
 .addBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--accent-shadow);
+  box-shadow: 0 4px 12px rgba(41, 151, 255, 0.3);
 }
 
 .pillContainer {
@@ -139,8 +148,8 @@
 }
 
 .pill {
-  background: var(--accent-light);
-  color: var(--accent);
+  background: rgba(41, 151, 255, 0.1);
+  color: var(--accent-color);
   padding: 0.4rem 0.75rem;
   border-radius: 2rem;
   font-size: 0.8rem;
@@ -151,12 +160,19 @@
 }
 
 .pillX {
-  background: rgba(var(--accent-rgb), 0.1);
+  background: rgba(41, 151, 255, 0.15);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2px;
+  border: none;
+  cursor: pointer;
+  color: var(--accent-color);
+}
+
+.pillX:hover {
+  background: rgba(41, 151, 255, 0.25);
 }
 
 .submitBtn {
@@ -165,19 +181,21 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  background: linear-gradient(135deg, var(--accent) 0%, #0ea5e9 100%);
+  background: linear-gradient(135deg, var(--accent-color) 0%, #0ea5e9 100%);
   color: white;
   padding: 1rem;
   border-radius: 1rem;
   font-weight: 700;
   font-size: 1rem;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px var(--accent-shadow);
+  box-shadow: 0 4px 15px rgba(41, 151, 255, 0.3);
+  border: none;
+  cursor: pointer;
 }
 
 .submitBtn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px var(--accent-shadow);
+  box-shadow: 0 8px 25px rgba(41, 151, 255, 0.4);
 }
 
 .submitBtn:disabled {
