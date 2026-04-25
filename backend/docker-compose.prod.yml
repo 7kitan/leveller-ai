@@ -1,4 +1,3 @@
-version: '3.8'
 
 x-service-base: &service-base
   build:
@@ -180,22 +179,22 @@ services:
   worker-cv-parser:
     <<: *worker-base
     container_name: advisor_worker_cv_parser_prod
-    command: celery -A worker.celery_app worker -Q cv_parsing -n cv_parser@%h --loglevel=info --concurrency=2
+    command: celery -A worker.celery_app worker -Q cv_parsing -n cv_parser@%h --loglevel=info --concurrency=${WORKER_CV_PARSER_CONCURRENCY:-2}
 
   worker-analysis:
     <<: *worker-base
     container_name: advisor_worker_analysis_prod
-    command: celery -A worker.celery_app worker -Q analysis -n analysis@%h --loglevel=info --concurrency=2
+    command: celery -A worker.celery_app worker -Q analysis -n analysis@%h --loglevel=info --concurrency=${WORKER_ANALYSIS_CONCURRENCY:-2}
 
   worker-market-stats:
     <<: *worker-base
     container_name: advisor_worker_market_stats_prod
-    command: celery -A worker.celery_app worker -Q market_stats -n market_stats@%h --loglevel=info --concurrency=1
+    command: celery -A worker.celery_app worker -Q market_stats -n market_stats@%h --loglevel=info --concurrency=${WORKER_MARKET_STATS_CONCURRENCY:-1}
 
   worker-email:
     <<: *worker-base
     container_name: advisor_worker_email_prod
-    command: celery -A worker.celery_app worker -Q email -n email@%h --loglevel=info --concurrency=2
+    command: celery -A worker.celery_app worker -Q email -n email@%h --loglevel=info --concurrency=${WORKER_EMAIL_CONCURRENCY:-2}
     deploy:
       resources:
         limits:
