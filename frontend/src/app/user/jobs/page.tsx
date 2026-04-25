@@ -125,13 +125,17 @@ export default function JobsPage() {
               </div>
               <div className={styles.inputWrapper}>
                   <MapPin size={18} className={styles.inputIcon} />
-                   <input 
-                       type="text"
-                       placeholder={t("jobs_search_location")}
-                       className={styles.input}
-                       value={location}
-                       onChange={(e) => setLocation(e.target.value)}
-                   />
+                  <select 
+                      className={styles.input}
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                  >
+                      <option value="">{t("jobs_location_all")}</option>
+                      <option value="HN">{t("jobs_location_hn")}</option>
+                      <option value="HCM">{t("jobs_location_hcm")}</option>
+                      <option value="DN">{t("jobs_location_dn")}</option>
+                      <option value="Other">{t("jobs_location_other")}</option>
+                  </select>
               </div>
               <div className={styles.inputWrapper}>
                   <Briefcase size={18} className={styles.inputIcon} />

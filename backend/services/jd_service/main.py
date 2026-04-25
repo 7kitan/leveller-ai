@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from shared.database import get_db
 from shared.models import Job, SystemSetting
 from shared.config_utils import config_manager
-from shared.llm_utils import get_embedding
+from shared.llm_utils import get_embedding, build_job_embedding_context, normalize_location
 from shared.ai_service import AI_REGISTRY
 from shared.scrapers.topcv import TopCVScraper
 from pydantic import BaseModel, Field
@@ -79,6 +79,8 @@ class JobResponse(BaseModel):
     job_description: Optional[str] = None
     requirements: Optional[str] = None
     benefits: Optional[str] = None
+    title: str
+    location: Optional[str]
     similarity: Optional[float] = None  # For search results
 
     class Config:
@@ -114,6 +116,8 @@ def _job_to_response(job: Job, similarity: float = None) -> dict:
         "min_salary_vnd": job.min_salary_vnd,
         "max_salary_vnd": job.max_salary_vnd,
         "location_raw": job.location_raw,
+        "title": job.title_raw,
+        "location": job.location_raw,
         "location_normalized": job.location_normalized,
         "employment_type": job.employment_type,
         "has_insurance": job.has_insurance,
@@ -435,9 +439,23 @@ def admin_create_job(job_in: JobCreate, request: Request, db: Session = Depends(
 
     source_id = f"manual_{uuid.uuid4()}"
 
-    # Generate Embedding
-    embedding_ctx = f"{job_in.title_raw} at {job_in.company_name}. {job_in.location_raw}. {job_in.raw_text[:1000]}"
-    vector = get_embedding(embedding_ctx)
+    # Normalize location to standard cities
+    location_normalized = normalize_location(job_in.location_raw or "")
+    logger.info(f"[MANUAL JOB] Location normalized: '{job_in.location_raw}' → '{location_normalized}'")
+
+    # Generate Embedding - ONLY from requirements + job_description (NO title, location, company)
+    # Strategy: Vector search matches on skills/requirements, SQL filters on location/title
+    embedding_ctx = build_job_embedding_context(
+        requirements=job_in.raw_text,  # Manual jobs use raw_text as requirements
+        extracted_skills=None,
+        job_description=None
+    )
+    
+    if not embedding_ctx:
+        logger.warning(f"[MANUAL JOB] No content for embedding, using fallback")
+        embedding_ctx = f"Manual job posting. Content: {job_in.raw_text[:200] if job_in.raw_text else 'N/A'}"
+    
+    vector = get_embedding(embedding_ctx, log_cost=True)
 
     new_job = Job(
         source_id=source_id,
@@ -449,6 +467,7 @@ def admin_create_job(job_in: JobCreate, request: Request, db: Session = Depends(
         min_salary_vnd=job_in.min_salary_vnd,
         max_salary_vnd=job_in.max_salary_vnd,
         location_raw=job_in.location_raw,
+        location_normalized=location_normalized,
         employment_type=job_in.employment_type,
         status="active",
         embedding_context=embedding_ctx,

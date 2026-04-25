@@ -1,10 +1,13 @@
 import os
 import logging
+import time
 from typing import List, Optional, Dict, Any
 import openai
 import tiktoken
 from shared.config_utils import config_manager
 from shared.ai_service import generate_completion
+from shared.ai_service.logger import log_llm_call
+from shared.system_logger import system_logger
 
 logger = logging.getLogger("llm_utils")
 
@@ -141,22 +144,56 @@ def get_embeddings_batch(texts: List[str], log_cost: bool = True) -> List[List[f
         else:
             logger.info(f"[EMBED] Sending {len(clean_texts)} texts | model={model_id}")
 
-        response = client.embeddings.create(
-            input=clean_texts,
-            model=model_id
-        )
-        
-        # Log actual usage from API response
-        if hasattr(response, 'usage') and response.usage:
-            actual_tokens = response.usage.total_tokens
-            actual_cost = calculate_embedding_cost(actual_tokens, model_id)
-            logger.info(f"[EMBED] ✓ Success | vectors={len(response.data)} | actual_tokens={actual_tokens:,} | actual_cost=${actual_cost:.6f}")
-        else:
-            logger.info(f"[EMBED] ✓ Success | vectors={len(response.data)}")
-        
-        return [d.embedding for d in response.data]
+        t0 = time.monotonic()
+        try:
+            response = client.embeddings.create(
+                input=clean_texts,
+                model=model_id
+            )
+            duration = int((time.monotonic() - t0) * 1000)
+            
+            # Log success to DB
+            total_tokens = 0
+            if hasattr(response, 'usage') and response.usage:
+                total_tokens = response.usage.total_tokens
+            
+            log_llm_call(
+                user_id=None, # System level
+                model_id=model_id,
+                provider="openai",
+                call_type="embedding",
+                prompt_tokens=total_tokens,
+                completion_tokens=0,
+                latency_ms=duration,
+                status="success",
+                request_metadata={"vectors_count": len(response.data)}
+            )
+            
+            # Log actual usage from API response
+            if total_tokens > 0:
+                actual_cost = calculate_embedding_cost(total_tokens, model_id)
+                logger.info(f"[EMBED] ✓ Success | vectors={len(response.data)} | actual_tokens={total_tokens:,} | actual_cost=${actual_cost:.6f}")
+            else:
+                logger.info(f"[EMBED] ✓ Success | vectors={len(response.data)}")
+            
+            return [d.embedding for d in response.data]
+        except Exception as e:
+            duration = int((time.monotonic() - t0) * 1000)
+            logger.error(f"[EMBED] ❌ Error generating batch embeddings: {e}")
+            
+            # Log failure to DB
+            log_llm_call(
+                user_id=None,
+                model_id=model_id,
+                provider="openai",
+                call_type="embedding",
+                latency_ms=duration,
+                status="failed",
+                error_message=str(e)
+            )
+            return []
     except Exception as e:
-        logger.error(f"[EMBED] ❌ Error generating batch embeddings: {e}")
+        logger.error(f"[EMBED] ❌ Critical Error in batch wrapper: {e}")
         return []
 
 # ─── Chat Completion Functions ──────────────────────────────────────────────
@@ -203,6 +240,89 @@ def build_jd_skill_context(skill_name: str, level: str, years: float, domain: st
     if level and level != "Junior": parts.append(f"Seniority: {level} level")
     if domain: parts.append(f"Domain: {domain}")
     return ". ".join(parts)
+
+def normalize_location(location_raw: str) -> str:
+    """
+    Normalize location to standard cities: HN, HCM, DN, or Other.
+    
+    Args:
+        location_raw: Raw location string from job posting
+        
+    Returns:
+        Normalized location code (HN, HCM, DN, Other)
+    """
+    if not location_raw:
+        return "Other"
+    
+    location_lower = location_raw.lower()
+    
+    # Hanoi patterns
+    if any(pattern in location_lower for pattern in ["hà nội", "ha noi", "hanoi", "hn"]):
+        return "HN"
+    
+    # Ho Chi Minh patterns
+    if any(pattern in location_lower for pattern in ["hồ chí minh", "ho chi minh", "hcm", "sài gòn", "saigon", "tp.hcm"]):
+        return "HCM"
+    
+    # Da Nang patterns
+    if any(pattern in location_lower for pattern in ["đà nẵng", "da nang", "danang", "dn"]):
+        return "DN"
+    
+    return "Other"
+
+
+def build_job_embedding_context(
+    requirements: str = None,
+    extracted_skills: list = None,
+    job_description: str = None
+) -> str:
+    """
+    Build optimized embedding context for job matching.
+    
+    Strategy: ONLY embed requirements + skills (no title, location, company)
+    Reason: Vector search should match on skills/requirements, not location/title
+            Location/title filtering should use SQL WHERE clauses
+    
+    Args:
+        requirements: Job requirements text (primary)
+        extracted_skills: List of extracted skill names (secondary)
+        job_description: Job description (optional, low priority)
+        
+    Returns:
+        Optimized embedding context string
+    """
+    parts = []
+    
+    # Priority 1: Requirements (most important for matching)
+    if requirements and requirements.strip():
+        # Repeat requirements for emphasis in embedding space
+        parts.append(f"Requirements: {requirements.strip()}")
+    
+    # Priority 2: Extracted skills (structured, high signal)
+    if extracted_skills and len(extracted_skills) > 0:
+        skills_text = ", ".join(extracted_skills)
+        # Repeat skills 2x for emphasis
+        parts.append(f"Key skills: {skills_text}. {skills_text}")
+    
+    # Priority 3: Job description (optional, lower priority)
+    if job_description and job_description.strip():
+        # Truncate to 500 chars to avoid noise
+        desc_truncated = job_description.strip()[:500]
+        parts.append(f"Description: {desc_truncated}")
+    
+    # Fallback: If no content, return empty (will be handled by caller)
+    if not parts:
+        logger.warning("[JOB EMBED] No content available for embedding")
+        return ""
+    
+    context = ". ".join(parts)
+    
+    # Log token count for monitoring
+    token_count = count_tokens(context)
+    logger.info(f"[JOB EMBED] Built context | tokens={token_count} | has_requirements={bool(requirements)} | skills_count={len(extracted_skills) if extracted_skills else 0}")
+    
+    return context
+
 
 def get_current_date() -> str:
     from datetime import datetime
@@ -282,6 +402,7 @@ Important:
     
     try:
         logger.info(f"[SKILL EXTRACT] Extracting skills from {len(requirements_text)} chars of requirements...")
+        system_logger.info("AI_SKILL_EXTRACT", f"Starting skill extraction ({len(requirements_text)} chars)")
         
         response = get_chat_completion(
             prompt=prompt,
@@ -301,11 +422,16 @@ Important:
         cleaned_response = clean_json_response(response)
         skills = json.loads(cleaned_response)
         
+        # Handle cases where LLM returns {"skills": [...]} instead of [...]
+        if isinstance(skills, dict) and "skills" in skills:
+            skills = skills["skills"]
+        
         if not isinstance(skills, list):
             logger.error(f"[SKILL EXTRACT] Expected list, got {type(skills)}")
             return None
         
         logger.info(f"[SKILL EXTRACT] ✓ Extracted {len(skills)} skills")
+        system_logger.info("AI_SKILL_EXTRACT", f"Successfully extracted {len(skills)} skills")
         
         # Log extracted skills for monitoring
         for skill in skills[:5]:  # Log first 5
@@ -319,4 +445,5 @@ Important:
         return None
     except Exception as e:
         logger.error(f"[SKILL EXTRACT] Error extracting skills: {e}", exc_info=True)
+        system_logger.error("AI_SKILL_EXTRACT", f"Error during skill extraction: {str(e)}")
         return None

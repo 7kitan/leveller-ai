@@ -8,6 +8,7 @@ from shared.database import SessionLocal
 from shared.models import Job, SystemSetting, Course
 from shared.llm_utils import get_embedding
 from shared.skill_extraction import extract_and_save_job_skills
+from shared.system_logger import system_logger
 
 logger = logging.getLogger("crawler_worker")
 
@@ -18,6 +19,7 @@ def crawl_course_task(url: str, auto_save: bool = False):
     if auto_save=True, saves directly to the DB without returning to API.
     """
     logger.info(f"🚀 [CRAWLER] Received task for URL: {url} (auto_save={auto_save})")
+    system_logger.info("CRAWLER", f"Received course crawl task for: {url}")
     
     try:
         if "coursera.org" in url:
@@ -30,7 +32,7 @@ def crawl_course_task(url: str, auto_save: bool = False):
                 return {"error": err}
             
             if auto_save:
-                from shared.llm_utils import get_embedding
+from shared.llm_utils import get_embedding, build_job_embedding_context, normalize_location
                 import uuid
                 
                 db = SessionLocal()
@@ -88,6 +90,7 @@ def crawl_course_task(url: str, auto_save: bool = False):
                     db.add(course)
                     db.commit()
                     logger.info(f"✨ [CRAWLER] Cào và Auto-save thành công: '{title}'")
+                    system_logger.info("CRAWLER", f"Successfully crawled and saved course: {title}")
                 except Exception as e:
                     db.rollback()
                     logger.error(f"💥 [CRAWLER] Auto-save failed cho {url}: {e}")
@@ -118,6 +121,7 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False, extract_skills: 
         extract_skills: Whether to trigger async skill extraction for new jobs
     """
     logger.info(f"🚀 [TOPCV CRAWLER] Starting crawl cycle (limit={limit}, force={force}, extract_skills={extract_skills})...")
+    system_logger.info("CRAWLER", f"Starting TopCV crawl cycle (limit={limit})")
     scraper = TopCVScraper()
     urls = scraper.get_latest_job_urls(limit=limit)
     
@@ -154,21 +158,27 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False, extract_skills: 
             data = scraper.scrape_job_details(url)
             if not data: continue
             
-            # Generate Embedding - ONLY from requirements field for cost optimization
-            # Other fields (job_description, benefits) are saved but not embedded
-            title = data.get('title_raw', '')
-            company = data.get('company_name', '')
-            location = data.get('location_raw', '')
-            requirements = data.get('requirements', '')
+            # Normalize location to standard cities (HN, HCM, DN, Other)
+            location_raw = data.get('location_raw', '')
+            location_normalized = normalize_location(location_raw)
+            data['location_normalized'] = location_normalized
+            logger.info(f"[TOPCV CRAWLER] Location normalized: '{location_raw}' → '{location_normalized}'")
             
-            # Build minimal embedding context - only requirements + basic metadata
-            if requirements:
-                # Primary: Use only requirements (most relevant for matching)
-                embedding_ctx = f"Job: {title} at {company}. Location: {location}. Requirements: {requirements}"
-            else:
-                # Fallback: Use title and location only if no requirements
-                embedding_ctx = f"Job: {title} at {company}. Location: {location}."
-                logger.warning(f"⚠️ [TOPCV CRAWLER] No requirements found for {source_id}, using minimal context")
+            # Generate Embedding - ONLY from requirements + job_description (NO title, location, company)
+            # Strategy: Vector search matches on skills/requirements, SQL filters on location/title
+            requirements = data.get('requirements', '')
+            job_description = data.get('job_description', '')
+            
+            # Build optimized embedding context using unified function
+            embedding_ctx = build_job_embedding_context(
+                requirements=requirements,
+                extracted_skills=None,  # Skills extracted later asynchronously
+                job_description=job_description
+            )
+            
+            if not embedding_ctx:
+                logger.warning(f"⚠️ [TOPCV CRAWLER] No content for embedding for {source_id}, using fallback")
+                embedding_ctx = f"Job requirements not available. Description: {job_description[:200] if job_description else 'N/A'}"
             
             # Generate embedding with cost logging
             logger.info(f"[TOPCV CRAWLER] Generating embedding for {source_id}...")
@@ -185,12 +195,14 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False, extract_skills: 
             new_jobs_count += 1
             new_job_ids.append(str(job.id))  # Track for skill extraction
             logger.info(f"✨ [TOPCV CRAWLER] Added new job: {data['title_raw']} ({source_id})")
+            system_logger.info("CRAWLER", f"Added new job: {data['title_raw']} ({source_id})")
             
             # Sleep a bit between scrapes to be polite
             time.sleep(1)
             
         db.commit()
         logger.info(f"✅ [TOPCV CRAWLER] Cycle complete. Added {new_jobs_count} new jobs.")
+        system_logger.info("CRAWLER", f"TopCV crawl cycle complete. Added {new_jobs_count} new jobs.")
         
         # Trigger async skill extraction for new jobs
         if extract_skills and new_job_ids:
@@ -210,6 +222,7 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False, extract_skills: 
     except Exception as e:
         db.rollback()
         logger.error(f"💥 [TOPCV CRAWLER] Critical error: {e}", exc_info=True)
+        system_logger.error("CRAWLER", f"Critical error in TopCV crawler: {str(e)}")
         return {"error": str(e)}
     finally:
         db.close()

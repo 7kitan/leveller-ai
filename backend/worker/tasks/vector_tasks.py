@@ -2,7 +2,7 @@ import logging
 from worker.celery_app import celery_app
 from shared.database import SessionLocal
 from shared.models import Skill, Job, Course
-from shared.llm_utils import get_embedding
+from shared.llm_utils import get_embedding, build_job_embedding_context, normalize_location
 from sqlalchemy import text
 
 logger = logging.getLogger("vector_tasks")
@@ -72,24 +72,49 @@ def rebuild_skill_vectors(db) -> int:
 
 
 def rebuild_job_vectors(db) -> int:
-    """Rebuild vector embeddings for all jobs."""
-    logger.info("[VECTOR SYNC] Rebuilding job vectors...")
+    """
+    Rebuild vector embeddings for all jobs using optimized strategy.
+    Strategy: ONLY embed requirements + skills (NO title, location, company)
+    """
+    logger.info("[VECTOR SYNC] Rebuilding job vectors with optimized strategy...")
     
     jobs = db.query(Job).filter(Job.status == "active").all()
     updated = 0
+    skipped = 0
     
     for job in jobs:
         try:
-            # Generate embedding from job title + description
-            text = f"{job.title_raw or ''} {job.raw_text[:500] if job.raw_text else ''}"
-            vector = get_embedding(text.strip())
+            # Normalize location if not already normalized
+            if not job.location_normalized and job.location_raw:
+                job.location_normalized = normalize_location(job.location_raw)
+                logger.info(f"[VECTOR SYNC] Normalized location for job {job.id}: {job.location_normalized}")
+            
+            # Build optimized embedding context
+            embedding_ctx = build_job_embedding_context(
+                requirements=job.requirements,
+                extracted_skills=None,  # Could fetch from job_skills_required if needed
+                job_description=job.job_description
+            )
+            
+            if not embedding_ctx:
+                logger.warning(f"[VECTOR SYNC] No content for job {job.id}, skipping")
+                skipped += 1
+                continue
+            
+            # Generate new vector
+            vector = get_embedding(embedding_ctx, log_cost=False)
             if vector:
                 job.vector = vector
+                job.embedding_context = embedding_ctx
                 updated += 1
+                
+                if updated % 10 == 0:
+                    logger.info(f"[VECTOR SYNC] Progress: {updated}/{len(jobs)} jobs updated")
         except Exception as e:
             logger.error(f"[VECTOR SYNC] Failed to generate vector for job {job.id}: {e}")
+            skipped += 1
     
-    logger.info(f"[VECTOR SYNC] Updated {updated}/{len(jobs)} job vectors")
+    logger.info(f"[VECTOR SYNC] Completed: {updated}/{len(jobs)} job vectors updated, {skipped} skipped")
     return updated
 
 
