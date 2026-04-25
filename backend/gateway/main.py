@@ -1,3 +1,17 @@
+"""
+API Gateway - Cổng vào chính của hệ thống Lumix AI
+
+Module này đóng vai trò là reverse proxy, điều hướng tất cả requests từ frontend
+đến các microservices phía sau. Nó cũng xử lý:
+- Xác thực JWT token
+- Rate limiting (giới hạn số request)
+- CORS (Cross-Origin Resource Sharing)
+- Header injection (inject user info vào requests)
+
+Author: Lumix AI Team
+Date: 2026-04-25
+"""
+
 from fastapi import FastAPI, Request, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
@@ -8,67 +22,136 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from shared.redis_client import REDIS_HOST, REDIS_PORT, REDIS_PASSWORD
+from shared.logging_utils import setup_logger
 
-# ContextVar to store the current request for slowapi
+# Khởi tạo logger cho Gateway
+logger = setup_logger("gateway", log_file="gateway.log")
+
+# ContextVar để lưu request hiện tại cho slowapi rate limiter
+# Cần thiết vì slowapi cần access request object trong decorator
 request_var: ContextVar[Request] = ContextVar("request")
 
+# Khởi tạo FastAPI app
 app = FastAPI(title="AI Career Advisor Gateway")
 
-# SECURITY: Configure allowed origins from environment variable
-# In production, set ALLOWED_ORIGINS to your frontend domain(s)
-# Example: ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+# ============================================================================
+# CORS CONFIGURATION - Cấu hình Cross-Origin Resource Sharing
+# ============================================================================
+# SECURITY FIX: Chỉ cho phép origins cụ thể, không dùng wildcard "*"
+# Trong production, set ALLOWED_ORIGINS trong .env file
+# Ví dụ: ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3001")
 allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
 
+# SECURITY FIX: Chỉ cho phép các headers cần thiết, không dùng ["*"]
+# Giảm thiểu attack surface và tăng bảo mật
+allowed_headers = [
+    "Authorization",      # JWT token
+    "Content-Type",       # Loại nội dung (JSON, form-data, etc.)
+    "Accept",            # Loại response mong muốn
+    "Origin",            # Origin của request
+    "X-Requested-With",  # Để phát hiện AJAX requests
+    "X-User-ID",         # User ID được inject bởi gateway
+    "X-User-Role"        # User role (user/admin)
+]
+
+# Thêm CORS middleware vào app
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allow_headers=["*"],
+    allow_origins=allowed_origins,           # Danh sách origins được phép
+    allow_credentials=True,                  # Cho phép gửi cookies/credentials
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],  # HTTP methods
+    allow_headers=allowed_headers,           # Headers được phép
+    expose_headers=["X-Total-Count", "X-Attempts-Left", "X-Requires-Captcha"]  # Headers trả về client
 )
 
-# Initialize Limiter with Redis Storage
+# ============================================================================
+# RATE LIMITING - Giới hạn số lượng requests
+# ============================================================================
+# Khởi tạo rate limiter với Redis làm storage backend
+# Redis lưu trữ số lượng requests của mỗi IP address
 redis_url = f"redis://{f':{REDIS_PASSWORD}@' if REDIS_PASSWORD else ''}{REDIS_HOST}:{REDIS_PORT}/0"
-limiter = Limiter(key_func=get_remote_address, storage_uri=redis_url)
+limiter = Limiter(
+    key_func=get_remote_address,  # Dùng IP address làm key
+    storage_uri=redis_url          # Lưu counters trong Redis
+)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 def get_dynamic_limit():
-    """Xác định hạn mức dựa trên URL path."""
+    """
+    Xác định hạn mức rate limit động dựa trên URL path và authentication status.
+    
+    Logic:
+    - Status/polling endpoints: 120 requests/phút (cần polling thường xuyên)
+    - Authenticated users: 100 requests/phút (đã login, tin cậy hơn)
+    - Public APIs: 30 requests/phút (chưa login, hạn chế hơn)
+    
+    Returns:
+        str: Rate limit string (ví dụ: "30/minute", "100/minute")
+    """
     try:
         request = request_var.get()
     except LookupError:
+        # Nếu không lấy được request, trả về limit mặc định
         return "30/minute"
         
     path = request.url.path
     
-    # 1. Các API polling hoặc kiểm tra trạng thái (Status/Polling) -> Hạn mức cao
+    # 1. Các API polling hoặc kiểm tra trạng thái -> Hạn mức cao
+    # Những endpoints này cần được gọi thường xuyên để check status
     if any(p in path for p in ["/status", "/polling", "/health", "/analysis/status"]):
         return "120/minute"
     
-    # 2. Kiểm tra nếu là user đã login (đã qua middleware và inject request.state.user)
-    # Tuy nhiên slowapi decorator chạy trước middleware hoặc độc lập, nên ta dựa vào Header
+    # 2. User đã đăng nhập -> Hạn mức trung bình
+    # Kiểm tra Authorization header có JWT token không
     auth_header = request.headers.get("Authorization")
     if auth_header and auth_header.lower().startswith("bearer "):
         return "100/minute"
     
-    # 3. Mặc định cho Public APIs
+    # 3. Public APIs (chưa login) -> Hạn mức thấp
+    # Bảo vệ hệ thống khỏi abuse từ anonymous users
     return "30/minute"
 
-# Thêm Auth Middleware
+# ============================================================================
+# AUTHENTICATION MIDDLEWARE - Xác thực JWT token
+# ============================================================================
 @app.middleware("http")
 async def add_auth_middleware(request: Request, call_next):
+    """
+    Middleware xác thực JWT token và inject user info vào request.
+    
+    Flow:
+    1. Lấy JWT token từ Authorization header
+    2. Verify token (check signature, expiration)
+    3. Extract user info từ token payload
+    4. Inject user info vào request.state.user
+    5. Forward request đến service phía sau
+    
+    Args:
+        request: FastAPI Request object
+        call_next: Next middleware/handler trong chain
+        
+    Returns:
+        Response từ service phía sau
+    """
+    # Set request vào ContextVar để rate limiter có thể access
     token = request_var.set(request)
     try:
+        # Gọi auth_middleware để xác thực token
         return await auth_middleware(request, call_next)
     finally:
+        # Reset ContextVar sau khi xử lý xong
         request_var.reset(token)
 
-# Cấu hình Service URLs
+# ============================================================================
+# SERVICE ROUTING - Cấu hình URLs của các microservices
+# ============================================================================
+# Map service name -> service URL
+# Trong Docker Compose, service names được resolve thành container IPs
 SERVICES = {
     "auth": os.getenv("AUTH_SVC_URL", "http://auth-service:8000"),
-    "user": os.getenv("AUTH_SVC_URL", "http://auth-service:8000"), # Map user to auth service
+    "user": os.getenv("AUTH_SVC_URL", "http://auth-service:8000"),  # user endpoints cũng ở auth service
     "cv": os.getenv("CV_SVC_URL", "http://cv-service:8000"),
     "jd": os.getenv("JD_SVC_URL", "http://jd-service:8000"),
     "analysis": os.getenv("ANALYSIS_SVC_URL", "http://analysis-service:8000"),
@@ -76,59 +159,135 @@ SERVICES = {
     "admin": os.getenv("ADMIN_SVC_URL", "http://admin-service:8000"),
 }
 
+# HTTP client để forward requests đến services
+# Sử dụng AsyncClient để support async/await
 client = httpx.AsyncClient()
 
+# ============================================================================
+# PROXY ENDPOINT - Điều hướng requests đến các microservices
+# ============================================================================
 @app.api_route("/{service_name}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
-@limiter.limit(get_dynamic_limit)
+@limiter.limit(get_dynamic_limit)  # Apply rate limiting
 async def proxy(service_name: str, path: str, request: Request):
-    # Handle /api prefix if present (strip it and shift service_name/path)
+    """
+    Reverse proxy chính - điều hướng requests đến đúng microservice.
+    
+    URL Pattern: /{service_name}/{path}
+    Ví dụ:
+    - /cv/upload -> cv-service/cv/upload
+    - /auth/login -> auth-service/auth/login
+    - /jd/list -> jd-service/jd/list
+    
+    Flow:
+    1. Parse service_name từ URL
+    2. Kiểm tra service có tồn tại không
+    3. Forward request đến service URL
+    4. Inject user info vào headers (nếu đã login)
+    5. Trả response về client
+    
+    Args:
+        service_name: Tên service (cv, auth, jd, analysis, etc.)
+        path: Path còn lại sau service_name
+        request: FastAPI Request object
+        
+    Returns:
+        Response từ microservice
+        
+    Raises:
+        HTTPException 404: Service không tồn tại
+        HTTPException 502: Service không available
+    """
+    # Xử lý trường hợp có /api prefix (từ Next.js)
+    # Ví dụ: /api/cv/upload -> service_name="api", path="cv/upload"
+    # Cần shift để service_name="cv", path="upload"
     if service_name == "api":
         parts = path.split("/", 1)
         service_name = parts[0]
         path = parts[1] if len(parts) > 1 else ""
 
+    # Kiểm tra service có tồn tại không
     if service_name not in SERVICES:
         raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found")
 
-    # Xử lý path ánh xạ: Nếu gọi /user/login -> forward tới auth-service/auth/login
+    # Xử lý path mapping đặc biệt
+    # /user/login -> auth-service/auth/login (vì user endpoints nằm trong auth service)
     target_prefix = "auth" if service_name == "user" else service_name
     url = f"{SERVICES[service_name]}/{target_prefix}/{path}"
     
-    # Forward headers and body
+    # Chuẩn bị headers để forward
     headers = dict(request.headers)
-    # Remove hop-by-hop headers
+    
+    # Xóa các hop-by-hop headers (không được forward qua proxy)
+    # Những headers này chỉ có ý nghĩa giữa client-gateway, không phải gateway-service
     headers.pop("host", None)
     headers.pop("content-length", None)
     
-    # Inject authenticated user ID if available from middleware
+    # SECURITY: Inject user info vào headers nếu user đã đăng nhập
+    # Middleware đã verify JWT và lưu user info vào request.state.user
+    # Services phía sau có thể trust những headers này vì đã qua gateway verify
     if hasattr(request.state, "user"):
         headers["X-User-ID"] = request.state.user["id"]
         headers["X-User-Email"] = request.state.user["email"]
-        # Thống nhất forward role admin
-        headers["X-Is-Admin"] = "true" if request.state.user.get("is_admin") else "false"
+        headers["X-User-Role"] = request.state.user.get("role", "user")
 
     try:
+        # Lấy request body
         content = await request.body()
+        
+        # Forward request đến service
         response = await client.request(
             method=request.method,
             url=url,
             headers=headers,
             content=content,
             params=dict(request.query_params),
-            timeout=60.0
+            timeout=60.0  # Timeout 60 giây
         )
-        # Lọc bỏ các header nhạy cảm có thể gây xung đột với Proxy của Next.js
-        excluded_headers = ["content-length", "transfer-encoding", "connection", "keep-alive", "proxy-authenticate", "proxy-authorization", "te", "trailers", "upgrade"]
+        
+        # Lọc bỏ các headers có thể gây conflict
+        # Những headers này do service backend tự generate, không nên forward về client
+        excluded_headers = [
+            "content-length",      # Sẽ được tính lại
+            "transfer-encoding",   # Có thể conflict với proxy
+            "connection",          # Connection-specific
+            "keep-alive",          # Connection-specific
+            "proxy-authenticate",  # Proxy-specific
+            "proxy-authorization", # Proxy-specific
+            "te",                  # Transfer encoding
+            "trailers",            # Chunked transfer
+            "upgrade"              # Protocol upgrade
+        ]
         resp_headers = {k: v for k, v in response.headers.items() if k.lower() not in excluded_headers}
         
+        # Trả response về client
         return Response(
             content=response.content,
             status_code=response.status_code,
             headers=resp_headers
         )
     except httpx.RequestError as exc:
+        # Service không available hoặc network error
         raise HTTPException(status_code=502, detail=f"Service unavailable: {str(exc)}")
 
+# ============================================================================
+# HEALTH CHECK ENDPOINT
+# ============================================================================
 @app.get("/")
 async def root():
+    """
+    Root endpoint - kiểm tra gateway có hoạt động không.
+    
+    Returns:
+        dict: Message xác nhận gateway đang chạy
+    """
     return {"message": "AI Career Advisor Gateway is operational"}
+
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint for Docker health checks and monitoring.
+    
+    Returns:
+        dict: Service status
+    """
+    return {"status": "ok", "service": "gateway"}
