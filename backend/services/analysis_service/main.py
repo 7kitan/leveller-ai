@@ -81,7 +81,7 @@ class GapRequest(BaseModel):
     cv_id: uuid.UUID
     job_id: Optional[uuid.UUID] = None
     jd_text: Optional[str] = Field(None, max_length=50000)
-    force: bool = False  # If true, bypass ALL caches and recompute
+    force: bool = False  # If true, bypass cache and force re-analysis
     
     @validator('jd_text')
     def validate_jd_text(cls, v):
@@ -180,6 +180,54 @@ async def start_gap_analysis(
             status_code=400,
             detail=f"CV chưa hoàn tất phân tích (status={cv.status}). Vui lòng đợi CV được xử lý xong.",
         )
+
+    # ── CACHE CHECK: Return cached analysis if available ──────────────────
+    # Only cache when job_id is provided (not jd_text - custom JD can't be cached reliably)
+    if not req.force and req.job_id:
+        job = db.query(Job).filter(Job.id == req.job_id).first()
+        if job:
+            # Find existing analysis that is newer than both CV and Job updates
+            cached_analysis = db.query(UserAnalysis).filter(
+                UserAnalysis.user_id == uuid.UUID(user_id),
+                UserAnalysis.cv_id == req.cv_id,
+                UserAnalysis.job_id == req.job_id,
+                UserAnalysis.created_at > cv.updated_at,  # Analysis after CV update
+                UserAnalysis.created_at > job.updated_at   # Analysis after Job update
+            ).order_by(UserAnalysis.created_at.desc()).first()
+            
+            if cached_analysis:
+                logger.info(
+                    f"[CACHE HIT] Returning cached analysis\n"
+                    f"  analysis_id   : {cached_analysis.id}\n"
+                    f"  cached_at     : {cached_analysis.created_at}\n"
+                    f"  cv_updated    : {cv.updated_at}\n"
+                    f"  job_updated   : {job.updated_at}\n"
+                    f"  match_score   : {cached_analysis.match_score}"
+                )
+                
+                # Return cached result with metadata
+                result = cached_analysis.result_json or {}
+                result["analysis_id"] = str(cached_analysis.id)
+                result["is_cached"] = True
+                result["cached_at"] = cached_analysis.created_at.isoformat()
+                
+                # Check if user already provided feedback
+                has_fb = db.query(UserFeedback).filter(
+                    UserFeedback.analysis_id == str(cached_analysis.id)
+                ).first() is not None
+                result["has_feedback"] = has_fb
+                
+                return {
+                    "task_id": None,
+                    "status": "cached",
+                    "result": result
+                }
+        else:
+            logger.warning(f"[CACHE CHECK] Job {req.job_id} not found, proceeding with analysis")
+    elif req.force:
+        logger.info(f"[CACHE BYPASS] force=True, skipping cache check")
+    elif req.jd_text:
+        logger.info(f"[CACHE SKIP] Custom JD text provided, cache not applicable")
 
     # ── Check Daily Quota (Unified QuotaManager) ──────────────────
     from shared.queue_utils import get_queue_length
