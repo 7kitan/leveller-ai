@@ -13,7 +13,7 @@ from shared.config_utils import config_manager
 from shared.llm_utils import get_embedding
 from shared.ai_service import AI_REGISTRY
 from shared.scrapers.topcv import TopCVScraper
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from shared.schemas import PaginatedResponse
 from typing import List, Optional, Any
 from datetime import datetime, timedelta
@@ -36,22 +36,22 @@ USE_VECTOR_SEARCH = os.getenv("JD_USE_VECTOR_SEARCH", "true").lower() == "true"
 
 
 class JobCreate(BaseModel):
-    title_raw: str
-    raw_text: str
-    source_url: Optional[str] = None
-    source_label: Optional[str] = "manual"
-    company_name: Optional[str] = None
-    min_salary_vnd: Optional[int] = None
-    max_salary_vnd: Optional[int] = None
-    location_raw: Optional[str] = None
-    location_normalized: Optional[str] = None
-    location_district: Optional[str] = None
-    employment_type: Optional[str] = None
+    title_raw: str = Field(..., max_length=500)
+    raw_text: str = Field(..., max_length=50000)
+    source_url: Optional[str] = Field(None, max_length=500)
+    source_label: Optional[str] = Field(default="manual", max_length=100)
+    company_name: Optional[str] = Field(None, max_length=255)
+    min_salary_vnd: Optional[int] = Field(None, ge=0, le=999999999)
+    max_salary_vnd: Optional[int] = Field(None, ge=0, le=999999999)
+    location_raw: Optional[str] = Field(None, max_length=500)
+    location_normalized: Optional[str] = Field(None, max_length=100)
+    location_district: Optional[str] = Field(None, max_length=100)
+    employment_type: Optional[str] = Field(None, max_length=50)
     
     # Structured fields from parsing
-    job_description: Optional[str] = None
-    requirements: Optional[str] = None
-    benefits: Optional[str] = None
+    job_description: Optional[str] = Field(None, max_length=10000)
+    requirements: Optional[str] = Field(None, max_length=10000)
+    benefits: Optional[str] = Field(None, max_length=5000)
 
 
 class JobUpdate(BaseModel):
@@ -240,15 +240,22 @@ def search_jobs(
             try:
                 vec_results = db.execute(vec_query, {"vec": job_vector}).fetchall()
                 vec_job_ids = {str(r.id): float(r.similarity) for r in vec_results}
+                # BUG-014 FIX: Populate similarity_scores dict so it can be used later
+                similarity_scores = vec_job_ids.copy()
             except Exception as e:
                 db.rollback()
-                logger.error(f"[job search] pgvector query failed: {e}")
+                # BUG-011 FIX: Log error and fallback to text search automatically
+                logger.error(f"[job search] pgvector query failed: {e}. Falling back to text search.")
                 vec_job_ids = {}
+                similarity_scores = {}
 
             if vec_job_ids:
                 base_query = base_query.filter(
                     Job.id.in_([uuid.UUID(k) for k in vec_job_ids.keys()])
                 )
+            else:
+                # BUG-011 FIX: If vector search failed or returned no results, continue with text search
+                logger.info(f"[job search] Vector search returned no results, using text search fallback")
 
     # â”€â”€ Text search fallback / supplement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if q:
@@ -270,19 +277,22 @@ def search_jobs(
             )
         )
 
+    # BUG-012 FIX: Salary filter logic - Only include jobs with known salary
     if min_salary is not None:
         base_query = base_query.filter(
-            or_(Job.min_salary_vnd >= min_salary, Job.min_salary_vnd.is_(None))
+            and_(Job.min_salary_vnd >= min_salary, Job.min_salary_vnd.is_not(None))
         )
 
     if max_salary is not None:
         base_query = base_query.filter(
-            or_(Job.max_salary_vnd <= max_salary, Job.max_salary_vnd.is_(None))
+            and_(Job.max_salary_vnd <= max_salary, Job.max_salary_vnd.is_not(None))
         )
 
+    # BUG-013 FIX: Employment type case-sensitive - Normalize before comparison
     if employment_type:
+        employment_type_normalized = employment_type.lower().strip()
         base_query = base_query.filter(
-            Job.employment_type.ilike(f"%{employment_type}%")
+            Job.employment_type.ilike(f"%{employment_type_normalized}%")
         )
 
     if remote_friendly is not None:
@@ -808,6 +818,7 @@ def get_trending_skills(
         LIMIT :limit
     """)
 
+    # BUG-015 FIX: Trending skills query with graceful fallback
     try:
         safe_query = text("""
             SELECT
@@ -830,8 +841,15 @@ def get_trending_skills(
             LIMIT :limit
         """)
         results = db.execute(safe_query, {"limit": limit, "days": days}).fetchall()
+        
+        # BUG-015 FIX: Return empty array if no results instead of failing
+        if not results:
+            logger.info(f"Trending skills query returned no results (empty DB or no data for {days} days)")
+            return []
+            
     except Exception as e:
-        logger.warning(f"Trending skills query failed: {e}")
+        # BUG-015 FIX: Graceful fallback on error
+        logger.error(f"Trending skills query failed: {e}")
         return []
 
     return [
@@ -898,6 +916,12 @@ def get_role_analytics(
         }
         for r in results
     ]
+
+
+@app.get("/jd/health")
+def health_check():
+    """Health check endpoint for Docker and monitoring."""
+    return {"status": "ok", "service": "jd_service"}
 
 
 # â”€â”€â”€ Internal helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
