@@ -29,15 +29,19 @@ fi
 
 cd "$FRONTEND_DIR"
 
-# Step 1: Create .env file with production values
-echo -e "${YELLOW}[1/7] Creating .env file...${NC}"
-cat > .env << 'EOF'
+# Step 1: Check .env file exists
+echo -e "${YELLOW}[1/7] Checking .env file...${NC}"
+if [ ! -f .env ]; then
+    echo -e "${YELLOW}⚠️  .env not found, creating default...${NC}"
+    cat > .env << 'EOF'
 NEXT_PUBLIC_API_URL=https://api.onehub.cfd
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI
 NEXT_PUBLIC_ENVIRONMENT=production
 EOF
-
-echo -e "${GREEN}✅ .env file created${NC}"
+    echo -e "${GREEN}✅ .env file created${NC}"
+else
+    echo -e "${GREEN}✅ .env file already exists, keeping existing values${NC}"
+fi
 cat .env
 
 # Step 2: Pull latest code
