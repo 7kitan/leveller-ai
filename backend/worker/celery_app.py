@@ -84,9 +84,9 @@ celery_app.conf.update(
             "schedule": 1800.0,  # 30 minutes
             "args": (20,),
         },
-        "daily-market-aggregation": {
+        "hourly-market-aggregation": {
             "task": "worker.tasks.market_stats_tasks.aggregate_market_data",
-            "schedule": 86400.0, # 24 hours
+            "schedule": 3600.0, # 1 hour (changed from 24 hours for fresher data)
         },
         "daily-youtube-cleanup": {
             "task": "worker.tasks.market_stats_tasks.cleanup_expired_youtube_courses",
