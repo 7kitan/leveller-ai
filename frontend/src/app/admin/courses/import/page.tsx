@@ -501,7 +501,7 @@ const CourseImportPage = () => {
               <div className={styles.actionInfo}>
                  <div className={styles.countBadge}>{successCount}</div>
                  <span className="text-gray-400 font-medium">{t("admin_courses_import_ready")}</span>
-                 <button className={styles.discardBtn} onClick={() => setResults([])}>{t("admin_courses_import_discard")} {t("admin_dash_all") as any}</button>
+                 <button className={styles.discardBtn} onClick={() => setResults([])}>{t("admin_courses_import_discard_all")}</button>
               </div>
               <button 
                 className={styles.bulkSaveBtn} 

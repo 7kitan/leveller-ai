@@ -58,8 +58,10 @@ interface Course {
   is_active: boolean;
 }
 
-const TagInput = ({ tags, setTags, placeholder = t("admin_courses_tag_placeholder") }: { tags: string[], setTags: (tags: string[]) => void, placeholder?: string }) => {
+const TagInput = ({ tags, setTags, placeholder }: { tags: string[], setTags: (tags: string[]) => void, placeholder?: string }) => {
+  const { t } = useLanguage();
   const [input, setInput] = useState("");
+  const resolvedPlaceholder = placeholder || t("admin_courses_tag_placeholder");
 
   const addTag = (val: string) => {
     const trimmed = val.trim();
@@ -97,7 +99,7 @@ const TagInput = ({ tags, setTags, placeholder = t("admin_courses_tag_placeholde
         onChange={e => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={() => addTag(input)}
-        placeholder={tags.length === 0 ? placeholder : ""}
+        placeholder={tags.length === 0 ? resolvedPlaceholder : ""}
         className={styles.tagInnerInput}
       />
     </div>

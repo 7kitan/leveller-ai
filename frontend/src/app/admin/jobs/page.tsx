@@ -238,6 +238,16 @@ const AdminJobsPage = () => {
       company_name: "",
       location: "",
       description: "",
+      requirements: "",
+      benefits: "",
+      min_salary: 0,
+      max_salary: 0,
+      employment_type: "Full-time",
+      required_exp: 0,
+      source_url: "",
+      has_insurance: false,
+      has_13th_month: false,
+      remote_friendly: false,
       status: "active"
     });
     setIsModalOpen(true);

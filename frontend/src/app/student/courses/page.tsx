@@ -44,6 +44,7 @@ interface FilterState {
 
 // ─── Level Badge ─────────────────────────────────────────────────────────────
 function LevelBadge({ level }: { level: string }) {
+  const { t } = useLanguage();
   const cls =
     level === "Beginner"     ? styles.levelBeginner     :
     level === "Intermediate" ? styles.levelIntermediate :
@@ -54,6 +55,7 @@ function LevelBadge({ level }: { level: string }) {
 
 // ─── Course Card ───────────────────────────────────────────────────────────────
 function CourseCard({ course, index }: { course: Course; index: number }) {
+  const { t } = useLanguage();
   const isFree = (course.cost_usd ?? 0) === 0;
   const platformStrip =
     course.platform === "Coursera" ? styles.stripCoursera :
@@ -148,6 +150,7 @@ function FilterBar({
   platforms: string[];
   levels: string[];
 }) {
+  const { t } = useLanguage();
   return (
     <div className={styles.filterBar}>
       <div className={styles.filterRow}>

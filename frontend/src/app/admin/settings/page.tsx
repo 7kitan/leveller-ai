@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
+import axios from "axios";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { 

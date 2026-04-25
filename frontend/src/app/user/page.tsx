@@ -187,7 +187,7 @@ const UserDashboard = () => {
                           borderColor: `${severityColor(gap.severity)}30`,
                         }}
                       >
-                        ● {t(`severity_${gap.severity?.toLowerCase()}`)}
+                        ● {t(`severity_${gap.severity?.toLowerCase()}` as any)}
                       </span>
                       <span className={styles.learningEffort}>
                         · {gap.learning_effort} {t("learning_effort")}

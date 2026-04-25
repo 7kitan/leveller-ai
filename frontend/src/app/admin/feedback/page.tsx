@@ -178,8 +178,7 @@ export default function AdminFeedbackPage() {
           <div className={styles.pagination}>
             <Pagination 
               currentPage={page} 
-              totalItems={total} 
-              itemsPerPage={limit} 
+              totalPages={Math.ceil(total / limit)} 
               onPageChange={setPage} 
             />
           </div>
