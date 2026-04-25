@@ -6,7 +6,7 @@ from shared.scrapers.coursera import scrape_coursera_course
 from shared.scrapers.topcv import TopCVScraper
 from shared.database import SessionLocal
 from shared.models import Job, SystemSetting, Course
-from shared.llm_utils import get_embedding
+from shared.llm_utils import get_embedding, build_job_embedding_context, normalize_location
 from shared.skill_extraction import extract_and_save_job_skills
 from shared.system_logger import system_logger
 
@@ -32,7 +32,6 @@ def crawl_course_task(url: str, auto_save: bool = False):
                 return {"error": err}
             
             if auto_save:
-from shared.llm_utils import get_embedding, build_job_embedding_context, normalize_location
                 import uuid
                 
                 db = SessionLocal()
