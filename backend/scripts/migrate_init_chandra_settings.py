@@ -3,14 +3,34 @@ import sys
 import logging
 from sqlalchemy import text
 
-# Add parent directory to sys.path to import shared modules
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Determine backend directory (works both locally and in Docker)
+if os.path.exists('/app'):  # Docker environment
+    backend_dir = '/app'
+else:  # Local environment
+    backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-from shared.database import engine, Base
-from shared.models import SystemSetting
-from dotenv import load_dotenv
+# Add to sys.path if not already there
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
 
-load_dotenv()
+# Change to backend directory to ensure relative imports work
+original_dir = os.getcwd()
+os.chdir(backend_dir)
+
+try:
+    from shared.database import engine, Base
+    from shared.models import SystemSetting
+    from dotenv import load_dotenv
+    
+    load_dotenv()
+except ImportError as e:
+    print(f"Import error: {e}")
+    print(f"sys.path: {sys.path}")
+    print(f"Current dir: {os.getcwd()}")
+    raise
+finally:
+    # Restore original directory
+    os.chdir(original_dir)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("migration")
