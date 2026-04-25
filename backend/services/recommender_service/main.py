@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, Request, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func, or_
 from shared.database import get_db
-from shared.models import Course, JobSkillRequirement, Job, UserRole
+from shared.models import Course, JobSkillRequirement, Job, UserRole, YouTubeCourse
 from shared.config_utils import config_manager
 from shared.level_mapper import LevelMapper
 from pydantic import BaseModel, Field, ConfigDict
@@ -116,6 +116,21 @@ class CourseUpdate(BaseModel):
     tags: Optional[List[str]] = Field(None, max_items=20)
     description: Optional[str] = Field(None, max_length=5000)  # SECURITY: Consistent with CourseCreate
     is_active: Optional[bool] = None
+
+
+class YouTubeCourseRead(BaseModel):
+    id: uuid.UUID
+    video_id: str
+    title: str
+    description: Optional[str] = None
+    thumbnail: Optional[str] = None
+    channel_name: Optional[str] = None
+    url: Optional[str] = None
+    duration_raw: Optional[str] = None
+    published_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 12):
@@ -320,11 +335,24 @@ async def recommend_courses(req: RecommendRequest, db: Session = Depends(get_db)
     top_gaps = sorted_gaps[:2] # Lấy 2 gap quan trọng nhất để tìm video
     
     for gap in top_gaps:
+        # Infer domain from skill category
+        category = gap.category.lower() if gap.category else ""
+        domain = "programming"  # default
+        if "devops" in category or "tools" in category:
+            domain = "devops"
+        elif "data" in category or "analytics" in category:
+            domain = "data-science"
+        elif "web" in category or "frontend" in category or "backend" in category:
+            domain = "web-development"
+        elif "mobile" in category or "android" in category or "ios" in category:
+            domain = "mobile"
+        
         videos = await youtube_service.search_and_cache(
             query=f"{gap.skill_name} {gap.target_level}",
             db=db,
             limit=2,
-            lang=req.lang
+            lang=req.lang,
+            domain=domain
         )
         for v in videos:
             v["gap_skill"] = gap.skill_name
@@ -655,20 +683,90 @@ async def admin_get_crawl_status(task_id: str, request: Request):
     return {"status": "processing"}
 
 
+@app.get("/recommend/admin/youtube", response_model=PaginatedResponse[YouTubeCourseRead])
+async def admin_list_youtube(
+    request: Request, 
+    db: Session = Depends(get_db), 
+    limit: int = Query(20, ge=1, le=100), 
+    offset: int = Query(0, ge=0),
+    q: Optional[str] = Query(None)
+):
+    """Admin only: Danh sách tất cả video YouTube đã cache."""
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    query = db.query(YouTubeCourse)
+    
+    if q:
+        query = query.filter(
+            or_(
+                YouTubeCourse.title.ilike(f"%{q}%"),
+                YouTubeCourse.channel_name.ilike(f"%{q}%")
+            )
+        )
+
+    total = query.count()
+    items = query.order_by(YouTubeCourse.created_at.desc()).offset(offset).limit(limit).all()
+    
+    return {
+        "items": items,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "page": (offset // limit) + 1,
+        "pages": (total + limit - 1) // limit
+    }
+
+
+@app.delete("/recommend/admin/youtube/{video_id}")
+async def admin_delete_youtube(
+    video_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Admin only: Xóa video YouTube khỏi cache."""
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    video = db.query(YouTubeCourse).filter(YouTubeCourse.video_id == video_id).first()
+    if not video:
+        # Also try by internal UUID if video_id is not the YouTube ID
+        try:
+            video_uuid = uuid.UUID(video_id)
+            video = db.query(YouTubeCourse).filter(YouTubeCourse.id == video_uuid).first()
+        except:
+            pass
+            
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    db.delete(video)
+    db.commit()
+    return {"message": "Deleted successfully"}
+
+
 @app.get("/recommend/youtube")
 async def get_youtube_recommendations(
     skill: str, 
     level: str = "Beginner", 
     limit: int = 3, 
     lang: str = "vi",
+    domain: str = "programming",
     db: Session = Depends(get_db)
 ):
     """
     Tìm kiếm video YouTube cho một kỹ năng cụ thể.
     Sử dụng Vector Search để tối ưu cache.
+    
+    Args:
+        skill: Tên kỹ năng (e.g. "Python", "Docker")
+        level: Cấp độ (Beginner, Intermediate, Advanced)
+        limit: Số lượng video tối đa
+        lang: Ngôn ngữ ("vi" hoặc "en")
+        domain: Lĩnh vực (programming, devops, data-science, web-development, mobile)
     """
     query = f"{skill} {level}"
-    videos = await youtube_service.search_and_cache(query=query, db=db, limit=limit, lang=lang)
+    videos = await youtube_service.search_and_cache(query=query, db=db, limit=limit, lang=lang, domain=domain)
     return videos
 
 

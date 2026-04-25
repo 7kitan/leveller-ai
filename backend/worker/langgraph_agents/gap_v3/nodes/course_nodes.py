@@ -132,11 +132,25 @@ async def course_recommendation_llm_node(
     async def search_yt(gap):
         skill_name = gap.get("skill") or "?"
         level_name = gap.get("required_level") or "Mid-level"
+        category = gap.get("category", "").lower()
+        
+        # Infer domain from skill category
+        domain = "programming"  # default
+        if "devops" in category or "tools" in category:
+            domain = "devops"
+        elif "data" in category or "analytics" in category:
+            domain = "data-science"
+        elif "web" in category or "frontend" in category or "backend" in category:
+            domain = "web-development"
+        elif "mobile" in category or "android" in category or "ios" in category:
+            domain = "mobile"
+        
         v_results = await youtube_service.search_and_cache(
             query=f"{skill_name} {level_name}",
             db=db,
             limit=3,
-            lang=current_lang
+            lang=current_lang,
+            domain=domain
         )
         for v in v_results:
             v["gap_skill"] = skill_name
@@ -387,6 +401,10 @@ async def _vector_search_courses(
         return _search_courses_ilike(skill_name, target_level, db, limit)
 
     # ── pgvector search: fetch skills_raw + modules for ranking ────────────────
+    # ── SECURITY: Limit max courses to prevent prompt overflow ───────────────
+    MAX_COURSES_PER_QUERY = 50  # Hard limit to prevent massive prompts
+    limit = min(limit, MAX_COURSES_PER_QUERY)
+    
     sim_threshold = config_manager.get_setting("gap_vector_sim_threshold", default=0.35, cast=float)
     query = text("""
         SELECT id, title, platform, url, level, provider, source_platform,
@@ -458,6 +476,10 @@ def _search_courses_ilike(
     """Fallback search when vector embedding unavailable."""
     from sqlalchemy import text
 
+    # ── SECURITY: Limit max courses to prevent prompt overflow ───────────────
+    MAX_COURSES_PER_QUERY = 50  # Hard limit to prevent massive prompts
+    limit = min(limit, MAX_COURSES_PER_QUERY)
+    
     logger.warning(f"[STEP 4/Search] ILIKE fallback for skill='{skill_name}'")
 
     query = text("""
