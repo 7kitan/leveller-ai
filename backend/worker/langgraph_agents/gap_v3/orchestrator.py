@@ -199,7 +199,7 @@ async def run_gap_analysis_v3(
     async for event in gap_v3_graph.astream(initial_state):
         # event is a dict: {node_name: {state_updates}}
         for node_name, state_update in event.items():
-            final_state = {**final_state, **state_update}
+            final_state.update(state_update)
             
             # Nếu node quan trọng hoàn thành, trigger callback để UI cập nhật sớm
             if node_name in ["gap_analysis", "course_agent", "roadmap", "finalize"]:
@@ -214,6 +214,7 @@ async def run_gap_analysis_v3(
                             "selected_youtube_videos": final_state.get("selected_youtube_videos") or [],
                             "career_roadmap": final_state.get("career_roadmap") or {},
                             "status": final_state.get("status") or "processing",
+                            "is_cached": final_state.get("is_cached", False),
                             "node": node_name
                         }
                         await on_update(partial_report)

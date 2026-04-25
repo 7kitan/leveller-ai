@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 # Add parent directory to sys.path to import shared modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from shared.models import User
+from shared.models import User, UserRole
 from shared.auth_utils import get_password_hash
 
 # Logging setup
@@ -32,7 +32,7 @@ def create_admin(email, password, full_name="System Admin"):
         existing_user = db.query(User).filter(User.email == email).first()
         if existing_user:
             logger.info(f"User {email} already exists. Updating to admin...")
-            existing_user.is_admin = True
+            existing_user.role = UserRole.ADMIN
             existing_user.hashed_password = get_password_hash(password)
             db.commit()
             logger.info(f"Successfully updated {email} to Admin.")
@@ -44,7 +44,7 @@ def create_admin(email, password, full_name="System Admin"):
             email=email,
             hashed_password=get_password_hash(password),
             full_name=full_name,
-            is_admin=True,
+            role=UserRole.ADMIN,
             is_active=True
         )
         db.add(new_user)

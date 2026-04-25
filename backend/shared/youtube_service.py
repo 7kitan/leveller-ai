@@ -15,29 +15,65 @@ class YouTubeSearchService:
         self.api_key = os.getenv("YOUTUBE_API_KEY") or os.getenv("GOOGLE_API_KEY")
         self.base_url = "https://www.googleapis.com/youtube/v3/search"
 
-    async def search_and_cache(self, query: str, db: Session, limit: int = 3, lang: str = "en") -> List[Dict[str, Any]]:
+    async def search_and_cache(self, query: str, db: Session, limit: int = 3, lang: str = "en", domain: str = "programming") -> List[Dict[str, Any]]:
         """
-        Tìm kiếm video YouTube.
+        Tìm kiếm video YouTube với context chuyên ngành.
         Sử dụng Vector Search để tìm trong cache trước khi gọi API thật.
+        
+        Args:
+            query: Skill name + level (e.g. "Python Beginner", "Docker Mid-level")
+            db: Database session
+            limit: Max results
+            lang: Language code ("vi" or "en")
+            domain: Domain context ("programming", "devops", "data-science", etc.)
         """
-        # 1. Tối ưu query theo ngôn ngữ
-        clean_query = query.lower()
-        # Loại bỏ các từ khóa thừa thường được thêm bởi caller
-        for term in ["tutorial", "course", "khóa học", "hướng dẫn"]:
-            clean_query = clean_query.replace(term, "")
-        clean_query = " ".join(clean_query.split()) # Normalize whitespace
-
+        # 1. Parse query to extract skill and level
+        clean_query = query.strip()
+        
+        # Translate English level names to Vietnamese
+        level_map_vi = {
+            "beginner": "cơ bản",
+            "intermediate": "trung cấp", 
+            "mid-level": "trung cấp",
+            "advanced": "nâng cao",
+            "senior": "chuyên sâu",
+            "expert": "chuyên gia"
+        }
+        
+        # Extract level from query
+        skill_name = clean_query
+        level_suffix = ""
+        
+        for eng_level, vi_level in level_map_vi.items():
+            if eng_level in clean_query.lower():
+                skill_name = clean_query.lower().replace(eng_level, "").strip()
+                level_suffix = vi_level if lang == "vi" else eng_level
+                break
+        
+        # 2. Build optimized query with domain context
         if lang == "vi":
-            # Pattern tự nhiên: "Học [skill] [level] tiếng Việt" hoặc "Hướng dẫn [skill]"
-            if "tiếng việt" not in clean_query:
-                final_q = f"Học {clean_query} tiếng Việt"
+            # Vietnamese: "Khóa học Lập trình Python trọn bộ" or "Hướng dẫn Docker DevOps đầy đủ"
+            domain_prefix = {
+                "programming": "Lập trình",
+                "devops": "DevOps",
+                "data-science": "Khoa học dữ liệu",
+                "web-development": "Phát triển web",
+                "mobile": "Lập trình mobile"
+            }.get(domain, "Lập trình")
+            
+            if level_suffix:
+                final_q = f"Khóa học {domain_prefix} {skill_name} {level_suffix} trọn bộ"
             else:
-                final_q = f"Học {clean_query}"
+                final_q = f"Khóa học {domain_prefix} {skill_name} đầy đủ nhất"
         else:
-            final_q = f"{clean_query} tutorial course"
+            # English: "Python programming full course beginner" or "Docker DevOps complete tutorial"
+            if level_suffix:
+                final_q = f"{skill_name} {domain} full course {level_suffix}"
+            else:
+                final_q = f"{skill_name} {domain} complete tutorial course"
 
-        # 2. Tạo embedding cho query (dùng query gốc để giữ ngữ nghĩa trọn vẹn nhất cho Vector Search)
-        query_vector = get_embedding(query)
+        # 2. Tạo embedding cho query (dùng final_q để đồng bộ với nội dung tìm kiếm thực tế)
+        query_vector = get_embedding(final_q)
         now = datetime.now(timezone.utc)
         
         if query_vector:
@@ -97,15 +133,19 @@ class YouTubeSearchService:
             logger.warning("[YOUTUBE API] No API Key found. Skipping search.")
             return []
 
-        logger.info(f"[YOUTUBE API] Calling YouTube Search for: {final_q} (lang={lang})")
+        logger.info(f"[YOUTUBE API] Calling YouTube Search for: {final_q} (lang={lang}, domain={domain})")
         try:
             params = {
                 "part": "snippet",
                 "q": final_q,
                 "type": "video",
-                "maxResults": limit,
+                "maxResults": limit * 3,  # Fetch more to filter later
                 "key": self.api_key,
-                "relevanceLanguage": lang
+                "relevanceLanguage": lang,
+                "videoDuration": "long",  # Changed from 'medium' to 'long' (>20min) to get real courses
+                "videoDefinition": "high",  # Prioritize HD
+                "order": "relevance",
+                "safeSearch": "moderate"
             }
             if lang == "vi":
                 params["regionCode"] = "VN"
@@ -116,9 +156,63 @@ class YouTubeSearchService:
                 data = response.json()
 
             items = data.get("items", [])
+            
+            # Post-filter: Remove low-quality videos
+            filtered_items = []
+            for item in items:
+                snippet = item.get("snippet", {})
+                title = snippet.get("title", "").lower()
+                description = snippet.get("description", "").lower()
+                channel_name = snippet.get("channelTitle", "")
+                
+                # NEGATIVE FILTER 1: Skip interview/job-related content
+                interview_keywords = [
+                    "interview", "phỏng vấn", "phong van",
+                    "câu hỏi phỏng vấn", "cau hoi phong van",
+                    "interview questions", "interview tips",
+                    "mock interview", "job interview",
+                    "salary negotiation", "resume tips",
+                    "career advice", "how to get hired"
+                ]
+                if any(kw in title or kw in description for kw in interview_keywords):
+                    logger.debug(f"[YOUTUBE FILTER] Skipped interview video: {title[:50]}")
+                    continue
+                
+                # NEGATIVE FILTER 2: Skip spam/clickbait
+                spam_keywords = ["click here", "subscribe now", "free download", "hack", "crack", "pirate"]
+                if any(kw in title or kw in description for kw in spam_keywords):
+                    continue
+                
+                # NEGATIVE FILTER 3: Skip suspicious channels
+                if len(channel_name) < 3 or channel_name.isupper():
+                    continue
+                
+                # POSITIVE FILTER: Require strong learning indicators
+                # Use specific keywords that appear in tutorials but NOT in interviews
+                strong_learning_indicators = [
+                    "tutorial", "course", "hướng dẫn", "khóa học",
+                    "full course", "trọn bộ", "đầy đủ", "complete tutorial",
+                    "beginner", "cơ bản", "co ban",
+                    "step by step", "từng bước", "tu tung buoc",
+                    "complete guide", "hướng dẫn đầy đủ",
+                    "learn", "học", "hoc",
+                    "introduction", "giới thiệu"
+                ]
+                has_strong_indicator = any(ind in title or ind in description for ind in strong_learning_indicators)
+                
+                # ONLY accept videos with strong learning indicators
+                if has_strong_indicator:
+                    filtered_items.append(item)
+                    logger.debug(f"[YOUTUBE FILTER] Accepted tutorial video: {title[:50]}")
+                else:
+                    logger.debug(f"[YOUTUBE FILTER] Skipped non-tutorial video: {title[:50]}")
+                
+                if len(filtered_items) >= limit:
+                    break
+            
             results = []
 
-            for item in items:
+            for item in filtered_items:
                 snippet = item.get("snippet", {})
                 video_id = item.get("id", {}).get("videoId")
                 if not video_id:

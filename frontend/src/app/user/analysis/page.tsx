@@ -23,6 +23,8 @@ import { cn } from "@/lib/utils";
 import styles from "./user-analysis.module.css";
 import { AnimatePresence, motion } from "framer-motion";
 import Modal from "@/components/shared/Modal";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 
 const POLLING_INTERVAL = 5000;
 
@@ -98,24 +100,15 @@ function AnalysisPageContent() {
   const [processingTime, setProcessingTime] = useState(0);
   const [showTimeoutOverlay, setShowTimeoutOverlay] = useState(false);
 
-  const spamMessages = language === 'vi' ? [
-    "AI đang bóc tách từng dòng trong CV của bạn...",
-    "Đang so khớp kinh nghiệm của bạn với yêu cầu thị trường...",
-    "Tìm kiếm các khóa học tối ưu nhất để lấp đầy khoảng trống kỹ năng...",
-    "Đang xây dựng lộ trình sự nghiệp cá nhân hóa cho bạn...",
-    "AI đang phân tích sâu các từ khóa tiềm năng...",
-    "Hệ thống đang chạy các mô phỏng kịch bản sự nghiệp...",
-    "Đang tổng hợp các tài liệu học tập từ YouTube...",
-    "Gần xong rồi, chúng tôi đang chuẩn bị bản báo cáo cuối cùng...",
-  ] : [
-    "AI is reading between the lines of your CV...",
-    "Matching your experience with global market trends...",
-    "Finding the perfect courses to bridge your skill gaps...",
-    "Building your personalized career roadmap...",
-    "Deep-analyzing potential keywords for your success...",
-    "Simulating career growth scenarios...",
-    "Aggregating free learning resources from YouTube...",
-    "Almost there! Wrapping up your final report...",
+  const spamMessages = [
+    t("analysis_msg_1"),
+    t("analysis_msg_2"),
+    t("analysis_msg_3"),
+    t("analysis_msg_4"),
+    t("analysis_msg_5"),
+    t("analysis_msg_6"),
+    t("analysis_msg_7"),
+    t("analysis_msg_8"),
   ];
 
   /* -- Handle URL Params ---------------------------------------------- */
@@ -383,26 +376,18 @@ function AnalysisPageContent() {
   =================================================================== */
   if (phase === "setup" || phase === "failed") {
     return (
-      <div className={styles.pageRoot}>
-        <div className={styles.glowTop} />
-        <div className={styles.glowBottom} />
-        <div className={styles.textureOverlay} />
+      <PageContainer>
+        <PageHeader
+          title={t("analysis_title")}
+          subtitle={t("analysis_subtitle")}
+        >
+          <div className={styles.badge}>
+            <Sparkles size={12} />
+            <span className={styles.badgeLabel}>{t("analysis_engine_badge")}</span>
+          </div>
+        </PageHeader>
 
         <div className={styles.setupCard}>
-          {/* Header */}
-          <div className={styles.setupHeader}>
-            <div className={styles.badge}>
-              <Sparkles size={12} />
-              <span className={styles.badgeLabel}>{t("analysis_engine_badge")}</span>
-            </div>
-            <h1 className={styles.setupTitle}>
-              GAP <span className={styles.gradientText}>ANALYSIS</span>
-            </h1>
-            <p className={styles.setupSub}>
-              {t("analysis_subtitle")}
-            </p>
-          </div>
-
           {/* -- JD Section ---------------------------------------- */}
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
@@ -454,13 +439,13 @@ function AnalysisPageContent() {
                   <div className={styles.jobSearchWrap}>
                     <div className={styles.jobSearchInput}>
                       <Search size={16} className={styles.jobSearchIcon} />
-                      <input
-                        type="text"
-                        placeholder={t("jd_search_placeholder")}
-                        value={jobSearch}
-                        onChange={(e) => setJobSearch(e.target.value)}
-                        className={styles.jobSearchField}
-                      />
+                        <input
+                          type="text"
+                          placeholder={t("jd_search_placeholder")}
+                          value={jobSearch}
+                          onChange={(e) => setJobSearch(e.target.value)}
+                          className={styles.jobSearchField}
+                        />
                     </div>
 
                     {jobResults.length > 0 && (
@@ -496,11 +481,12 @@ function AnalysisPageContent() {
             {jdMode === "paste" && (
               <div className={styles.jdPasteSection}>
                 <textarea
-                  className={styles.jdTextarea}
+                  rows={8}
                   placeholder={t("jd_paste_placeholder")}
                   value={pastedJdText}
                   onChange={(e) => setPastedJdText(e.target.value)}
-                  rows={8}
+                  className={styles.jdTextarea}
+                  maxLength={50000}
                 />
                 <div className={styles.charCount}>
                   {pastedJdText.length} {t("char_count")}
@@ -584,7 +570,7 @@ function AnalysisPageContent() {
             </button>
           </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -593,20 +579,13 @@ function AnalysisPageContent() {
   =================================================================== */
   if (phase === "processing") {
     return (
-      <div className={styles.pageRoot}>
-        <div className={styles.glowTop} />
-        <div className={styles.glowBottom} />
-        <div className={styles.textureOverlay} />
+      <PageContainer>
+        <PageHeader 
+          title="CAREER GENOME."
+          subtitle={t("analysis_engine_badge")}
+        />
 
         <div className={styles.processingCard}>
-          <div className={styles.processingBadge}>
-            <Sparkles size={12} />
-            <span>{t("analysis_engine_badge")}</span>
-          </div>
-          <h1 className={styles.processingTitle}>
-            CAREER <span className={styles.gradientText}>GENOME.</span>
-          </h1>
-
           <div className={styles.stepsList}>
             {PIPELINE_STEPS.map((s, i) => (
               <div
@@ -668,7 +647,7 @@ function AnalysisPageContent() {
           <Modal
             isOpen={showTimeoutOverlay && !notified}
             onClose={() => setShowTimeoutOverlay(false)}
-            title={language === 'vi' ? "Hệ thống đang quá tải?" : "System is Busy?"}
+            title={t("analysis_timeout_title")}
             maxWidth="550px"
           >
             <div className={styles.timeoutModalContent}>
@@ -676,17 +655,15 @@ function AnalysisPageContent() {
                 <AlertCircle size={32} />
               </div>
               <p className={styles.timeoutDescription}>
-                {language === 'vi' 
-                  ? "Quá trình phân tích đang mất nhiều thời gian hơn dự kiến do độ phức tạp của dữ liệu. Bạn có thể quay lại sau, kết quả sẽ được xử lý ngầm và gửi thông báo cho bạn."
-                  : "The analysis is taking longer than expected due to data complexity. You can return later; the results will be processed in the background, and we'll notify you."}
+                {t("analysis_timeout_desc")}
               </p>
               <div className={styles.timeoutActionsRow}>
                  <button onClick={handleNotify} className={styles.timeoutNotifyBtn}>
                    <Zap size={16} />
-                   {language === 'vi' ? "Đồng ý nhận Email & Quay lại" : "Notify via Email & Go Back"}
+                   {t("analysis_notify_and_back")}
                  </button>
                  <button onClick={() => setShowTimeoutOverlay(false)} className={styles.timeoutContinueBtn}>
-                   {language === 'vi' ? "Tiếp tục chờ" : "Continue Waiting"}
+                   {t("analysis_continue_waiting")}
                  </button>
               </div>
             </div>
@@ -711,7 +688,7 @@ function AnalysisPageContent() {
             <p>{t("processing_hint")}</p>
           </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -719,9 +696,7 @@ function AnalysisPageContent() {
      PHASE: COMPLETED
   =================================================================== */
   return (
-    <div className={styles.pageRoot}>
-      <div className={styles.glowTop} />
-      <div className={styles.glowBottom} />
+    <PageContainer>
       <div className={styles.doneCard}>
         <CheckCircle2 size={56} className={styles.doneIcon} />
         <h1 className={styles.doneTitle}>
@@ -729,7 +704,7 @@ function AnalysisPageContent() {
         </h1>
         <p className={styles.doneSub}>{t("redirecting_recommend")}</p>
       </div>
-    </div>
+    </PageContainer>
   );
 }
 

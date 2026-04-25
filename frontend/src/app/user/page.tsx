@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { UserRole } from "@/types/roles";
 import {
   UploadCloud,
   TrendingUp,
@@ -24,6 +25,8 @@ import styles from "./user-dashboard.module.css";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import CourseCard from "@/components/user/CourseCard";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, 
   CartesianGrid, Tooltip as RechartsTooltip, Cell, Legend
@@ -111,7 +114,7 @@ const UserDashboard = () => {
   const courses = rawCourses.map((c: any, i: number) => ({
     id: i + 1,
     title: c.title || t("nav_courses"),
-    platform: c.platform || "E-learning",
+    platform: c.platform || t("platform_default"),
     match: c.similarity
       ? `${Math.round(parseFloat(c.similarity) * 100)}%`
       : `${Math.round(parseFloat(c.rank_score || 0) * 100)}%`,
@@ -132,30 +135,17 @@ const UserDashboard = () => {
       value: loading ? "..." : `${marketData?.market_fit_pct || 0}%`,
       icon: TrendingUp,
     },
-    {
-      label: t("nav_jobs"),
-      value: loading ? "..." : String(marketData?.total_jobs || "0"),
-      icon: Award,
-    },
   ];
 
   const topGaps = (latestAnalysis?.skill_gaps || []).slice(0, 4);
 
   return (
-    <AuthGuard requireRole="user">
-      <div className={styles.pageRoot}>
-        {/* Header */}
-        <div className={styles.headerSection}>
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <h1 className={styles.headerTitle}>{t("dash_hub_title")}</h1>
-            <p className={styles.headerSubtitle}>
-              {t("dash_hub_subtitle")}
-            </p>
-          </motion.div>
-        </div>
+    <AuthGuard requireRole={UserRole.USER}>
+      <PageContainer>
+        <PageHeader 
+          title={t("dash_hub_title")}
+          subtitle={t("dash_hub_subtitle")}
+        />
 
         {/* Bento Grid Top Layer */}
         <div className={styles.bentoGrid}>
@@ -189,10 +179,19 @@ const UserDashboard = () => {
                   <div key={gap.skill} className={styles.gapMiniCard}>
                     <div className={styles.gapMiniTitle}>{gap.skill}</div>
                     <div className={styles.gapMiniMeta}>
-                      <span className={cn(styles.miniSeverity, styles[gap.severity?.toLowerCase()])}>
-                        ● {gap.severity}
+                      <span 
+                        className={styles.miniSeverity}
+                        style={{
+                          color: severityColor(gap.severity),
+                          backgroundColor: `${severityColor(gap.severity)}15`,
+                          borderColor: `${severityColor(gap.severity)}30`,
+                        }}
+                      >
+                        ● {t(`severity_${gap.severity?.toLowerCase()}`)}
                       </span>
-                      <span>· {gap.learning_effort} {t("learning_effort")}</span>
+                      <span className={styles.learningEffort}>
+                        · {gap.learning_effort} {t("learning_effort")}
+                      </span>
                     </div>
                   </div>
                 ))
@@ -215,9 +214,9 @@ const UserDashboard = () => {
                       {t("dash_potential_match")}
                     </div>
                     <div className={styles.forecastValue}>
-                      {marketData.potential_match_pct}%
+                      {marketData.potential_match_pct.toFixed(1)}%
                       <span className={styles.growthBadge}>
-                        +{marketData.potential_match_pct - (marketData.market_fit_pct || 0)}%
+                        +{(marketData.potential_match_pct - (marketData.market_fit_pct || 0)).toFixed(1)}%
                       </span>
                     </div>
                   </div>
@@ -227,16 +226,10 @@ const UserDashboard = () => {
                       {t("dash_salary_boost")}
                     </div>
                     <div className={styles.forecastValue}>
-                      +{marketData.salary_growth_pct}%
+                      +{marketData.salary_growth_pct.toFixed(1)}%
                     </div>
                   </div>
                 </div>
-                {marketData.market_sentiment && (
-                  <div className={styles.sentimentBox}>
-                    <Sparkles size={14} className="text-warning" />
-                    <span>{t("dash_market_sentiment")}: <strong>{marketData.market_sentiment}</strong></span>
-                  </div>
-                )}
               </div>
             )}
 
@@ -260,18 +253,22 @@ const UserDashboard = () => {
                     className={cn(styles.periodBtn, period === p && styles.active)}
                     onClick={() => setPeriod(p)}
                   >
-                    {p === 'day' ? '24h' : p === 'week' ? '7d' : '30d'}
+                    {t(`period_${p === 'day' ? '24h' : p === 'week' ? '7d' : '30d'}` as any)}
                   </button>
                 ))}
               </div>
             </div>
 
-            {marketData?.market_trends?.summary?.top_gainer && (
-              <div className={styles.topGainerBadge}>
-                <TrendingUp size={14} />
-                <span>Xu hướng tăng mạnh: <strong>{marketData.market_trends.summary.top_gainer}</strong></span>
+            <div className={styles.marketSnapshot}>
+              <div className={styles.snapshotItem}>
+                <div className={styles.snapshotLabel}>{t("nav_jobs")}</div>
+                <div className={styles.snapshotValue}>{loading ? "..." : (marketData?.total_jobs?.toLocaleString() || "0")}</div>
               </div>
-            )}
+              <div className={styles.snapshotItem}>
+                <div className={styles.snapshotLabel}>{t("dash_hot_trend")}</div>
+                <div className={cn(styles.snapshotValue, "text-success")}>{loading ? "..." : (marketData?.market_trends?.summary?.top_gainer || t("not_available"))}</div>
+              </div>
+            </div>
             <div className={styles.barChartContainer} style={{ height: '400px', width: '100%', marginTop: '2rem' }}>
               {(marketData?.market_trends?.trends || []).length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -425,9 +422,19 @@ const UserDashboard = () => {
             </div>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </AuthGuard>
   );
 };
+
+/* -- Helpers ------------------------------------------------------------- */
+function severityColor(sev: string) {
+  const map: Record<string, string> = {
+    HIGH: "#f43f5e",
+    MEDIUM: "#f59e0b",
+    LOW: "#10b981",
+  };
+  return map[sev?.toUpperCase()] || "#9ca3af";
+}
 
 export default UserDashboard;

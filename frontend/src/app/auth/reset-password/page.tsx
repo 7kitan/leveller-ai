@@ -98,6 +98,8 @@ export default function ResetPasswordPage() {
                 placeholder={t("reset_password_new_password_placeholder")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                maxLength={128}
+                minLength={8}
               />
             </div>
             <div className={styles.inputGroup}>
@@ -109,6 +111,8 @@ export default function ResetPasswordPage() {
                 placeholder={t("reset_password_confirm_password_placeholder")}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                maxLength={128}
+                minLength={8}
               />
             </div>
 

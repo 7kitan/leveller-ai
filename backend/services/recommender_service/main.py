@@ -2,10 +2,10 @@ from fastapi import FastAPI, Depends, Request, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func, or_
 from shared.database import get_db
-from shared.models import Course, JobSkillRequirement, Job
+from shared.models import Course, JobSkillRequirement, Job, UserRole, YouTubeCourse
 from shared.config_utils import config_manager
 from shared.level_mapper import LevelMapper
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 import uuid
 import logging
@@ -45,23 +45,24 @@ class CrawlRequest(BaseModel):
 
 
 class CourseCreate(BaseModel):
-    title: str
-    platform: Optional[str] = None
-    source_platform: Optional[str] = "manual"
-    source_id: Optional[str] = None
-    external_uuid: Optional[str] = None
-    url: str
-    level: str = "Beginner"
-    provider: Optional[str] = None
-    duration_hours: Optional[float] = None
-    duration_raw: Optional[str] = None
-    cost_usd: float = 0.0
-    languages: List[str] = ["en"]
-    skills_raw: List[str] = []
-    tools_raw: List[str] = []
-    outcomes: List[str] = []
-    modules: List[str] = []
-    tags: List[str] = []
+    title: str = Field(..., max_length=500)
+    platform: Optional[str] = Field(None, max_length=100)
+    source_platform: Optional[str] = Field(default="manual", max_length=100)
+    source_id: Optional[str] = Field(None, max_length=255)
+    external_uuid: Optional[str] = Field(None, max_length=100)
+    url: str = Field(..., max_length=500)
+    level: str = Field(default="Beginner", max_length=50)
+    provider: Optional[str] = Field(None, max_length=100)
+    duration_hours: Optional[float] = Field(None, ge=0, le=10000)
+    duration_raw: Optional[str] = Field(None, max_length=100)
+    cost_usd: float = Field(default=0.0, ge=0, le=999999)
+    languages: List[str] = Field(default_factory=lambda: ["en"], max_items=10)
+    skills_raw: List[str] = Field(default_factory=list, max_items=50)
+    tools_raw: List[str] = Field(default_factory=list, max_items=50)
+    outcomes: List[str] = Field(default_factory=list, max_items=20)
+    modules: List[str] = Field(default_factory=list, max_items=100)
+    tags: List[str] = Field(default_factory=list, max_items=20)
+    description: Optional[str] = Field(None, max_length=5000)  # SECURITY: Prevent unbounded descriptions
 
 
 class CourseBulkCreate(BaseModel):
@@ -96,24 +97,40 @@ class CourseRead(BaseModel):
 
 
 class CourseUpdate(BaseModel):
-    title: Optional[str] = None
-    platform: Optional[str] = None
-    source_platform: Optional[str] = None
-    source_id: Optional[str] = None
-    external_uuid: Optional[str] = None
-    url: Optional[str] = None
-    level: Optional[str] = None
-    provider: Optional[str] = None
-    duration_hours: Optional[float] = None
-    duration_raw: Optional[str] = None
-    cost_usd: Optional[float] = None
-    languages: Optional[List[str]] = None
-    skills_raw: Optional[List[str]] = None
-    tools_raw: Optional[List[str]] = None
-    outcomes: Optional[List[str]] = None
-    modules: Optional[List[str]] = None
-    tags: Optional[List[str]] = None
+    title: Optional[str] = Field(None, max_length=500)
+    platform: Optional[str] = Field(None, max_length=100)
+    source_platform: Optional[str] = Field(None, max_length=100)
+    source_id: Optional[str] = Field(None, max_length=255)
+    external_uuid: Optional[str] = Field(None, max_length=100)
+    url: Optional[str] = Field(None, max_length=500)
+    level: Optional[str] = Field(None, max_length=50)
+    provider: Optional[str] = Field(None, max_length=100)
+    duration_hours: Optional[float] = Field(None, ge=0, le=10000)
+    duration_raw: Optional[str] = Field(None, max_length=100)
+    cost_usd: Optional[float] = Field(None, ge=0, le=999999)
+    languages: Optional[List[str]] = Field(None, max_items=10)
+    skills_raw: Optional[List[str]] = Field(None, max_items=50)
+    tools_raw: Optional[List[str]] = Field(None, max_items=50)
+    outcomes: Optional[List[str]] = Field(None, max_items=20)
+    modules: Optional[List[str]] = Field(None, max_items=100)
+    tags: Optional[List[str]] = Field(None, max_items=20)
+    description: Optional[str] = Field(None, max_length=5000)  # SECURITY: Consistent with CourseCreate
     is_active: Optional[bool] = None
+
+
+class YouTubeCourseRead(BaseModel):
+    id: uuid.UUID
+    video_id: str
+    title: str
+    description: Optional[str] = None
+    thumbnail: Optional[str] = None
+    channel_name: Optional[str] = None
+    url: Optional[str] = None
+    duration_raw: Optional[str] = None
+    published_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 12):
@@ -318,11 +335,24 @@ async def recommend_courses(req: RecommendRequest, db: Session = Depends(get_db)
     top_gaps = sorted_gaps[:2] # Lấy 2 gap quan trọng nhất để tìm video
     
     for gap in top_gaps:
+        # Infer domain from skill category
+        category = gap.category.lower() if gap.category else ""
+        domain = "programming"  # default
+        if "devops" in category or "tools" in category:
+            domain = "devops"
+        elif "data" in category or "analytics" in category:
+            domain = "data-science"
+        elif "web" in category or "frontend" in category or "backend" in category:
+            domain = "web-development"
+        elif "mobile" in category or "android" in category or "ios" in category:
+            domain = "mobile"
+        
         videos = await youtube_service.search_and_cache(
             query=f"{gap.skill_name} {gap.target_level}",
             db=db,
             limit=2,
-            lang=req.lang
+            lang=req.lang,
+            domain=domain
         )
         for v in videos:
             v["gap_skill"] = gap.skill_name
@@ -383,7 +413,7 @@ async def admin_list_courses(
     q: Optional[str] = Query(None)
 ):
     """Admin only: Danh sách tất cả khóa học với phân trang."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     query = db.query(Course)
@@ -415,7 +445,7 @@ async def admin_create_course(
     req: CourseCreate, request: Request, db: Session = Depends(get_db)
 ):
     """Admin only: Tạo khóa học mới + tạo embedding."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     from shared.llm_utils import get_embedding
@@ -465,7 +495,7 @@ async def admin_bulk_create_courses(
     req: CourseBulkCreate, request: Request, db: Session = Depends(get_db)
 ):
     """Admin only: Tạo nhiều khóa học mới trong một transaction."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     from shared.llm_utils import get_embedding
@@ -531,7 +561,7 @@ async def admin_update_course(
     db: Session = Depends(get_db),
 ):
     """Admin only: Cập nhật khóa học + cập nhật embedding nếu cần."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     course = db.query(Course).filter(Course.id == course_id).first()
@@ -612,7 +642,7 @@ async def admin_delete_course(
     db: Session = Depends(get_db),
 ):
     """Admin only: Xóa khóa học."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     course = db.query(Course).filter(Course.id == course_id).first()
@@ -627,7 +657,7 @@ async def admin_delete_course(
 @app.post("/recommend/admin/courses/crawl")
 async def admin_crawl_course(req: CrawlRequest, request: Request):
     """Admin only: Dispatch background task to crawl course data."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     task = celery_app.send_task(
@@ -640,7 +670,7 @@ async def admin_crawl_course(req: CrawlRequest, request: Request):
 @app.get("/recommend/admin/courses/crawl/status/{task_id}")
 async def admin_get_crawl_status(task_id: str, request: Request):
     """Admin only: Check crawl task status."""
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     res = AsyncResult(task_id, app=celery_app)
@@ -653,18 +683,96 @@ async def admin_get_crawl_status(task_id: str, request: Request):
     return {"status": "processing"}
 
 
+@app.get("/recommend/admin/youtube", response_model=PaginatedResponse[YouTubeCourseRead])
+async def admin_list_youtube(
+    request: Request, 
+    db: Session = Depends(get_db), 
+    limit: int = Query(20, ge=1, le=100), 
+    offset: int = Query(0, ge=0),
+    q: Optional[str] = Query(None)
+):
+    """Admin only: Danh sách tất cả video YouTube đã cache."""
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    query = db.query(YouTubeCourse)
+    
+    if q:
+        query = query.filter(
+            or_(
+                YouTubeCourse.title.ilike(f"%{q}%"),
+                YouTubeCourse.channel_name.ilike(f"%{q}%")
+            )
+        )
+
+    total = query.count()
+    items = query.order_by(YouTubeCourse.created_at.desc()).offset(offset).limit(limit).all()
+    
+    return {
+        "items": items,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "page": (offset // limit) + 1,
+        "pages": (total + limit - 1) // limit
+    }
+
+
+@app.delete("/recommend/admin/youtube/{video_id}")
+async def admin_delete_youtube(
+    video_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Admin only: Xóa video YouTube khỏi cache."""
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    video = db.query(YouTubeCourse).filter(YouTubeCourse.video_id == video_id).first()
+    if not video:
+        # Also try by internal UUID if video_id is not the YouTube ID
+        try:
+            video_uuid = uuid.UUID(video_id)
+            video = db.query(YouTubeCourse).filter(YouTubeCourse.id == video_uuid).first()
+        except:
+            pass
+            
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    db.delete(video)
+    db.commit()
+    return {"message": "Deleted successfully"}
+
+
 @app.get("/recommend/youtube")
 async def get_youtube_recommendations(
     skill: str, 
     level: str = "Beginner", 
     limit: int = 3, 
     lang: str = "vi",
+    domain: str = "programming",
     db: Session = Depends(get_db)
 ):
     """
     Tìm kiếm video YouTube cho một kỹ năng cụ thể.
     Sử dụng Vector Search để tối ưu cache.
+    
+    Args:
+        skill: Tên kỹ năng (e.g. "Python", "Docker")
+        level: Cấp độ (Beginner, Intermediate, Advanced)
+        limit: Số lượng video tối đa
+        lang: Ngôn ngữ ("vi" hoặc "en")
+        domain: Lĩnh vực (programming, devops, data-science, web-development, mobile)
     """
     query = f"{skill} {level}"
-    videos = await youtube_service.search_and_cache(query=query, db=db, limit=limit, lang=lang)
+    videos = await youtube_service.search_and_cache(query=query, db=db, limit=limit, lang=lang, domain=domain)
     return videos
+
+
+# ─── Health Check ───────────────────────────────────────────────────────────
+
+@app.get("/recommend/health")
+def health_check():
+    """Health check endpoint for Docker and monitoring."""
+    return {"status": "ok", "service": "recommender_service"}

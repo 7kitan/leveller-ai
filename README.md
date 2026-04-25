@@ -1,6 +1,6 @@
-# SkillNexus AI - Hướng Dẫn Cài Đặt và Vận Hành
+# Lumix AI - Hướng Dẫn Cài Đặt và Vận Hành
 
-SkillNexus AI là nền tảng phân tích CV và gợi ý lộ trình nghề nghiệp thông minh, sử dụng công nghệ Vector Search và LLM (OpenAI) để kết nối ứng viên với công việc và khóa học phù hợp nhất.
+Lumix AI là nền tảng phân tích CV và gợi ý lộ trình nghề nghiệp thông minh, sử dụng công nghệ Vector Search và LLM (OpenAI) để kết nối ứng viên với công việc và khóa học phù hợp nhất.
 
 ---
 

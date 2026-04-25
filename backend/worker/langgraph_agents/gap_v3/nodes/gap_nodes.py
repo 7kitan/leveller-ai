@@ -257,9 +257,14 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
         # Hash requirements to detect changes in extracted data
         jd_req_hash = hashlib.md5(json.dumps(pre_jd_requirements).encode()).hexdigest()[:16]
         
-        # Path A cache key: includes job_id, content hashes, and CV timestamp
+        # BUG-006 FIX: Include JD text hash to prevent cache collision when job_id is None
+        # Different JD texts with no job_id should have different cache keys
+        jd_text_for_hash = state.get("jd_text", "")
+        jd_text_hash = hashlib.md5(jd_text_for_hash.encode()).hexdigest()[:8] if jd_text_for_hash else "notxt"
+        
+        # Path A cache key: includes job_id, JD text hash, content hashes, and CV timestamp
         cv_ts = state.get("cv_timestamp", 0)
-        cache_key = f"gap_v3_path_a:{cv_id}:{job_id or 'nojob'}:{jd_req_hash}:cvh_{cv_hash}:ts_{cv_ts}"
+        cache_key = f"gap_v3_path_a:{cv_id}:{job_id or 'nojob'}:{jd_text_hash}:{jd_req_hash}:cvh_{cv_hash}:ts_{cv_ts}"
         
         force_recompute = state.get("force_recompute", False)
         cached_raw = result_cache.get(cache_key) if not force_recompute else None
@@ -268,10 +273,17 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
             try:
                 cached_data = json.loads(cached_raw)
                 logger.info(f"[STEP 3] ✓ Redis CACHE HIT (Path A) | key={cache_key}")
+                
+                # BUG-022 FIX: Log cached token usage for analytics
+                if "token_usage" in cached_data:
+                    logger.info(f"[STEP 3] Cache hit - original token usage: {cached_data['token_usage']}")
+                
                 return {
                     **state,
                     "gap_analysis": cached_data["gap_analysis"],
                     "status": "gap_analyzed",
+                    "is_cached": True,
+                    "cached_token_usage": cached_data.get("token_usage"),  # BUG-022 FIX: Include in response
                 }
             except Exception as e:
                 logger.warning(f"[STEP 3/Path_A] Cache parse failed: {e}")
@@ -350,10 +362,11 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
             "requirements": pre_jd_requirements,
         }
 
-        # Cache result (Path A)
+        # BUG-022 FIX: Cache result (Path A) with token usage
         try:
             combined_result = {
                 "gap_analysis": gap_analysis,
+                "token_usage": result.get("token_usage") if result else None,  # BUG-022 FIX: Store token usage
             }
             result_cache.setex(cache_key, GAP_CACHE_TTL, json.dumps(combined_result))
             logger.info(f"[STEP 3/PATH_A] ✓ Cached analysis | key={cache_key}")
@@ -383,7 +396,8 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
         cv_hash = _compute_cv_hash(cv_parsed)
         jd_hash = hashlib.md5(jd_text.encode()).hexdigest()[:16]
         
-        # Path B cache key: includes job_id, content hashes, and CV timestamp
+        # BUG-006 FIX: Path B already includes jd_hash which prevents collision
+        # Path B cache key: includes job_id, JD text hash, content hashes, and CV timestamp
         cv_ts = state.get("cv_timestamp", 0)
         cache_key = f"gap_v3_combined:{cv_id}:{job_id or 'nojob'}:{jd_hash}:cvh_{cv_hash}:ts_{cv_ts}"
 
@@ -394,12 +408,19 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
             try:
                 cached_data = json.loads(cached_raw)
                 logger.info(f"[STEP 3] ✓ Redis CACHE HIT (Path B) | key={cache_key}")
+                
+                # BUG-022 FIX: Log cached token usage for analytics
+                if "token_usage" in cached_data:
+                    logger.info(f"[STEP 3] Cache hit - original token usage: {cached_data['token_usage']}")
+                
                 return {
                     **state,
                     "jd_parsed": cached_data["jd_parsed"],
                     "jd_requirements": cached_data["jd_parsed"].get("requirements") or [],
                     "gap_analysis": cached_data["gap_analysis"],
                     "status": "gap_analyzed",
+                    "is_cached": True,
+                    "cached_token_usage": cached_data.get("token_usage"),  # BUG-022 FIX: Include in response
                 }
             except Exception as e:
                 logger.warning(f"[STEP 3] Cache parse failed: {e}")
@@ -475,32 +496,31 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
             "top_gaps": top_gaps,
         }
 
-        # Cache result to Redis
+        # BUG-022 FIX: Cache result to Redis with token usage
         try:
             combined_result = {
                 "jd_parsed": jd_parsed,
                 "gap_analysis": gap_analysis,
+                "token_usage": result.get("token_usage") if result else None,  # BUG-022 FIX: Store token usage
             }
             result_cache.setex(cache_key, GAP_CACHE_TTL, json.dumps(combined_result))
             logger.info(f"[STEP 3/PATH_B] ✓ Cached combined result to Redis | key={cache_key}")
         except Exception as e:
             logger.warning(f"[STEP 3/PATH_B] Redis caching failed: {e}")
 
-        # Persistent DB update: If we have a job_id, save the extraction back to the Job record
-        # so next time it goes through Path A.
+        # BUG-008 FIX: Persistent DB update - Save extraction back to Job record
+        # so next time it goes through Path A (pre-populated path)
         if job_id and jd_parsed and "requirements" in jd_parsed:
             try:
                 from shared.models import Job
-                db = state["db"]
-                job_uuid = _uuid.UUID(str(job_id))
-                job_rec = db.query(Job).filter(Job.id == job_uuid).first()
-                if job_rec:
-                    job_rec.extracted_requirements_json = jd_parsed["requirements"]
-                    job_rec.last_analyzed_at = _datetime.now()
+                job_record = db.query(Job).filter(Job.id == job_id).first()
+                if job_record:
+                    job_record.extracted_requirements_json = jd_parsed.get("requirements")
                     db.commit()
-                    logger.info(f"[STEP 3/PATH_B] ✓ Persisted JD extraction to Job record in DB (job_id={job_id})")
+                    logger.info(f"[STEP 3/PATH_B] ✓ Persisted JD extraction to Job record {job_id}")
             except Exception as e:
-                logger.warning(f"[STEP 3/PATH_B] Failed to persist JD extraction to DB: {e}")
+                logger.warning(f"[STEP 3/PATH_B] Failed to persist JD extraction: {e}")
+                db.rollback()
 
         logger.info(f"[STEP 3/PATH_B] DONE | match={gap_analysis.get('overall_match_pct')}%")
 
@@ -607,6 +627,7 @@ def _build_merged_gap_prompt(cv_text: str, jd_text: str, language: str = "Vietna
         "3. ANALYZE & MATCH (STRICT RULES):\n"
         "   - NO HALLUCINATIONS: If evidence exists in CV, it is a MATCH.\n"
         "   - NO LEVEL UPSCALING: If JD asks for Junior, Junior is a MATCH.\n"
+        "   - STANDARDIZED LEVELS: Use only 'Beginner', 'Intermediate', or 'Advanced' for 'required_level'. If the JD specifies years (e.g. '5 years'), translate it to the appropriate level (e.g. 'Advanced').\n"
         "4. OUTPUT: Provide the result in the specified JSON format.\n\n"
         "## OUTPUT JSON SCHEMA:\n"
         "{\n"
@@ -624,11 +645,11 @@ def _build_merged_gap_prompt(cv_text: str, jd_text: str, language: str = "Vietna
         '    "strengths": ["..."],\n'
         '    "weaknesses": ["..."],\n'
         '    "skill_gaps": [\n'
-        '       { "skill": "...", "required_level": "...", "severity": "...", "is_critical": boolean, "estimated_months": number, "reasoning": "Vietnamese", "learning_path": "Vietnamese" }\n'
+        '       { "skill": "...", "required_level": "Beginner|Intermediate|Advanced", "severity": "...", "is_critical": boolean, "estimated_months": number, "reasoning": "Vietnamese", "learning_path": "Vietnamese" }\n'
         '    ],\n'
         '    "transferable_insights": ["..."],\n'
         '    "top_gaps": [\n'
-        '       { "skill": "...", "required_level": "...", "severity": "...", "is_critical": boolean, "estimated_months": number, "learning_path": "Vietnamese" }\n'
+        '       { "skill": "...", "required_level": "Beginner|Intermediate|Advanced", "severity": "...", "is_critical": boolean, "estimated_months": number, "learning_path": "Vietnamese" }\n'
         '    ]\n'
         '  }\n'
         "}\n\n"
@@ -660,6 +681,7 @@ def _build_gap_only_prompt(
         "2. ANALYZE & MATCH (STRICT RULES):\n"
         "   - NO HALLUCINATIONS: Do not invent gaps. If CV lists the skill, it's a match.\n"
         "   - NO LEVEL UPSCALING: Match Junior to Junior. Do not demand higher levels.\n"
+        "   - STANDARDIZED LEVELS: Use only 'Beginner', 'Intermediate', or 'Advanced' for 'required_level'. If the JD specifies years (e.g. '5 years'), translate it to the appropriate level (e.g. 'Advanced').\n"
         "3. OUTPUT: Provide the result in the specified JSON format.\n\n"
         "## OUTPUT JSON SCHEMA:\n"
         "{\n"
@@ -671,13 +693,14 @@ def _build_gap_only_prompt(
         '    "strengths": ["..."],\n'
         '    "weaknesses": ["..."],\n'
         '    "skill_gaps": [\n'
-        '       { "skill": "...", "required_level": "...", "severity": "...", "is_critical": boolean, "estimated_months": number, "reasoning": "Vietnamese", "learning_path": "Vietnamese" }\n'
+        '       { "skill": "...", "required_level": "Beginner|Intermediate|Advanced", "severity": "...", "is_critical": boolean, "estimated_months": number, "reasoning": "Vietnamese", "learning_path": "Vietnamese" }\n'
         '    ],\n'
         '    "transferable_insights": ["..."],\n'
         '    "top_gaps": [\n'
-        '       { "skill": "...", "required_level": "...", "severity": "...", "is_critical": boolean, "estimated_months": number, "learning_path": "Vietnamese" }\n'
+        '       { "skill": "...", "required_level": "Beginner|Intermediate|Advanced", "severity": "...", "is_critical": boolean, "estimated_months": number, "learning_path": "Vietnamese" }\n'
         '    ]\n'
         '  }\n'
         "}\n\n"
         "Return ONLY valid JSON."
     )
+

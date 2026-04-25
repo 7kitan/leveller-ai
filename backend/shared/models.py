@@ -16,6 +16,7 @@ from pgvector.sqlalchemy import Vector
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
+from enum import Enum
 from .database import Base
 
 
@@ -28,6 +29,11 @@ class SystemSetting(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
 
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    USER = "user"
+    STUDENT = "student"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -37,7 +43,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255))
     is_active = Column(Boolean, default=True)
-    is_admin = Column(Boolean, default=False)
+    role = Column(String(50), default=UserRole.USER, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     daily_token_limit = Column(Integer, default=0) # 0 means use global default
@@ -70,7 +76,7 @@ class UserCV(Base):
     file_id = Column(String(100), unique=True)  # ID định danh file trong Local Storage
 
     full_name = Column(String(255))
-    summary = Column(Text)
+    summary = Column(String(2000))  # Limited to 2000 chars for security
     raw_text = Column(Text)  # Lưu trữ văn bản thô sau khi OCR (Markdown/Text)
     experience_years_total = Column(Float, default=0)
     file_hash = Column(String(64), index=True)  # SHA256 hash của file
@@ -100,7 +106,7 @@ class Job(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     source_id = Column(String(100), unique=True, nullable=False)
-    title_raw = Column(Text, nullable=False)
+    title_raw = Column(String(500), nullable=False)  # Limited to 500 chars for security
     title_category = Column(String(100), index=True)
     domain_role = Column(String(100), index=True)
     company_name = Column(String(255), index=True)
@@ -118,7 +124,7 @@ class Job(Base):
     required_exp_years = Column(Float)
     employment_type = Column(String(50))
 
-    location_raw = Column(Text)
+    location_raw = Column(String(500))  # Limited to 500 chars for security
     location_normalized = Column(String(100), index=True)
     location_district = Column(String(100), index=True)
 
@@ -198,7 +204,7 @@ class Course(Base):
     )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    title = Column(Text, nullable=False)
+    title = Column(String(500), nullable=False)  # Limited to 500 chars for security
     description = Column(Text)
     
     # ── Source Info ──────────────────────────────────────────────────
@@ -242,7 +248,7 @@ class UserWorkExperience(Base):
     position_name = Column(String(255), nullable=False)
     company_name = Column(String(255))
     duration_years = Column(Float, default=0)
-    description = Column(Text)
+    description = Column(String(2000))  # Limited to 2000 chars for security
     skills_context = Column(JSON)  # Danh sách skills liên quan đến vị trí này
     is_primary = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -285,7 +291,7 @@ class UserFeedback(Base):
     rating = Column(Integer)
     is_accurate = Column(Boolean)
     missing_skills = Column(JSON)
-    comment = Column(Text)
+    comment = Column(String(1000))  # Limited to 1000 chars for security
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

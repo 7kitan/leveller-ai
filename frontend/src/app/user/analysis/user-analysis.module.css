@@ -644,6 +644,13 @@
   animation: fadeInUp 0.4s ease-out forwards;
 }
 
+@media (max-width: 768px) {
+  .setupCard {
+    padding: 2rem 1.5rem;
+    gap: 2rem;
+  }
+}
+
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -660,6 +667,12 @@
   font-weight: 900;
   color: var(--color-text-main);
   letter-spacing: -0.04em;
+}
+
+@media (max-width: 640px) {
+  .setupTitle {
+    font-size: 1.75rem;
+  }
 }
 
 .setupSub {
@@ -726,6 +739,14 @@
   border: 1px solid var(--color-border-subtle);
 }
 
+@media (max-width: 480px) {
+  .jdModeTabs {
+    flex-direction: column;
+    border-radius: 1.5rem;
+    padding: 0.5rem;
+  }
+}
+
 [data-theme="dark"] .jdModeTabs {
   background-color: rgba(255, 255, 255, 0.02);
 }
@@ -781,11 +802,26 @@
 .jobSearchInput {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
-  padding: 0.875rem 1.25rem;
+  gap: 1rem;
+  padding: 1.125rem 1.5rem;
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 1.25rem;
+  border-radius: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+}
+
+.jobSearchInput:focus-within {
+  border-color: var(--color-accent-primary);
+  background-color: var(--color-panel-bg);
+  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.1);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+  .jobSearchInput {
+    padding: 0.875rem 1.25rem;
+  }
 }
 
 .jobSearchIcon {
@@ -799,9 +835,15 @@
   background: none;
   border: none;
   outline: none;
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--color-text-main);
+  letter-spacing: -0.01em;
+}
+
+.jobSearchField::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.3;
 }
 
 .jobDropdown {
@@ -1034,6 +1076,17 @@
   justify-content: space-between;
   gap: 1.5rem;
   flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .setupActions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  
+  .setupActions button {
+    width: 100%;
+  }
 }
 
 /* ── PROCESSING ──────────────────────────────────────────── */

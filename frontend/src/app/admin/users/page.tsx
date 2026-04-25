@@ -24,12 +24,15 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import styles from "./admin-users.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import { UserRole } from "@/types/roles";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 
 interface AdminUser {
   id: string;
   email: string;
   full_name: string | null;
-  is_admin: boolean;
+  role: string;
   is_active: boolean;
   is_flagged: boolean;
   daily_token_limit: number;
@@ -69,7 +72,6 @@ const AdminUsersPage = () => {
       
       const res = await fetch(url, {
         headers: { 
-          "X-Is-Admin": "true",
           "Authorization": `Bearer ${token}`
         }
       });
@@ -103,7 +105,7 @@ const AdminUsersPage = () => {
     setCurrentUser({ 
       email: "", 
       full_name: "", 
-      is_admin: false, 
+      role: UserRole.USER, 
       is_active: true,
       is_flagged: false,
       daily_token_limit: 0
@@ -139,7 +141,7 @@ const AdminUsersPage = () => {
       const payload: any = {
         email: currentUser.email,
         full_name: currentUser.full_name,
-        is_admin: currentUser.is_admin,
+        role: currentUser.role,
         is_active: currentUser.is_active,
         is_flagged: currentUser.is_flagged,
         daily_token_limit: currentUser.daily_token_limit,
@@ -156,7 +158,6 @@ const AdminUsersPage = () => {
         method,
         headers: {
           "Content-Type": "application/json",
-          "X-Is-Admin": "true",
           "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(payload)
@@ -185,7 +186,6 @@ const AdminUsersPage = () => {
       const res = await fetch(`/api/auth/admin/users/${userToDelete.id}`, {
         method: "DELETE",
         headers: {
-          "X-Is-Admin": "true",
           "Authorization": `Bearer ${token}`
         }
       });
@@ -208,16 +208,11 @@ const AdminUsersPage = () => {
 
   return (
     <AuthGuard requireAdmin>
-      <div className={styles.pageRoot}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div>
-            <h1 className={styles.title}>
-              <span>{t("admin_users_title")}</span>
-            </h1>
-            <p className={styles.subtitle}>{t("admin_users_subtitle")}</p>
-          </div>
-          
+      <PageContainer>
+        <PageHeader 
+          title={t("admin_users_title")}
+          subtitle={t("admin_users_subtitle")}
+        >
           <button 
             onClick={handleOpenCreate}
             className={styles.addBtn}
@@ -225,18 +220,19 @@ const AdminUsersPage = () => {
             <UserPlus size={18} /> 
             <span>{t("admin_users_add_btn")}</span>
           </button>
-        </div>
+        </PageHeader>
 
         {/* Control Bar */}
         <div className={styles.controlBar}>
           <div className={styles.searchContainer}>
             <Search className={styles.searchIcon} />
-            <input 
+            <input
               type="text"
               placeholder={t("admin_users_search_placeholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={styles.searchInput}
+              maxLength={200}
             />
           </div>
           <button onClick={() => fetchUsers(currentPage)} className={styles.refreshBtn}>
@@ -260,7 +256,7 @@ const AdminUsersPage = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5}>
+                  <td colSpan={6}>
                     <div className={styles.skeletonRow}>
                       <div className={styles.spinner}></div>
                       <span className={styles.skeletonText}>{t("syncing_dots")}</span>
@@ -269,7 +265,7 @@ const AdminUsersPage = () => {
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5}>
+                  <td colSpan={6}>
                      <div className={styles.emptyState}>
                         <UsersIcon size={48} className={styles.emptyStateIcon} />
                         <p className={styles.emptyStateText}>{t("jobs_no_results")}</p>
@@ -296,9 +292,11 @@ const AdminUsersPage = () => {
                     <td className={styles.td}>
                       <span className={cn(
                         styles.roleBadge,
-                        user.is_admin ? styles.roleAdmin : styles.roleUser
+                        user.role === UserRole.ADMIN ? styles.roleAdmin : styles.roleUser
                       )}>
-                        {user.is_admin ? t("admin_users_role_admin") : t("admin_users_role_user")}
+                        {user.role === UserRole.ADMIN ? t("admin_users_role_admin") : 
+                         user.role === UserRole.USER ? t("admin_users_role_user") : 
+                         user.role?.toUpperCase()}
                       </span>
                     </td>
                     <td className={styles.td}>
@@ -339,7 +337,6 @@ const AdminUsersPage = () => {
                                 method: "PATCH",
                                 headers: {
                                   "Content-Type": "application/json",
-                                  "X-Is-Admin": "true",
                                   "Authorization": `Bearer ${token}`
                                 },
                                 body: JSON.stringify({ is_active: !user.is_active })
@@ -379,7 +376,7 @@ const AdminUsersPage = () => {
 
         <Pagination 
           currentPage={currentPage}
-        totalPages={totalPages}
+          totalPages={totalPages}
           onPageChange={(page) => fetchUsers(page)}
         />
 
@@ -397,43 +394,47 @@ const AdminUsersPage = () => {
               <div className={styles.formFieldGroup}>
                   <div className={styles.formField}>
                       <label className={styles.inputLabel}>{t("admin_users_email_label")}</label>
-                      <input 
-                          required
+                      <input
                           type="email"
+                          required
                           value={currentUser.email || ""}
                           onChange={(e) => setCurrentUser({...currentUser, email: e.target.value})}
                           className={styles.modalInput}
+                          maxLength={255}
                       />
                   </div>
                   <div className={styles.formField}>
                       <label className={styles.inputLabel}>{t("admin_users_name_label")}</label>
-                      <input 
+                      <input
                           type="text"
                           value={currentUser.full_name || ""}
                           onChange={(e) => setCurrentUser({...currentUser, full_name: e.target.value})}
                           className={styles.modalInput}
+                          maxLength={255}
                       />
                   </div>
                   <div className={styles.formField}>
                       <label className={styles.inputLabel}>{t("admin_users_password_label")} {modalMode === "edit" && t("admin_users_password_hint")}</label>
-                      <input 
+                      <input
                           type="password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           className={styles.modalInput}
+                          maxLength={128}
+                          minLength={8}
                       />
                   </div>
-                  <div className={styles.checkboxGroup}>
-                      <div className={styles.checkboxLabelArea}>
-                          <span className={styles.checkboxTitle}>{t("admin_users_is_admin_label")}</span>
-                          <span className={styles.checkboxDesc}>{t("admin_users_is_admin_desc")}</span>
-                      </div>
-                      <input 
-                          type="checkbox"
-                          checked={currentUser.is_admin || false}
-                          onChange={(e) => setCurrentUser({...currentUser, is_admin: e.target.checked})}
-                          className={styles.checkboxInput}
-                      />
+                  <div className={styles.formField}>
+                      <label className={styles.inputLabel}>{t("admin_users_role_label") || "Role"}</label>
+                      <select 
+                          value={currentUser.role || UserRole.USER}
+                          onChange={(e) => setCurrentUser({...currentUser, role: e.target.value})}
+                          className={styles.modalInput}
+                      >
+                          <option value={UserRole.USER}>{t("admin_users_role_user")}</option>
+                          <option value={UserRole.ADMIN}>{t("admin_users_role_admin")}</option>
+                          <option value={UserRole.STUDENT}>{t("admin_users_role_student") || "STUDENT"}</option>
+                      </select>
                   </div>
                    <div className={styles.checkboxGroup}>
                       <div className={styles.checkboxLabelArea}>
@@ -449,11 +450,13 @@ const AdminUsersPage = () => {
                   </div>
                   <div className={styles.formField}>
                       <label className={styles.inputLabel}>Daily Token Limit (0 = Default)</label>
-                      <input 
+                      <input
                           type="number"
-                          value={currentUser.daily_token_limit || 0}
-                          onChange={(e) => setCurrentUser({...currentUser, daily_token_limit: parseInt(e.target.value)})}
+                          value={currentUser.daily_token_limit ?? 0}
+                          onChange={(e) => setCurrentUser({...currentUser, daily_token_limit: parseInt(e.target.value) || 0})}
                           className={styles.modalInput}
+                          min={0}
+                          max={1000000}
                       />
                   </div>
               </div>
@@ -492,7 +495,7 @@ const AdminUsersPage = () => {
               </div>
           </div>
         </Modal>
-      </div>
+      </PageContainer>
     </AuthGuard>
   );
 };

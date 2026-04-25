@@ -118,13 +118,13 @@
 
 .gridTwo {
   display: grid;
-  grid-template-cols: 1fr;
+  grid-template-columns: 1fr;
   gap: 2rem;
 }
 
 @media (min-width: 1024px) {
   .gridTwo {
-    grid-template-cols: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -203,13 +203,13 @@
 
 .insightContent {
   display: grid;
-  grid-template-cols: 1fr;
+  grid-template-columns: 1fr;
   gap: 1.25rem;
 }
 
 @media (min-width: 768px) {
   .insightContent {
-    grid-template-cols: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -309,13 +309,13 @@
 
 .mainGrid {
   display: grid;
-  grid-template-cols: 1fr;
+  grid-template-columns: 1fr;
   gap: 3rem;
 }
 
 @media (min-width: 1024px) {
   .mainGrid {
-    grid-template-cols: repeat(12, 1fr);
+    grid-template-columns: repeat(12, 1fr);
   }
 }
 
@@ -333,13 +333,13 @@
 
 .contentArea {
   display: grid;
-  grid-template-cols: 1fr;
+  grid-template-columns: 1fr;
   gap: 2rem;
 }
 
 @media (min-width: 768px) {
   .contentArea {
-    grid-template-cols: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -736,6 +736,9 @@
   padding-top: 2rem;
   border-top: 1px solid var(--color-border-subtle);
   display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
   gap: 3rem;
   flex-wrap: wrap;
 }
@@ -743,6 +746,9 @@
 .growthItem {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 150px;
   gap: 0.5rem;
 }
 
@@ -1100,6 +1106,7 @@
   padding-top: 1.5rem;
   border-top: 1px dashed var(--color-border-subtle);
   display: flex;
+  align-items: flex-start;
   gap: 1rem;
 }
 
@@ -1384,19 +1391,19 @@
 
 .videoGrid {
   display: grid;
-  grid-template-cols: 1fr;
+  grid-template-columns: 1fr;
   gap: 2rem;
 }
 
 @media (min-width: 768px) {
   .videoGrid {
-    grid-template-cols: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (min-width: 1280px) {
   .videoGrid {
-    grid-template-cols: repeat(3, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 

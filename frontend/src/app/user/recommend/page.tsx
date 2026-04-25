@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -30,7 +30,10 @@ import CourseCard from "@/components/user/CourseCard";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactECharts from 'echarts-for-react';
+import FeedbackSection from "@/components/user/FeedbackSection";
 import styles from "./user-recommend.module.css";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
 interface CourseRec {
@@ -102,7 +105,12 @@ interface GapResult {
     total_weeks: number;
     total_hours: number;
     summary: string;
+    method?: string;
   };
+  status?: string;
+  analysis_id?: string;
+  has_feedback?: boolean;
+  is_cached?: boolean;
 }
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
@@ -156,6 +164,7 @@ const UserRecommendPage = () => {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"gaps" | "courses" | "roadmap" | "videos">("gaps");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [processMessage, setProcessMessage] = useState("");
 
   const searchParams = useSearchParams();
@@ -180,9 +189,7 @@ const UserRecommendPage = () => {
 
     const interval = setInterval(async () => {
       try {
-        const resp = await axios.get(`/api/analysis/status/${taskIdFromUrl}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const resp = await api.get(`/analysis/status/${taskIdFromUrl}`);
         
         const { status, result, partial_result, message } = resp.data;
         
@@ -240,40 +247,42 @@ const UserRecommendPage = () => {
     }
 
     // 2. Fallback: fetch from backend latest analysis
-    axios
-      .get("/api/analysis/user/latest", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+    api
+      .get("/analysis/user/latest")
       .then((r) => {
         if (r.data) {
           console.log("[RECOMMEND] Loaded from /analysis/user/latest");
-          setGapResult(r.data as GapResult);
+          setGapResult(r.data);
         } else {
           console.log("[RECOMMEND] No analysis found (null response)");
-          setError(t("error") + ": No analysis found");
+          setError(t("error_no_analysis"));
         }
       })
-      .catch((e) => {
+      .catch((e: any) => {
         console.error("[RECOMMEND] API Error:", e);
-        setError(t("error") + ": Connection failed");
+        setError(t("error_connection_failed"));
       })
-      .finally(() => setLoading(false));
-  }, [token, taskIdFromUrl]);
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [token]);
 
-  /* ── Refresh from backend ──────────────────────────────────────────────── */
-  const fetchLatest = () => {
-    setLoading(true);
-    setError("");
-    axios
-      .get("/api/analysis/user/latest", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((r) => setGapResult(r.data as GapResult))
-      .catch((e) => {
-        console.error("[RECOMMEND] Refresh failed:", e);
-        setError(t("error") + ": Refresh failed");
-      })
-      .finally(() => setLoading(false));
+  const handleRefresh = async () => {
+    if (!token) return;
+    setRefreshing(true);
+    try {
+      const resp = await api.get("/analysis/user/latest");
+      if (resp.data) {
+        console.log("[RECOMMEND] Refreshed data:", resp.data);
+        setGapResult(resp.data);
+        sessionStorage.setItem("gap_analysis_result", JSON.stringify(resp.data));
+      }
+    } catch (e) {
+      console.error("[RECOMMEND] Refresh failed:", e);
+      setError(t("error_refresh_failed"));
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const youtube_videos = gapResult?.youtube_videos || [];
@@ -335,6 +344,8 @@ const UserRecommendPage = () => {
   const lowGaps = skill_gaps.filter((g) => g.severity?.toUpperCase() === "LOW");
 
   const totalHours = course_recommendations.reduce((s, c) => s + (c.duration_hours || 0), 0);
+  const validDurationCount = course_recommendations.filter((c) => c.duration_hours && c.duration_hours > 0).length;
+  const displayTotalHours = totalHours > 0 ? `${totalHours.toFixed(1)}h` : t("not_available");
   const certCourses = course_recommendations.filter((c) => c.is_certification);
   const freeCourses = course_recommendations.filter((c) => !c.is_certification && (c.cost_usd || 0) === 0);
 
@@ -342,72 +353,65 @@ const UserRecommendPage = () => {
   const tabs = [
     { key: "gaps", label: t("skill_gaps"), icon: Layers, count: skill_gaps.length },
     { key: "courses", label: t("suggested_courses"), icon: BookOpen, count: course_recommendations.length },
-    { key: "videos", label: "Free Tutorials", icon: Video, count: youtube_videos.length },
+    { key: "videos", label: t("free_tutorials"), icon: Video, count: youtube_videos.length },
     { key: "roadmap", label: t("career_roadmap"), icon: Target, count: career_roadmap?.stages?.length ?? 0 },
   ] as const;
 
   return (
-    <div className={styles.pageRoot}>
+    <PageContainer>
+      <PageHeader 
+        title={
+          <>
+            {t("analysis_results_title_1")}{" "}
+            <span className={styles.gradientText}>{t("analysis_results_title_2")}</span>
+          </>
+        }
+        subtitle={t("analysis_subtitle")}
+      />
 
-        {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className={styles.header}>
-          <div className={styles.titleSection}>
-            <div className={styles.badge}>
-              <Globe size={12} />
-              <span className={styles.badgeLabel}>{t("analysis_results_badge")}</span>
-            </div>
-            <h1 className={styles.titleMain}>
-              {t("analysis_results_title_1")}{" "}
-              <span className={styles.gradientText}>{t("analysis_results_title_2")}</span>
-            </h1>
-            <p className={styles.headerSubtitle}>
-              {t("analysis_subtitle")}
-            </p>
-          </div>
-          <div className={styles.controlBar}>
-            <button 
-              onClick={() => {
-                const suggestedSkills = skill_gaps.map(g => g.skill);
-                const context = {
-                  cv_id: gapResult.cv_id,
-                  jd_id: gapResult.job_id || '', 
-                  jd_title: gapResult.jd_context?.split('|')[1]?.trim() || gapResult.jd_context || 'Vị trí hiện tại',
-                  suggested_skills: suggestedSkills,
-                };
-                sessionStorage.setItem("analysis_context", JSON.stringify(context));
-                if (gapResult.cv_id) {
-                  sessionStorage.setItem("target_cv_id", gapResult.cv_id);
-                }
-                router.push("/user/cv");
-              }} 
-              className={cn(styles.refreshBtn, styles.accentBtn)}
-            >
-              <Save size={16} />
-              {t("update_cv")}
-            </button>
-            <button onClick={fetchLatest} className={styles.refreshBtn}>
-              <RefreshCcw size={16} />
-              {t("refresh")}
-            </button>
-            <button 
-              onClick={() => {
-                if (gapResult.job_id) {
-                  router.push(`/user/analysis?job_id=${gapResult.job_id}&auto_run=true`);
-                } else {
-                  router.push(`/user/analysis`);
-                }
-              }} 
-              className={styles.refreshBtn}
-            >
-              <Zap size={16} />
-              {t("re_analyze")}
-            </button>
-            <button onClick={() => router.push("/user/jobs")} className={styles.refreshBtn}>
-              <ChevronLeft size={16} />
-              {t("select_other")}
-            </button>
-          </div>
-        </div>
+      <div className={styles.controlBar}>
+        <button 
+          onClick={() => {
+            const suggestedSkills = skill_gaps.map(g => g.skill);
+            const context = {
+              cv_id: gapResult.cv_id,
+              jd_id: gapResult.job_id || '', 
+              jd_title: gapResult.jd_context?.split('|')[1]?.trim() || gapResult.jd_context || t('current_position'),
+              suggested_skills: suggestedSkills,
+            };
+            sessionStorage.setItem("analysis_context", JSON.stringify(context));
+            if (gapResult.cv_id) {
+              sessionStorage.setItem("target_cv_id", gapResult.cv_id);
+            }
+            router.push("/user/cv");
+          }} 
+          className={cn(styles.refreshBtn, styles.accentBtn)}
+        >
+          <Save size={16} />
+          {t("update_cv")}
+        </button>
+        <button 
+          onClick={handleRefresh} 
+          className={cn(styles.refreshBtn, refreshing && styles.refreshBtnDisabled)}
+          disabled={refreshing}
+        >
+          {refreshing ? <Loader2 size={16} className={styles.spinIcon} /> : <RefreshCcw size={16} />}
+          {t("refresh")}
+        </button>
+        <button 
+          onClick={() => {
+            if (gapResult.job_id) {
+              router.push(`/user/analysis?job_id=${gapResult.job_id}&auto_run=true`);
+            } else {
+              router.push(`/user/analysis`);
+            }
+          }} 
+          className={styles.refreshBtn}
+        >
+          <Zap size={16} />
+          {t("reanalyze")}
+        </button>
+      </div>
 
         {/* ── Match Score Banner ───────────────────────────────────────────── */}
         <div className={styles.matchBanner}>
@@ -582,7 +586,7 @@ const UserRecommendPage = () => {
                 <span className={styles.matchStatLabel}>{t("suggested_course_count")}</span>
               </div>
               <div className={styles.matchStat}>
-                <span className={styles.matchStatValue}>{totalHours.toFixed(1)}h</span>
+                <span className={styles.matchStatValue}>{displayTotalHours}</span>
                 <span className={styles.matchStatLabel}>{t("total_duration")}</span>
               </div>
             </div>
@@ -692,7 +696,7 @@ const UserRecommendPage = () => {
           >
             <Loader2 className={styles.spinIcon} size={16} />
             <span className={styles.processingText}>
-              {processMessage || "AI is searching for more courses and building roadmap..."}
+              {processMessage || t('ai_searching')}
             </span>
           </motion.div>
         )}
@@ -720,7 +724,7 @@ const UserRecommendPage = () => {
                 <div className={styles.impactChartHeader}>
                   <h3 className={styles.impactChartTitle}>
                     <BarChart3 size={18} />
-                    Phân tích tác động kỹ năng
+                    {t('skill_impact_analysis')}
                   </h3>
                 </div>
                 <div className={styles.impactChartContainer}>
@@ -735,7 +739,7 @@ const UserRecommendPage = () => {
                         textStyle: { color: chartTooltipText }
                       },
                       legend: {
-                        data: ['Match Impact (%)', 'Salary Impact (%)'],
+                        data: [t('match_impact'), t('salary_impact')],
                         textStyle: { color: chartTextColor, fontSize: 10 },
                         top: 0
                       },
@@ -764,7 +768,7 @@ const UserRecommendPage = () => {
                       },
                       series: [
                         {
-                          name: 'Match Impact (%)',
+                          name: t('match_impact'),
                           type: 'bar',
                           data: skill_gaps.map(g => g.match_impact || 0).reverse(),
                           itemStyle: {
@@ -781,7 +785,7 @@ const UserRecommendPage = () => {
                           barWidth: '30%'
                         },
                         {
-                          name: 'Salary Impact (%)',
+                          name: t('salary_impact'),
                           type: 'bar',
                           data: skill_gaps.map(g => g.salary_impact || 0).reverse(),
                           itemStyle: {
@@ -801,6 +805,8 @@ const UserRecommendPage = () => {
                     }}
                     style={{ height: '100%', width: '100%' }}
                     opts={{ renderer: 'svg' }}
+                    notMerge={true}
+                    lazyUpdate={true}
                   />
                 </div>
               </div>
@@ -831,13 +837,17 @@ const UserRecommendPage = () => {
                         borderColor: severityColor(gap.severity) + "30",
                       }}
                     >
-                      {gap.severity?.toUpperCase()}
+                      {t(`severity_${gap.severity?.toLowerCase()}` as any)}
                     </span>
                   </div>
                   <div className={styles.gapCardMeta}>
                     {gap.required_level && (
                       <span className={styles.gapLevel}>
-                         Level: <b>{gap.required_level}</b>
+                         {t('level_label')} <b>{
+                           t(`level_${gap.required_level?.toLowerCase()}` as any).startsWith('level_') 
+                           ? gap.required_level 
+                           : t(`level_${gap.required_level?.toLowerCase()}` as any)
+                         }</b>
                       </span>
                     )}
                     <span className={styles.gapMonths}>
@@ -845,7 +855,7 @@ const UserRecommendPage = () => {
                       ~{gap.estimated_months ?? 1} {t("months_short")}
                     </span>
                     {gap.gap_type && <span className={styles.gapType}>{gap.gap_type}</span>}
-                    {gap.is_critical && <span className={styles.criticalTag}>Critical</span>}
+                    {gap.is_critical && <span className={styles.criticalTag}>{t('critical')}</span>}
                   </div>
 
                   {/* Impact Values - NEW */}
@@ -854,13 +864,13 @@ const UserRecommendPage = () => {
                       {!!gap.match_impact && (
                         <span className={styles.impactBadge} style={{ background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
                           <Target size={12} />
-                          +{gap.match_impact}% match
+                          +{gap.match_impact}% {t('match')}
                         </span>
                       )}
                       {!!gap.salary_impact && (
                         <span className={styles.impactBadge} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
                           <TrendingUp size={12} />
-                          +{gap.salary_impact}% salary
+                          +{gap.salary_impact}% {t('salary_text')}
                         </span>
                       )}
                     </div>
@@ -915,7 +925,7 @@ const UserRecommendPage = () => {
               {youtube_videos.length === 0 ? (
                 <div className={styles.emptySection}>
                   <Video size={40} className={styles.emptyIcon} />
-                  <p>No free tutorials found yet.</p>
+                  <p>{t('no_tutorials')}</p>
                 </div>
               ) : (
                 youtube_videos.map((vid: any, idx: number) => (
@@ -994,7 +1004,7 @@ const UserRecommendPage = () => {
                              {stage.milestones?.map((m, mi) => (
                                <div key={mi} className={styles.roadmapMilestoneItem}>
                                   <CheckCircle2 size={10} className={styles.milestoneCheck} />
-                                  <span>Week {m.week}: {m.milestone}</span>
+                                  <span>{t('week_text')} {m.week}: {m.milestone}</span>
                                </div>
                              ))}
                           </div>
@@ -1027,7 +1037,16 @@ const UserRecommendPage = () => {
             {t("ai_suggestion_text")}
           </p>
         </div>
-      </div>
+
+        {/* ── Feedback Section ────────────────────────────────────────────── */}
+        {gapResult && gapResult.analysis_id && (
+          <FeedbackSection 
+            analysisId={gapResult.analysis_id} 
+            hasFeedback={gapResult.has_feedback}
+            isCached={gapResult.is_cached}
+          />
+        )}
+      </PageContainer>
   );
 };
 

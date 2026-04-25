@@ -6,13 +6,14 @@ import { Sparkles, Clock, ShieldCheck, Mail } from 'lucide-react';
 import styles from './maintenance-overlay.module.css';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { UserRole } from '@/types/roles';
 
 export default function MaintenanceOverlay() {
   const { maintenanceMode, maintenanceDuration, user } = useAuth();
   const { t } = useLanguage();
   
   // If not in maintenance mode, or if user is admin, don't show overlay
-  if (!maintenanceMode || user?.role === 'admin') {
+  if (!maintenanceMode || user?.role === UserRole.ADMIN) {
     return null;
   }
 

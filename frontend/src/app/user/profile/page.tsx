@@ -5,9 +5,13 @@ import styles from "./user-profile.module.css";
 import { User, Lock, Mail, ShieldCheck, Save, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 
 export default function ProfilePage() {
-  const { token, user: authUser } = useAuth();
+  const { token } = useAuth();
+  const { t } = useLanguage();
   const [profile, setProfile] = useState({
     email: "",
     full_name: "",
@@ -39,7 +43,7 @@ export default function ProfilePage() {
         full_name: res.data.full_name || "",
       });
     } catch (err: any) {
-      setError("Không thể tải thông tin cá nhân.");
+      setError(t("profile_load_error"));
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +56,7 @@ export default function ProfilePage() {
 
     // Validate passwords if provided
     if (passwords.newPassword && passwords.newPassword !== passwords.confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp.");
+      setError(t("profile_confirm_password_mismatch"));
       return;
     }
 
@@ -68,10 +72,10 @@ export default function ProfilePage() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setSuccess("Cập nhật thông tin thành công!");
+      setSuccess(t("profile_update_success"));
       setPasswords({ oldPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Đã xảy ra lỗi khi cập nhật.");
+      setError(err.response?.data?.detail || t("auth_error"));
     } finally {
       setIsSaving(false);
     }
@@ -86,20 +90,20 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className={styles.pageRoot}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Your Profile</h1>
-        <p className={styles.subtitle}> Quản lý thông tin cá nhân và cài đặt bảo mật của bạn </p>
-      </header>
+    <PageContainer>
+      <PageHeader 
+        title={t("profile_title")}
+        subtitle={t("profile_subtitle")}
+      />
 
       <form onSubmit={handleUpdateProfile} className={styles.profileCard}>
         <div className={styles.cardSection}>
           <h2 className={styles.sectionTitle}>
-            <User size={16} /> Thông tin cơ bản
+            <User size={16} /> {t("profile_basic_info")}
           </h2>
           
           <div className={styles.inputGroup}>
-            <label className={styles.label}>Địa chỉ Email</label>
+            <label className={styles.label}>{t("profile_email_label")}</label>
             <div className={styles.inputWrapper}>
               <Mail className={styles.inputIcon} size={18} />
               <input 
@@ -112,15 +116,16 @@ export default function ProfilePage() {
           </div>
 
           <div className={styles.inputGroup}>
-            <label className={styles.label}>Tên hiển thị</label>
+            <label className={styles.label}>{t("profile_name_label")}</label>
             <div className={styles.inputWrapper}>
               <User className={styles.inputIcon} size={18} />
               <input 
                 type="text" 
-                placeholder="Nhập tên của bạn"
+                placeholder={t("profile_name_placeholder")}
                 value={profile.full_name}
                 onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
                 className={styles.input}
+                maxLength={255}
               />
             </div>
           </div>
@@ -128,47 +133,52 @@ export default function ProfilePage() {
 
         <div className={styles.cardSection}>
           <h2 className={styles.sectionTitle}>
-            <Lock size={16} /> Thay đổi mật khẩu
+            <Lock size={16} /> {t("profile_security_title")}
           </h2>
 
           <div className={styles.inputGroup}>
-            <label className={styles.label}>Mật khẩu hiện tại</label>
+            <label className={styles.label}>{t("profile_old_password_label")}</label>
             <div className={styles.inputWrapper}>
               <Lock className={styles.inputIcon} size={18} />
               <input 
                 type="password" 
-                placeholder="Bắt buộc nếu muốn đổi mật khẩu"
+                placeholder={t("profile_old_password_placeholder")}
                 value={passwords.oldPassword}
                 onChange={(e) => setPasswords({ ...passwords, oldPassword: e.target.value })}
                 className={styles.input}
+                maxLength={128}
               />
             </div>
           </div>
           
           <div className={styles.inputGroup}>
-            <label className={styles.label}>Mật khẩu mới</label>
+            <label className={styles.label}>{t("profile_new_password_label")}</label>
             <div className={styles.inputWrapper}>
               <ShieldCheck className={styles.inputIcon} size={18} />
               <input 
                 type="password" 
-                placeholder="Để trống nếu không muốn thay đổi"
+                placeholder={t("profile_new_password_placeholder")}
                 value={passwords.newPassword}
                 onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
                 className={styles.input}
+                maxLength={128}
+                minLength={8}
               />
             </div>
           </div>
 
           <div className={styles.inputGroup}>
-            <label className={styles.label}>Xác nhận mật khẩu mới</label>
+            <label className={styles.label}>{t("profile_confirm_password_label")}</label>
             <div className={styles.inputWrapper}>
               <Lock className={styles.inputIcon} size={18} />
               <input 
                 type="password" 
-                placeholder="Nhập lại mật khẩu mới"
+                placeholder={t("profile_confirm_password_placeholder")}
                 value={passwords.confirmPassword}
                 onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
                 className={styles.input}
+                maxLength={128}
+                minLength={8}
               />
             </div>
           </div>
@@ -199,10 +209,10 @@ export default function ProfilePage() {
             ) : (
               <Save size={16} />
             )}
-            Lưu thay đổi
+            {t("profile_save_btn")}
           </button>
         </div>
       </form>
-    </div>
+    </PageContainer>
   );
 }

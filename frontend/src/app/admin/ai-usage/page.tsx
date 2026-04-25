@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
-import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { 
   Cpu, 
@@ -10,19 +10,19 @@ import {
   Users, 
   Database, 
   Clock, 
-  AlertTriangle,
   BarChart3,
-  Search,
   RefreshCw,
-  Zap,
-  Mail 
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
+import PageHeader from "@/components/common/PageHeader";
 import styles from "../admin-dashboard.module.css";
+import localStyles from "./ai-usage.module.css";
+import PageContainer from "@/components/common/PageContainer";
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, 
-  CartesianGrid, Tooltip, BarChart, Bar 
+  CartesianGrid, Tooltip 
 } from "recharts";
 import { format } from "date-fns";
 
@@ -41,18 +41,12 @@ const AIUsagePage = () => {
     setRefreshing(true);
     try {
       const [statsRes, logsRes, seriesRes] = await Promise.all([
-        axios.get("/api/analysis/admin/llm-stats", {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get("/api/analysis/admin/llm-logs?limit=20", {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`/api/analysis/admin/llm-usage-series?period=${period}&days=${days}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        api.get("/admin/stats/llm/summary"),
+        api.get("/admin/stats/llm/logs?limit=20"),
+        api.get(`/analysis/admin/llm-usage-series?period=${period}&days=${days}`)
       ]);
       setStats(statsRes.data);
-      setLogs(logsRes.data.items);
+      setLogs(logsRes.data);
       setUsageSeries(seriesRes.data);
     } catch (err) {
       console.error("Fetch AI usage error:", err);
@@ -76,17 +70,14 @@ const AIUsagePage = () => {
 
   return (
     <AuthGuard requireAdmin>
-      <div className={styles.pageRoot}>
+      <PageContainer>
         {/* Header Section */}
-        <div className={styles.headerWrapper}>
-          <div>
-            <h1 className={styles.headerTitle}>
-              <Cpu className={styles.insightIcon} size={48} /> {t("nav_monitor")}
-            </h1>
-            <p className={styles.headerSubtitle}>
-              Track token consumption and performance across all AI models.
-            </p>
-          </div>
+        <PageHeader
+          title={t("nav_monitor")}
+          subtitle={t("admin_ai_desc")}
+          compact
+          showAccent={false}
+        >
           <button 
             onClick={fetchData}
             disabled={refreshing}
@@ -97,31 +88,31 @@ const AIUsagePage = () => {
               {refreshing ? t("admin_settings_refreshing") : t("admin_settings_refresh_data")}
             </span>
           </button>
-        </div>
+        </PageHeader>
 
         {/* Quick Stats Grid */}
         <div className={styles.statsGrid}>
           <StatCard 
-            label="Total Calls" 
+            label={t("admin_ai_total_calls")} 
             value={stats?.summary?.total_calls?.toLocaleString()} 
             icon={Activity} 
             color="#10b981" 
           />
           <StatCard 
-            label="Total Tokens" 
-            value={stats?.summary?.total_tokens?.toLocaleString()} 
+            label={t("admin_ai_total_tokens")} 
+            value={stats?.total_tokens?.toLocaleString()} 
             icon={Zap} 
             color="#f59e0b" 
           />
           <StatCard 
-            label="Avg Latency" 
-            value={`${stats?.summary?.avg_latency_ms}ms`} 
+            label={t("admin_ai_avg_latency")} 
+            value={`${Math.round(stats?.avg_latency_ms || 0)}ms`} 
             icon={Clock} 
             color="#0ea5e9" 
           />
           <StatCard 
-            label="Est. Cost" 
-            value={`~$${((stats?.summary?.total_tokens || 0) / 1000000 * 0.5).toFixed(2)}`} 
+            label={t("admin_ai_est_cost")} 
+            value={`$${stats?.total_cost_usd?.toFixed(4)}`} 
             icon={BarChart3} 
             color="#ec4899" 
           />
@@ -129,42 +120,42 @@ const AIUsagePage = () => {
 
         {/* Chart Section */}
         <div className={cn(styles.statCard, "p-8 mb-8")}>
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
-            <h2 className="text-2xl font-extrabold flex items-center gap-3 text-[var(--color-text-main)]">
-              <BarChart3 size={28} className="text-emerald-500" /> Usage Trends
+          <div className={localStyles.chartHeader}>
+            <h2 className={localStyles.chartTitle}>
+              <BarChart3 size={28} className="text-emerald-500" /> {t("admin_ai_usage_trends")}
             </h2>
-            <div className="flex flex-wrap items-center gap-4 bg-black/5 dark:bg-white/5 p-2 rounded-2xl">
-              <div className="flex bg-black/10 dark:bg-white/10 p-1 rounded-xl">
+            <div className={localStyles.chartControls}>
+              <div className={localStyles.periodToggle}>
                 <button 
                   onClick={() => { setPeriod('hour'); setDays(1); }}
                   className={cn(
-                    "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
-                    period === 'hour' ? "bg-emerald-500 text-white shadow-lg" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]"
+                    localStyles.toggleBtn,
+                    period === 'hour' ? localStyles.toggleBtnActive : localStyles.toggleBtnInactive
                   )}
                 >
-                  Hourly
+                  {t("admin_ai_hourly")}
                 </button>
                 <button 
                   onClick={() => setPeriod('day')}
                   className={cn(
-                    "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
-                    period === 'day' ? "bg-emerald-500 text-white shadow-lg" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]"
+                    localStyles.toggleBtn,
+                    period === 'day' ? localStyles.toggleBtnActive : localStyles.toggleBtnInactive
                   )}
                 >
-                  Daily
+                  {t("admin_ai_daily")}
                 </button>
               </div>
               
-              <div className="h-6 w-[1px] bg-white/10" />
+              <div className={localStyles.divider} />
 
-              <div className="flex gap-1">
+              <div className={localStyles.daysSelector}>
                 {[7, 30, 90].map((d) => (
                   <button
                     key={d}
                     onClick={() => { setDays(d); if (period === 'hour') setPeriod('day'); }}
                     className={cn(
-                      "px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all",
-                      days === d && period === 'day' ? "text-emerald-500 bg-emerald-500/10" : "text-[var(--color-text-muted)] hover:bg-white/5"
+                      localStyles.dayBtn,
+                      days === d && period === 'day' ? localStyles.dayBtnActive : localStyles.dayBtnInactive
                     )}
                   >
                     {d}D
@@ -233,24 +224,24 @@ const AIUsagePage = () => {
           <div className="col-span-12 lg:col-span-4 space-y-6">
             <div className={cn(styles.statCard, "p-8")}>
               <h2 className="text-xl font-extrabold mb-6 flex items-center gap-3 text-[var(--color-text-main)]">
-                <Database size={24} className="text-emerald-500" /> Usage by Model
+                <Database size={24} className="text-emerald-500" /> {t("admin_ai_by_model")}
               </h2>
               <div className="space-y-6">
-                {stats?.by_model?.map((m: any) => (
-                  <div key={m.model_id} className="p-4 bg-black/5 dark:bg-white/5 rounded-2xl">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="font-bold text-emerald-500">{m.model_id}</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">{m.calls} calls</span>
+                {stats?.model_breakdown?.map((m: any) => (
+                  <div key={m.model} className={localStyles.modelCard}>
+                    <div className={localStyles.modelHeader}>
+                      <span className={localStyles.modelName}>{m.model}</span>
+                      <span className={localStyles.modelCalls}>{m.calls} {t("admin_ai_calls")}</span>
                     </div>
-                    <div className="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full overflow-hidden">
+                    <div className={localStyles.progressBar}>
                       <div 
-                        className="bg-emerald-500 h-full rounded-full" 
-                        style={{ width: `${(m.tokens / stats.summary.total_tokens * 100) || 0}%` }}
+                        className={localStyles.progressFill} 
+                        style={{ width: `${(m.tokens / stats.total_tokens * 100) || 0}%` }}
                       ></div>
                     </div>
-                    <div className="flex justify-between mt-2 text-[10px] font-bold text-[var(--color-text-muted)]">
-                      <span>{m.tokens.toLocaleString()} tokens</span>
-                      <span>{Math.round((m.tokens / stats.summary.total_tokens * 100) || 0)}%</span>
+                    <div className={localStyles.modelFooter}>
+                      <span>{m.tokens.toLocaleString()} {t("admin_ai_tokens_cost")} {m.cost_usd}</span>
+                      <span>{Math.round((m.tokens / stats.total_tokens * 100) || 0)}%</span>
                     </div>
                   </div>
                 ))}
@@ -259,20 +250,20 @@ const AIUsagePage = () => {
 
             <div className={cn(styles.statCard, "p-8")}>
               <h2 className="text-xl font-extrabold mb-6 flex items-center gap-3 text-[var(--color-text-main)]">
-                <Users size={24} className="text-blue-500" /> Top Consumers
+                <Users size={24} className="text-blue-500" /> {t("admin_ai_top_users")}
               </h2>
               <div className="space-y-4">
                 {stats?.top_users?.map((u: any, idx: number) => (
-                  <div key={u.email} className="flex items-center justify-between p-3 hover:bg-black/5 dark:hover:bg-white/5 rounded-2xl transition-colors">
+                  <div key={u.email} className={localStyles.userCard}>
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center text-xs font-black">
+                      <div className={localStyles.userRank}>
                         {idx + 1}
                       </div>
-                      <div className="truncate w-32 md:w-40 text-sm font-bold text-[var(--color-text-main)]">{u.email}</div>
+                      <div className={localStyles.userEmail}>{u.email}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-extrabold text-[var(--color-text-main)]">{u.tokens.toLocaleString()}</div>
-                      <div className="text-[10px] font-bold text-[var(--color-text-muted)]">{u.calls} calls</div>
+                      <div className={localStyles.userTokens}>{u.tokens.toLocaleString()}</div>
+                      <div className={localStyles.userCalls}>{u.calls} {t("admin_ai_calls")}</div>
                     </div>
                   </div>
                 ))}
@@ -285,44 +276,44 @@ const AIUsagePage = () => {
             <div className={cn(styles.statCard, "p-8 h-full")}>
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-2xl font-extrabold flex items-center gap-4 text-[var(--color-text-main)]">
-                  <Activity size={28} className="text-pink-500" /> Recent AI Activity
+                  <Activity size={28} className="text-pink-500" /> {t("admin_ai_recent_activity")}
                 </h2>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
+              <div className={localStyles.tableWrapper}>
+                <table className={localStyles.table}>
                   <thead>
-                    <tr className="text-[var(--color-text-muted)] border-b border-[var(--color-border-subtle)] text-xs font-black uppercase tracking-widest">
-                      <th className="pb-4">Model / Type</th>
-                      <th className="pb-4">User</th>
-                      <th className="pb-4 text-right">Tokens</th>
-                      <th className="pb-4 text-right">Latency</th>
-                      <th className="pb-4 text-center">Status</th>
+                    <tr className={localStyles.thead}>
+                      <th className={localStyles.th}>{t("admin_ai_model_type")}</th>
+                      <th className={localStyles.th}>{t("admin_ai_user")}</th>
+                      <th className={cn(localStyles.th, "text-right")}>{t("admin_ai_tokens")}</th>
+                      <th className={cn(localStyles.th, "text-right")}>{t("admin_ai_latency")}</th>
+                      <th className={cn(localStyles.th, "text-center")}>{t("admin_ai_status")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--color-border-subtle)]">
                     {logs.map((log) => (
-                      <tr key={log.id} className="group hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                        <td className="py-5">
-                          <div className="font-extrabold text-[var(--color-text-main)]">{log.model_id}</div>
-                          <div className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-tight">{log.call_type.replace(/_/g, ' ')}</div>
+                      <tr key={log.id} className={localStyles.tr}>
+                        <td className={localStyles.td}>
+                          <div className={localStyles.modelId}>{log.model_id}</div>
+                          <div className={localStyles.callType}>{log.call_type.replace(/_/g, ' ')}</div>
                         </td>
-                        <td className="py-5">
+                        <td className={localStyles.td}>
                           <div className="text-sm font-bold text-[var(--color-text-main)] truncate w-32">{log.user_email}</div>
                           <div className="text-[10px] font-medium text-[var(--color-text-muted)]">
                             {new Date(log.created_at).toLocaleString()}
                           </div>
                         </td>
-                        <td className="py-5 text-right">
+                        <td className={cn(localStyles.td, "text-right")}>
                           <div className="text-sm font-extrabold text-[var(--color-text-main)]">{log.total_tokens.toLocaleString()}</div>
-                          <div className="text-[10px] font-bold text-[var(--color-text-muted)]">P:{log.prompt_tokens} C:{log.completion_tokens}</div>
+                          <div className="text-[10px] font-bold text-[var(--color-text-muted)]">{t("admin_ai_prompt")}{log.prompt_tokens} {t("admin_ai_completion")}{log.completion_tokens}</div>
                         </td>
-                        <td className="py-5 text-right text-sm font-bold text-[var(--color-text-main)]">
+                        <td className={cn(localStyles.td, "text-right text-sm font-bold text-[var(--color-text-main)]")}>
                           {log.latency_ms}ms
                         </td>
-                        <td className="py-5 text-center">
+                        <td className={cn(localStyles.td, "text-center")}>
                           <span className={cn(
-                            "px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest",
-                            log.status === "success" ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
+                            localStyles.statusBadge,
+                            log.status === "success" ? localStyles.statusSuccess : localStyles.statusError
                           )}>
                             {log.status}
                           </span>
@@ -335,7 +326,7 @@ const AIUsagePage = () => {
             </div>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </AuthGuard>
   );
 };

@@ -136,7 +136,42 @@ def scrape_coursera_course(url):
     if tool_tags:
         tools = [t.get_text().strip() for t in tool_tags]
 
-    # 4. Thời gian (Duration) & 5. Trình độ (Level)
+    # 4. Thời gian (Duration) - Multiple fallback sources
+    if not duration_hours:
+        # Fallback 1: Tìm trong text "Approx. X hours"
+        duration_text = soup.find(text=re.compile(r'(?:Approx\.?\s*)?(\d+)\s*(?:hours?|hrs?)', re.IGNORECASE))
+        if duration_text:
+            h_match = re.search(r'(\d+)\s*(?:hours?|hrs?)', str(duration_text), re.IGNORECASE)
+            if h_match:
+                duration_hours = float(h_match.group(1))
+        
+        # Fallback 2: Tìm "X weeks at Y hours/week"
+        if not duration_hours:
+            weeks_text = soup.find(text=re.compile(r'(\d+)\s*weeks?\s*at\s*(\d+)\s*hours?', re.IGNORECASE))
+            if weeks_text:
+                w_match = re.search(r'(\d+)\s*weeks?\s*at\s*(\d+)\s*hours?', str(weeks_text), re.IGNORECASE)
+                if w_match:
+                    weeks = int(w_match.group(1))
+                    hours_per_week = int(w_match.group(2))
+                    duration_hours = weeks * hours_per_week
+        
+        # Fallback 3: Estimate from modules (2 hours per module)
+        if not duration_hours and modules_from_json:
+            duration_hours = len(modules_from_json) * 2.0
+        
+        # Fallback 4: Default by level
+        if not duration_hours and level:
+            level_lower = level.lower()
+            if 'beginner' in level_lower:
+                duration_hours = 10.0
+            elif 'intermediate' in level_lower or 'mid' in level_lower:
+                duration_hours = 20.0
+            elif 'advanced' in level_lower or 'expert' in level_lower:
+                duration_hours = 30.0
+            else:
+                duration_hours = 15.0  # Default
+    
+    # 5. Trình độ (Level)
     # Nếu level đã lấy từ JSON-LD thì dùng luôn, nếu không thì quét regex
     
     # Quét toàn văn bản để tìm các mẫu đặc trưng

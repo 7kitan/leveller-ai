@@ -11,12 +11,13 @@ from shared.database import get_db
 from shared.redis_client import result_cache
 from shared.schemas import PaginatedResponse
 from shared.taxonomy_service import taxonomy_service
-from shared.models import User, UserAnalysis, UserFeedback, Job, UserCV
-from pydantic import BaseModel
+from shared.models import User, UserAnalysis, UserFeedback, Job, UserCV, UserRole
+from pydantic import BaseModel, Field, validator
 from typing import Optional, List
 import uuid
 import json
 import logging
+import re
 from datetime import datetime, timezone
 from worker.celery_app import celery_app
 from celery.result import AsyncResult
@@ -35,14 +36,62 @@ async def startup_event():
 logger = logging.getLogger("analysis_service")
 
 
+# ─── SECURITY: Prompt Injection Detection ─────────────────────────────────────
+
+INJECTION_PATTERNS = [
+    r"ignore\s+(all\s+)?previous\s+instructions",
+    r"disregard\s+(all\s+)?previous",
+    r"forget\s+(all\s+)?previous",
+    r"new\s+instructions?:",
+    r"system\s*:\s*you\s+are",
+    r"override\s+system",
+    r"bypass\s+security",
+]
+
+
+def detect_prompt_injection(text: str) -> bool:
+    """
+    SECURITY: Detect potential prompt injection attempts in user input.
+    
+    Args:
+        text: User-provided text to check
+        
+    Returns:
+        True if suspicious patterns detected, False otherwise
+    """
+    if not text:
+        return False
+    
+    text_lower = text.lower()
+    for pattern in INJECTION_PATTERNS:
+        if re.search(pattern, text_lower):
+            logger.warning(
+                f"[PROMPT INJECTION DETECTED] Pattern: {pattern} | "
+                f"Text preview: {text[:200]}..."
+            )
+            return True
+    
+    return False
+
+
 # ─── Pydantic Schemas ────────────────────────────────────────────────
 
 
 class GapRequest(BaseModel):
     cv_id: uuid.UUID
     job_id: Optional[uuid.UUID] = None
-    jd_text: Optional[str] = None
-    force: bool = False  # If true, bypass ALL caches and recompute
+    jd_text: Optional[str] = Field(None, max_length=50000)
+    force: bool = False  # If true, bypass cache and force re-analysis
+    
+    @validator('jd_text')
+    def validate_jd_text(cls, v):
+        """SECURITY: Detect prompt injection attempts in JD text."""
+        if v and detect_prompt_injection(v):
+            raise ValueError(
+                'Suspicious content detected in job description. '
+                'Please remove any instructions or system commands.'
+            )
+        return v
 
 
 class FeedbackRequest(BaseModel):
@@ -51,8 +100,15 @@ class FeedbackRequest(BaseModel):
     analysis_id: str
     rating: int
     is_accurate: bool
-    missing_skills: List[str] = []
-    comment: Optional[str] = None
+    missing_skills: List[str] = Field(default_factory=list, max_items=20)
+    comment: Optional[str] = Field(None, max_length=1000)
+    
+    @validator('missing_skills')
+    def validate_skills(cls, v):
+        for skill in v:
+            if len(skill) > 50:
+                raise ValueError('Skill name must be 50 characters or less')
+        return v
 
 
 class SimulateRequest(BaseModel):
@@ -124,6 +180,54 @@ async def start_gap_analysis(
             status_code=400,
             detail=f"CV chưa hoàn tất phân tích (status={cv.status}). Vui lòng đợi CV được xử lý xong.",
         )
+
+    # ── CACHE CHECK: Return cached analysis if available ──────────────────
+    # Only cache when job_id is provided (not jd_text - custom JD can't be cached reliably)
+    if not req.force and req.job_id:
+        job = db.query(Job).filter(Job.id == req.job_id).first()
+        if job:
+            # Find existing analysis that is newer than both CV and Job updates
+            cached_analysis = db.query(UserAnalysis).filter(
+                UserAnalysis.user_id == uuid.UUID(user_id),
+                UserAnalysis.cv_id == req.cv_id,
+                UserAnalysis.job_id == req.job_id,
+                UserAnalysis.created_at > cv.updated_at,  # Analysis after CV update
+                UserAnalysis.created_at > job.updated_at   # Analysis after Job update
+            ).order_by(UserAnalysis.created_at.desc()).first()
+            
+            if cached_analysis:
+                logger.info(
+                    f"[CACHE HIT] Returning cached analysis\n"
+                    f"  analysis_id   : {cached_analysis.id}\n"
+                    f"  cached_at     : {cached_analysis.created_at}\n"
+                    f"  cv_updated    : {cv.updated_at}\n"
+                    f"  job_updated   : {job.updated_at}\n"
+                    f"  match_score   : {cached_analysis.match_score}"
+                )
+                
+                # Return cached result with metadata
+                result = cached_analysis.result_json or {}
+                result["analysis_id"] = str(cached_analysis.id)
+                result["is_cached"] = True
+                result["cached_at"] = cached_analysis.created_at.isoformat()
+                
+                # Check if user already provided feedback
+                has_fb = db.query(UserFeedback).filter(
+                    UserFeedback.analysis_id == str(cached_analysis.id)
+                ).first() is not None
+                result["has_feedback"] = has_fb
+                
+                return {
+                    "task_id": None,
+                    "status": "cached",
+                    "result": result
+                }
+        else:
+            logger.warning(f"[CACHE CHECK] Job {req.job_id} not found, proceeding with analysis")
+    elif req.force:
+        logger.info(f"[CACHE BYPASS] force=True, skipping cache check")
+    elif req.jd_text:
+        logger.info(f"[CACHE SKIP] Custom JD text provided, cache not applicable")
 
     # ── Check Daily Quota (Unified QuotaManager) ──────────────────
     from shared.queue_utils import get_queue_length
@@ -208,7 +312,8 @@ async def get_task_status(task_id: str):
             "status": "processing",
             "progress": res.info.get("percent", 0),
             "message": res.info.get("message", "Processing..."),
-            "partial_result": res.info.get("partial_result")
+            "partial_result": res.info.get("partial_result"),
+            "is_cached": res.info.get("is_cached", False)
         }
 
     return {"status": "processing"}
@@ -298,6 +403,12 @@ async def get_latest_analysis(request: Request, db: Session = Depends(get_db)):
                     result["potential_match_pct"] = min(98, current_match + math.log2(course_count + 1) * 6.5)
                     result["salary_growth_pct"] = min(35, math.log2(course_count + 1) * 5.5 + 5)
                     result["market_sentiment"] = "Ổn định"
+
+        # Check if user already provided feedback for this specific analysis record
+        has_fb = db.query(UserFeedback).filter(UserFeedback.analysis_id == str(analysis.id)).first() is not None
+        result["has_feedback"] = has_fb
+        result["analysis_id"] = str(analysis.id)
+        # Note: is_cached flag is set during computation, not when fetching from DB
 
     return result
 
@@ -580,6 +691,14 @@ async def submit_feedback(
     # Validate rating 1-5
     if not (1 <= req.rating <= 5):
         raise HTTPException(status_code=400, detail="Rating must be 1-5")
+
+    # [SPEC 2.1] Prevent duplicate feedback for the same analysis
+    existing = db.query(UserFeedback).filter(
+        UserFeedback.analysis_id == req.analysis_id,
+        UserFeedback.user_id == uuid.UUID(user_id)
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Bạn đã gửi phản hồi cho phân tích này rồi.")
 
     fb = UserFeedback(
         user_id=uuid.UUID(user_id),
@@ -908,7 +1027,7 @@ async def admin_test_llm(request: Request):
 
 
 def check_admin(request: Request):
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
 
@@ -1115,6 +1234,53 @@ async def admin_get_stats(request: Request, db: Session = Depends(get_db)):
         "cvs": cv_count,
         "jobs": job_count,
         "marketFits": round(float(avg_fit), 1)
+    }
+
+
+@app.get("/analysis/admin/feedback", response_model=PaginatedResponse[dict])
+async def admin_get_feedback(
+    request: Request,
+    db: Session = Depends(get_db),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    rating: Optional[int] = Query(None),
+    is_accurate: Optional[bool] = Query(None)
+):
+    """Admin only: Xem toàn bộ phản hồi của người dùng."""
+    check_admin(request)
+    from shared.models import UserFeedback
+    
+    query = db.query(UserFeedback, User.email).outerjoin(User, User.id == UserFeedback.user_id)
+    
+    if rating is not None:
+        query = query.filter(UserFeedback.rating == rating)
+    if is_accurate is not None:
+        query = query.filter(UserFeedback.is_accurate == is_accurate)
+        
+    total = query.count()
+    results = query.order_by(UserFeedback.created_at.desc()).offset(offset).limit(limit).all()
+    
+    items = [
+        {
+            "id": str(fb.id),
+            "user_email": email or "Unknown",
+            "analysis_id": fb.analysis_id,
+            "rating": fb.rating,
+            "is_accurate": fb.is_accurate,
+            "missing_skills": fb.missing_skills,
+            "comment": fb.comment,
+            "created_at": fb.created_at.isoformat(),
+        }
+        for fb, email in results
+    ]
+    
+    return {
+        "items": items,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "page": (offset // limit) + 1,
+        "pages": (total + limit - 1) // limit
     }
 
 
@@ -1344,3 +1510,11 @@ async def optimize_cv_suggestions(req: OptimizeCVRequest, request: Request, db: 
         return data
     except:
         return {"error": "Failed to parse AI response", "raw": response}
+
+
+# ─── Health Check ───────────────────────────────────────────────────────────
+
+@app.get("/analysis/health")
+def health_check():
+    """Health check endpoint for Docker and monitoring."""
+    return {"status": "ok", "service": "analysis_service"}

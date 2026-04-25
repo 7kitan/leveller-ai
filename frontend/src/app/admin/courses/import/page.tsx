@@ -28,6 +28,9 @@ import {
 import { cn } from "@/lib/utils";
 import styles from "./admin-import.module.css";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/context/LanguageContext";
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 import Link from "next/link";
 
 interface CrawledData {
@@ -60,6 +63,7 @@ interface ImportResult {
 }
 
 const TagEditor = ({ tags, onChange, label, icon: Icon, colorClass = "" }: { tags: string[], onChange: (newTags: string[]) => void, label: string, icon: any, colorClass?: string }) => {
+  const { t } = useLanguage();
   const [inputValue, setInputValue] = useState("");
 
   const handleAdd = () => {
@@ -87,7 +91,7 @@ const TagEditor = ({ tags, onChange, label, icon: Icon, colorClass = "" }: { tag
         ))}
         <input 
           className={styles.addTagInput}
-          placeholder="Thêm mới..."
+          placeholder={t("admin_courses_form_add_tag")}
           value={inputValue}
           onChange={e => setInputValue(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAdd())}
@@ -100,6 +104,7 @@ const TagEditor = ({ tags, onChange, label, icon: Icon, colorClass = "" }: { tag
 
 const CourseImportPage = () => {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const [urlsText, setUrlsText] = useState("");
   const [results, setResults] = useState<ImportResult[]>([]);
   const [isSavingAll, setIsSavingAll] = useState(false);
@@ -118,7 +123,7 @@ const CourseImportPage = () => {
     const lines = urlsText.split("\n").map(l => l.trim()).filter(l => l && l.includes("coursera.org"));
     
     if (lines.length === 0) {
-      showNotification("Vui lòng nhập ít nhất một URL Coursera hợp lệ", "error");
+      showNotification(t("admin_courses_import_valid_url_error"), "error");
       return;
     }
 
@@ -143,7 +148,7 @@ const CourseImportPage = () => {
         const taskId = resp.data.task_id;
         pollStatus(res.url, taskId);
       } catch (err) {
-        updateResult(res.url, { status: 'error', error: "Lỗi khởi tạo crawler" });
+        updateResult(res.url, { status: 'error', error: t("admin_courses_import_error_init") });
       }
     });
   };
@@ -169,7 +174,7 @@ const CourseImportPage = () => {
         } else if (resp.data.status === "failed") {
           updateResult(url, { 
             status: 'error', 
-            error: resp.data.error || "Lỗi hệ thống" 
+            error: resp.data.error || t("admin_courses_import_error_system") 
           });
           clearInterval(interval);
         }
@@ -228,7 +233,7 @@ const CourseImportPage = () => {
         }
       });
       
-      showNotification(`Đã lưu "${d.name}" thành công!`);
+      showNotification(t("admin_courses_import_save_success").replace("{name}", d.name));
       setResults(prev => prev.filter(r => r.url !== url));
     } catch (err) {
       const msg = axios.isAxiosError(err) ? err.response?.data?.detail : "Lỗi khi lưu";
@@ -273,7 +278,7 @@ const CourseImportPage = () => {
         }
       });
       
-      showNotification(`Đã lưu thành công ${validResults.length} khóa học!`);
+      showNotification(t("admin_courses_import_bulk_success").replace("{count}", validResults.length.toString()));
       setResults(prev => prev.filter(r => r.status !== 'success'));
     } catch (err) {
       const msg = axios.isAxiosError(err) ? err.response?.data?.detail : "Lỗi khi lưu hàng loạt";
@@ -288,30 +293,27 @@ const CourseImportPage = () => {
 
   return (
     <AuthGuard requireAdmin>
-      <div className={styles.pageRoot}>
-        <div className={styles.header}>
-            <div className="flex flex-col gap-2">
-              <Link href="/admin/courses" className={styles.backBtn}>
-                <ArrowLeft size={18} /> Quay lại danh sách
-              </Link>
-              <h1 className={styles.title}>
-                <Globe size={40} className="text-blue-500" />
-                <span>Course Importer PRO</span>
-              </h1>
-              <p className={styles.subtitle}>Click vào từng khóa học để xem/sửa chi tiết trước khi lưu.</p>
-            </div>
-        </div>
+      <PageContainer>
+        <PageHeader 
+          title="Course Importer PRO"
+          subtitle={t("admin_courses_import_subtitle")}
+        >
+          <Link href="/admin/courses" className={styles.backBtn}>
+            <ArrowLeft size={18} /> {t("admin_courses_import_back")}
+          </Link>
+        </PageHeader>
 
         <div className={styles.importContainer}>
           <div className={styles.inputSection}>
-             <h3>Nhập Danh Sách Link Coursera</h3>
+             <h3>{t("admin_courses_import_title")}</h3>
              <div className={styles.urlInputGroup}>
                <textarea 
                  className={styles.urlTextarea}
-                 placeholder="Một URL trên mỗi dòng..."
+                 placeholder={t("admin_courses_import_placeholder")}
                  value={urlsText}
                  onChange={e => setUrlsText(e.target.value)}
                  disabled={isProcessing}
+                 maxLength={50000}
                />
                <button 
                  className={styles.crawlBtn} 
@@ -319,7 +321,7 @@ const CourseImportPage = () => {
                  disabled={isProcessing || !urlsText.trim()}
                >
                  {isProcessing ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
-                 {isProcessing ? "Đang Xử Lý..." : "Crawl Tất Cả"}
+                 {isProcessing ? t("admin_courses_import_processing") : t("admin_courses_import_crawl_all")}
                </button>
              </div>
           </div>
@@ -329,7 +331,7 @@ const CourseImportPage = () => {
               {results.length === 0 && !isProcessing && (
                 <div className={styles.emptyState}>
                   <FileJson size={60} className="mx-auto mb-4 opacity-10" />
-                  <p>Hãy nhập URL phía trên để bắt đầu lấy dữ liệu.</p>
+                  <p>{t("admin_courses_import_empty")}</p>
                 </div>
               )}
               {results.map((result) => (
@@ -351,7 +353,7 @@ const CourseImportPage = () => {
                           {result.data?.name || result.url}
                         </div>
                         <div className="text-xs text-gray-500 flex items-center gap-2 overflow-hidden">
-                          {result.status === 'loading' && "Đang lấy dữ liệu..."}
+                          {result.status === 'loading' && t("admin_courses_import_loading")}
                           {result.status === 'error' && <span className="text-red-400">{result.error}</span>}
                           {result.status === 'success' && (
                             <>
@@ -380,7 +382,7 @@ const CourseImportPage = () => {
                     <div className="border-t border-white/5 bg-black/20">
                       <div className={styles.editForm}>
                         <div className={cn(styles.formGroup, styles.fullWidth)}>
-                          <label className={styles.formLabel}>Tên khóa học</label>
+                          <label className={styles.formLabel}>{t("admin_courses_form_name")}</label>
                           <input 
                             className={styles.formInput} 
                             value={result.data.name} 
@@ -389,7 +391,7 @@ const CourseImportPage = () => {
                         </div>
                         
                         <div className={styles.formGroup}>
-                          <label className={styles.formLabel}>Provider</label>
+                          <label className={styles.formLabel}>{t("admin_courses_form_provider")}</label>
                           <input 
                             className={styles.formInput} 
                             value={result.data.provider} 
@@ -398,7 +400,7 @@ const CourseImportPage = () => {
                         </div>
 
                         <div className={styles.formGroup}>
-                          <label className={styles.formLabel}>Subject</label>
+                          <label className={styles.formLabel}>{t("admin_courses_form_subject")}</label>
                           <input 
                             className={styles.formInput} 
                             value={result.data.subject} 
@@ -407,7 +409,7 @@ const CourseImportPage = () => {
                         </div>
 
                         <div className={styles.formGroup}>
-                          <label className={styles.formLabel}>Cấp độ</label>
+                          <label className={styles.formLabel}>{t("admin_courses_form_level")}</label>
                           <select 
                             className={styles.formInput} 
                             value={result.data.level} 
@@ -421,7 +423,7 @@ const CourseImportPage = () => {
                         </div>
 
                         <div className={styles.formGroup}>
-                          <label className={styles.formLabel}>Thời lượng</label>
+                          <label className={styles.formLabel}>{t("admin_courses_form_duration")}</label>
                           <input 
                             className={styles.formInput} 
                             value={result.data.duration_raw} 
@@ -430,17 +432,18 @@ const CourseImportPage = () => {
                         </div>
 
                         <div className={cn(styles.formGroup, styles.fullWidth)}>
-                          <label className={styles.formLabel}>Mô tả</label>
+                          <label className={styles.formLabel}>{t("admin_courses_form_desc")}</label>
                           <textarea 
                             className={styles.formTextarea} 
                             value={result.data.description} 
-                            onChange={e => handleFieldChange(result.url, 'description', e.target.value)} 
+                            onChange={e => handleFieldChange(result.url, 'description', e.target.value)}
+                            maxLength={5000}
                           />
                         </div>
 
                         <div className={styles.fullWidth}>
                           <TagEditor 
-                            label="Kỹ năng" 
+                            label={t("admin_courses_form_skills")} 
                             tags={result.data.skills} 
                             onChange={v => handleFieldChange(result.url, 'skills', v)} 
                             icon={Layers}
@@ -449,7 +452,7 @@ const CourseImportPage = () => {
 
                         <div className={styles.fullWidth}>
                           <TagEditor 
-                            label="Công nghệ/Công cụ" 
+                            label={t("admin_courses_form_tools")} 
                             tags={result.data.tools} 
                             onChange={v => handleFieldChange(result.url, 'tools', v)} 
                             icon={Cpu}
@@ -467,7 +470,7 @@ const CourseImportPage = () => {
                                removeResult(result.url); 
                              }}
                            >
-                             Gỡ bỏ
+                             {t("admin_courses_import_discard")}
                            </button>
                            <button 
                              className={styles.bulkSaveBtn} 
@@ -479,7 +482,7 @@ const CourseImportPage = () => {
                              }}
                            >
                              {result.isSavingIndividual ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                             {result.isSavingIndividual ? "Đang lưu..." : "Lưu khóa học này"}
+                             {result.isSavingIndividual ? t("admin_courses_import_processing") : t("admin_courses_import_save_single")}
                            </button>
                         </div>
                       </div>
@@ -497,8 +500,8 @@ const CourseImportPage = () => {
             <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className={styles.bulkActionsBar}>
               <div className={styles.actionInfo}>
                  <div className={styles.countBadge}>{successCount}</div>
-                 <span className="text-gray-400 font-medium">Khóa học sẵn sàng</span>
-                 <button className={styles.discardBtn} onClick={() => setResults([])}>Hủy tất cả</button>
+                 <span className="text-gray-400 font-medium">{t("admin_courses_import_ready")}</span>
+                 <button className={styles.discardBtn} onClick={() => setResults([])}>{t("admin_courses_import_discard")} {t("admin_dash_all") as any}</button>
               </div>
               <button 
                 className={styles.bulkSaveBtn} 
@@ -506,7 +509,7 @@ const CourseImportPage = () => {
                 disabled={isSavingAll}
               >
                 {isSavingAll ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-                {isSavingAll ? "Đang lưu..." : `LƯU ${successCount} KHÓA HỌC`}
+                {isSavingAll ? t("admin_courses_import_processing") : t("admin_courses_import_save_all").replace("{count}", successCount.toString())}
               </button>
             </motion.div>
           )}
@@ -523,7 +526,7 @@ const CourseImportPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </PageContainer>
     </AuthGuard>
   );
 };

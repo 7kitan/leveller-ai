@@ -87,6 +87,7 @@ export default function ForgotPasswordPage() {
                 placeholder={t("forgot_password_email_placeholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                maxLength={255}
               />
             </div>
 

@@ -88,7 +88,19 @@ export default function LandingPage() {
         copyright: "© 2026 Lumix AI. Tất cả quyền được bảo lưu.",
         privacy: "Chính sách bảo mật",
         terms: "Điều khoản dịch vụ",
-        cookies: "Chính sách Cookie"
+        cookies: "Chính sách Cookie",
+        features: "Tính năng",
+        pricing: "Bảng giá",
+        about: "Về chúng tôi",
+        getStarted: "Bắt đầu ngay",
+        careers: "Tuyển dụng",
+        blog: "Blog",
+        press: "Báo chí",
+        contact: "Liên hệ",
+        docs: "Tài liệu",
+        helpCenter: "Trung tâm trợ giúp",
+        api: "API",
+        community: "Cộng đồng"
       }
     },
     en: {
@@ -150,7 +162,19 @@ export default function LandingPage() {
         copyright: "© 2026 Lumix AI. All rights reserved.",
         privacy: "Privacy Policy",
         terms: "Terms of Service",
-        cookies: "Cookie Policy"
+        cookies: "Cookie Policy",
+        features: "Features",
+        pricing: "Pricing",
+        about: "About",
+        getStarted: "Get Started",
+        careers: "Careers",
+        blog: "Blog",
+        press: "Press",
+        contact: "Contact",
+        docs: "Documentation",
+        helpCenter: "Help Center",
+        api: "API",
+        community: "Community"
       }
     }
   };
@@ -501,26 +525,26 @@ export default function LandingPage() {
             <div className={styles.footerGrid}>
               <div className={styles.footerColumn}>
                 <h4 className={styles.footerHeading}>{currentLang.footer.product}</h4>
-                <Link href="#features">Features</Link>
-                <Link href="/auth/login">Pricing</Link>
-                <Link href="#philosophy">About</Link>
-                <Link href="/auth/register">Get Started</Link>
+                <Link href="#features">{currentLang.footer.features}</Link>
+                <Link href="/auth/login">{currentLang.footer.pricing}</Link>
+                <Link href="#philosophy">{currentLang.footer.about}</Link>
+                <Link href="/auth/register">{currentLang.footer.getStarted}</Link>
               </div>
 
               <div className={styles.footerColumn}>
                 <h4 className={styles.footerHeading}>{currentLang.footer.company}</h4>
-                <Link href="/auth/login">Careers</Link>
-                <Link href="/auth/login">Blog</Link>
-                <Link href="/auth/login">Press</Link>
-                <Link href="/auth/login">Contact</Link>
+                <Link href="/auth/login">{currentLang.footer.careers}</Link>
+                <Link href="/auth/login">{currentLang.footer.blog}</Link>
+                <Link href="/auth/login">{currentLang.footer.press}</Link>
+                <Link href="/auth/login">{currentLang.footer.contact}</Link>
               </div>
 
               <div className={styles.footerColumn}>
                 <h4 className={styles.footerHeading}>{currentLang.footer.resources}</h4>
-                <Link href="/auth/login">Documentation</Link>
-                <Link href="/auth/login">Help Center</Link>
-                <Link href="/auth/login">API</Link>
-                <Link href="/auth/login">Community</Link>
+                <Link href="/auth/login">{currentLang.footer.docs}</Link>
+                <Link href="/auth/login">{currentLang.footer.helpCenter}</Link>
+                <Link href="/auth/login">{currentLang.footer.api}</Link>
+                <Link href="/auth/login">{currentLang.footer.community}</Link>
               </div>
 
               <div className={styles.footerColumn}>

@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/context/LanguageContext";
 import styles from "./courses.module.css";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -48,7 +49,7 @@ function LevelBadge({ level }: { level: string }) {
     level === "Intermediate" ? styles.levelIntermediate :
     level === "Advanced"    ? styles.levelAdvanced     :
     styles.levelBeginner;
-  return <span className={cls}>{level}</span>;
+  return <span className={cls}>{t(`level_${level?.toLowerCase()}` as any)}</span>;
 }
 
 // ─── Course Card ───────────────────────────────────────────────────────────────
@@ -110,11 +111,11 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
           {course.is_certification && (
             <span className={cn(styles.metaItem, styles.badgeSuccess)}>
               <Award size={14} />
-              Cert.
+              {t('cert_short')}
             </span>
           )}
           <span className={cn(styles.costBadge, isFree ? styles.costFree : styles.costPaid)}>
-            {isFree ? "Free" : `$${course.cost_usd}`}
+            {isFree ? t('free') : `$${course.cost_usd}`}
           </span>
         </div>
 
@@ -126,7 +127,7 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
             className={styles.courseCta}
           >
             <BookOpen size={16} />
-            Xem khóa học
+            {t('view_course')}
             <ExternalLink size={14} />
           </a>
         )}
@@ -154,7 +155,7 @@ function FilterBar({
           <Search size={18} />
           <input
             type="text"
-            placeholder="Tìm kiếm khóa học, kỹ năng..."
+            placeholder={t('search_courses_placeholder')}
             value={filters.query}
             onChange={(e) => onChange({ query: e.target.value })}
             className={styles.searchInput}
@@ -174,7 +175,7 @@ function FilterBar({
             onChange={(e) => onChange({ level: e.target.value })}
             className={styles.selectInput}
           >
-            <option value="">Cấp độ</option>
+            <option value="">{t('level')}</option>
             {levels.map((l) => <option key={l} value={l}>{l}</option>)}
           </select>
 
@@ -183,7 +184,7 @@ function FilterBar({
             onChange={(e) => onChange({ platform: e.target.value })}
             className={styles.selectInput}
           >
-            <option value="">Nền tảng</option>
+            <option value="">{t('platform')}</option>
             {platforms.map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
 
@@ -192,11 +193,11 @@ function FilterBar({
             onChange={(e) => onChange({ sortBy: e.target.value as FilterState["sortBy"] })}
             className={styles.selectInput}
           >
-            <option value="relevance">Độ phù hợp</option>
-            <option value="level_asc">Cấp độ ↑</option>
-            <option value="level_desc">Cấp độ ↓</option>
-            <option value="cost_asc">Giá ↑</option>
-            <option value="cost_desc">Giá ↓</option>
+            <option value="relevance">{t('relevance')}</option>
+            <option value="level_asc">{t('level_asc')}</option>
+            <option value="level_desc">{t('level_desc')}</option>
+            <option value="cost_asc">{t('price_asc')}</option>
+            <option value="cost_desc">{t('price_desc')}</option>
           </select>
 
           <button
@@ -204,7 +205,7 @@ function FilterBar({
             className={cn(styles.filterChip, filters.hasCertificate && styles.filterChipActive)}
           >
             <Award size={14} />
-            Chứng chỉ
+            {t('cert_short')}
           </button>
         </div>
       </div>
@@ -212,7 +213,7 @@ function FilterBar({
       {(filters.query || filters.level || filters.platform || filters.hasCertificate) && (
         <div className={styles.activeFilters}>
           <span className={styles.statLabel}>
-            Lọc theo:
+            {t('filter_by')}
           </span>
 
           {filters.query && (
@@ -232,14 +233,14 @@ function FilterBar({
           )}
           {filters.hasCertificate && (
             <button onClick={() => onChange({ hasCertificate: false })} className={cn(styles.activeFilterBadge, styles.badgeSuccess)}>
-              Có chứng chỉ <X size={12} />
+              {t('has_cert')} <X size={12} />
             </button>
           )}
           <button
             onClick={() => onChange({ query: "", level: "", platform: "", hasCertificate: false })}
             className={styles.resetBtn}
           >
-            Reset
+            {t('reset_filters')}
           </button>
         </div>
       )}
@@ -250,6 +251,7 @@ function FilterBar({
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function StudentCoursesPage() {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -273,7 +275,7 @@ export default function StudentCoursesPage() {
         });
         setCourses(Array.isArray(res.data) ? res.data : res.data.courses ?? []);
       } catch {
-        setError("Không thể tải danh sách khóa học.");
+        setError(t('load_courses_error'));
       } finally {
         setLoading(false);
       }
@@ -320,24 +322,23 @@ export default function StudentCoursesPage() {
         <div className={styles.titleArea}>
           <div className={styles.sectionLabel}>
             <BookOpen size={14} />
-            Course Library
+            {t('course_library')}
           </div>
           <h1 className={styles.sectionTitle}>
-            KHÁM PHÁ<br />
-            <span className={styles.gradientText}>KHÓA HỌC.</span>
+            {t('explore_title_1')}<br />
+            <span className={styles.gradientText}>{t('explore_title_2')}.</span>
           </h1>
           <p className={styles.sectionSubtitle}>
-            Trang bị kỹ năng cần thiết từ các nền tảng hàng đầu.
-            Học theo lộ trình cá nhân hóa dựa trên Gap Analysis của bạn.
+            {t('explore_subtitle')}
           </p>
         </div>
 
         {/* Stats pill */}
         <div className={styles.statsHeader}>
           {[
-            { label: "Khóa học",   value: courses.length },
-            { label: "Nền tảng",   value: platforms.length },
-            { label: "Chứng chỉ", value: courses.filter((c) => c.is_certification).length },
+            { label: t('courses_text'),   value: courses.length },
+            { label: t('platform'),   value: platforms.length },
+            { label: t('cert_short'), value: courses.filter((c) => c.is_certification).length },
           ].map(({ label, value }) => (
             <div key={label} className={styles.statItem}>
               <div className={styles.statValue}>{value}</div>
@@ -385,9 +386,9 @@ export default function StudentCoursesPage() {
       {/* ── Results count ───────────────────────────────────────────────────── */}
       {!loading && !error && (
         <p className={styles.resultsCount}>
-          Hiển thị{" "}
+          {t('displaying')}{" "}
           <span className={styles.resultsCountHighlight}>{filtered.length}</span>
-          {" "}/ {courses.length} khóa học
+          {" "}{t('of_text')} {courses.length} {t('courses_text')}
         </p>
       )}
 
@@ -404,8 +405,8 @@ export default function StudentCoursesPage() {
                 <BookOpen size={32} />
               </div>
               <div className={styles.summaryArea}>
-                <h3 className={styles.summaryTitle}>Không tìm thấy khóa học</h3>
-                <p className={styles.summaryDesc}>Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm của bạn.</p>
+                <h3 className={styles.summaryTitle}>{t('no_courses_found')}</h3>
+                <p className={styles.summaryDesc}>{t('adjust_filters_desc')}</p>
               </div>
               <button
                 onClick={() =>
@@ -413,7 +414,7 @@ export default function StudentCoursesPage() {
                 }
                 className={cn(styles.courseCta, styles.mt0)}
               >
-                Xóa tất cả bộ lọc
+                {t('clear_all_filters')}
               </button>
             </motion.div>
           ) : (
