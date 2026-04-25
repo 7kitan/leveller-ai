@@ -1,19 +1,21 @@
 from fastapi import FastAPI, Depends, HTTPException, Request, UploadFile, File, Query
 from sqlalchemy.orm import Session
 from shared.database import get_db
-from shared.models import User, UserCV, UserSkillProfile, Skill, UserAnalysis, UserWorkExperience
+from shared.models import User, UserCV, UserSkillProfile, Skill, UserAnalysis, UserWorkExperience, UserRole
 from worker.celery_app import celery_app
 from shared.redis_client import result_cache
 from shared.schemas import PaginatedResponse
+from shared.system_logger import system_logger
 import uuid
 import json
 import os
 import hashlib
 import logging
+from shared.logging_utils import setup_logger
 import re
 import magic
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 
 # SECURITY: File upload constraints
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
@@ -26,10 +28,10 @@ ALLOWED_MIME_TYPES = {
 
 
 class SkillCreate(BaseModel):
-    skill_name: str
-    years_exp: float = 0.0
-    level: str = "Junior"
-    category: Optional[str] = "Other"
+    skill_name: str = Field(..., max_length=200)
+    years_exp: float = Field(default=0.0, ge=0, le=60)
+    level: str = Field(default="Junior", max_length=50)
+    category: Optional[str] = Field(default="Other", max_length=100)
 
 
 class SkillUpdate(BaseModel):
@@ -38,16 +40,16 @@ class SkillUpdate(BaseModel):
 
 
 class CVUpdate(BaseModel):
-    full_name: Optional[str] = None
-    summary: Optional[str] = None
-    experience_years_total: Optional[float] = None
+    full_name: Optional[str] = Field(None, max_length=255)
+    summary: Optional[str] = Field(None, max_length=2000)
+    experience_years_total: Optional[float] = Field(None, ge=0, le=60)
 
 
 class FinalizeCVRequest(BaseModel):
     id: str
-    full_name: str
-    summary: Optional[str] = ""
-    experience_years_total: float = 0.0
+    full_name: str = Field(..., min_length=2, max_length=255)
+    summary: Optional[str] = Field(default="", max_length=2000)
+    experience_years_total: float = Field(default=0.0, ge=0, le=60)
     skills: List[dict] = []
     work_history: Optional[List[dict]] = []
     education: Optional[List[dict]] = []
@@ -55,22 +57,11 @@ class FinalizeCVRequest(BaseModel):
     seniority: Optional[str] = "Unknown"
     
     # ── Security Validation (Spec 5) ────────────
-    from pydantic import validator
     
     @validator("full_name")
     def validate_name(cls, v):
-        if len(v) < 2:
-            raise ValueError("Tên quá ngắn")
-        if len(v) > 255:
-            raise ValueError("Tên quá dài")
         # Simple sanitization
         return v.strip().replace("<", "&lt;").replace(">", "&gt;")
-
-    @validator("experience_years_total")
-    def validate_exp(cls, v):
-        if v < 0 or v > 60:
-            raise ValueError("Số năm kinh nghiệm không hợp lệ (0-60)")
-        return v
 
 
 app = FastAPI(title="CV Service")
@@ -78,7 +69,7 @@ app = FastAPI(title="CV Service")
 UPLOAD_DIR = "/app/data/cv_uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-logger = logging.getLogger("cv_service")
+logger = setup_logger("cv_service", log_file="cv.log")
 
 
 def calculate_file_hash(file_content: bytes) -> str:
@@ -109,8 +100,15 @@ def validate_uploaded_file(file: UploadFile, file_content: bytes) -> None:
         logger.warning(f"Path traversal attempt detected in filename: {file.filename}")
         raise HTTPException(status_code=400, detail="Tên file chứa ký tự không hợp lệ")
     
-    # Check file extension
+    # SECURITY FIX: Sanitize filename using os.path.basename and remove dangerous characters
     filename = os.path.basename(file.filename)
+    # Remove any remaining dangerous characters
+    filename = "".join(c for c in filename if c.isalnum() or c in "._- ")
+    filename = filename.strip()
+    
+    if not filename:
+        raise HTTPException(status_code=400, detail="Tên file không hợp lệ sau khi sanitize")
+    
     file_ext = os.path.splitext(filename)[1].lower()
     if file_ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(
@@ -134,13 +132,13 @@ def validate_uploaded_file(file: UploadFile, file_content: bytes) -> None:
         if file.content_type and file.content_type not in ALLOWED_MIME_TYPES:
              raise HTTPException(status_code=400, detail="Định dạng file không hợp lệ")
 
-    # Check for null bytes (potential attack)
-    if b'\x00' in file_content[:1024]:  # Check first 1KB
+    # SECURITY FIX: Check for null bytes in entire file (not just first 1KB)
+    if b'\x00' in file_content:
         raise HTTPException(status_code=400, detail="File chứa dữ liệu không hợp lệ")
 
 
 def is_admin(request: Request) -> bool:
-    return request.headers.get("X-Is-Admin") == "true"
+    return request.headers.get("X-User-Role") == UserRole.ADMIN
 
 
 @app.post("/cv/upload")
@@ -148,10 +146,10 @@ async def upload_cv(
     request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)
 ):
     user_id_str = request.headers.get("X-User-ID")
-    is_admin_header = request.headers.get("X-Is-Admin")
+    user_role = request.headers.get("X-User-Role")
 
     logger.info(
-        f"DEBUG CV_SERVICE [upload_cv]: Received X-User-ID={user_id_str}, X-Is-Admin={is_admin_header}"
+        f"DEBUG CV_SERVICE [upload_cv]: Received X-User-ID={user_id_str}, X-User-Role={user_role}"
     )
 
     if not user_id_str:
@@ -270,6 +268,20 @@ async def upload_cv(
             "worker.tasks.parse_cv_task.parse_cv",
             args=[str(user_id), str(cv_id), file_path],
         )
+
+    # LOG: CV upload (important event)
+    system_logger.info(
+        "CV",
+        f"CV uploaded: {file.filename}",
+        {
+            "user_id": user_id_str,
+            "cv_id": str(cv_id),
+            "file_size": len(file_content),
+            "file_type": file_ext,
+            "file_hash": file_hash[:16],
+            "parser": "v3" if use_v3 else "legacy"
+        }
+    )
 
     return {"cv_id": str(cv_id), "parser_id": task.id, "status": "processing"}
 
@@ -471,7 +483,7 @@ async def delete_cv(cv_id: str, request: Request, db: Session = Depends(get_db))
     """Xóa CV (Admin hoặc Owner)."""
     user_id_str = request.headers.get("X-User-ID")
     logger.info(
-        f"DEBUG CV_SERVICE [delete_cv]: cv_id={cv_id}, X-User-ID={user_id_str}, X-Is-Admin={request.headers.get('X-Is-Admin')}"
+        f"DEBUG CV_SERVICE [delete_cv]: cv_id={cv_id}, X-User-ID={user_id_str}, Role={request.headers.get('X-User-Role')}"
     )
 
     if not user_id_str:
@@ -938,3 +950,10 @@ async def get_cv_analysis_history(
         }
         for a in analyses
     ]
+
+# ─── Health Check ───────────────────────────────────────────────────────────
+
+@app.get("/cv/health")
+def health_check():
+    """Health check endpoint for Docker and monitoring."""
+    return {"status": "ok", "service": "cv_service"}
