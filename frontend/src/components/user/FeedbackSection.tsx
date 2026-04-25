@@ -39,7 +39,7 @@ const FeedbackSection: React.FC<FeedbackSectionProps> = ({ analysisId, hasFeedba
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      setError("Please provide a rating");
+      setError(t("error_rating"));
       return;
     }
     setIsSubmitting(true);
@@ -54,15 +54,13 @@ const FeedbackSection: React.FC<FeedbackSectionProps> = ({ analysisId, hasFeedba
       });
       setIsSubmitted(true);
     } catch (err) {
-      setError("Failed to submit feedback. Please try again.");
+      setError(t("error_submit_feedback"));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // If already cached, don't show feedback section as per user requirement
-  if (isCached) return null;
-
+  // Only hide feedback if user already submitted it
   if (isSubmitted || hasFeedback) {
     return (
       <motion.div 
@@ -139,7 +137,8 @@ const FeedbackSection: React.FC<FeedbackSectionProps> = ({ analysisId, hasFeedba
               onChange={(e) => setSkillInput(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleAddSkill()}
               className={styles.input}
-              placeholder="e.g. Docker, AWS..."
+              placeholder={t("feedback_missing_skills_placeholder")}
+              maxLength={50}
             />
             <button onClick={handleAddSkill} className={styles.addBtn} type="button">
               <Plus size={18} />
@@ -165,6 +164,8 @@ const FeedbackSection: React.FC<FeedbackSectionProps> = ({ analysisId, hasFeedba
             onChange={(e) => setComment(e.target.value)}
             className={styles.textarea}
             rows={3}
+            placeholder={t("feedback_comment_placeholder")}
+            maxLength={1000}
           />
         </div>
 

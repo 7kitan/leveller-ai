@@ -11,12 +11,13 @@ from shared.database import get_db
 from shared.redis_client import result_cache
 from shared.schemas import PaginatedResponse
 from shared.taxonomy_service import taxonomy_service
-from shared.models import User, UserAnalysis, UserFeedback, Job, UserCV
-from pydantic import BaseModel
+from shared.models import User, UserAnalysis, UserFeedback, Job, UserCV, UserRole
+from pydantic import BaseModel, Field, validator
 from typing import Optional, List
 import uuid
 import json
 import logging
+import re
 from datetime import datetime, timezone
 from worker.celery_app import celery_app
 from celery.result import AsyncResult
@@ -35,14 +36,62 @@ async def startup_event():
 logger = logging.getLogger("analysis_service")
 
 
+# ─── SECURITY: Prompt Injection Detection ─────────────────────────────────────
+
+INJECTION_PATTERNS = [
+    r"ignore\s+(all\s+)?previous\s+instructions",
+    r"disregard\s+(all\s+)?previous",
+    r"forget\s+(all\s+)?previous",
+    r"new\s+instructions?:",
+    r"system\s*:\s*you\s+are",
+    r"override\s+system",
+    r"bypass\s+security",
+]
+
+
+def detect_prompt_injection(text: str) -> bool:
+    """
+    SECURITY: Detect potential prompt injection attempts in user input.
+    
+    Args:
+        text: User-provided text to check
+        
+    Returns:
+        True if suspicious patterns detected, False otherwise
+    """
+    if not text:
+        return False
+    
+    text_lower = text.lower()
+    for pattern in INJECTION_PATTERNS:
+        if re.search(pattern, text_lower):
+            logger.warning(
+                f"[PROMPT INJECTION DETECTED] Pattern: {pattern} | "
+                f"Text preview: {text[:200]}..."
+            )
+            return True
+    
+    return False
+
+
 # ─── Pydantic Schemas ────────────────────────────────────────────────
 
 
 class GapRequest(BaseModel):
     cv_id: uuid.UUID
     job_id: Optional[uuid.UUID] = None
-    jd_text: Optional[str] = None
+    jd_text: Optional[str] = Field(None, max_length=50000)
     force: bool = False  # If true, bypass ALL caches and recompute
+    
+    @validator('jd_text')
+    def validate_jd_text(cls, v):
+        """SECURITY: Detect prompt injection attempts in JD text."""
+        if v and detect_prompt_injection(v):
+            raise ValueError(
+                'Suspicious content detected in job description. '
+                'Please remove any instructions or system commands.'
+            )
+        return v
 
 
 class FeedbackRequest(BaseModel):
@@ -51,8 +100,15 @@ class FeedbackRequest(BaseModel):
     analysis_id: str
     rating: int
     is_accurate: bool
-    missing_skills: List[str] = []
-    comment: Optional[str] = None
+    missing_skills: List[str] = Field(default_factory=list, max_items=20)
+    comment: Optional[str] = Field(None, max_length=1000)
+    
+    @validator('missing_skills')
+    def validate_skills(cls, v):
+        for skill in v:
+            if len(skill) > 50:
+                raise ValueError('Skill name must be 50 characters or less')
+        return v
 
 
 class SimulateRequest(BaseModel):
@@ -304,7 +360,7 @@ async def get_latest_analysis(request: Request, db: Session = Depends(get_db)):
         has_fb = db.query(UserFeedback).filter(UserFeedback.analysis_id == str(analysis.id)).first() is not None
         result["has_feedback"] = has_fb
         result["analysis_id"] = str(analysis.id)
-        result["is_cached"] = True # Since we're pulling from DB latest record
+        # Note: is_cached flag is set during computation, not when fetching from DB
 
     return result
 
@@ -923,7 +979,7 @@ async def admin_test_llm(request: Request):
 
 
 def check_admin(request: Request):
-    if request.headers.get("X-Is-Admin") != "true":
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
 
@@ -1406,3 +1462,11 @@ async def optimize_cv_suggestions(req: OptimizeCVRequest, request: Request, db: 
         return data
     except:
         return {"error": "Failed to parse AI response", "raw": response}
+
+
+# ─── Health Check ───────────────────────────────────────────────────────────
+
+@app.get("/analysis/health")
+def health_check():
+    """Health check endpoint for Docker and monitoring."""
+    return {"status": "ok", "service": "analysis_service"}
