@@ -195,7 +195,7 @@
 }
 
 .insightTitle {
-  
+  display: flex;
   align-items: center;
   gap: 0.75rem;
   font-size: 1rem;
@@ -289,7 +289,7 @@
   text-transform: uppercase;
   letter-spacing: 0.15rem;
   transition: all 0.3s ease;
-  
+  display: flex;
   align-items: center;
   gap: 0.75rem;
 }
@@ -358,7 +358,7 @@
   background-color: rgba(6, 182, 212, 0.1);
   color: #06b6d4;
   border-radius: 1rem;
-  
+  display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 1.5rem;
@@ -429,7 +429,7 @@
 }
 
 .cardHeader {
-  
+  display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1.5rem;
@@ -461,7 +461,7 @@
 }
 
 .skillList {
-  
+  display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
 }
@@ -488,7 +488,7 @@
   text-transform: uppercase;
   letter-spacing: 0.15rem;
   transition: all 0.3s ease;
-  
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
@@ -825,7 +825,7 @@
 
 /* ── Tab Bar ──────────────────────────────────────────────────────────── */
 .tabBar {
-  
+  display: flex;
   gap: 0.5rem;
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
@@ -941,7 +941,7 @@
 }
 
 .videoMeta {
-  
+  display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.85rem;
@@ -949,7 +949,7 @@
 }
 
 .videoGapTag {
-  
+  display: flex;
   align-items: center;
   gap: 0.375rem;
   padding: 0.25rem 0.75rem;
@@ -1264,7 +1264,7 @@
 }
 
 .roadmapSummary {
-  
+  display: flex;
   align-items: flex-start;
   gap: 1.25rem;
   padding: 2.5rem;
@@ -1305,7 +1305,7 @@
 }
 
 .roadmapStage {
-  
+  display: flex;
   gap: 2rem;
   padding-bottom: 3rem;
   position: relative;
@@ -1366,7 +1366,7 @@
 }
 
 .roadmapSkills {
-  
+  display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 1.25rem;
@@ -1382,7 +1382,7 @@
 }
 
 .roadmapCoursesList {
-  
+  display: flex;
   align-items: center;
   gap: 0.75rem;
   font-size: 0.85rem;
@@ -1401,7 +1401,7 @@
 }
 
 .roadmapMilestoneItem {
-  
+  display: flex;
   align-items: flex-start;
   gap: 0.75rem;
   font-size: 0.8rem;
@@ -1424,7 +1424,7 @@
 }
 
 .footerTitle {
-  
+  display: flex;
   align-items: center;
   gap: 0.75rem;
   font-size: 1.25rem;
@@ -2028,14 +2028,14 @@
 }
 
 .impactChartHeader {
-  
+  display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
 
 .impactChartTitle {
-  
+  display: flex;
   align-items: center;
   gap: 0.75rem;
   font-size: 1.1rem;
@@ -2057,7 +2057,7 @@
 }
 /* -- Progressive Loading Indicator -- */
 .processingIndicator {
-  
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 1rem;
