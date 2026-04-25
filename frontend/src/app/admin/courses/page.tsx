@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
-import axios from "axios";
+import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import Pagination from "@/components/shared/Pagination";
 import { 
@@ -147,16 +147,13 @@ const AdminCoursesPage = () => {
     setIsLoading(true);
     try {
       const offset = (page - 1) * pageSize;
-      const resp = await axios.get("/api/recommend/admin/courses", {
+      const resp = await api.get("/api/recommend/admin/courses", {
         params: {
           limit: pageSize,
           offset: offset,
           q: searchTerm || undefined
         },
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          "X-Is-Admin": "true"
-        }
+        headers: { "X-Is-Admin": "true" }
       });
       setCourses(resp.data.items);
       setTotalPages(resp.data.pages);
@@ -202,19 +199,13 @@ const AdminCoursesPage = () => {
       };
 
       if (editingCourse) {
-        await axios.patch(`/api/recommend/admin/courses/${editingCourse.id}`, payload, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            "X-Is-Admin": "true"
-          }
+        await api.patch(`/api/recommend/admin/courses/${editingCourse.id}`, payload, {
+          headers: { "X-Is-Admin": "true" }
         });
         showNotification("Đã cập nhật khóa học");
       } else {
-        await axios.post("/api/recommend/admin/courses", payload, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            "X-Is-Admin": "true"
-          }
+        await api.post("/api/recommend/admin/courses", payload, {
+          headers: { "X-Is-Admin": "true" }
         });
         showNotification("Đã tạo khóa học mới");
       }
@@ -228,11 +219,8 @@ const AdminCoursesPage = () => {
   const handleDelete = async (id: string) => {
     if (!confirm("Xóa khóa học này?")) return;
     try {
-      await axios.delete(`/api/recommend/admin/courses/${id}`, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          "X-Is-Admin": "true"
-        }
+      await api.delete(`/api/recommend/admin/courses/${id}`, {
+        headers: { "X-Is-Admin": "true" }
       });
       showNotification("Đã xóa khóa học");
       fetchCourses();

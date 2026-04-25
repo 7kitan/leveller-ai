@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:8000/:path*", // Proxy sang Gateway
+        destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/:path*`, // Proxy sang Gateway
       },
     ];
   },

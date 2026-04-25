@@ -4,12 +4,12 @@ import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import styles from "./user-jobs.module.css";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
 import { Briefcase, MapPin, Search, Loader2, Info, Sparkles, Building2, DollarSign, Clock, Layers } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import Pagination from "@/components/shared/Pagination";
 import { useLanguage } from "@/context/LanguageContext";
+import api from "@/lib/api";
 import { formatDistanceToNow } from 'date-fns';
 import Modal from "@/components/shared/Modal";
 import { vi, enUS } from 'date-fns/locale';
@@ -64,7 +64,7 @@ export default function JobsPage() {
     setLoading(true);
     try {
       const offset = (page - 1) * pageSize;
-      const res = await axios.get("/api/jd/search", {
+      const res = await api.get("/api/jd/search", {
         params: {
           q: searchTerm || undefined,
           location: location || undefined,
@@ -72,8 +72,7 @@ export default function JobsPage() {
           role: role || undefined,
           limit: pageSize,
           offset: offset
-        },
-        headers: { "Authorization": `Bearer ${token}` }
+        }
       });
       setJobs(res.data.items);
       setTotalPages(res.data.pages);
