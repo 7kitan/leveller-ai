@@ -13,6 +13,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { formatDistanceToNow } from 'date-fns';
 import Modal from "@/components/shared/Modal";
 import { vi, enUS } from 'date-fns/locale';
+import PageHeader from "@/components/common/PageHeader";
+import PageContainer from "@/components/common/PageContainer";
 
 interface Job {
   id: string;
@@ -98,19 +100,16 @@ export default function JobsPage() {
   };
 
   return (
-    <div className={styles.pageRoot}>
-      <div className={styles.header}>
-        <div>
-            <h1 className={styles.title}>
-               {language === 'vi' ? <>KHÁM PHÁ<span className={styles.gradientText}> CƠ HỘI</span></> : <>EXPLORE<span className={styles.gradientText}> OPPORTUNITIES</span></>}
-            </h1>
-            <p className={styles.subtitle}>{t("jobs_subtitle")}</p>
-        </div>
+    <PageContainer>
+      <PageHeader 
+        title={language === 'vi' ? <>KHÁM PHÁ<span className={styles.gradientText}> CƠ HỘI</span></> : <>EXPLORE<span className={styles.gradientText}> OPPORTUNITIES</span></>}
+        subtitle={t("jobs_subtitle")}
+      >
         <div className={styles.badge}>
-           <Sparkles size={12} />
-           <span className={styles.badgeLabel}>{t("opportunity_index_badge")}</span>
+          <Sparkles size={12} />
+          <span className={styles.badgeLabel}>{t("opportunity_index_badge")}</span>
         </div>
-      </div>
+      </PageHeader>
       
       <form onSubmit={handleSearch} className={styles.searchForm}>
           <div className={styles.searchContainer}>
@@ -198,7 +197,7 @@ export default function JobsPage() {
       <Modal
         isOpen={showDetailsModal}
         onClose={() => setShowDetailsModal(false)}
-        title={t("job_details_title") || "Job Details"}
+        title={t("job_details_title")}
         maxWidth="800px"
       >
         {selectedJob && (
@@ -212,14 +211,14 @@ export default function JobsPage() {
                 <div className={styles.modalMetaItem}>
                     <div className={styles.modalMetaIcon}><MapPin size={20} /></div>
                     <div className={styles.modalMetaText}>
-                        <span className={styles.modalMetaLabel}>{t("location") || "Location"}</span>
+                        <span className={styles.modalMetaLabel}>{t("location")}</span>
                         <span className={styles.modalMetaValue}>{selectedJob.location_raw || t("jobs_location_nationwide")}</span>
                     </div>
                 </div>
                 <div className={styles.modalMetaItem}>
                     <div className={styles.modalMetaIcon}><DollarSign size={20} /></div>
                     <div className={styles.modalMetaText}>
-                        <span className={styles.modalMetaLabel}>{t("salary") || "Salary"}</span>
+                        <span className={styles.modalMetaLabel}>{t("salary")}</span>
                         <span className={styles.modalMetaValue}>
                              {(() => {
                                 const min = selectedJob.min_salary_vnd;
@@ -236,7 +235,7 @@ export default function JobsPage() {
                 <div className={styles.modalMetaItem}>
                     <div className={styles.modalMetaIcon}><Clock size={20} /></div>
                     <div className={styles.modalMetaText}>
-                        <span className={styles.modalMetaLabel}>{t("posted_at") || "Posted At"}</span>
+                        <span className={styles.modalMetaLabel}>{t("posted_at")}</span>
                         <span className={styles.modalMetaValue}>
                             {selectedJob.created_at ? formatDistanceToNow(new Date(selectedJob.created_at), { 
                                 locale: language === 'vi' ? vi : enUS, 
@@ -248,7 +247,7 @@ export default function JobsPage() {
                 <div className={styles.modalMetaItem}>
                     <div className={styles.modalMetaIcon}><Briefcase size={20} /></div>
                     <div className={styles.modalMetaText}>
-                        <span className={styles.modalMetaLabel}>{t("employment_type") || "Employment Type"}</span>
+                        <span className={styles.modalMetaLabel}>{t("employment_type")}</span>
                         <span className={styles.modalMetaValue}>{selectedJob.employment_type || t("jobs_employment_fulltime")}</span>
                     </div>
                 </div>
@@ -257,7 +256,7 @@ export default function JobsPage() {
             {/* Structured Sections */}
             {selectedJob.job_description && (
               <div className={styles.modalSection}>
-                <div className={styles.modalSectionLabel}>{t("job_description") || "Mô tả công việc"}</div>
+                <div className={styles.modalSectionLabel}>{t("job_description")}</div>
                 <div className={styles.modalDescription}>
                   <FormattedText text={selectedJob.job_description} />
                 </div>
@@ -266,7 +265,7 @@ export default function JobsPage() {
 
             {selectedJob.requirements && (
               <div className={styles.modalSection}>
-                <div className={styles.modalSectionLabel}>{t("job_requirements") || "Yêu cầu ứng viên"}</div>
+                <div className={styles.modalSectionLabel}>{t("job_requirements")}</div>
                 <div className={styles.modalDescription}>
                   <FormattedText text={selectedJob.requirements} />
                 </div>
@@ -275,7 +274,7 @@ export default function JobsPage() {
 
             {selectedJob.benefits && (
               <div className={styles.modalSection}>
-                <div className={styles.modalSectionLabel}>{t("job_benefits") || "Quyền lợi"}</div>
+                <div className={styles.modalSectionLabel}>{t("job_benefits")}</div>
                 <div className={styles.modalDescription}>
                   <FormattedText text={selectedJob.benefits} />
                 </div>
@@ -286,14 +285,14 @@ export default function JobsPage() {
             {!selectedJob.job_description && !selectedJob.requirements && !selectedJob.benefits && (
               <div className={styles.modalSection}>
                 <div className={styles.modalDescription} style={{ opacity: 0.6, fontStyle: 'italic' }}>
-                  {t("no_description_available") || "Không có thông tin chi tiết."}
+                  {t("no_description_available")}
                 </div>
               </div>
             )}
 
             <div className={styles.modalFooterActions}>
                 <button onClick={() => setShowDetailsModal(false)} className={styles.modalCloseBtn}>
-                    {t("close") || "Close"}
+                    {t("close")}
                 </button>
                 <Link
                     href={`/user/analysis?job_id=${selectedJob.id}`}
@@ -309,14 +308,14 @@ export default function JobsPage() {
                         rel="noopener noreferrer"
                         className={styles.modalSourceBtn}
                     >
-                        {t("view_original") || "Xem bản gốc"} <Briefcase size={16} />
+                        {t("view_original")} <Briefcase size={16} />
                     </a>
                 )}
             </div>
           </div>
         )}
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
 
