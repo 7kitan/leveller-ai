@@ -341,15 +341,6 @@ def health_check():
     return {"status": "ok", "service": "jd_service"}
 
 
-@app.get("/jd/{job_id}", response_model=JobResponse)
-def get_job(job_id: uuid.UUID, db: Session = Depends(get_db)):
-    """Láº¥y chi tiáº¿t 1 job."""
-    job = db.query(Job).filter(Job.id == job_id).first()
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return _job_to_response(job)
-
-
 @app.get("/jd/admin/list", response_model=PaginatedResponse[JobResponse])
 def admin_list_jobs(
     request: Request,
@@ -679,44 +670,6 @@ def admin_batch_extract_skills(
     except Exception as e:
         logger.error(f"Failed to trigger batch extraction: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Could not trigger extraction: {str(e)}")
-
-
-@app.get("/jd/{job_id}/skills")
-def get_job_skills(job_id: str, db: Session = Depends(get_db)):
-    """Get extracted skills for a specific job."""
-    from shared.models import JobSkillRequirement, Skill
-    
-    job = db.query(Job).filter(Job.id == job_id).first()
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    
-    # Get skills with their details
-    skills = db.query(JobSkillRequirement, Skill).join(
-        Skill, JobSkillRequirement.skill_id == Skill.id
-    ).filter(
-        JobSkillRequirement.job_id == job_id
-    ).all()
-    
-    return {
-        "job_id": job_id,
-        "job_title": job.title_raw,
-        "skills": [
-            {
-                "skill_name": skill.name,
-                "category": skill.category,
-                "required_level": req.required_level,
-                "min_years_exp": req.min_years_exp,
-                "is_mandatory": req.is_mandatory,
-                "importance_weight": req.importance_weight
-            }
-            for req, skill in skills
-        ],
-        "extracted_at": job.last_analyzed_at,
-        "raw_extraction": job.extracted_requirements_json
-    }
-
-
-# â”€â”€â”€ 5.1 + 5.2: Market Analytics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 @app.get("/jd/analytics/salary-range")
