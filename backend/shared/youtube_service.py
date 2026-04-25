@@ -165,21 +165,46 @@ class YouTubeSearchService:
                 description = snippet.get("description", "").lower()
                 channel_name = snippet.get("channelTitle", "")
                 
-                # Skip videos with spam/clickbait indicators
+                # NEGATIVE FILTER 1: Skip interview/job-related content
+                interview_keywords = [
+                    "interview", "phỏng vấn", "phong van",
+                    "câu hỏi phỏng vấn", "cau hoi phong van",
+                    "interview questions", "interview tips",
+                    "mock interview", "job interview",
+                    "salary negotiation", "resume tips",
+                    "career advice", "how to get hired"
+                ]
+                if any(kw in title or kw in description for kw in interview_keywords):
+                    logger.debug(f"[YOUTUBE FILTER] Skipped interview video: {title[:50]}")
+                    continue
+                
+                # NEGATIVE FILTER 2: Skip spam/clickbait
                 spam_keywords = ["click here", "subscribe now", "free download", "hack", "crack", "pirate"]
                 if any(kw in title or kw in description for kw in spam_keywords):
                     continue
                 
-                # Skip videos from suspicious channels (very short names, all caps)
+                # NEGATIVE FILTER 3: Skip suspicious channels
                 if len(channel_name) < 3 or channel_name.isupper():
                     continue
                 
-                # Prioritize educational channels (common patterns)
-                quality_indicators = ["tutorial", "course", "learn", "programming", "coding", "hướng dẫn", "học"]
-                has_quality = any(ind in title or ind in description for ind in quality_indicators)
+                # POSITIVE FILTER: Require strong learning indicators
+                # Use specific keywords that appear in tutorials but NOT in interviews
+                strong_learning_indicators = [
+                    "tutorial", "course", "hướng dẫn", "khóa học",
+                    "beginner", "cơ bản", "co ban",
+                    "step by step", "từng bước", "tu tung buoc",
+                    "complete guide", "hướng dẫn đầy đủ",
+                    "learn", "học", "hoc",
+                    "introduction", "giới thiệu"
+                ]
+                has_strong_indicator = any(ind in title or ind in description for ind in strong_learning_indicators)
                 
-                if has_quality or len(filtered_items) < limit:
+                # ONLY accept videos with strong learning indicators
+                if has_strong_indicator:
                     filtered_items.append(item)
+                    logger.debug(f"[YOUTUBE FILTER] Accepted tutorial video: {title[:50]}")
+                else:
+                    logger.debug(f"[YOUTUBE FILTER] Skipped non-tutorial video: {title[:50]}")
                 
                 if len(filtered_items) >= limit:
                     break
