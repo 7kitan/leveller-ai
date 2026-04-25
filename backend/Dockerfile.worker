@@ -23,6 +23,7 @@ ENV PYTHONPATH=/app
 # Copy mã nguồn và thư viện dùng chung
 COPY shared/ ./shared/
 COPY worker/ ./worker/
+COPY services/ ./services/
 
 # Logging config: stdout với format rõ ràng cho tất cả loggers
 # --loglevel=info chỉ set celery.worker logger
