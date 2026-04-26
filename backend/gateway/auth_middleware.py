@@ -47,21 +47,31 @@ async def auth_middleware(request: Request, call_next):
     if is_always_accessible:
         return await call_next(request)
     
-    # 1. Maintenance Mode Check (High Priority)
+    # 1. Maintenance Mode Check (High Priority - BEFORE token check)
     maintenance_mode = config_manager.get_setting("MAINTENANCE_MODE", False, cast=bool)
     
     # Critical paths that should always be accessible to allow admins to login and fix things
     critical_paths = ["/auth/login", "/user/login", "/admin/settings"]
     is_critical = any(path.startswith(p) for p in critical_paths)
 
-    if maintenance_mode and not is_critical:
-        # If public but not critical, or restricted, we must check if user is admin
-        # Proceed to extract token and check admin status
-        pass
-    elif is_public:
+    # If maintenance mode is ON and path is NOT critical, block immediately for public paths
+    # (We'll check admin status later for authenticated requests)
+    if maintenance_mode and not is_critical and is_public:
+        return JSONResponse(
+            status_code=503, 
+            content={
+                "detail": "Hệ thống đang bảo trì để nâng cấp. Vui lòng quay lại sau.",
+                "maintenance": True,
+                "duration": config_manager.get_setting("MAINTENANCE_DURATION", "Không xác định")
+            },
+            headers=get_cors_headers(request)
+        )
+    
+    # If public and NOT in maintenance, allow through
+    if is_public and not maintenance_mode:
         return await call_next(request)
 
-    # Extract Token
+    # Extract Token (for protected endpoints or critical paths during maintenance)
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.lower().startswith("bearer "):
         logging.error(f"DEBUG Gateway: Missing or invalid Authorization header for path {request.url.path}")
