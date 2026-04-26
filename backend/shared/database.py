@@ -65,6 +65,15 @@ def get_db():
         db.close()
 
 def init_db():
-    """Initialize database tables. Should be called during app startup."""
+    """Initialize database tables and run migrations. Should be called during app startup."""
     from . import models # Ensure models are registered
     Base.metadata.create_all(bind=engine)
+    
+    # Run pending migrations
+    try:
+        from scripts.run_migrations import run_migrations
+        logger.info("Running database migrations...")
+        run_migrations()
+    except Exception as e:
+        logger.warning(f"Migration runner not available or failed: {e}")
+        logger.warning("Please run migrations manually: python scripts/run_migrations.py")
