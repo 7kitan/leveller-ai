@@ -663,6 +663,7 @@ async def admin_crawl_course(req: CrawlRequest, request: Request):
     task = celery_app.send_task(
         "worker.tasks.crawler_tasks.crawl_course_task",
         args=[req.url],
+        queue="market_stats",
     )
     return {"task_id": task.id, "status": "processing"}
 
