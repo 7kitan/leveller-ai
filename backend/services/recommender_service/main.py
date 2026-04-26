@@ -423,11 +423,18 @@ async def admin_list_courses(
     query = db.query(Course)
     
     if q:
+        # Search across multiple fields using indexes:
+        # - title, platform, provider: uses pg_trgm GIN indexes (idx_courses_*_trgm)
+        # - tags: uses GIN index (idx_courses_tags_gin) with ANY operator
+        # - skills_raw: uses GIN index (idx_courses_skills_raw_gin) with JSONB contains
         query = query.filter(
             or_(
                 Course.title.ilike(f"%{q}%"),
                 Course.platform.ilike(f"%{q}%"),
-                Course.provider.ilike(f"%{q}%")
+                Course.provider.ilike(f"%{q}%"),
+                text("(:keyword = ANY(tags))").bindparams(keyword=q),
+                text("(skills_raw::jsonb @> to_jsonb(:skill::text))").bindparams(skill=q),
+                text("EXISTS (SELECT 1 FROM jsonb_array_elements_text(skills_raw::jsonb) skill WHERE skill ILIKE :pattern)").bindparams(pattern=f"%{q}%")
             )
         )
 
