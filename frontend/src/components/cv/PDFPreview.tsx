@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './CVPreview.module.css';
@@ -8,6 +8,9 @@ import { useLanguage } from '@/context/LanguageContext';
 
 // Worker URL - use unpkg CDN which mirrors npm packages directly
 const WORKER_URL = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+
+// Set worker source globally
+pdfjs.GlobalWorkerOptions.workerSrc = WORKER_URL;
 
 interface PDFPreviewProps {
   file: File;
@@ -18,10 +21,6 @@ export function PDFPreview({ file }: PDFPreviewProps) {
   const [loading, setLoading] = useState(true);
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
-
-  const options = useMemo(() => ({
-    workerSrc: WORKER_URL,
-  }), []);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -39,7 +38,6 @@ export function PDFPreview({ file }: PDFPreviewProps) {
         file={file}
         onLoadSuccess={onDocumentLoadSuccess}
         onLoadError={onDocumentLoadError}
-        options={options}
         loading={
           <div className={styles.previewLoading}>
             <div className={styles.spinner} />
