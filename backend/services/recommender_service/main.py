@@ -143,8 +143,12 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
     except Exception:
         pass
 
-    # Tăng cường search_text để matching tốt hơn với embedding_context mới
-    search_text = f"Skill: {skill_name}. Level: {target_level}. Course teaching {skill_name} concepts and applications."
+    # Match structure with embedding context for better cosine similarity
+    search_text = (
+        f"TITLE: {skill_name}. "
+        f"LEVEL: {target_level}. "
+        f"SKILLS: {skill_name}."
+    )
     skill_vector = get_embedding(search_text)
 
     if skill_vector:
@@ -460,15 +464,11 @@ async def admin_create_course(
 
     from shared.llm_utils import get_embedding
 
-    # Tạo context cho embedding - Flat & Rich context
+    # Minimal embedding context: Title + Level + Skills only (focused signal)
     context = (
-        f"PLATFORM: {req.platform or req.source_platform}. "
         f"TITLE: {req.title}. "
-        f"PROVIDER: {req.provider or 'Unknown'}. "
-        f"DESCRIPTION: {req.title}. " # Fallback if no description in Create
-        f"MODULES: {', '.join(req.modules)}. "
-        f"SKILLS: {', '.join(req.skills_raw)}. "
-        f"OUTCOMES: {', '.join(req.outcomes)}."
+        f"LEVEL: {req.level or 'Unknown'}. "
+        f"SKILLS: {', '.join(req.skills_raw)}."
     )
     vector = get_embedding(context)
 
@@ -520,14 +520,11 @@ async def admin_bulk_create_courses(
         if existing:
             continue
 
+        # Minimal embedding context: Title + Level + Skills only (focused signal)
         context = (
-            f"PLATFORM: {c_req.platform or c_req.source_platform}. "
             f"TITLE: {c_req.title}. "
-            f"PROVIDER: {c_req.provider or 'Unknown'}. "
-            f"DESCRIPTION: {c_req.title}. "
-            f"MODULES: {', '.join(c_req.modules)}. "
-            f"SKILLS: {', '.join(c_req.skills_raw)}. "
-            f"OUTCOMES: {', '.join(c_req.outcomes)}."
+            f"LEVEL: {c_req.level or 'Unknown'}. "
+            f"SKILLS: {', '.join(c_req.skills_raw)}."
         )
         vector = get_embedding(context)
 
@@ -628,14 +625,11 @@ async def admin_update_course(
     if needs_re_embedding:
         from shared.llm_utils import get_embedding
 
+        # Minimal embedding context: Title + Level + Skills only (focused signal)
         context = (
-            f"PLATFORM: {course.platform or course.source_platform}. "
             f"TITLE: {course.title}. "
-            f"PROVIDER: {course.provider or 'Unknown'}. "
-            f"DESCRIPTION: {course.description or course.title}. "
-            f"MODULES: {', '.join(course.modules or [])}. "
-            f"SKILLS: {', '.join(course.skills_raw or [])}. "
-            f"OUTCOMES: {', '.join(course.outcomes or [])}."
+            f"LEVEL: {course.level or 'Unknown'}. "
+            f"SKILLS: {', '.join(course.skills_raw or [])}."
         )
         course.embedding_context = context
         course.vector = get_embedding(context)
