@@ -21,8 +21,8 @@ echo ""
 # --- Detect Python 3 ---
 PY=""
 for candidate in python3 python py; do
-    if `$candidate --version &> /dev/null 2>&1; then
-        PY_VER=`$($candidate -c "import sys; print(sys.version_info[0])" 2>/dev/null)
+    if `$candidate --version > /dev/null 2>&1; then
+        PY_VER=`$`($candidate -c "import sys; print(sys.version_info[0])" 2>/dev/null)
         if [ "`$PY_VER" = "3" ]; then
             PY="`$candidate"
             break
@@ -68,7 +68,7 @@ if [ ! -f "`$LOG_FILE" ] || [ ! -s "`$LOG_FILE" ]; then
 fi
 
 # --- Check 2: Count entries ---
-ENTRY_COUNT=$(wc -l < "`$LOG_FILE" | tr -d ' ')
+ENTRY_COUNT=`$(wc -l < "`$LOG_FILE" | tr -d ' ')
 echo "✅ [ai-log] Found `$ENTRY_COUNT log entries."
 
 # --- Check 3: Show summary ---
