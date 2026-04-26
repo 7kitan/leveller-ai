@@ -444,9 +444,19 @@ async def admin_list_courses(
 async def admin_create_course(
     req: CourseCreate, request: Request, db: Session = Depends(get_db)
 ):
-    """Admin only: Tạo khóa học mới + tạo embedding."""
+    """Admin only: Tạo khóa học mới + tạo embedding. Returns existing if duplicate."""
     if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    # Check if course already exists
+    existing = db.query(Course).filter(
+        Course.source_platform == req.source_platform,
+        Course.source_id == req.source_id
+    ).first()
+    
+    if existing:
+        # Return existing course instead of error
+        return existing
 
     from shared.llm_utils import get_embedding
 
