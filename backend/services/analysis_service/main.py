@@ -248,7 +248,7 @@ async def start_gap_analysis(
 
     # Check queue length
     q_len = get_queue_length("analysis_queue")
-    threshold = int(config_manager.get_setting("queue_threshold") or os.getenv("QUEUE_THRESHOLD", "5"))
+    threshold = int(config_manager.get_setting("QUEUE_THRESHOLD") or os.getenv("QUEUE_THRESHOLD", "5"))
     
     if q_len >= threshold:
         user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
@@ -279,7 +279,7 @@ async def start_gap_analysis(
 
 
 @app.get("/analysis/status/{task_id}")
-async def get_task_status(task_id: str):
+async def get_task_status(task_id: str, db: Session = Depends(get_db)):
     res = AsyncResult(task_id, app=celery_app)
     state = res.state
 
@@ -296,13 +296,42 @@ async def get_task_status(task_id: str):
             )
             raise HTTPException(status_code=500, detail=result["error"])
 
-        # Log success summary
+        # Enrich result with impact calculations (same as /user/latest)
         if isinstance(result, dict):
+            skill_gaps = result.get("skill_gaps") or []
+            current_match = float(result.get("overall_match_pct") or 0)
+            job_id = result.get("job_id")
+            
+            if skill_gaps and job_id:
+                try:
+                    potential_match, salary_growth, enriched_gaps = calculate_skill_impact(
+                        skill_gaps=skill_gaps,
+                        job_id=str(job_id),
+                        current_match_pct=current_match,
+                        db=db
+                    )
+                    
+                    # Update result with calculated values
+                    result["potential_match_pct"] = round(potential_match, 1)
+                    result["salary_growth_pct"] = round(salary_growth, 1)
+                    result["skill_gaps"] = enriched_gaps  # Now includes match_impact & salary_impact
+                    
+                    # Calculate market sentiment from DB data
+                    if not result.get("market_sentiment"):
+                        result["market_sentiment"] = calculate_market_sentiment(skill_gaps, db)
+                        
+                    logger.info(
+                        f"[ANALYSIS STATUS] Enriched with impact data: "
+                        f"potential={potential_match}%, salary_growth={salary_growth}%"
+                    )
+                except Exception as e:
+                    logger.warning(f"[ANALYSIS STATUS] Failed to calculate impact: {e}")
+            
             logger.info(
                 f"[ANALYSIS STATUS] task SUCCESS — task_id={task_id}\n"
                 f"  overall_match_pct : {result.get('overall_match_pct')}\n"
                 f"  skill_gaps        : {len(result.get('skill_gaps', []))}\n"
-                f"  recommended_courses: {len(result.get('recommended_courses', []))}\n"
+                f"  recommended_courses: {len(result.get('course_recommendations', []))}\n"
                 f"  career_roadmap    : {bool(result.get('career_roadmap'))}"
             )
         return {"status": "completed", "result": result}

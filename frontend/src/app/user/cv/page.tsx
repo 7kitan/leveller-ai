@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 import styles from "./user-cv.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAlert } from "@/context/AlertContext";
 import Modal from "@/components/shared/Modal";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
@@ -155,6 +156,7 @@ const SKILL_LEVELS = ["Junior", "Mid-level", "Senior", "Expert"];
 const UserCVPage = () => {
   const { token } = useAuth();
   const { t, language } = useLanguage();
+  const { showSuccess, showError } = useAlert();
 
   const getSeniorityLabel = (val: string) => {
     switch (val) {
@@ -301,7 +303,7 @@ const UserCVPage = () => {
     const interval = setInterval(async () => {
       try {
         const resp = await api.get(`cv/status/${parserId}`);
-        const { status: taskStatus, result } = resp.data;
+        const { status: taskStatus, result, error_message } = resp.data;
 
         if (taskStatus === "completed") {
           clearInterval(interval);
@@ -315,7 +317,8 @@ const UserCVPage = () => {
           fetchHistory();
         } else if (taskStatus === "failed") {
           clearInterval(interval);
-          setError(t("cv_processing_ai_sub")); // Or specific error
+          setError(error_message || t("cv_analysis_error"));
+          showError(error_message || t("cv_analysis_error"));
           setStatus("idle");
         }
       } catch {
@@ -343,6 +346,12 @@ const UserCVPage = () => {
 
   // ── Load CV from history click ────────────────────────────────────────────
   const handleHistoryClick = async (item: CVHistory) => {
+    // Show error message if CV failed
+    if (item.status === "failed") {
+      showError(item.error_message || t("cv_analysis_error"));
+      return;
+    }
+    
     if (item.status !== "completed") return;
     setStatus("processing");
     setError(null);
@@ -486,7 +495,7 @@ const UserCVPage = () => {
     const duplicateSkills = skillNames.filter((name, index) => skillNames.indexOf(name) !== index);
     if (duplicateSkills.length > 0) {
       const uniqueDupes = Array.from(new Set(duplicateSkills));
-      alert(t("cv_duplicate_skill_error"));
+      showError(t("cv_duplicate_skill_error"));
       setSaving(false);
       return;
     }
@@ -532,11 +541,11 @@ const UserCVPage = () => {
       if (wasDirty && analysisContext) {
         setShowRerunModal(true);
       } else {
-        alert(t("cv_save_success"));
+        showSuccess(t("cv_save_success"));
       }
     } catch (err: any) {
       const msg = err.response?.data?.detail || t("error");
-      alert(Array.isArray(msg) ? msg[0].msg : msg);
+      showError(Array.isArray(msg) ? msg[0].msg : msg);
     } finally {
       setSaving(false);
     }
@@ -1197,7 +1206,7 @@ const UserCVPage = () => {
                     onClick={() => handleHistoryClick(item)}
                     className={cn(
                       styles.historyItem,
-                      item.status === "completed" ? styles.historyItemClickable : styles.historyItemDisabled,
+                      (item.status === "completed" || item.status === "failed") ? styles.historyItemClickable : styles.historyItemDisabled,
                       selectedHistoryId === item.id && styles.historyItemActive
                     )}
                   >

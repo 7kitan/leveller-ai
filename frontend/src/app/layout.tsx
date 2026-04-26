@@ -6,6 +6,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { AlertProvider } from "@/context/AlertContext";
 
 const openSans = Open_Sans({ 
   subsets: ["latin", "vietnamese"], 
@@ -28,11 +29,13 @@ export default function RootLayout({
       <body className="antialiased">
         <LanguageProvider>
           <ThemeProvider>
-            <AuthProvider>
-              <LayoutWrapper>
-                {children}
-              </LayoutWrapper>
-            </AuthProvider>
+            <AlertProvider>
+              <AuthProvider>
+                <LayoutWrapper>
+                  {children}
+                </LayoutWrapper>
+              </AuthProvider>
+            </AlertProvider>
           </ThemeProvider>
         </LanguageProvider>
       </body>

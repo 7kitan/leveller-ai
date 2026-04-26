@@ -35,8 +35,27 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // We can handle global errors here if needed
-    // The AuthContext also has an interceptor, but using a central instance is cleaner
+    // Handle maintenance mode (503)
+    if (error.response?.status === 503) {
+      const maintenanceData = error.response.data;
+      if (maintenanceData?.maintenance) {
+        // Attach maintenance info to error for AuthContext to handle
+        error.maintenanceMode = true;
+        error.maintenanceDuration = maintenanceData.duration || "Không xác định";
+        error.maintenanceMessage = maintenanceData.detail || "Hệ thống đang bảo trì";
+        
+        // Trigger global maintenance mode event
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("maintenanceMode", {
+            detail: {
+              active: true,
+              duration: maintenanceData.duration || "Không xác định",
+              message: maintenanceData.detail || "Hệ thống đang bảo trì"
+            }
+          }));
+        }
+      }
+    }
     return Promise.reject(error);
   }
 );

@@ -400,15 +400,11 @@ async def login(request: Request, user_in: UserLogin, db: Session = Depends(get_
         "user": user_data
     }
 
-@app.get("/auth/verify")
-def verify(token: str, db: Session = Depends(get_db)):
-    token_key = f"token:{hash_token(token)}"
-    cached = auth_cache.get(token_key)
-    
+
     if cached:
         user_data = json.loads(cached)
-        user_data["maintenance_mode"] = config_manager.get_setting("maintenance_mode", False)
-        user_data["maintenance_duration"] = config_manager.get_setting("maintenance_duration", "Không xác định")
+        user_data["MAINTENANCE_MODE"] = config_manager.get_setting("MAINTENANCE_MODE", False)
+        user_data["MAINTENANCE_DURATION"] = config_manager.get_setting("MAINTENANCE_DURATION", "Không xác định")
         return user_data
     
     # Cache miss -> Deep Verification (JWT Decode + DB Check)
@@ -451,8 +447,8 @@ def verify(token: str, db: Session = Depends(get_db)):
         logger.info(f"DEBUG Auth: Deep verification successful for user {user.email}")
         
         # Thêm system status vào response
-        user_data["maintenance_mode"] = config_manager.get_setting("maintenance_mode", False)
-        user_data["maintenance_duration"] = config_manager.get_setting("maintenance_duration", "Không xác định")
+        user_data["MAINTENANCE_MODE"] = config_manager.get_setting("MAINTENANCE_MODE", False)
+        user_data["MAINTENANCE_DURATION"] = config_manager.get_setting("MAINTENANCE_DURATION", "Không xác định")
         return user_data
     except Exception as e:
         if isinstance(e, HTTPException):
@@ -469,12 +465,15 @@ def get_me(request: Request, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-        
+    
+    # Include system settings for frontend
     return {
         "id": str(user.id),
         "email": user.email,
         "role": user.role,
-        "full_name": user.full_name
+        "full_name": user.full_name,
+        "MAINTENANCE_MODE": config_manager.get_setting("MAINTENANCE_MODE", False),
+        "MAINTENANCE_DURATION": config_manager.get_setting("MAINTENANCE_DURATION", "Không xác định")
     }
 
 @app.patch("/auth/profile", response_model=AdminUserResponse)

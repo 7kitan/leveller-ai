@@ -7,17 +7,17 @@ from shared.config_utils import config_manager
 
 # Feature flags
 def get_pii_masking_enabled():
-    return config_manager.get_setting("gap_pii_masking", default=True, cast=bool)
+    return config_manager.get_setting("GAP_PII_MASKING", default=True, cast=bool)
 
 def get_redis_cache_enabled():
-    return config_manager.get_setting("gap_redis_cache", default=True, cast=bool)
+    return config_manager.get_setting("GAP_REDIS_CACHE", default=True, cast=bool)
 
 def get_use_llm_gap_agent_v3():
-    return config_manager.get_setting("use_llm_gap_agent_v3", default=True, cast=bool)
+    return config_manager.get_setting("USE_LLM_GAP_AGENT_V3", default=True, cast=bool)
 
 # LLM
 def get_gap_llm_model():
-    return config_manager.get_setting("gap_llm_model") or config_manager.get_setting("ai_model") or os.getenv("LLM_MODEL", "gpt-4o-mini")
+    return config_manager.get_setting("GAP_LLM_MODEL") or config_manager.get_setting("AI_MODEL") or os.getenv("LLM_MODEL", "gpt-4o-mini")
 
 # Legacy constants (for compatibility, but prefer functions above)
 GAP_LLM_MODEL = get_gap_llm_model()
@@ -30,7 +30,7 @@ CV_PARSED_CACHE_TTL = int(os.getenv("CV_PARSED_CACHE_TTL", "86400"))  # 24h
 
 # Vector search thresholds
 def get_vector_sim_threshold():
-    return config_manager.get_setting("gap_vector_sim_threshold", default=0.35, cast=float)
+    return config_manager.get_setting("GAP_VECTOR_SIM_THRESHOLD", default=0.35, cast=float)
 
 # Legacy constant
 VECTOR_SIM_THRESHOLD = get_vector_sim_threshold()

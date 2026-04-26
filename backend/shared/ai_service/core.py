@@ -31,7 +31,7 @@ def get_active_model_id(override_model: Optional[str] = None, setting_key: str =
         return db_setting
 
     if setting_key != "ai_model":
-        general_setting = config_manager.get_setting("ai_model")
+        general_setting = config_manager.get_setting("AI_MODEL")
         if general_setting:
             return general_setting
         
@@ -78,7 +78,7 @@ def generate_completion(
         litellm_model = f"gemini/{model_id}"
     
     # Get fallback list from config
-    fallback_model = config_manager.get_setting("fallback_ai_model", "gpt-4o-mini")
+    fallback_model = config_manager.get_setting("FALLBACK_AI_MODEL", "gpt-4o-mini")
     fallbacks = [fallback_model] if fallback_model and fallback_model != model_id else []
     
     # Map fallbacks to LiteLLM format

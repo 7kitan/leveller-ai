@@ -108,7 +108,7 @@ async def course_recommendation_llm_node(
             limit=12,
         )
         
-        sim_threshold = config_manager.get_setting("gap_vector_sim_threshold", default=0.35, cast=float)
+        sim_threshold = config_manager.get_setting("GAP_VECTOR_SIM_THRESHOLD", default=0.35, cast=float)
         logger.info(f"[STEP 4] {len(candidates)} candidates for '{gap_skill}' | sim_threshold={sim_threshold}")
         
         # Attach gap metadata
@@ -405,7 +405,7 @@ async def _vector_search_courses(
     MAX_COURSES_PER_QUERY = 50  # Hard limit to prevent massive prompts
     limit = min(limit, MAX_COURSES_PER_QUERY)
     
-    sim_threshold = config_manager.get_setting("gap_vector_sim_threshold", default=0.35, cast=float)
+    sim_threshold = config_manager.get_setting("GAP_VECTOR_SIM_THRESHOLD", default=0.35, cast=float)
     query = text("""
         SELECT id, title, platform, url, level, provider, source_platform,
                duration_hours, is_certification, cost_usd, tags,

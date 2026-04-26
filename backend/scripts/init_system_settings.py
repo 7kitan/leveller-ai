@@ -45,38 +45,38 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Settings to initialize (key, env_var, default_value, description)
 SETTINGS_CONFIG = [
     # AI/LLM Configuration
-    ("llm_provider", "LLM_PROVIDER", "openai", "LLM provider (openai, gemini, etc.)"),
-    ("ai_model", "LLM_MODEL", "gpt-4o-mini", "Default AI model name"),
-    ("fallback_ai_model", "FALLBACK_AI_MODEL", "gpt-4o-mini", "Fallback AI model"),
+    ("LLM_PROVIDER", "LLM_PROVIDER", "openai", "LLM provider (openai, gemini, etc.)"),
+    ("AI_MODEL", "LLM_MODEL", "gpt-4o-mini", "Default AI model name"),
+    ("FALLBACK_AI_MODEL", "FALLBACK_AI_MODEL", "gpt-4o-mini", "Fallback AI model"),
     
     # Gap Analysis
-    ("gap_llm_model", "GAP_LLM_MODEL", "gpt-4o-mini", "Model for gap analysis"),
-    ("gap_pii_masking", "GAP_PII_MASKING", "true", "Enable PII masking in gap analysis"),
-    ("gap_redis_cache", "GAP_REDIS_CACHE", "true", "Enable Redis caching for gap analysis"),
-    ("use_llm_gap_agent_v3", "USE_LLM_GAP_AGENT_V3", "true", "Use LLM-based gap agent v3"),
-    ("gap_vector_sim_threshold", "GAP_VECTOR_SIM_THRESHOLD", "0.35", "Vector similarity threshold for gap analysis"),
+    ("GAP_LLM_MODEL", "GAP_LLM_MODEL", "gpt-4o-mini", "Model for gap analysis"),
+    ("GAP_PII_MASKING", "GAP_PII_MASKING", "true", "Enable PII masking in gap analysis"),
+    ("GAP_REDIS_CACHE", "GAP_REDIS_CACHE", "true", "Enable Redis caching for gap analysis"),
+    ("USE_LLM_GAP_AGENT_V3", "USE_LLM_GAP_AGENT_V3", "true", "Use LLM-based gap agent v3"),
+    ("GAP_VECTOR_SIM_THRESHOLD", "GAP_VECTOR_SIM_THRESHOLD", "0.35", "Vector similarity threshold for gap analysis"),
     
     # CV Parsing
-    ("cv_parser_strategy", "CV_PARSER_STRATEGY", "chandra", "CV parser strategy: direct or chandra"),
-    ("ocr_dpi", "OCR_DPI", "200", "OCR DPI setting"),
+    ("CV_PARSER_STRATEGY", "CV_PARSER_STRATEGY", "chandra", "CV parser strategy: direct or chandra"),
+    ("OCR_DPI", "OCR_DPI", "200", "OCR DPI setting"),
     
     # Recommendations
-    ("similarity_threshold", "SIMILARITY_THRESHOLD", "0.60", "Course similarity threshold"),
+    ("SIMILARITY_THRESHOLD", "SIMILARITY_THRESHOLD", "0.60", "Course similarity threshold"),
     
     # Queue & Rate Limiting
-    ("queue_threshold", "QUEUE_THRESHOLD", "5", "Queue threshold for analysis"),
-    ("daily_analysis_limit", "DAILY_ANALYSIS_LIMIT", "10", "Daily analysis limit per user"),
-    ("user_daily_token_limit", "USER_DAILY_TOKEN_LIMIT", "50000", "Daily token limit per user"),
-    ("user_token_limit", "USER_TOKEN_LIMIT", "100000", "General user token limit"),
+    ("QUEUE_THRESHOLD", "QUEUE_THRESHOLD", "5", "Queue threshold for analysis"),
+    ("DAILY_ANALYSIS_LIMIT", "DAILY_ANALYSIS_LIMIT", "10", "Daily analysis limit per user"),
+    ("USER_DAILY_TOKEN_LIMIT", "USER_DAILY_TOKEN_LIMIT", "50000", "Daily token limit per user"),
+    ("USER_TOKEN_LIMIT", "USER_TOKEN_LIMIT", "100000", "General user token limit"),
     
     # System Maintenance
-    ("maintenance_mode", "MAINTENANCE_MODE", "false", "System maintenance mode flag"),
-    ("maintenance_duration", "MAINTENANCE_DURATION", "~ 2 giờ", "Maintenance duration message"),
-    ("system_log_ttl_days", "SYSTEM_LOG_TTL_DAYS", "30", "System log retention days"),
-    ("system_broadcast", "SYSTEM_BROADCAST", "", "System broadcast message"),
+    ("MAINTENANCE_MODE", "MAINTENANCE_MODE", "false", "System maintenance mode flag"),
+    ("MAINTENANCE_DURATION", "MAINTENANCE_DURATION", "~ 2 giờ", "Maintenance duration message"),
+    ("SYSTEM_LOG_TTL_DAYS", "SYSTEM_LOG_TTL_DAYS", "30", "System log retention days"),
+    ("SYSTEM_BROADCAST", "SYSTEM_BROADCAST", "", "System broadcast message"),
     
     # Crawling
-    ("topcv_crawl_enabled", "TOPCV_CRAWL_ENABLED", "true", "Enable TopCV job crawling"),
+    ("TOPCV_CRAWL_ENABLED", "TOPCV_CRAWL_ENABLED", "true", "Enable TopCV job crawling"),
 ]
 
 def init_settings(force=False):

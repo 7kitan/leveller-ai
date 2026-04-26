@@ -35,11 +35,11 @@ const AdminSettingsPage = () => {
   const [activeTab, setActiveTab] = useState<'ai' | 'parser' | 'automation' | 'limits' | 'system'>('ai');
 
   const TABS = [
-    { id: 'ai', label: t("admin_settings_ai_agent_title"), icon: Cpu, keys: ["similarity_threshold", "cv_parsing_model", "gap_analysis_model", "career_advisor_model", "default_provider", "default_model", "fallback_model", "gap_llm_model", "gap_vector_threshold"], color: "#10b981" },
-    { id: 'parser', label: t("admin_settings_cv_parser_ocr_title"), icon: ScanLine, keys: ["parser_strategy", "ocr_dpi", "chandra_url", "chandra_key"], color: "#ec4899" },
-    { id: 'automation', label: t("admin_settings_crawler_manager_title"), icon: Globe, keys: ["topcv_crawl_enabled", "linkedin_bridge_enabled", "smtp_host", "smtp_port", "smtp_user", "smtp_pass", "smtp_from", "queue_threshold"], color: "#f59e0b" },
-    { id: 'limits', label: t("admin_settings_limits_title"), icon: ShieldAlert, keys: ["global_token_limit", "user_token_limit", "daily_analysis_limit"], color: "#f43f5e" },
-    { id: 'system', label: t("admin_settings_security_ops_title"), icon: ShieldAlert, keys: ["maintenance_mode", "maintenance_duration", "system_broadcast", "result_cache_ttl", "gap_cache_ttl", "system_log_ttl_days"], color: "#818cf8" }
+    { id: 'ai', label: t("admin_settings_ai_agent_title"), icon: Cpu, keys: ["SIMILARITY_THRESHOLD", "CV_PARSING_MODEL", "GAP_ANALYSIS_MODEL", "CAREER_ADVISOR_MODEL", "DEFAULT_PROVIDER", "DEFAULT_MODEL", "FALLBACK_MODEL", "GAP_LLM_MODEL", "GAP_VECTOR_THRESHOLD"], color: "#10b981" },
+    { id: 'parser', label: t("admin_settings_cv_parser_ocr_title"), icon: ScanLine, keys: ["PARSER_STRATEGY", "OCR_DPI", "CHANDRA_URL", "CHANDRA_KEY"], color: "#ec4899" },
+    { id: 'automation', label: t("admin_settings_crawler_manager_title"), icon: Globe, keys: ["TOPCV_CRAWL_ENABLED", "LINKEDIN_BRIDGE_ENABLED", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_FROM", "QUEUE_THRESHOLD"], color: "#f59e0b" },
+    { id: 'limits', label: t("admin_settings_limits_title"), icon: ShieldAlert, keys: ["GLOBAL_TOKEN_LIMIT", "USER_TOKEN_LIMIT", "DAILY_ANALYSIS_LIMIT"], color: "#f43f5e" },
+    { id: 'system', label: t("admin_settings_security_ops_title"), icon: ShieldAlert, keys: ["MAINTENANCE_MODE", "MAINTENANCE_DURATION", "SYSTEM_BROADCAST", "RESULT_CACHE_TTL", "GAP_CACHE_TTL", "SYSTEM_LOG_TTL_DAYS"], color: "#818cf8" }
   ];
 
 
@@ -203,13 +203,13 @@ const AdminSettingsPage = () => {
                     animate={{ opacity: 1, x: 0 }}
                     className={cn(
                       styles.settingCard, 
-                      isModified("similarity_threshold") || 
-                      isModified("embedding_model") || 
-                      isModified("cv_parsing_model") || 
-                      isModified("gap_analysis_model") || 
-                      isModified("gap_llm_model") || 
-                      isModified("gap_vector_sim_threshold") || 
-                      isModified("career_advisor_model") ? styles.settingCardModified : ""
+                      isModified("SIMILARITY_THRESHOLD") || 
+                      isModified("EMBEDDING_MODEL") || 
+                      isModified("CV_PARSING_MODEL") || 
+                      isModified("GAP_ANALYSIS_MODEL") || 
+                      isModified("GAP_LLM_MODEL") || 
+                      isModified("GAP_VECTOR_SIM_THRESHOLD") || 
+                      isModified("CAREER_ADVISOR_MODEL") ? styles.settingCardModified : ""
                     )}
                   >
 
@@ -223,12 +223,12 @@ const AdminSettingsPage = () => {
                   <h2 className={styles.cardTitle}>{t("admin_settings_ai_agent_title")}</h2>
                 </div>
                 <AnimatePresence>
-                  {getSectionModifiedCount(["similarity_threshold", "cv_parsing_model", "gap_analysis_model", "gap_llm_model", "gap_vector_sim_threshold", "career_advisor_model"]) > 0 && (
+                  {getSectionModifiedCount(["SIMILARITY_THRESHOLD", "CV_PARSING_MODEL", "GAP_ANALYSIS_MODEL", "GAP_LLM_MODEL", "GAP_VECTOR_SIM_THRESHOLD", "CAREER_ADVISOR_MODEL"]) > 0 && (
                     <motion.button
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
-                      onClick={() => handleBulkSave(["similarity_threshold", "cv_parsing_model", "gap_analysis_model", "gap_llm_model", "gap_vector_sim_threshold", "career_advisor_model"])}
+                      onClick={() => handleBulkSave(["SIMILARITY_THRESHOLD", "CV_PARSING_MODEL", "GAP_ANALYSIS_MODEL", "GAP_LLM_MODEL", "GAP_VECTOR_SIM_THRESHOLD", "CAREER_ADVISOR_MODEL"])}
                       disabled={isSaving}
                       className={styles.sectionSaveBtn}
                     >
@@ -239,11 +239,11 @@ const AdminSettingsPage = () => {
                 </AnimatePresence>
               </div>
               <div className={styles.formGroup}>
-                <div className={cn(styles.field, isModified("similarity_threshold") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("SIMILARITY_THRESHOLD") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_similarity_label")}
-                        {isModified("similarity_threshold") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("SIMILARITY_THRESHOLD") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_similarity_desc")}</span>
                   </div>
@@ -254,25 +254,25 @@ const AdminSettingsPage = () => {
                       min="0"
                       max="1"
                       className={styles.input}
-                      value={getValue("similarity_threshold", 0.6)}
-                      onChange={(e) => handleFieldChange("similarity_threshold", parseFloat(e.target.value))}
+                      value={getValue("SIMILARITY_THRESHOLD", 0.6)}
+                      onChange={(e) => handleFieldChange("SIMILARITY_THRESHOLD", parseFloat(e.target.value))}
                     />
                   </div>
                 </div>
 
                 {/* 2. CV Parsing Model */}
-                <div className={cn(styles.field, isModified("cv_parsing_model") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("CV_PARSING_MODEL") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_cv_parsing_model_label")}
-                        {isModified("cv_parsing_model") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("CV_PARSING_MODEL") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_cv_parsing_model_desc")}</span>
                   </div>
                   <select 
                     className={styles.input}
-                    value={getValue("cv_parsing_model", getValue("ai_model", "gpt-4o-mini"))}
-                    onChange={(e) => handleFieldChange("cv_parsing_model", e.target.value)}
+                    value={getValue("CV_PARSING_MODEL", getValue("AI_MODEL", "gpt-4o-mini"))}
+                    onChange={(e) => handleFieldChange("CV_PARSING_MODEL", e.target.value)}
                   >
                     {availableModels.filter(m => m.type === 'chat').map((model) => (
                       <option key={model.id} value={model.id}>
@@ -283,18 +283,18 @@ const AdminSettingsPage = () => {
                 </div>
 
                 {/* 3. Gap Analysis Model */}
-                <div className={cn(styles.field, isModified("gap_analysis_model") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("GAP_ANALYSIS_MODEL") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_gap_analysis_model_label")}
-                        {isModified("gap_analysis_model") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("GAP_ANALYSIS_MODEL") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_gap_analysis_model_desc")}</span>
                   </div>
                   <select 
                     className={styles.input}
-                    value={getValue("gap_analysis_model", getValue("ai_model", "gpt-4o-mini"))}
-                    onChange={(e) => handleFieldChange("gap_analysis_model", e.target.value)}
+                    value={getValue("GAP_ANALYSIS_MODEL", getValue("AI_MODEL", "gpt-4o-mini"))}
+                    onChange={(e) => handleFieldChange("GAP_ANALYSIS_MODEL", e.target.value)}
                   >
                     {availableModels.filter(m => m.type === 'chat').map((model) => (
                       <option key={model.id} value={model.id}>
@@ -304,18 +304,18 @@ const AdminSettingsPage = () => {
                   </select>
                 </div>
                 
-                <div className={cn(styles.field, isModified("gap_llm_model") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("GAP_LLM_MODEL") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_gap_llm_model_label")}
-                        {isModified("gap_llm_model") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("GAP_LLM_MODEL") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_gap_llm_model_desc")}</span>
                   </div>
                   <select 
                     className={styles.input}
-                    value={getValue("gap_llm_model", getValue("ai_model", "gpt-4o-mini"))}
-                    onChange={(e) => handleFieldChange("gap_llm_model", e.target.value)}
+                    value={getValue("GAP_LLM_MODEL", getValue("AI_MODEL", "gpt-4o-mini"))}
+                    onChange={(e) => handleFieldChange("GAP_LLM_MODEL", e.target.value)}
                   >
                     {availableModels.filter(m => m.type === 'chat').map((model) => (
                       <option key={model.id} value={model.id}>
@@ -325,11 +325,11 @@ const AdminSettingsPage = () => {
                   </select>
                 </div>
 
-                <div className={cn(styles.field, isModified("gap_vector_sim_threshold") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("GAP_VECTOR_SIM_THRESHOLD") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_gap_vector_threshold_label")}
-                        {isModified("gap_vector_sim_threshold") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("GAP_VECTOR_SIM_THRESHOLD") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_gap_vector_threshold_desc")}</span>
                   </div>
@@ -340,25 +340,25 @@ const AdminSettingsPage = () => {
                       min="0"
                       max="1"
                       className={styles.input}
-                      value={getValue("gap_vector_sim_threshold", 0.35)}
-                      onChange={(e) => handleFieldChange("gap_vector_sim_threshold", parseFloat(e.target.value))}
+                      value={getValue("GAP_VECTOR_SIM_THRESHOLD", 0.35)}
+                      onChange={(e) => handleFieldChange("GAP_VECTOR_SIM_THRESHOLD", parseFloat(e.target.value))}
                     />
                   </div>
                 </div>
 
                 {/* 4. Career Advisor Model */}
-                <div className={cn(styles.field, isModified("career_advisor_model") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("CAREER_ADVISOR_MODEL") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_career_advisor_model_label")}
-                        {isModified("career_advisor_model") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("CAREER_ADVISOR_MODEL") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_career_advisor_model_desc")}</span>
                   </div>
                   <select 
                     className={styles.input}
-                    value={getValue("career_advisor_model", getValue("ai_model", "gpt-4o-mini"))}
-                    onChange={(e) => handleFieldChange("career_advisor_model", e.target.value)}
+                    value={getValue("CAREER_ADVISOR_MODEL", getValue("AI_MODEL", "gpt-4o-mini"))}
+                    onChange={(e) => handleFieldChange("CAREER_ADVISOR_MODEL", e.target.value)}
                   >
                     {availableModels.filter(m => m.type === 'chat').map((model) => (
                       <option key={model.id} value={model.id}>
@@ -376,9 +376,9 @@ const AdminSettingsPage = () => {
                 animate={{ opacity: 1, x: 0 }}
                 className={cn(
                   styles.settingCard, 
-                  isModified("ai_model") || 
-                  isModified("fallback_ai_model") || 
-                  isModified("llm_provider") ? styles.settingCardModified : ""
+                  isModified("AI_MODEL") || 
+                  isModified("fallback_AI_MODEL") || 
+                  isModified("LLM_PROVIDER") ? styles.settingCardModified : ""
                 )}
               >
 
@@ -402,12 +402,12 @@ const AdminSettingsPage = () => {
                     <span>{t("admin_settings_test_ai_btn")}</span>
                   </button>
                   <AnimatePresence>
-                    {getSectionModifiedCount(["llm_provider", "ai_model", "fallback_ai_model", "global_token_limit", "user_token_limit"]) > 0 && (
+                    {getSectionModifiedCount(["LLM_PROVIDER", "AI_MODEL", "fallback_AI_MODEL", "GLOBAL_TOKEN_LIMIT", "USER_TOKEN_LIMIT"]) > 0 && (
                       <motion.button
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
-                        onClick={() => handleBulkSave(["llm_provider", "ai_model", "fallback_ai_model", "global_token_limit", "user_token_limit"])}
+                        onClick={() => handleBulkSave(["LLM_PROVIDER", "AI_MODEL", "fallback_AI_MODEL", "GLOBAL_TOKEN_LIMIT", "USER_TOKEN_LIMIT"])}
                         disabled={isSaving}
                         className={styles.sectionSaveBtn}
                       >
@@ -419,18 +419,18 @@ const AdminSettingsPage = () => {
                 </div>
               </div>
               <div className={styles.formGroup}>
-                <div className={cn(styles.field, isModified("llm_provider") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("LLM_PROVIDER") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_default_provider_label")}
-                        {isModified("llm_provider") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("LLM_PROVIDER") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_default_provider_desc")}</span>
                   </div>
                   <select 
                     className={styles.input}
-                    value={getValue("llm_provider", "openai")}
-                    onChange={(e) => handleFieldChange("llm_provider", e.target.value)}
+                    value={getValue("LLM_PROVIDER", "openai")}
+                    onChange={(e) => handleFieldChange("LLM_PROVIDER", e.target.value)}
                   >
                     <option value="openai">OpenAI</option>
                     <option value="google">Google (Gemini)</option>
@@ -438,18 +438,18 @@ const AdminSettingsPage = () => {
                   </select>
                 </div>
 
-                <div className={cn(styles.field, isModified("ai_model") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("AI_MODEL") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_default_model_label")}
-                        {isModified("ai_model") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("AI_MODEL") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_default_model_desc")}</span>
                   </div>
                   <select 
                     className={styles.input}
-                    value={getValue("ai_model", "gpt-4o-mini")}
-                    onChange={(e) => handleFieldChange("ai_model", e.target.value)}
+                    value={getValue("AI_MODEL", "gpt-4o-mini")}
+                    onChange={(e) => handleFieldChange("AI_MODEL", e.target.value)}
                   >
                     {availableModels.filter(m => m.type === 'chat').map((model) => (
                       <option key={model.id} value={model.id}>
@@ -459,18 +459,18 @@ const AdminSettingsPage = () => {
                   </select>
                 </div>
 
-                <div className={cn(styles.field, isModified("fallback_ai_model") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("fallback_AI_MODEL") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_fallback_model_label")}
-                        {isModified("fallback_ai_model") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("fallback_AI_MODEL") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_fallback_model_desc")}</span>
                   </div>
                   <select 
                     className={styles.input}
-                    value={getValue("fallback_ai_model", "gpt-4o-mini")}
-                    onChange={(e) => handleFieldChange("fallback_ai_model", e.target.value)}
+                    value={getValue("fallback_AI_MODEL", "gpt-4o-mini")}
+                    onChange={(e) => handleFieldChange("fallback_AI_MODEL", e.target.value)}
                   >
                     {availableModels.filter(m => m.type === 'chat').map((model) => (
                       <option key={model.id} value={model.id}>
@@ -491,9 +491,9 @@ const AdminSettingsPage = () => {
               animate={{ opacity: 1, scale: 1 }}
               className={cn(
                 styles.settingCard, 
-                isModified("global_token_limit") || 
-                isModified("user_token_limit") || 
-                isModified("daily_analysis_limit") ? styles.settingCardModified : ""
+                isModified("GLOBAL_TOKEN_LIMIT") || 
+                isModified("USER_TOKEN_LIMIT") || 
+                isModified("DAILY_ANALYSIS_LIMIT") ? styles.settingCardModified : ""
               )}
             >
               <div className={styles.cardHeader}>
@@ -506,12 +506,12 @@ const AdminSettingsPage = () => {
                   <h2 className={styles.cardTitle}>{t("admin_settings_limits_title")}</h2>
                 </div>
                 <AnimatePresence>
-                  {getSectionModifiedCount(["global_token_limit", "user_token_limit", "daily_analysis_limit"]) > 0 && (
+                  {getSectionModifiedCount(["GLOBAL_TOKEN_LIMIT", "USER_TOKEN_LIMIT", "DAILY_ANALYSIS_LIMIT"]) > 0 && (
                     <motion.button
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
-                      onClick={() => handleBulkSave(["global_token_limit", "user_token_limit", "daily_analysis_limit"])}
+                      onClick={() => handleBulkSave(["GLOBAL_TOKEN_LIMIT", "USER_TOKEN_LIMIT", "DAILY_ANALYSIS_LIMIT"])}
                       disabled={isSaving}
                       className={styles.sectionSaveBtn}
                     >
@@ -522,11 +522,11 @@ const AdminSettingsPage = () => {
                 </AnimatePresence>
               </div>
               <div className={styles.formGroup}>
-                <div className={cn(styles.field, isModified("global_token_limit") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("GLOBAL_TOKEN_LIMIT") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_global_token_limit_label")}
-                        {isModified("global_token_limit") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("GLOBAL_TOKEN_LIMIT") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_global_token_limit_desc")}</span>
                   </div>
@@ -534,18 +534,18 @@ const AdminSettingsPage = () => {
                     type="number"
                     step="1"
                     className={styles.input}
-                    value={getValue("global_token_limit", 0)}
-                    onChange={(e) => handleFieldChange("global_token_limit", parseInt(e.target.value))}
+                    value={getValue("GLOBAL_TOKEN_LIMIT", 0)}
+                    onChange={(e) => handleFieldChange("GLOBAL_TOKEN_LIMIT", parseInt(e.target.value))}
                     min={0}
                     max={1000000}
                   />
                 </div>
 
-                <div className={cn(styles.field, isModified("user_token_limit") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("USER_TOKEN_LIMIT") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_user_token_limit_label")}
-                        {isModified("user_token_limit") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("USER_TOKEN_LIMIT") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_user_token_limit_desc")}</span>
                   </div>
@@ -553,26 +553,26 @@ const AdminSettingsPage = () => {
                     type="number"
                     step="1"
                     className={styles.input}
-                    value={getValue("user_token_limit", 0)}
-                    onChange={(e) => handleFieldChange("user_token_limit", parseInt(e.target.value))}
+                    value={getValue("USER_TOKEN_LIMIT", 0)}
+                    onChange={(e) => handleFieldChange("USER_TOKEN_LIMIT", parseInt(e.target.value))}
                     min={0}
                     max={1000000}
                   />
                 </div>
 
-                <div className={cn(styles.field, isModified("daily_analysis_limit") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("DAILY_ANALYSIS_LIMIT") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_daily_analysis_limit_label")}
-                        {isModified("daily_analysis_limit") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("DAILY_ANALYSIS_LIMIT") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_daily_analysis_limit_desc")}</span>
                   </div>
                   <input 
                     type="number" 
                     className={styles.input}
-                    value={getValue("daily_analysis_limit", 10)}
-                    onChange={(e) => handleFieldChange("daily_analysis_limit", parseInt(e.target.value))}
+                    value={getValue("DAILY_ANALYSIS_LIMIT", 10)}
+                    onChange={(e) => handleFieldChange("DAILY_ANALYSIS_LIMIT", parseInt(e.target.value))}
                     min={0}
                     max={1000}
                   />
@@ -588,10 +588,10 @@ const AdminSettingsPage = () => {
               animate={{ opacity: 1, scale: 1 }}
               className={cn(
                 styles.settingCard, 
-                isModified("cv_parser_strategy") || 
-                isModified("ocr_dpi") || 
-                isModified("chandra_api_url") || 
-                isModified("chandra_api_key") ? styles.settingCardModified : ""
+                isModified("CV_PARSER_STRATEGY") || 
+                isModified("OCR_DPI") || 
+                isModified("CHANDRA_API_URL") || 
+                isModified("CHANDRA_API_KEY") ? styles.settingCardModified : ""
               )}
             >
 
@@ -605,12 +605,12 @@ const AdminSettingsPage = () => {
                   <h2 className={styles.cardTitle}>{t("admin_settings_cv_parser_ocr_title")}</h2>
                 </div>
                 <AnimatePresence>
-                  {getSectionModifiedCount(["cv_parser_strategy", "ocr_dpi", "chandra_api_url", "chandra_api_key"]) > 0 && (
+                  {getSectionModifiedCount(["CV_PARSER_STRATEGY", "OCR_DPI", "CHANDRA_API_URL", "CHANDRA_API_KEY"]) > 0 && (
                     <motion.button
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
-                      onClick={() => handleBulkSave(["cv_parser_strategy", "ocr_dpi", "chandra_api_url", "chandra_api_key"])}
+                      onClick={() => handleBulkSave(["CV_PARSER_STRATEGY", "OCR_DPI", "CHANDRA_API_URL", "CHANDRA_API_KEY"])}
                       disabled={isSaving}
                       className={styles.sectionSaveBtn}
                     >
@@ -621,47 +621,47 @@ const AdminSettingsPage = () => {
                 </AnimatePresence>
               </div>
               <div className={styles.formGroup}>
-                <div className={cn(styles.field, isModified("cv_parser_strategy") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("CV_PARSER_STRATEGY") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_parser_strategy_label")}
-                        {isModified("cv_parser_strategy") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("CV_PARSER_STRATEGY") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_parser_strategy_desc")}</span>
                   </div>
                   <select 
                     className={styles.input}
-                    value={getValue("cv_parser_strategy", "direct")}
-                    onChange={(e) => handleFieldChange("cv_parser_strategy", e.target.value)}
+                    value={getValue("CV_PARSER_STRATEGY", "direct")}
+                    onChange={(e) => handleFieldChange("CV_PARSER_STRATEGY", e.target.value)}
                   >
                     <option value="direct">{t("admin_settings_parser_strategy_direct")}</option>
                     <option value="chandra">{t("admin_settings_parser_strategy_chandra")}</option>
                   </select>
                 </div>
 
-                <div className={cn(styles.field, isModified("ocr_dpi") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("OCR_DPI") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_ocr_dpi_label")}
-                        {isModified("ocr_dpi") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("OCR_DPI") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_ocr_dpi_desc")}</span>
                   </div>
                   <input 
                     type="number" 
                     className={styles.input}
-                    value={getValue("ocr_dpi", 200)}
-                    onChange={(e) => handleFieldChange("ocr_dpi", parseInt(e.target.value))}
+                    value={getValue("OCR_DPI", 200)}
+                    onChange={(e) => handleFieldChange("OCR_DPI", parseInt(e.target.value))}
                     min={72}
                     max={600}
                   />
                 </div>
 
-                <div className={cn(styles.field, isModified("chandra_api_url") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("CHANDRA_API_URL") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_chandra_url_label")}
-                        {isModified("chandra_api_url") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("CHANDRA_API_URL") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_chandra_url_desc")}</span>
                   </div>
@@ -669,17 +669,17 @@ const AdminSettingsPage = () => {
                     type="text" 
                     className={styles.input}
                     placeholder="https://api.datalab.to/..."
-                    value={getValue("chandra_api_url", "")}
-                    onChange={(e) => handleFieldChange("chandra_api_url", e.target.value)}
+                    value={getValue("CHANDRA_API_URL", "")}
+                    onChange={(e) => handleFieldChange("CHANDRA_API_URL", e.target.value)}
                     maxLength={500}
                   />
                 </div>
 
-                <div className={cn(styles.field, isModified("chandra_api_key") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("CHANDRA_API_KEY") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_chandra_key_label")}
-                        {isModified("chandra_api_key") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("CHANDRA_API_KEY") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_chandra_key_desc")}</span>
                   </div>
@@ -688,8 +688,8 @@ const AdminSettingsPage = () => {
                       type="password" 
                       className={cn(styles.input, "pr-10")}
                       placeholder="sk-..."
-                      value={getValue("chandra_api_key", "")}
-                      onChange={(e) => handleFieldChange("chandra_api_key", e.target.value)}
+                      value={getValue("CHANDRA_API_KEY", "")}
+                      onChange={(e) => handleFieldChange("CHANDRA_API_KEY", e.target.value)}
                       maxLength={255}
                     />
                     <Key className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -705,7 +705,7 @@ const AdminSettingsPage = () => {
                 <motion.div 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className={cn(styles.settingCard, isModified("topcv_crawl_enabled") || isModified("linkedin_bridge_enabled") ? styles.settingCardModified : "")}
+                  className={cn(styles.settingCard, isModified("TOPCV_CRAWL_ENABLED") || isModified("LINKEDIN_BRIDGE_ENABLED") ? styles.settingCardModified : "")}
                 >
                   <div className={styles.cardHeader}>
                     <div className={styles.cardHeaderLeft}>
@@ -717,12 +717,12 @@ const AdminSettingsPage = () => {
                       <h2 className={styles.cardTitle}>{t("admin_settings_crawler_manager_title")}</h2>
                     </div>
                     <AnimatePresence>
-                      {getSectionModifiedCount(["topcv_crawl_enabled", "linkedin_bridge_enabled"]) > 0 && (
+                      {getSectionModifiedCount(["TOPCV_CRAWL_ENABLED", "LINKEDIN_BRIDGE_ENABLED"]) > 0 && (
                         <motion.button
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: 20 }}
-                          onClick={() => handleBulkSave(["topcv_crawl_enabled", "linkedin_bridge_enabled"])}
+                          onClick={() => handleBulkSave(["TOPCV_CRAWL_ENABLED", "LINKEDIN_BRIDGE_ENABLED"])}
                           disabled={isSaving}
                           className={styles.sectionSaveBtn}
                         >
@@ -733,35 +733,35 @@ const AdminSettingsPage = () => {
                     </AnimatePresence>
                   </div>
                   <div className={styles.formGroup}>
-                    <div className={cn(styles.field, isModified("topcv_crawl_enabled") ? styles.fieldModified : "")}>
+                    <div className={cn(styles.field, isModified("TOPCV_CRAWL_ENABLED") ? styles.fieldModified : "")}>
                       <div className="flex items-center justify-between">
                         <div className={styles.labelArea}>
                           <label className={styles.label}>
                             {t("admin_settings_topcv_crawl_label")}
-                            {isModified("topcv_crawl_enabled") && <span className={styles.fieldModifiedDot} />}
+                            {isModified("TOPCV_CRAWL_ENABLED") && <span className={styles.fieldModifiedDot} />}
                           </label>
                           <span className={styles.desc}>{t("admin_settings_topcv_crawl_desc")}</span>
                         </div>
                         <div 
-                          className={cn(styles.toggle, getValue("topcv_crawl_enabled", true) ? styles.toggleOn : styles.toggleOff)}
-                          onClick={() => handleFieldChange("topcv_crawl_enabled", !getValue("topcv_crawl_enabled", true))}
+                          className={cn(styles.toggle, getValue("TOPCV_CRAWL_ENABLED", true) ? styles.toggleOn : styles.toggleOff)}
+                          onClick={() => handleFieldChange("TOPCV_CRAWL_ENABLED", !getValue("TOPCV_CRAWL_ENABLED", true))}
                         >
                           <div className={styles.knob} />
                         </div>
                       </div>
                     </div>
-                    <div className={cn(styles.field, isModified("linkedin_bridge_enabled") ? styles.fieldModified : "")}>
+                    <div className={cn(styles.field, isModified("LINKEDIN_BRIDGE_ENABLED") ? styles.fieldModified : "")}>
                       <div className="flex items-center justify-between">
                         <div className={styles.labelArea}>
                           <label className={styles.label}>
                             {t("admin_settings_linkedin_bridge_label")}
-                            {isModified("linkedin_bridge_enabled") && <span className={styles.fieldModifiedDot} />}
+                            {isModified("LINKEDIN_BRIDGE_ENABLED") && <span className={styles.fieldModifiedDot} />}
                           </label>
                           <span className={styles.desc}>{t("admin_settings_linkedin_bridge_desc")}</span>
                         </div>
                         <div 
-                          className={cn(styles.toggle, getValue("linkedin_bridge_enabled", false) ? styles.toggleOn : styles.toggleOff)}
-                          onClick={() => handleFieldChange("linkedin_bridge_enabled", !getValue("linkedin_bridge_enabled", false))}
+                          className={cn(styles.toggle, getValue("LINKEDIN_BRIDGE_ENABLED", false) ? styles.toggleOn : styles.toggleOff)}
+                          onClick={() => handleFieldChange("LINKEDIN_BRIDGE_ENABLED", !getValue("LINKEDIN_BRIDGE_ENABLED", false))}
                         >
                           <div className={styles.knob} />
                         </div>
@@ -776,12 +776,12 @@ const AdminSettingsPage = () => {
                   animate={{ opacity: 1, x: 0 }}
                   className={cn(
                     styles.settingCard, 
-                    isModified("smtp_host") || 
-                    isModified("smtp_port") || 
-                    isModified("smtp_user") || 
-                    isModified("smtp_pass") || 
-                    isModified("smtp_from") || 
-                    isModified("queue_threshold") ? styles.settingCardModified : ""
+                    isModified("SMTP_HOST") || 
+                    isModified("SMTP_PORT") || 
+                    isModified("SMTP_USER") || 
+                    isModified("SMTP_PASS") || 
+                    isModified("SMTP_FROM") || 
+                    isModified("QUEUE_THRESHOLD") ? styles.settingCardModified : ""
                   )}
                 >
                   <div className={styles.cardHeader}>
@@ -804,12 +804,12 @@ const AdminSettingsPage = () => {
                         <span>{t("admin_settings_test_mail_btn")}</span>
                       </button>
                       <AnimatePresence>
-                        {getSectionModifiedCount(["smtp_host", "smtp_port", "smtp_user", "smtp_pass", "smtp_from", "queue_threshold"]) > 0 && (
+                        {getSectionModifiedCount(["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_FROM", "QUEUE_THRESHOLD"]) > 0 && (
                           <motion.button
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
-                            onClick={() => handleBulkSave(["smtp_host", "smtp_port", "smtp_user", "smtp_pass", "smtp_from", "queue_threshold"])}
+                            onClick={() => handleBulkSave(["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_FROM", "QUEUE_THRESHOLD"])}
                             disabled={isSaving}
                             className={styles.sectionSaveBtn}
                           >
@@ -821,7 +821,7 @@ const AdminSettingsPage = () => {
                     </div>
                   </div>
                   <div className={styles.formGroup}>
-                    <div className={cn(styles.field, isModified("smtp_host") ? styles.fieldModified : "")}>
+                    <div className={cn(styles.field, isModified("SMTP_HOST") ? styles.fieldModified : "")}>
                       <div className={styles.labelArea}>
                         <label className={styles.label}>{t("admin_settings_smtp_host_label")}</label>
                       </div>
@@ -829,49 +829,49 @@ const AdminSettingsPage = () => {
                         type="text"
                         className={styles.input}
                         placeholder="smtp.gmail.com"
-                        value={getValue("smtp_host", "")}
-                        onChange={(e) => handleFieldChange("smtp_host", e.target.value)}
+                        value={getValue("SMTP_HOST", "")}
+                        onChange={(e) => handleFieldChange("SMTP_HOST", e.target.value)}
                         maxLength={255}
                       />
                     </div>
-                    <div className={cn(styles.field, isModified("smtp_port") ? styles.fieldModified : "")}>
+                    <div className={cn(styles.field, isModified("SMTP_PORT") ? styles.fieldModified : "")}>
                       <div className={styles.labelArea}>
                         <label className={styles.label}>{t("admin_settings_smtp_port_label")}</label>
                       </div>
                       <input 
                         type="number"
                         className={styles.input}
-                        value={getValue("smtp_port", 587)}
-                        onChange={(e) => handleFieldChange("smtp_port", parseInt(e.target.value))}
+                        value={getValue("SMTP_PORT", 587)}
+                        onChange={(e) => handleFieldChange("SMTP_PORT", parseInt(e.target.value))}
                         min={1}
                         max={65535}
                       />
                     </div>
-                    <div className={cn(styles.field, isModified("smtp_user") ? styles.fieldModified : "")}>
+                    <div className={cn(styles.field, isModified("SMTP_USER") ? styles.fieldModified : "")}>
                       <div className={styles.labelArea}>
                         <label className={styles.label}>{t("admin_settings_smtp_user_label")}</label>
                       </div>
                       <input 
                         type="text"
                         className={styles.input}
-                        value={getValue("smtp_user", "")}
-                        onChange={(e) => handleFieldChange("smtp_user", e.target.value)}
+                        value={getValue("SMTP_USER", "")}
+                        onChange={(e) => handleFieldChange("SMTP_USER", e.target.value)}
                         maxLength={255}
                       />
                     </div>
-                    <div className={cn(styles.field, isModified("smtp_pass") ? styles.fieldModified : "")}>
+                    <div className={cn(styles.field, isModified("SMTP_PASS") ? styles.fieldModified : "")}>
                       <div className={styles.labelArea}>
                         <label className={styles.label}>{t("admin_settings_smtp_pass_label")}</label>
                       </div>
                       <input 
                         type="password"
                         className={styles.input}
-                        value={getValue("smtp_pass", "")}
-                        onChange={(e) => handleFieldChange("smtp_pass", e.target.value)}
+                        value={getValue("SMTP_PASS", "")}
+                        onChange={(e) => handleFieldChange("SMTP_PASS", e.target.value)}
                         maxLength={255}
                       />
                     </div>
-                    <div className={cn(styles.field, isModified("smtp_from") ? styles.fieldModified : "")}>
+                    <div className={cn(styles.field, isModified("SMTP_FROM") ? styles.fieldModified : "")}>
                       <div className={styles.labelArea}>
                         <label className={styles.label}>{t("admin_settings_smtp_from_label")}</label>
                       </div>
@@ -879,23 +879,23 @@ const AdminSettingsPage = () => {
                         type="text"
                         className={styles.input}
                         placeholder="Lumix AI <noreply@lumix.ai>"
-                        value={getValue("smtp_from", "")}
-                        onChange={(e) => handleFieldChange("smtp_from", e.target.value)}
+                        value={getValue("SMTP_FROM", "")}
+                        onChange={(e) => handleFieldChange("SMTP_FROM", e.target.value)}
                       />
                     </div>
-                    <div className={cn(styles.field, isModified("queue_threshold") ? styles.fieldModified : "")}>
+                    <div className={cn(styles.field, isModified("QUEUE_THRESHOLD") ? styles.fieldModified : "")}>
                       <div className={styles.labelArea}>
                         <label className={styles.label}>
                             {t("admin_settings_queue_threshold_label")}
-                            {isModified("queue_threshold") && <span className={styles.fieldModifiedDot} />}
+                            {isModified("QUEUE_THRESHOLD") && <span className={styles.fieldModifiedDot} />}
                         </label>
                         <span className={styles.desc}>{t("admin_settings_queue_threshold_desc")}</span>
                       </div>
                       <input 
                         type="number"
                         className={styles.input}
-                        value={getValue("queue_threshold", 5)}
-                        onChange={(e) => handleFieldChange("queue_threshold", parseInt(e.target.value))}
+                        value={getValue("QUEUE_THRESHOLD", 5)}
+                        onChange={(e) => handleFieldChange("QUEUE_THRESHOLD", parseInt(e.target.value))}
                       />
                     </div>
                   </div>
@@ -909,7 +909,7 @@ const AdminSettingsPage = () => {
                 <motion.div 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className={cn(styles.settingCard, isModified("maintenance_mode") || isModified("system_broadcast") ? styles.settingCardModified : "")}
+                  className={cn(styles.settingCard, isModified("MAINTENANCE_MODE") || isModified("SYSTEM_BROADCAST") ? styles.settingCardModified : "")}
                 >
                   <div className={styles.cardHeader}>
                     <div className={styles.cardHeaderLeft}>
@@ -921,12 +921,12 @@ const AdminSettingsPage = () => {
                       <h2 className={styles.cardTitle}>{t("admin_settings_security_ops_title")}</h2>
                     </div>
                     <AnimatePresence>
-                      {getSectionModifiedCount(["maintenance_mode", "maintenance_duration", "system_broadcast"]) > 0 && (
+                      {getSectionModifiedCount(["MAINTENANCE_MODE", "MAINTENANCE_DURATION", "SYSTEM_BROADCAST"]) > 0 && (
                         <motion.button
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: 20 }}
-                          onClick={() => handleBulkSave(["maintenance_mode", "maintenance_duration", "system_broadcast"])}
+                          onClick={() => handleBulkSave(["MAINTENANCE_MODE", "MAINTENANCE_DURATION", "SYSTEM_BROADCAST"])}
                           disabled={isSaving}
                           className={styles.sectionSaveBtn}
                         >
@@ -937,29 +937,29 @@ const AdminSettingsPage = () => {
                     </AnimatePresence>
                   </div>
                   <div className={styles.formGroup}>
-                    <div className={cn(styles.field, isModified("maintenance_mode") ? styles.fieldModified : "")}>
+                    <div className={cn(styles.field, isModified("MAINTENANCE_MODE") ? styles.fieldModified : "")}>
                       <div className="flex items-center justify-between">
                         <div className={styles.labelArea}>
                           <label className={styles.label}>
                             {t("admin_settings_maintenance_mode_label")}
-                            {isModified("maintenance_mode") && <span className={styles.fieldModifiedDot} />}
+                            {isModified("MAINTENANCE_MODE") && <span className={styles.fieldModifiedDot} />}
                           </label>
                           <span className={styles.desc}>{t("admin_settings_maintenance_mode_desc")}</span>
                         </div>
                         <div 
-                          className={cn(styles.toggle, getValue("maintenance_mode", false) ? styles.toggleOn : styles.toggleOff)}
-                          onClick={() => handleFieldChange("maintenance_mode", !getValue("maintenance_mode", false))}
+                          className={cn(styles.toggle, getValue("MAINTENANCE_MODE", false) ? styles.toggleOn : styles.toggleOff)}
+                          onClick={() => handleFieldChange("MAINTENANCE_MODE", !getValue("MAINTENANCE_MODE", false))}
                         >
                           <div className={styles.knob} />
                         </div>
                       </div>
                     </div>
 
-                    <div className={cn(styles.field, isModified("maintenance_duration") ? styles.fieldModified : "")}>
+                    <div className={cn(styles.field, isModified("MAINTENANCE_DURATION") ? styles.fieldModified : "")}>
                       <div className={styles.labelArea}>
                         <label className={styles.label}>
                             {t("admin_settings_maintenance_duration_label")}
-                            {isModified("maintenance_duration") && <span className={styles.fieldModifiedDot} />}
+                            {isModified("MAINTENANCE_DURATION") && <span className={styles.fieldModifiedDot} />}
                         </label>
                         <span className={styles.desc}>{t("admin_settings_maintenance_duration_desc")}</span>
                       </div>
@@ -967,15 +967,15 @@ const AdminSettingsPage = () => {
                         type="text"
                         className={styles.input}
                         placeholder={t("admin_settings_maintenance_duration_placeholder")}
-                        value={getValue("maintenance_duration", t("admin_settings_maintenance_duration_default"))}
-                        onChange={(e) => handleFieldChange("maintenance_duration", e.target.value)}
+                        value={getValue("MAINTENANCE_DURATION", t("admin_settings_maintenance_duration_default"))}
+                        onChange={(e) => handleFieldChange("MAINTENANCE_DURATION", e.target.value)}
                       />
                     </div>
-                    <div className={cn(styles.field, isModified("system_broadcast") ? styles.fieldModified : "")}>
+                    <div className={cn(styles.field, isModified("SYSTEM_BROADCAST") ? styles.fieldModified : "")}>
                       <div className={styles.labelArea}>
                         <label className={styles.label}>
                             {t("admin_settings_system_broadcast_label")}
-                            {isModified("system_broadcast") && <span className={styles.fieldModifiedDot} />}
+                            {isModified("SYSTEM_BROADCAST") && <span className={styles.fieldModifiedDot} />}
                         </label>
                         <span className={styles.desc}>{t("admin_settings_system_broadcast_desc")}</span>
                       </div>
@@ -983,8 +983,8 @@ const AdminSettingsPage = () => {
                         type="text"
                         className={styles.input}
                         placeholder={t("admin_settings_system_broadcast_placeholder")}
-                        value={getValue("system_broadcast", "")}
-                        onChange={(e) => handleFieldChange("system_broadcast", e.target.value)}
+                        value={getValue("SYSTEM_BROADCAST", "")}
+                        onChange={(e) => handleFieldChange("SYSTEM_BROADCAST", e.target.value)}
                       />
                     </div>
                   </div>
@@ -994,7 +994,7 @@ const AdminSettingsPage = () => {
                 <motion.div 
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className={cn(styles.settingCard, isModified("result_cache_ttl") || isModified("gap_cache_ttl") ? styles.settingCardModified : "")}
+                  className={cn(styles.settingCard, isModified("RESULT_CACHE_TTL") || isModified("GAP_CACHE_TTL") ? styles.settingCardModified : "")}
                 >
                   <div className={styles.cardHeader}>
                     <div className={styles.cardHeaderLeft}>
@@ -1006,12 +1006,12 @@ const AdminSettingsPage = () => {
                       <h2 className={styles.cardTitle}>{t("admin_settings_data_caching_title")}</h2>
                     </div>
                     <AnimatePresence>
-                      {getSectionModifiedCount(["result_cache_ttl", "gap_cache_ttl"]) > 0 && (
+                      {getSectionModifiedCount(["RESULT_CACHE_TTL", "GAP_CACHE_TTL"]) > 0 && (
                         <motion.button
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: 20 }}
-                          onClick={() => handleBulkSave(["result_cache_ttl", "gap_cache_ttl"])}
+                          onClick={() => handleBulkSave(["RESULT_CACHE_TTL", "GAP_CACHE_TTL"])}
                           disabled={isSaving}
                           className={styles.sectionSaveBtn}
                         >
@@ -1022,50 +1022,50 @@ const AdminSettingsPage = () => {
                     </AnimatePresence>
                   </div>
                   <div className={styles.formGroup}>
-                    <div className={cn(styles.field, isModified("result_cache_ttl") ? styles.fieldModified : "")}>
+                    <div className={cn(styles.field, isModified("RESULT_CACHE_TTL") ? styles.fieldModified : "")}>
                       <div className={styles.labelArea}>
                         <label className={styles.label}>
                             {t("admin_settings_result_cache_ttl_label")}
-                            {isModified("result_cache_ttl") && <span className={styles.fieldModifiedDot} />}
+                            {isModified("RESULT_CACHE_TTL") && <span className={styles.fieldModifiedDot} />}
                         </label>
                         <span className={styles.desc}>{t("admin_settings_result_cache_ttl_desc")}</span>
                       </div>
                       <input 
                         type="number"
                         className={styles.input}
-                        value={getValue("result_cache_ttl", 3600)}
-                        onChange={(e) => handleFieldChange("result_cache_ttl", parseInt(e.target.value))}
+                        value={getValue("RESULT_CACHE_TTL", 3600)}
+                        onChange={(e) => handleFieldChange("RESULT_CACHE_TTL", parseInt(e.target.value))}
                       />
                     </div>
 
-                    <div className={cn(styles.field, isModified("system_log_ttl_days") ? styles.fieldModified : "")}>
+                    <div className={cn(styles.field, isModified("SYSTEM_LOG_TTL_DAYS") ? styles.fieldModified : "")}>
                       <div className={styles.labelArea}>
                         <label className={styles.label}>
                           {t("admin_settings_system_log_ttl_days_label")}
-                          {isModified("system_log_ttl_days") && <span className={styles.fieldModifiedDot} />}
+                          {isModified("SYSTEM_LOG_TTL_DAYS") && <span className={styles.fieldModifiedDot} />}
                         </label>
                         <span className={styles.desc}>{t("admin_settings_system_log_ttl_days_desc")}</span>
                       </div>
                       <input 
                         type="number"
                         className={styles.input}
-                        value={getValue("system_log_ttl_days", 30)}
-                        onChange={(e) => handleFieldChange("system_log_ttl_days", parseInt(e.target.value))}
+                        value={getValue("SYSTEM_LOG_TTL_DAYS", 30)}
+                        onChange={(e) => handleFieldChange("SYSTEM_LOG_TTL_DAYS", parseInt(e.target.value))}
                       />
                     </div>
-                    <div className={cn(styles.field, isModified("gap_cache_ttl") ? styles.fieldModified : "")}>
+                    <div className={cn(styles.field, isModified("GAP_CACHE_TTL") ? styles.fieldModified : "")}>
                       <div className={styles.labelArea}>
                         <label className={styles.label}>
                             {t("admin_settings_gap_cache_ttl_label")}
-                            {isModified("gap_cache_ttl") && <span className={styles.fieldModifiedDot} />}
+                            {isModified("GAP_CACHE_TTL") && <span className={styles.fieldModifiedDot} />}
                         </label>
                         <span className={styles.desc}>{t("admin_settings_gap_cache_ttl_desc")}</span>
                       </div>
                       <input 
                         type="number"
                         className={styles.input}
-                        value={getValue("gap_cache_ttl", 1800)}
-                        onChange={(e) => handleFieldChange("gap_cache_ttl", parseInt(e.target.value))}
+                        value={getValue("GAP_CACHE_TTL", 1800)}
+                        onChange={(e) => handleFieldChange("GAP_CACHE_TTL", parseInt(e.target.value))}
                       />
                     </div>
                     <div className="flex gap-4">
@@ -1166,5 +1166,7 @@ const AdminSettingsPage = () => {
 };
 
 export default AdminSettingsPage;
+
+
 
 

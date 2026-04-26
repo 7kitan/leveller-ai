@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import styles from "./admin-cvs.module.css";
 import { format } from "date-fns";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAlert } from "@/context/AlertContext";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 
@@ -32,6 +33,7 @@ interface AdminCV {
 const AdminCVsPage = () => {
   const { token } = useAuth();
   const { t } = useLanguage();
+  const { confirm, showSuccess, showError } = useAlert();
   const [cvs, setCvs] = useState<AdminCV[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -74,12 +76,23 @@ const AdminCVsPage = () => {
   }, [searchTerm]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t("admin_cvs_delete_confirm"))) return;
+    const confirmed = await confirm({
+      title: t("delete"),
+      message: t("admin_cvs_delete_confirm"),
+      confirmText: t("delete"),
+      cancelText: t("cancel"),
+      variant: "danger"
+    });
+    
+    if (!confirmed) return;
+    
     try {
       await api.delete(`analysis/admin/cvs/${id}`);
+      showSuccess("Đã xóa CV");
       fetchCVs();
     } catch (err) {
       console.error("Delete CV error:", err);
+      showError("Lỗi khi xóa CV");
     }
   };
 

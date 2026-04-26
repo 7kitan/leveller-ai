@@ -40,7 +40,13 @@ logger.info(f"TopCV Scraper initialized. Logging to: {log_file}")
 logger.info(f"=" * 80)
 
 class TopCVScraper:
-    def __init__(self):
+    def __init__(self, proxy: str = None):
+        """
+        Initialize TopCV scraper.
+        
+        Args:
+            proxy: Optional proxy URL (e.g., "http://user:pass@proxy.com:8080" or "socks5://proxy.com:1080")
+        """
         self.base_url = "https://www.topcv.vn"
         self.headers = {
             "authority": "www.topcv.vn",
@@ -50,11 +56,21 @@ class TopCVScraper:
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
         self.session = requests.Session()
+        self.proxy = proxy
+        if proxy:
+            logger.info(f"[TOPCV] Using proxy: {proxy.split('@')[-1] if '@' in proxy else proxy}")
 
     def _init_session(self):
         """Khởi tạo JA3 fingerprint qua trang chủ."""
         try:
-            self.session.get(self.base_url + "/", headers=self.headers, impersonate="chrome120", timeout=15)
+            proxies = {"https": self.proxy, "http": self.proxy} if self.proxy else None
+            self.session.get(
+                self.base_url + "/", 
+                headers=self.headers, 
+                impersonate="chrome120", 
+                timeout=15,
+                proxies=proxies
+            )
             time.sleep(1)
             return True
         except Exception as e:
@@ -78,7 +94,14 @@ class TopCVScraper:
 
         try:
             logger.info(f"[GET_URLS] Fetching search page...")
-            resp = self.session.get(search_url, headers=self.headers, impersonate="chrome120", timeout=20)
+            proxies = {"https": self.proxy, "http": self.proxy} if self.proxy else None
+            resp = self.session.get(
+                search_url, 
+                headers=self.headers, 
+                impersonate="chrome120", 
+                timeout=20,
+                proxies=proxies
+            )
             logger.info(f"[GET_URLS] Response status: {resp.status_code}")
             logger.info(f"[GET_URLS] Response length: {len(resp.text)} chars")
             
@@ -134,7 +157,14 @@ class TopCVScraper:
                 logger.info(f"[SCRAPE_JOB] Starting job detail scrape (attempt {attempt + 1}/{max_retries + 1})")
                 logger.info(f"[SCRAPE_JOB] URL: {job_url}")
                 
-                resp = self.session.get(job_url, headers=self.headers, impersonate="chrome120", timeout=20)
+                proxies = {"https": self.proxy, "http": self.proxy} if self.proxy else None
+                resp = self.session.get(
+                    job_url, 
+                    headers=self.headers, 
+                    impersonate="chrome120", 
+                    timeout=20,
+                    proxies=proxies
+                )
                 logger.info(f"[SCRAPE_JOB] Response status: {resp.status_code}")
                 logger.info(f"[SCRAPE_JOB] Response length: {len(resp.text)} chars")
                 

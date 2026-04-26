@@ -50,7 +50,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    return () => api.interceptors.response.eject(interceptor);
+    // Listen for global maintenance mode events from api interceptor
+    const handleMaintenanceEvent = (event: CustomEvent) => {
+      if (event.detail?.active) {
+        setMaintenanceMode(true);
+        setMaintenanceDuration(event.detail.duration || "");
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("maintenanceMode", handleMaintenanceEvent as EventListener);
+    }
+
+    return () => {
+      api.interceptors.response.eject(interceptor);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("maintenanceMode", handleMaintenanceEvent as EventListener);
+      }
+    };
   }, []);
 
   // 2. Initialize Auth & Detect Maintenance
@@ -65,9 +82,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       try {
         // Verify token with backend - retrieves user data AND maintenance status
-        // Added 8s timeout to prevent hanging the app forever
-        const res = await api.get("auth/verify", {
-          params: { token: storedToken },
+        // Token is sent via Authorization header automatically by api client
+        const res = await api.get("auth/me", {
           timeout: 8000 
         });
         
@@ -75,12 +91,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const userData = res.data;
           setUser(userData);
           setToken(storedToken);
-          setMaintenanceMode(res.data.maintenance_mode || false);
-          setMaintenanceDuration(res.data.maintenance_duration || "");
+          setMaintenanceMode(res.data.MAINTENANCE_MODE || false);
+          setMaintenanceDuration(res.data.MAINTENANCE_DURATION || "");
           localStorage.setItem("auth_user", JSON.stringify(userData));
         }
       } catch (e: any) {
-        if (e._silent) {
+        // Check if this is a maintenance mode error (503)
+        if (e.maintenanceMode) {
+          setMaintenanceMode(true);
+          setMaintenanceDuration(e.maintenanceDuration || "");
+          console.log("Maintenance mode active:", e.maintenanceMessage);
+        } else if (e.response?.status === 503 && e.response?.data?.maintenance) {
+          // Fallback: direct check of response data
+          setMaintenanceMode(true);
+          setMaintenanceDuration(e.response.data.duration || "");
+          console.log("Maintenance mode active:", e.response.data.detail);
+        } else if (e._silent) {
           setMaintenanceMode(true);
         } else {
           console.error("Session verification failed:", e.message);

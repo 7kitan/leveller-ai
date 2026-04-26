@@ -175,7 +175,7 @@ def list_jobs(
     limit: int = 50,
     offset: int = 0,
 ):
-    """Danh sÃ¡ch jobs active, cÃ³ phÃ¢n trang."""
+    """Danh sách jobs active, có phân trang."""
     jobs = (
         db.query(Job)
         .filter(Job.status == "active")
@@ -185,6 +185,21 @@ def list_jobs(
         .all()
     )
     return [_job_to_response(j) for j in jobs]
+
+
+@app.get("/jd/{job_id}", response_model=JobResponse)
+def get_job_by_id(job_id: str, db: Session = Depends(get_db)):
+    """Get a single job by ID."""
+    try:
+        job_uuid = uuid.UUID(job_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid job ID format")
+    
+    job = db.query(Job).filter(Job.id == job_uuid).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    return _job_to_response(job)
 
 
 @app.get("/jd/search", response_model=PaginatedResponse[JobResponse])
@@ -508,16 +523,24 @@ def admin_crawl_fetch_job(req: CrawlUrlRequest, request: Request):
         raise HTTPException(status_code=400, detail="Chỉ hỗ trợ URL từ TopCV.vn")
 
     try:
-        scraper = TopCVScraper()
+        # Get proxy from environment variable if available
+        # Format: http://user:pass@proxy.com:8080 or socks5://proxy.com:1080
+        topcv_proxy = os.getenv("TOPCV_PROXY")
+        
+        scraper = TopCVScraper(proxy=topcv_proxy)
+        if topcv_proxy:
+            logger.info(f"[ADMIN CRAWL] Using proxy for TopCV scraping")
         logger.info(f"[ADMIN CRAWL] Fetching job from URL: {req.url}")
         
-        data = scraper.scrape_job_details(req.url)
+        # Increase timeout and retries for production environment
+        data = scraper.scrape_job_details(req.url, max_retries=3)
         
         if not data:
             logger.error(f"[ADMIN CRAWL] Scraper returned None for URL: {req.url}")
+            logger.error(f"[ADMIN CRAWL] Check logs at /app/data/logs/ for detailed error information")
             raise HTTPException(
                 status_code=404, 
-                detail="Không thể lấy dữ liệu từ URL này. Vui lòng kiểm tra:\n1. URL có đúng format không?\n2. Job còn active trên TopCV không?\n3. Thử lại sau vài giây."
+                detail="Không thể lấy dữ liệu từ URL này. Vui lòng kiểm tra:\n1. URL có đúng format không?\n2. Job còn active trên TopCV không?\n3. Thử lại sau vài giây.\n4. Kiểm tra logs để biết chi tiết lỗi."
             )
         
         logger.info(f"[ADMIN CRAWL] Successfully scraped: {data.get('title_raw')}")

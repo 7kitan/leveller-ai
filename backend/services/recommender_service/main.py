@@ -25,7 +25,7 @@ async def startup_event():
 logger = logging.getLogger("recommender")
 
 # Thresholds - Now managed via ConfigManager for hot-reloading
-VECTOR_SIM_THRESHOLD = float(config_manager.get_setting("similarity_threshold", 0.60))
+VECTOR_SIM_THRESHOLD = float(config_manager.get_setting("SIMILARITY_THRESHOLD", 0.60))
 
 
 class GapSkill(BaseModel):
@@ -56,7 +56,7 @@ class CourseCreate(BaseModel):
     duration_hours: Optional[float] = Field(None, ge=0, le=10000)
     duration_raw: Optional[str] = Field(None, max_length=100)
     cost_usd: float = Field(default=0.0, ge=0, le=999999)
-    languages: List[str] = Field(default_factory=lambda: ["en"], max_items=10)
+    languages: List[str] = Field(default_factory=lambda: ["en"], max_items=50)
     skills_raw: List[str] = Field(default_factory=list, max_items=50)
     tools_raw: List[str] = Field(default_factory=list, max_items=50)
     outcomes: List[str] = Field(default_factory=list, max_items=20)
@@ -108,7 +108,7 @@ class CourseUpdate(BaseModel):
     duration_hours: Optional[float] = Field(None, ge=0, le=10000)
     duration_raw: Optional[str] = Field(None, max_length=100)
     cost_usd: Optional[float] = Field(None, ge=0, le=999999)
-    languages: Optional[List[str]] = Field(None, max_items=10)
+    languages: Optional[List[str]] = Field(None, max_items=50)
     skills_raw: Optional[List[str]] = Field(None, max_items=50)
     tools_raw: Optional[List[str]] = Field(None, max_items=50)
     outcomes: Optional[List[str]] = Field(None, max_items=20)

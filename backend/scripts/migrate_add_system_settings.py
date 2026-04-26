@@ -22,16 +22,16 @@ def migrate():
         # Initialize default settings
         with engine.connect() as conn:
             # Check if setting exists
-            check = conn.execute(text("SELECT key FROM system_settings WHERE key = 'topcv_crawl_enabled'")).fetchone()
+            check = conn.execute(text("SELECT key FROM system_settings WHERE key = 'TOPCV_CRAWL_ENABLED'")).fetchone()
             if not check:
                 conn.execute(
                     text("INSERT INTO system_settings (key, value, description) VALUES (:key, :value, :desc)"),
-                    {"key": "topcv_crawl_enabled", "value": 'true', "desc": "Toggle automatic background crawl for TopCV (every 30 mins)"}
+                    {"key": "TOPCV_CRAWL_ENABLED", "value": 'true', "desc": "Toggle automatic background crawl for TopCV (every 30 mins)"}
                 )
                 conn.commit()
-                logger.info("  [OK] Initialized 'topcv_crawl_enabled' = true")
+                logger.info("  [OK] Initialized 'TOPCV_CRAWL_ENABLED' = true")
             else:
-                logger.info("  [INFO] 'topcv_crawl_enabled' setting already exists")
+                logger.info("  [INFO] 'TOPCV_CRAWL_ENABLED' setting already exists")
                 
     except Exception as e:
         logger.error(f"  [ERROR] Migration failed: {e}")

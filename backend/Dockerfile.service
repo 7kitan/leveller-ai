@@ -3,11 +3,19 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # Cài đặt các thư viện hệ thống cần thiết
+# Added comprehensive dependencies for curl-cffi support
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     libmagic1 \
     curl \
+    libssl-dev \
+    libffi-dev \
+    ca-certificates \
+    libnghttp2-dev \
+    libbrotli-dev \
+    zlib1g-dev \
+    libzstd-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements và cài đặt dependencies

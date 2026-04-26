@@ -20,11 +20,11 @@ class ChandraOCRClient:
 
     @property
     def api_url(self):
-        return config_manager.get_setting("chandra_ocr_url") or self.default_api_url
+        return config_manager.get_setting("CHANDRA_OCR_URL") or self.default_api_url
 
     @property
     def api_key(self):
-        return config_manager.get_setting("chandra_ocr_api_key") or self.default_api_key
+        return config_manager.get_setting("CHANDRA_OCR_API_KEY") or self.default_api_key
 
     async def ocr_file(self, file_path: str) -> Dict[str, Any]:
         """

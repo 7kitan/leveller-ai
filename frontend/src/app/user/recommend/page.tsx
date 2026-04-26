@@ -187,17 +187,48 @@ const UserRecommendPage = () => {
       }
     } catch (e) {}
 
-    const interval = setInterval(async () => {
+    // 1. Initial fetch to check if task is already completed
+    const fetchInitialStatus = async () => {
       try {
         const resp = await api.get(`analysis/status/${taskIdFromUrl}`);
+        const { status, result, partial_result } = resp.data;
         
-        const { status, result, partial_result, message } = resp.data;
+        console.log("[RECOMMEND] Initial status check:", status);
         
-        if (message) setProcessMessage(message);
+        if (status === "completed" && result) {
+          console.log("[RECOMMEND] Task already completed, loading full result");
+          setGapResult(result as GapResult);
+          setIsProcessing(false);
+          setLoading(false);
+          return true; // Signal that we're done
+        } else if (partial_result) {
+          console.log("[RECOMMEND] Loading partial result");
+          setGapResult(partial_result as GapResult);
+          setLoading(false);
+        }
+        return false; // Continue polling
+      } catch (e) {
+        console.error("[RECOMMEND] Initial fetch error:", e);
+        return false;
+      }
+    };
 
-        if (partial_result) {
-          console.log("[RECOMMEND] Received partial update:", partial_result.node);
-          setGapResult(prev => {
+    // Start with initial fetch
+    fetchInitialStatus().then(isDone => {
+      if (isDone) return; // Don't start polling if already done
+
+      // 2. Start polling for progressive updates
+      const interval = setInterval(async () => {
+        try {
+          const resp = await api.get(`analysis/status/${taskIdFromUrl}`);
+          
+          const { status, result, partial_result, message } = resp.data;
+          
+          if (message) setProcessMessage(message);
+
+          if (partial_result) {
+            console.log("[RECOMMEND] Received partial update:", partial_result.node);
+            setGapResult(prev => {
             // Deep merge to preserve all previously loaded data
             const merged = {
               ...prev,
@@ -296,7 +327,13 @@ const UserRecommendPage = () => {
       }
     }, 4000);
 
-    return () => clearInterval(interval);
+      return () => clearInterval(interval);
+    });
+
+    // Cleanup function
+    return () => {
+      // Interval cleanup is handled in the promise above
+    };
   }, [token, taskIdFromUrl]);
 
   /* ── Load initial gap result (if no task_id) ─────────────────────────── */
@@ -415,6 +452,11 @@ const UserRecommendPage = () => {
   const mediumGaps = skill_gaps.filter((g) => g.severity?.toUpperCase() === "MEDIUM");
   const lowGaps = skill_gaps.filter((g) => g.severity?.toUpperCase() === "LOW");
 
+  // Check if skill_gaps have actual impact data (fields exist, not just empty array)
+  const hasImpactData = skill_gaps.length > 0 && skill_gaps.some(g => 
+    g.match_impact !== undefined || g.salary_impact !== undefined
+  );
+
   const totalHours = course_recommendations.reduce((s, c) => s + (c.duration_hours || 0), 0);
   const validDurationCount = course_recommendations.filter((c) => c.duration_hours && c.duration_hours > 0).length;
   const displayTotalHours = totalHours > 0 ? `${totalHours.toFixed(1)}h` : t("not_available");
@@ -496,7 +538,10 @@ const UserRecommendPage = () => {
           
           {/* Radar Chart - Gap Analysis */}
           <div className={styles.radarSection}>
-            <ReactECharts
+            {Object.keys(match_breakdown).length === 0 ? (
+              <div className={cn(styles.skeleton, styles.skeletonChart)} style={{ width: '100%', height: '100%' }} />
+            ) : (
+              <ReactECharts
               key={`radar-chart-${Object.keys(match_breakdown).join('-')}-${overall_match_pct}`}
               option={{
                 radar: {
@@ -647,6 +692,7 @@ const UserRecommendPage = () => {
               notMerge={true}
               lazyUpdate={true}
             />
+            )}
           </div>
 
           <div className={styles.matchRight}>
@@ -667,7 +713,7 @@ const UserRecommendPage = () => {
             </div>
 
             {/* Growth Forecast */}
-            {(!!gapResult.potential_match_pct || !!gapResult.salary_growth_pct) && (
+            {(!!gapResult.potential_match_pct || !!gapResult.salary_growth_pct) ? (
               <div className={styles.growthForecast}>
                 <div className={styles.growthItem}>
                   <div className={styles.growthLabel}>
@@ -697,7 +743,12 @@ const UserRecommendPage = () => {
                   </div>
                 )}
               </div>
-            )}
+            ) : isProcessing ? (
+              <div className={styles.growthForecast}>
+                <div className={cn(styles.skeleton, styles.skeletonText)} style={{ height: '3rem', marginBottom: '0.75rem' }} />
+                <div className={cn(styles.skeleton, styles.skeletonText)} style={{ height: '3rem' }} />
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -708,24 +759,40 @@ const UserRecommendPage = () => {
               <CheckCircle2 size={18} className={styles.successIcon} />
               {t("strengths")}
             </h3>
-            <ul className={styles.infoList}>
-              {strengths.map((s, i) => (
-                <li key={i}>{s}</li>
-              ))}
-              {strengths.length === 0 && <li>{t("analyzing_data")}</li>}
-            </ul>
+            {isProcessing && strengths.length === 0 ? (
+              <div className={styles.infoList}>
+                <div className={cn(styles.skeleton, styles.skeletonText)} />
+                <div className={cn(styles.skeleton, styles.skeletonText, styles.skeletonTextMedium)} />
+                <div className={cn(styles.skeleton, styles.skeletonText, styles.skeletonTextShort)} />
+              </div>
+            ) : (
+              <ul className={styles.infoList}>
+                {strengths.map((s, i) => (
+                  <li key={i}>{s}</li>
+                ))}
+                {strengths.length === 0 && <li>{t("analyzing_data")}</li>}
+              </ul>
+            )}
           </div>
           <div className={styles.infoCard}>
             <h3 className={styles.infoTitle}>
               <AlertCircle size={18} className={styles.warningIcon} />
               {t("weaknesses")}
             </h3>
-            <ul className={styles.infoList}>
-              {weaknesses.map((w, i) => (
-                <li key={i}>{w}</li>
-              ))}
-              {weaknesses.length === 0 && <li>{t("all_skills_ok")}</li>}
-            </ul>
+            {isProcessing && weaknesses.length === 0 ? (
+              <div className={styles.infoList}>
+                <div className={cn(styles.skeleton, styles.skeletonText)} />
+                <div className={cn(styles.skeleton, styles.skeletonText, styles.skeletonTextShort)} />
+                <div className={cn(styles.skeleton, styles.skeletonText, styles.skeletonTextMedium)} />
+              </div>
+            ) : (
+              <ul className={styles.infoList}>
+                {weaknesses.map((w, i) => (
+                  <li key={i}>{w}</li>
+                ))}
+                {weaknesses.length === 0 && <li>{t("all_skills_ok")}</li>}
+              </ul>
+            )}
           </div>
         </div>
 
@@ -803,9 +870,10 @@ const UserRecommendPage = () => {
                   </h3>
                 </div>
                 <div className={styles.impactChartContainer}>
-                  <ReactECharts
-                    key={`impact-chart-${skill_gaps.map(g => g.skill).join('-')}-${skill_gaps.length}`}
-                    option={{
+                  {hasImpactData ? (
+                    <ReactECharts
+                      key={`impact-chart-${skill_gaps.map(g => g.skill).join('-')}-${skill_gaps.length}`}
+                      option={{
                       tooltip: {
                         trigger: 'axis',
                         axisPointer: { type: 'shadow' },
@@ -883,11 +951,14 @@ const UserRecommendPage = () => {
                     opts={{ renderer: 'svg' }}
                     notMerge={true}
                   />
+                  ) : (
+                    <div className={cn(styles.skeleton, styles.skeletonChart)} />
+                  )}
                 </div>
               </div>
             )}
             
-            {skill_gaps.length === 0 ? (
+            {skill_gaps.length === 0 && !isProcessing ? (
               <div className={styles.emptySection}>
                 <CheckCircle2 size={40} className={styles.emptyIcon} />
                 <p>{t("success")} - {t("no_gaps_detected")}</p>

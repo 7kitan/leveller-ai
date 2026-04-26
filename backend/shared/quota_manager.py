@@ -16,7 +16,7 @@ class QuotaManager:
             return user.daily_analysis_limit
         
         return int(
-            config_manager.get_setting("daily_analysis_limit") or 
+            config_manager.get_setting("DAILY_ANALYSIS_LIMIT") or 
             os.getenv("DAILY_ANALYSIS_LIMIT", "10")
         )
 
@@ -27,7 +27,7 @@ class QuotaManager:
             return user.daily_token_limit
         
         return int(
-            config_manager.get_setting("user_daily_token_limit") or 
+            config_manager.get_setting("USER_DAILY_TOKEN_LIMIT") or 
             os.getenv("DAILY_TOKEN_LIMIT", "50000")
         )
 

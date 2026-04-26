@@ -19,11 +19,14 @@ from pydantic import BaseModel, Field, validator
 
 # SECURITY: File upload constraints
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
-ALLOWED_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png'}
+ALLOWED_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png', '.docx', '.doc'}
 ALLOWED_MIME_TYPES = {
     'application/pdf',
     'image/jpeg',
-    'image/png'
+    'image/png',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',  # .docx
+    'application/msword',  # .doc
+    'application/octet-stream'  # Fallback for some .docx files
 }
 
 
