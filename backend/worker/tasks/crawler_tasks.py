@@ -1,6 +1,7 @@
 import logging
 import re
 import time
+import os
 from worker.celery_app import celery_app
 from shared.scrapers.coursera import scrape_coursera_course
 from shared.scrapers.topcv import TopCVScraper
@@ -121,7 +122,13 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False, extract_skills: 
     """
     logger.info(f"🚀 [TOPCV CRAWLER] Starting crawl cycle (limit={limit}, force={force}, extract_skills={extract_skills})...")
     system_logger.info("CRAWLER", f"Starting TopCV crawl cycle (limit={limit})")
-    scraper = TopCVScraper()
+    
+    # Get proxy from environment variable if available
+    topcv_proxy = os.getenv("TOPCV_PROXY")
+    scraper = TopCVScraper(proxy=topcv_proxy)
+    if topcv_proxy:
+        logger.info(f"[TOPCV CRAWLER] Using proxy for TopCV scraping")
+    
     urls = scraper.get_latest_job_urls(limit=limit)
     
     if not urls:
@@ -132,7 +139,7 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False, extract_skills: 
     
     # Check if crawling is enabled in settings (bypass if force=True)
     if not force:
-        setting = db.query(SystemSetting).filter(SystemSetting.key == "topcv_crawl_enabled").first()
+        setting = db.query(SystemSetting).filter(SystemSetting.key == "TOPCV_CRAWL_ENABLED").first()
         if setting and not setting.value:
             logger.info("⏭️ [TOPCV CRAWLER] Crawl cycle skipped (disabled in system settings).")
             db.close()

@@ -394,21 +394,41 @@ async def login(request: Request, user_in: UserLogin, db: Session = Depends(get_
         }
     )
 
+    # Check maintenance mode after successful authentication
+    try:
+        mode = auth_cache.get("system:MAINTENANCE_MODE")
+        duration = auth_cache.get("system:MAINTENANCE_DURATION")
+        
+        if mode:
+            # Handle both bytes and string (redis-py version compatibility)
+            mode_str = mode.decode('utf-8') if isinstance(mode, bytes) else str(mode)
+            duration_str = duration.decode('utf-8') if isinstance(duration, bytes) else str(duration) if duration else "Không xác định"
+            
+            if mode_str.lower() == 'true':
+                # Maintenance mode is ON
+                if user.role != UserRole.ADMIN:
+                    # Non-admin users cannot login during maintenance
+                    raise HTTPException(
+                        status_code=503,
+                        detail=f"Hệ thống đang bảo trì để nâng cấp. Thời gian dự kiến: {duration_str}. Chỉ admin mới có thể đăng nhập trong thời gian này."
+                    )
+                # Admin users can login during maintenance
+                logger.info(f"Admin user {user.email} logged in during maintenance mode")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to check maintenance mode: {e}")
+        # Fail-safe: allow login if Redis check fails
+
     return {
         "access_token": access_token, 
         "token_type": "bearer",
         "user": user_data
     }
 
-@app.get("/auth/verify")
-def verify(token: str, db: Session = Depends(get_db)):
-    token_key = f"token:{hash_token(token)}"
-    cached = auth_cache.get(token_key)
-    
+
     if cached:
         user_data = json.loads(cached)
-        user_data["maintenance_mode"] = config_manager.get_setting("maintenance_mode", False)
-        user_data["maintenance_duration"] = config_manager.get_setting("maintenance_duration", "Không xác định")
         return user_data
     
     # Cache miss -> Deep Verification (JWT Decode + DB Check)
@@ -450,9 +470,6 @@ def verify(token: str, db: Session = Depends(get_db)):
         auth_cache.setex(token_key, ACCESS_TOKEN_EXPIRE_SECONDS, json.dumps(user_data))
         logger.info(f"DEBUG Auth: Deep verification successful for user {user.email}")
         
-        # Thêm system status vào response
-        user_data["maintenance_mode"] = config_manager.get_setting("maintenance_mode", False)
-        user_data["maintenance_duration"] = config_manager.get_setting("maintenance_duration", "Không xác định")
         return user_data
     except Exception as e:
         if isinstance(e, HTTPException):
@@ -469,7 +486,7 @@ def get_me(request: Request, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-        
+    
     return {
         "id": str(user.id),
         "email": user.email,

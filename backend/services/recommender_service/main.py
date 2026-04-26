@@ -25,7 +25,7 @@ async def startup_event():
 logger = logging.getLogger("recommender")
 
 # Thresholds - Now managed via ConfigManager for hot-reloading
-VECTOR_SIM_THRESHOLD = float(config_manager.get_setting("similarity_threshold", 0.60))
+VECTOR_SIM_THRESHOLD = float(config_manager.get_setting("SIMILARITY_THRESHOLD", 0.60))
 
 
 class GapSkill(BaseModel):
@@ -56,7 +56,7 @@ class CourseCreate(BaseModel):
     duration_hours: Optional[float] = Field(None, ge=0, le=10000)
     duration_raw: Optional[str] = Field(None, max_length=100)
     cost_usd: float = Field(default=0.0, ge=0, le=999999)
-    languages: List[str] = Field(default_factory=lambda: ["en"], max_items=10)
+    languages: List[str] = Field(default_factory=lambda: ["en"], max_items=50)
     skills_raw: List[str] = Field(default_factory=list, max_items=50)
     tools_raw: List[str] = Field(default_factory=list, max_items=50)
     outcomes: List[str] = Field(default_factory=list, max_items=20)
@@ -108,7 +108,7 @@ class CourseUpdate(BaseModel):
     duration_hours: Optional[float] = Field(None, ge=0, le=10000)
     duration_raw: Optional[str] = Field(None, max_length=100)
     cost_usd: Optional[float] = Field(None, ge=0, le=999999)
-    languages: Optional[List[str]] = Field(None, max_items=10)
+    languages: Optional[List[str]] = Field(None, max_items=50)
     skills_raw: Optional[List[str]] = Field(None, max_items=50)
     tools_raw: Optional[List[str]] = Field(None, max_items=50)
     outcomes: Optional[List[str]] = Field(None, max_items=20)
@@ -143,8 +143,12 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
     except Exception:
         pass
 
-    # Tăng cường search_text để matching tốt hơn với embedding_context mới
-    search_text = f"Skill: {skill_name}. Level: {target_level}. Course teaching {skill_name} concepts and applications."
+    # Match structure with embedding context for better cosine similarity
+    search_text = (
+        f"TITLE: {skill_name}. "
+        f"LEVEL: {target_level}. "
+        f"SKILLS: {skill_name}."
+    )
     skill_vector = get_embedding(search_text)
 
     if skill_vector:
@@ -419,11 +423,18 @@ async def admin_list_courses(
     query = db.query(Course)
     
     if q:
+        # Search across multiple fields using indexes:
+        # - title, platform, provider: uses pg_trgm GIN indexes (idx_courses_*_trgm)
+        # - tags: uses GIN index (idx_courses_tags_gin) with ANY operator
+        # - skills_raw: uses GIN index (idx_courses_skills_raw_gin) with JSONB contains
         query = query.filter(
             or_(
                 Course.title.ilike(f"%{q}%"),
                 Course.platform.ilike(f"%{q}%"),
-                Course.provider.ilike(f"%{q}%")
+                Course.provider.ilike(f"%{q}%"),
+                text("(:keyword = ANY(tags))").bindparams(keyword=q),
+                text("(skills_raw::jsonb @> to_jsonb(:skill::text))").bindparams(skill=q),
+                text("EXISTS (SELECT 1 FROM jsonb_array_elements_text(skills_raw::jsonb) skill WHERE skill ILIKE :pattern)").bindparams(pattern=f"%{q}%")
             )
         )
 
@@ -444,21 +455,27 @@ async def admin_list_courses(
 async def admin_create_course(
     req: CourseCreate, request: Request, db: Session = Depends(get_db)
 ):
-    """Admin only: Tạo khóa học mới + tạo embedding."""
+    """Admin only: Tạo khóa học mới + tạo embedding. Returns existing if duplicate."""
     if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
+    # Check if course already exists
+    existing = db.query(Course).filter(
+        Course.source_platform == req.source_platform,
+        Course.source_id == req.source_id
+    ).first()
+    
+    if existing:
+        # Return existing course instead of error
+        return existing
+
     from shared.llm_utils import get_embedding
 
-    # Tạo context cho embedding - Flat & Rich context
+    # Minimal embedding context: Title + Level + Skills only (focused signal)
     context = (
-        f"PLATFORM: {req.platform or req.source_platform}. "
         f"TITLE: {req.title}. "
-        f"PROVIDER: {req.provider or 'Unknown'}. "
-        f"DESCRIPTION: {req.title}. " # Fallback if no description in Create
-        f"MODULES: {', '.join(req.modules)}. "
-        f"SKILLS: {', '.join(req.skills_raw)}. "
-        f"OUTCOMES: {', '.join(req.outcomes)}."
+        f"LEVEL: {req.level or 'Unknown'}. "
+        f"SKILLS: {', '.join(req.skills_raw)}."
     )
     vector = get_embedding(context)
 
@@ -510,14 +527,11 @@ async def admin_bulk_create_courses(
         if existing:
             continue
 
+        # Minimal embedding context: Title + Level + Skills only (focused signal)
         context = (
-            f"PLATFORM: {c_req.platform or c_req.source_platform}. "
             f"TITLE: {c_req.title}. "
-            f"PROVIDER: {c_req.provider or 'Unknown'}. "
-            f"DESCRIPTION: {c_req.title}. "
-            f"MODULES: {', '.join(c_req.modules)}. "
-            f"SKILLS: {', '.join(c_req.skills_raw)}. "
-            f"OUTCOMES: {', '.join(c_req.outcomes)}."
+            f"LEVEL: {c_req.level or 'Unknown'}. "
+            f"SKILLS: {', '.join(c_req.skills_raw)}."
         )
         vector = get_embedding(context)
 
@@ -618,14 +632,11 @@ async def admin_update_course(
     if needs_re_embedding:
         from shared.llm_utils import get_embedding
 
+        # Minimal embedding context: Title + Level + Skills only (focused signal)
         context = (
-            f"PLATFORM: {course.platform or course.source_platform}. "
             f"TITLE: {course.title}. "
-            f"PROVIDER: {course.provider or 'Unknown'}. "
-            f"DESCRIPTION: {course.description or course.title}. "
-            f"MODULES: {', '.join(course.modules or [])}. "
-            f"SKILLS: {', '.join(course.skills_raw or [])}. "
-            f"OUTCOMES: {', '.join(course.outcomes or [])}."
+            f"LEVEL: {course.level or 'Unknown'}. "
+            f"SKILLS: {', '.join(course.skills_raw or [])}."
         )
         course.embedding_context = context
         course.vector = get_embedding(context)
@@ -663,6 +674,7 @@ async def admin_crawl_course(req: CrawlRequest, request: Request):
     task = celery_app.send_task(
         "worker.tasks.crawler_tasks.crawl_course_task",
         args=[req.url],
+        queue="market_stats",
     )
     return {"task_id": task.id, "status": "processing"}
 

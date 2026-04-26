@@ -132,7 +132,7 @@ const UserDashboard = () => {
     },
     {
       label: t("cv_match_score"),
-      value: loading ? "..." : `${marketData?.market_fit_pct || 0}%`,
+      value: loading ? "..." : `${(marketData?.market_fit_pct || 0).toFixed(1)}%`,
       icon: TrendingUp,
     },
   ];

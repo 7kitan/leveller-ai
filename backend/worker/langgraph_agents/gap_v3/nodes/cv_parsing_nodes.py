@@ -28,6 +28,52 @@ def _update_cv_progress(cv_id: str, step_message: str, percent: int):
     except Exception as e:
         logger.warning(f"Failed to update progress in Redis: {e}")
 
+
+def extract_text_from_docx(file_path: str) -> str:
+    """
+    Extract text from .docx file using python-docx library.
+    
+    Args:
+        file_path: Path to .docx file
+        
+    Returns:
+        Extracted text content
+        
+    Raises:
+        Exception: If extraction fails
+    """
+    try:
+        from docx import Document
+        
+        logger.info(f"[DOCX] Extracting text from: {file_path}")
+        doc = Document(file_path)
+        
+        # Extract text from all paragraphs
+        text_parts = []
+        for paragraph in doc.paragraphs:
+            if paragraph.text.strip():
+                text_parts.append(paragraph.text.strip())
+        
+        # Extract text from tables
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    if cell.text.strip():
+                        text_parts.append(cell.text.strip())
+        
+        extracted_text = "\n".join(text_parts)
+        logger.info(f"[DOCX] Extracted {len(extracted_text)} characters from {len(doc.paragraphs)} paragraphs and {len(doc.tables)} tables")
+        
+        return extracted_text
+        
+    except ImportError:
+        logger.error("[DOCX] python-docx library not installed. Run: pip install python-docx")
+        raise Exception("python-docx library not available")
+    except Exception as e:
+        logger.error(f"[DOCX] Failed to extract text: {e}")
+        raise
+
+
 # ─── Node 1: Text Extraction ─────────────────────────────────────────────
 
 
@@ -73,7 +119,7 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
     upload_dir = os.getenv("CV_UPLOAD_DIR", "data/cv_uploads")
     
     # Strategy Detection
-    strategy = config_manager.get_setting("cv_parser_strategy", default="direct").lower()
+    strategy = config_manager.get_setting("CV_PARSER_STRATEGY", default="direct").lower()
     logger.info(f"[STEP 1] Selected Strategy: {strategy.upper()}")
 
     # Robust File Discovery
@@ -129,6 +175,45 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
 
     # ── Execution: Chandra vs Direct ──────────────────────────────────────
     is_ocr = False
+    
+    # Check file extension to determine extraction method
+    file_ext = os.path.splitext(file_path)[1].lower()
+    
+    # Handle .docx/.doc files
+    if file_ext in ['.docx', '.doc']:
+        logger.info(f"[STEP 1] DOCX/DOC file detected: {file_ext}")
+        try:
+            raw_text = extract_text_from_docx(file_path)
+            
+            if len(raw_text) < 100:
+                logger.error(f"[STEP 1] DOCX extraction failed: text too short ({len(raw_text)} chars)")
+                return {
+                    **state,
+                    "error": "Validation failed: The document does not contain sufficient CV elements.",
+                    "status": "failed"
+                }
+            
+            logger.info(f"[STEP 1] ✓ DOCX SUCCESS | text_len={len(raw_text)}")
+            
+            # Save to DB for caching
+            cv_record.raw_text = raw_text
+            cv_record.is_ocr = False
+            db.commit()
+            
+            return {
+                **state,
+                "raw_text": raw_text,
+                "is_ocr": False,
+                "status": "text_extracted",
+                "file_path": file_path,
+            }
+        except Exception as e:
+            logger.error(f"[STEP 1] DOCX extraction failed: {e}", exc_info=True)
+            return {
+                **state,
+                "error": f"Failed to extract text from DOCX: {str(e)}",
+                "status": "failed"
+            }
 
     if strategy == "chandra":
         logger.info(f"[STEP 1] HUB REQUEST: Sending {os.path.basename(file_path)} to Chandra OCR API...")
@@ -206,7 +291,7 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
             
             if is_pdf:
                 import pdf2image
-                dpi = config_manager.get_setting("ocr_dpi", default=200, cast=int)
+                dpi = config_manager.get_setting("OCR_DPI", default=200, cast=int)
                 logger.info(f"[STEP 1] pdf2image converting PDF at dpi={dpi} ...")
                 images = pdf2image.convert_from_path(file_path, dpi=dpi)
                 logger.info(f"[STEP 1] Converted {len(images)} images from PDF pages")

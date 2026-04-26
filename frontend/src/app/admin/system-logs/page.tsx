@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAlert } from "@/context/AlertContext";
 import styles from "../admin-dashboard.module.css";
 import localStyles from "./system-logs.module.css";
 import PageHeader from "@/components/common/PageHeader";
@@ -26,6 +27,7 @@ import PageContainer from "@/components/common/PageContainer";
 const SystemLogsPage = () => {
   const { token } = useAuth();
   const { t } = useLanguage();
+  const { confirm, showInfo } = useAlert();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -49,9 +51,19 @@ const SystemLogsPage = () => {
   };
 
   const cleanupLogs = async () => {
-    if (!confirm(t("admin_logs_cleanup_confirm" as any))) return;
+    const confirmed = await confirm({
+      title: t("admin_logs_cleanup"),
+      message: t("admin_logs_cleanup_confirm" as any),
+      confirmText: t("delete"),
+      cancelText: t("cancel"),
+      variant: "danger"
+    });
+    
+    if (!confirmed) return;
+    
     try {
       await api.delete("admin/system/logs/cleanup?days=30");
+      showInfo("Đã dọn dẹp log cũ");
       fetchLogs(0);
     } catch (err) {
       console.error("Cleanup logs error:", err);
@@ -193,7 +205,7 @@ const SystemLogsPage = () => {
                       </td>
                       <td className={cn(localStyles.td, localStyles.actionsCell)}>
                         <button 
-                          onClick={() => alert(JSON.stringify(log, null, 2))}
+                          onClick={() => showInfo(JSON.stringify(log, null, 2), "Log Details")}
                           className={localStyles.detailsBtn}
                         >
                           {t("admin_logs_details")}

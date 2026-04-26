@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import styles from "./admin-jobs.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAlert } from "@/context/AlertContext";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 import Portal from "@/components/shared/Portal";
@@ -61,6 +62,7 @@ interface SystemSetting {
 const AdminJobsPage = () => {
   const { token } = useAuth();
   const { t } = useLanguage();
+  const { confirm, showSuccess, showError } = useAlert();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -117,7 +119,7 @@ const AdminJobsPage = () => {
   const fetchSettings = async () => {
     try {
       const resp = await api.get("admin/settings");
-      const topcvSetting = resp.data.find((s: SystemSetting) => s.key === "topcv_crawl_enabled");
+      const topcvSetting = resp.data.find((s: SystemSetting) => s.key === "TOPCV_CRAWL_ENABLED");
       if (topcvSetting) {
         setCrawlEnabled(topcvSetting.value);
       }
@@ -130,7 +132,7 @@ const AdminJobsPage = () => {
     setIsUpdatingSetting(true);
     try {
       const newValue = !crawlEnabled;
-      await api.patch(`admin/settings/topcv_crawl_enabled`, 
+      await api.patch(`admin/settings/TOPCV_CRAWL_ENABLED`, 
         { value: newValue }
       );
       setCrawlEnabled(newValue);
@@ -197,13 +199,22 @@ const AdminJobsPage = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t("admin_jobs_delete_confirm"))) return;
+    const confirmed = await confirm({
+      title: t("admin_jobs_delete_confirm"),
+      message: t("admin_jobs_delete_confirm"),
+      confirmText: t("delete"),
+      cancelText: t("cancel"),
+      variant: "danger"
+    });
+    
+    if (!confirmed) return;
+    
     try {
       await api.delete(`jd/admin/${id}`);
-      showNotification(t("admin_jobs_delete_success"));
+      showSuccess(t("admin_jobs_delete_success"));
       fetchJobs();
     } catch (err) {
-      showNotification(t("error"), "error");
+      showError(t("error"));
     }
   };
 
@@ -252,15 +263,23 @@ const AdminJobsPage = () => {
   };
 
   const handleCrawl = async () => {
-    if (!confirm(t("admin_jobs_crawl_success"))) return;
+    const confirmed = await confirm({
+      title: t("admin_jobs_crawl_now"),
+      message: t("admin_jobs_crawl_success"),
+      confirmText: t("admin_jobs_crawl_now"),
+      cancelText: t("cancel"),
+      variant: "primary"
+    });
+    
+    if (!confirmed) return;
+    
     setIsLoading(true);
     try {
       await api.post("jd/admin/crawl", {});
-      showNotification(t("admin_jobs_crawl_success"));
-      // Refresh sau 5s để xem có tin mới chưa
-      setTimeout(() => fetchJobs(1), 5000);
+      showSuccess(t("admin_jobs_crawl_success"));
+      setTimeout(() => fetchJobs(), 3000);
     } catch (err) {
-      showNotification(t("admin_jobs_crawl_error"), "error");
+      showError(t("admin_jobs_crawl_error"));
     } finally {
       setIsLoading(false);
     }

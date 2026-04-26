@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     poppler-utils \
     libmagic1 \
     git \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements và cài đặt dependencies

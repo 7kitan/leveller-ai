@@ -170,7 +170,7 @@ def cleanup_system_logs():
     from shared.config_utils import config_manager
     
     # Lấy số ngày lưu trữ từ config, mặc định 30 ngày
-    ttl_days = int(config_manager.get_setting("system_log_ttl_days") or 30)
+    ttl_days = int(config_manager.get_setting("SYSTEM_LOG_TTL_DAYS") or 30)
     
     logger.info(f"[CLEANUP] Starting system log cleanup (TTL: {ttl_days} days)...")
     count = system_logger.cleanup_old_logs(days=ttl_days)

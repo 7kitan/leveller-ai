@@ -10,6 +10,8 @@ import asyncio
 import time
 import sys
 import logging
+import os
+import glob
 
 
 # ── FORCE all loggers to propagate to stderr with correct level ─────────────
@@ -143,9 +145,24 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
         return {"status": "failed", "error": f"Invalid cv_id: {cv_id}", "cv_id": cv_id}
 
     db = SessionLocal()
+    file_path_to_cleanup = None
 
     try:
-        # ── Step 0: Ensure async event loop ──────────────────────────────────
+        # ── Step 0: Get file path early for guaranteed cleanup ───────────────
+        # CRITICAL: Get file path BEFORE pipeline runs so cleanup works even if pipeline fails
+        from shared.models import UserCV
+        
+        cv_record = db.query(UserCV).filter(UserCV.id == cv_id).first()
+        if cv_record and cv_record.file_id:
+            # Find file with any extension matching the file_id
+            UPLOAD_DIR = "/app/data/cv_uploads"
+            pattern = os.path.join(UPLOAD_DIR, f"{cv_record.file_id}.*")
+            matching_files = glob.glob(pattern)
+            if matching_files:
+                file_path_to_cleanup = matching_files[0]
+                logger.info(f"[TASK] File path for cleanup: {file_path_to_cleanup}")
+        
+        # ── Step 1: Ensure async event loop ──────────────────────────────────
         try:
             loop = asyncio.get_event_loop()
             if loop.is_closed():
@@ -155,7 +172,7 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-        # ── Step 1: Invoke LangGraph pipeline ─────────────────────────────────
+        # ── Step 2: Invoke LangGraph pipeline ─────────────────────────────────
         from worker.langgraph_agents.gap_v3.cv_parsing_graph import (
             run_cv_parsing_pipeline,
         )
@@ -187,23 +204,6 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
                 f"  graph time     : {graph_elapsed:.1f}s\n" + "=" * 60
             )
             self._update_cv_status(cv_id, status="completed", error_msg="")
-
-            # ── Step 3: Cleanup physical file ────────────────────────────────
-            import os
-            f_path = result.get("file_path")
-            UPLOAD_DIR = "/app/data/cv_uploads"
-            if f_path and os.path.exists(f_path):
-                try:
-                    # SECURITY: Prevent Path Traversal
-                    abs_f_path = os.path.abspath(f_path)
-                    abs_upload_dir = os.path.abspath(UPLOAD_DIR)
-                    if abs_f_path.startswith(abs_upload_dir + os.sep) or abs_f_path == abs_upload_dir:
-                        os.remove(abs_f_path)
-                        logger.info(f"[TASK] ✓ Deleted CV file after successful parse: {abs_f_path}")
-                    else:
-                        logger.warning(f"[SECURITY] Attempted to delete file outside upload directory: {abs_f_path}")
-                except Exception as e:
-                    logger.warning(f"[TASK] ⚠ Failed to delete CV file {f_path}: {e}")
 
             return result
 
@@ -240,5 +240,20 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
             raise e
 
     finally:
+        # ── Cleanup: Delete physical file (success or failure) ───────────────
+        UPLOAD_DIR = "/app/data/cv_uploads"
+        if file_path_to_cleanup and os.path.exists(file_path_to_cleanup):
+            try:
+                # SECURITY: Prevent Path Traversal
+                abs_f_path = os.path.abspath(file_path_to_cleanup)
+                abs_upload_dir = os.path.abspath(UPLOAD_DIR)
+                if abs_f_path.startswith(abs_upload_dir + os.sep) or abs_f_path == abs_upload_dir:
+                    os.remove(abs_f_path)
+                    logger.info(f"[TASK CLEANUP] ✓ Deleted CV file: {abs_f_path}")
+                else:
+                    logger.warning(f"[SECURITY] Attempted to delete file outside upload directory: {abs_f_path}")
+            except Exception as e:
+                logger.warning(f"[TASK CLEANUP] ⚠ Failed to delete CV file {file_path_to_cleanup}: {e}")
+        
         db.close()
         logger.info(f"[TASK CLEANUP] db closed | cv_id={cv_id}")

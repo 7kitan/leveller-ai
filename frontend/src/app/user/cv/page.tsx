@@ -36,9 +36,11 @@ import { cn } from "@/lib/utils";
 import styles from "./user-cv.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAlert } from "@/context/AlertContext";
 import Modal from "@/components/shared/Modal";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
+import { CVPreview } from "@/components/cv/CVPreview";
 
 const POLLING_INTERVAL = 5000;
 
@@ -155,6 +157,7 @@ const SKILL_LEVELS = ["Junior", "Mid-level", "Senior", "Expert"];
 const UserCVPage = () => {
   const { token } = useAuth();
   const { t, language } = useLanguage();
+  const { showSuccess, showError } = useAlert();
 
   const getSeniorityLabel = (val: string) => {
     switch (val) {
@@ -167,6 +170,7 @@ const UserCVPage = () => {
     }
   };
   const [file, setFile] = useState<File | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const [history, setHistory] = useState<CVHistory[]>([]);
   const [status, setStatus] = useState<"idle" | "uploading" | "processing" | "viewing">("idle");
   const [parsedData, setParsedData] = useState<ParsedCV | null>(null);
@@ -246,6 +250,61 @@ const UserCVPage = () => {
     router.push(`/user/analysis?job_id=${analysisContext.jd_id}&auto_run=true`);
   };
 
+  const handleFileSelect = async (selectedFile: File) => {
+    // Validate file type
+    const allowedExtensions = ['pdf', 'docx', 'doc', 'png', 'jpg', 'jpeg'];
+    const fileExtension = selectedFile.name.split('.').pop()?.toLowerCase();
+    
+    if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
+      showError('Chỉ hỗ trợ file PDF, DOCX, DOC, PNG, JPG, JPEG');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      showError('File không được vượt quá 10MB');
+      return;
+    }
+
+    // Validate PDF page count (max 10 pages)
+    if (fileExtension === 'pdf') {
+      try {
+        const { pdfjs } = await import('react-pdf');
+        
+        // Configure worker before using pdfjs
+        if (!pdfjs.GlobalWorkerOptions.workerSrc || pdfjs.GlobalWorkerOptions.workerSrc === 'pdf.worker.mjs') {
+          pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+        }
+        
+        const arrayBuffer = await selectedFile.arrayBuffer();
+        const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+        const pageCount = pdf.numPages;
+        
+        if (pageCount > 10) {
+          showError(`CV có ${pageCount} trang, vượt quá giới hạn 10 trang. Vui lòng rút gọn CV hoặc chỉ upload các trang quan trọng.`);
+          return;
+        }
+      } catch (err) {
+        console.error('Failed to validate PDF pages:', err);
+        // Continue anyway - don't block upload if validation fails
+      }
+    }
+
+    setFile(selectedFile);
+    setShowPreview(true);
+    setError(null);
+  };
+
+  const handleConfirmUpload = () => {
+    setShowPreview(false);
+    handleUpload();
+  };
+
+  const handleCancelPreview = () => {
+    setShowPreview(false);
+    setFile(null);
+  };
+
   const handleUpload = async () => {
     if (!file) return;
     setStatus("uploading");
@@ -301,7 +360,7 @@ const UserCVPage = () => {
     const interval = setInterval(async () => {
       try {
         const resp = await api.get(`cv/status/${parserId}`);
-        const { status: taskStatus, result } = resp.data;
+        const { status: taskStatus, result, error_message } = resp.data;
 
         if (taskStatus === "completed") {
           clearInterval(interval);
@@ -315,7 +374,8 @@ const UserCVPage = () => {
           fetchHistory();
         } else if (taskStatus === "failed") {
           clearInterval(interval);
-          setError(t("cv_processing_ai_sub")); // Or specific error
+          setError(error_message || t("cv_analysis_error"));
+          showError(error_message || t("cv_analysis_error"));
           setStatus("idle");
         }
       } catch {
@@ -343,6 +403,12 @@ const UserCVPage = () => {
 
   // ── Load CV from history click ────────────────────────────────────────────
   const handleHistoryClick = async (item: CVHistory) => {
+    // Show error message if CV failed
+    if (item.status === "failed") {
+      showError(item.error_message || t("cv_analysis_error"));
+      return;
+    }
+    
     if (item.status !== "completed") return;
     setStatus("processing");
     setError(null);
@@ -486,7 +552,7 @@ const UserCVPage = () => {
     const duplicateSkills = skillNames.filter((name, index) => skillNames.indexOf(name) !== index);
     if (duplicateSkills.length > 0) {
       const uniqueDupes = Array.from(new Set(duplicateSkills));
-      alert(t("cv_duplicate_skill_error"));
+      showError(t("cv_duplicate_skill_error"));
       setSaving(false);
       return;
     }
@@ -532,11 +598,11 @@ const UserCVPage = () => {
       if (wasDirty && analysisContext) {
         setShowRerunModal(true);
       } else {
-        alert(t("cv_save_success"));
+        showSuccess(t("cv_save_success"));
       }
     } catch (err: any) {
       const msg = err.response?.data?.detail || t("error");
-      alert(Array.isArray(msg) ? msg[0].msg : msg);
+      showError(Array.isArray(msg) ? msg[0].msg : msg);
     } finally {
       setSaving(false);
     }
@@ -1068,31 +1134,45 @@ const UserCVPage = () => {
             <div className={styles.uploadPanel}>
               <div className={styles.uploadGlow} />
 
-              <div
-                className={cn(
-                  styles.dropZone,
-                  isDragging ? styles.dropZoneActive : styles.dropZoneIdle,
-                  file && styles.dropZoneWithFile
-                )}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragging(true);
-                }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setIsDragging(false);
-                  if (e.dataTransfer.files?.[0]) setFile(e.dataTransfer.files[0]);
-                }}
-              >
-                <AnimatePresence mode="wait">
-                  {!file ? (
+              {/* Show Preview when file is selected */}
+              {showPreview && file ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className={styles.previewWrapper}
+                >
+                  <CVPreview
+                    file={file}
+                    onConfirm={handleConfirmUpload}
+                    onCancel={handleCancelPreview}
+                  />
+                </motion.div>
+              ) : (
+                <>
+                  <div
+                    className={cn(
+                      styles.dropZone,
+                      isDragging ? styles.dropZoneActive : styles.dropZoneIdle
+                    )}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDragging(true);
+                    }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDragging(false);
+                      if (e.dataTransfer.files?.[0]) {
+                        handleFileSelect(e.dataTransfer.files[0]);
+                      }
+                    }}
+                  >
                     <motion.div 
-                      key="idle"
                       className={styles.dropZoneContent}
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
                     >
                       <div className={styles.cloudIconWrapper}>
@@ -1105,6 +1185,10 @@ const UserCVPage = () => {
                         <span>PDF</span>
                         <span className={styles.dotSeparator}>•</span>
                         <span>DOCX</span>
+                        <span className={styles.dotSeparator}>•</span>
+                        <span>PNG</span>
+                        <span className={styles.dotSeparator}>•</span>
+                        <span>JPG</span>
                       </div>
 
                       <label className={styles.browseBtn}>
@@ -1112,67 +1196,31 @@ const UserCVPage = () => {
                         <input
                           type="file"
                           hidden
-                          accept=".pdf,.docx"
+                          accept=".pdf,.docx,.doc,.png,.jpg,.jpeg"
                           onChange={(e) => {
-                            if (e.target.files?.[0]) setFile(e.target.files[0]);
+                            if (e.target.files?.[0]) {
+                              handleFileSelect(e.target.files[0]);
+                            }
                           }}
                         />
                       </label>
                     </motion.div>
-                  ) : (
-                    <motion.div
-                      key="file"
-                      className={styles.selectedFile}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <FileText className={styles.fileIcon} size={40} />
-                      <div className={styles.fileInfo}>
-                        <span className={styles.fileName}>{file.name}</span>
-                        <p className={styles.fileSize}>{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                      </div>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFile(null);
-                        }} 
-                        className={styles.removeFile}
-                      >
-                        <X size={14} />
-                        {t("cancel")}
-                      </button>
-                    </motion.div>
+                  </div>
+
+                  <div className={styles.manualEntryHint}>
+                    <span>{t("cv_or_use")}</span>
+                    <button onClick={handleGoManual} className={styles.manualLink}>
+                      {t("cv_manual_entry")}
+                    </button>
+                  </div>
+
+                  {error && (
+                    <div className={styles.errorBanner}>
+                      <AlertCircle size={16} />
+                      {error}
+                    </div>
                   )}
-                </AnimatePresence>
-              </div>
-
-              <button
-                disabled={!file || status === "uploading"}
-                onClick={handleUpload}
-                className={cn(styles.uploadBtn, file && styles.uploadBtnActive)}
-              >
-                {status === "uploading" ? (
-                  <Loader2 size={20} className={styles.animateSpin} />
-                ) : (
-                  <Zap size={20} />
-                )}
-                {status === "uploading" ? t("cv_uploading") : t("cv_start_extract")}
-              </button>
-
-              <div className={styles.manualEntryHint}>
-                <span>{t("cv_or_use")}</span>
-                <button onClick={handleGoManual} className={styles.manualLink}>
-                  {t("cv_manual_entry")}
-                </button>
-              </div>
-
-              {error && (
-                <div className={styles.errorBanner}>
-                  <AlertCircle size={16} />
-                  {error}
-                </div>
+                </>
               )}
             </div>
           </div>
@@ -1197,7 +1245,7 @@ const UserCVPage = () => {
                     onClick={() => handleHistoryClick(item)}
                     className={cn(
                       styles.historyItem,
-                      item.status === "completed" ? styles.historyItemClickable : styles.historyItemDisabled,
+                      (item.status === "completed" || item.status === "failed") ? styles.historyItemClickable : styles.historyItemDisabled,
                       selectedHistoryId === item.id && styles.historyItemActive
                     )}
                   >

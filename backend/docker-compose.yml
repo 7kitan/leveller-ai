@@ -206,7 +206,7 @@ services:
     depends_on: *id004
     networks: *id005
     container_name: advisor_worker_analysis
-    command: celery -A worker.celery_app worker -Q analysis_queue --loglevel=info
+    command: celery -A worker.celery_app worker -Q analysis --loglevel=info
       --logfile=- --concurrency=${WORKER_ANALYSIS_CONCURRENCY:-1}
   worker_parsing:
     build: *id001
@@ -216,7 +216,7 @@ services:
     depends_on: *id004
     networks: *id005
     container_name: advisor_worker_parsing
-    command: celery -A worker.celery_app worker -Q parsing_queue --loglevel=info --logfile=-
+    command: celery -A worker.celery_app worker -Q cv_parsing --loglevel=info --logfile=-
       --concurrency=${WORKER_PARSING_CONCURRENCY:-2}
   worker_crawler:
     build: *id001
@@ -226,7 +226,7 @@ services:
     depends_on: *id004
     networks: *id005
     container_name: advisor_worker_crawler
-    command: celery -A worker.celery_app worker -Q crawler_queue --loglevel=info --logfile=-
+    command: celery -A worker.celery_app worker -Q market_stats --loglevel=info --logfile=-
       --concurrency=${WORKER_CRAWLER_CONCURRENCY:-1}
   worker_default:
     build: *id001

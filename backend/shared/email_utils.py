@@ -18,11 +18,11 @@ def send_email(
     """
     Sends an email using SMTP settings from DB (via config_manager) or environment variables.
     """
-    smtp_host = config_manager.get_setting("smtp_host") or os.getenv("SMTP_HOST")
-    smtp_port = int(config_manager.get_setting("smtp_port") or os.getenv("SMTP_PORT", "587"))
-    smtp_user = config_manager.get_setting("smtp_user") or os.getenv("SMTP_USER")
-    smtp_pass = config_manager.get_setting("smtp_pass") or os.getenv("SMTP_PASS")
-    from_email = config_manager.get_setting("smtp_from") or os.getenv("SMTP_FROM", smtp_user)
+    smtp_host = config_manager.get_setting("SMTP_HOST") or os.getenv("SMTP_HOST")
+    smtp_port = int(config_manager.get_setting("SMTP_PORT") or os.getenv("SMTP_PORT", "587"))
+    smtp_user = config_manager.get_setting("SMTP_USER") or os.getenv("SMTP_USER")
+    smtp_pass = config_manager.get_setting("SMTP_PASS") or os.getenv("SMTP_PASS")
+    from_email = config_manager.get_setting("SMTP_FROM") or os.getenv("SMTP_FROM", smtp_user)
 
     if not all([smtp_host, smtp_user, smtp_pass]):
         logger.warning(f"[EMAIL] SMTP not configured. Would have sent email to {to_email}: {subject}")

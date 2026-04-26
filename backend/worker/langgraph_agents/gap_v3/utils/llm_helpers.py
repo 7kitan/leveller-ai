@@ -109,7 +109,7 @@ async def llm_json_completion(
     Hỗ trợ đa provider (OpenAI, Gemini) và cấu hình động từ DB.
     """
     # 1. Xác định Model: Ưu tiên tham số -> Setting DB -> Env -> Default
-    m_key = model_key or "ai_model"
+    m_key = model_key or "AI_MODEL"
     effective_model = (
         model or 
         config_manager.get_setting(m_key) or 
@@ -322,7 +322,7 @@ async def llm_text_completion(
 ) -> str:
     """Wrapper cho LLM text (non-JSON) completion with full logging."""
     # 1. Xác định Model: Ưu tiên tham số -> Setting DB -> Env -> Default
-    m_key = model_key or "career_advisor_model"
+    m_key = model_key or "CAREER_ADVISOR_MODEL"
     effective_model = (
         model or 
         config_manager.get_setting(m_key) or 

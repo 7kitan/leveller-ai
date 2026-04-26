@@ -30,6 +30,7 @@ import styles from "./admin-courses.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAlert } from "@/context/AlertContext";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 import Portal from "@/components/shared/Portal";
@@ -109,6 +110,7 @@ const TagInput = ({ tags, setTags, placeholder }: { tags: string[], setTags: (ta
 const AdminCoursesPage = () => {
   const { token } = useAuth();
   const { t } = useLanguage();
+  const { confirm, showSuccess, showError } = useAlert();
   const [courses, setCourses] = useState<Course[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -212,13 +214,22 @@ const AdminCoursesPage = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Xóa khóa học này?")) return;
+    const confirmed = await confirm({
+      title: t("delete"),
+      message: "Xóa khóa học này?",
+      confirmText: t("delete"),
+      cancelText: t("cancel"),
+      variant: "danger"
+    });
+    
+    if (!confirmed) return;
+    
     try {
       await api.delete(`recommend/admin/courses/${id}`);
-      showNotification("Đã xóa khóa học");
+      showSuccess("Đã xóa khóa học");
       fetchCourses();
     } catch (err) {
-      showNotification("Lỗi khi xóa", "error");
+      showError("Lỗi khi xóa");
     }
   };
 

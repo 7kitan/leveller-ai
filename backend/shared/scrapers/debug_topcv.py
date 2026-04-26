@@ -30,5 +30,5 @@ def debug_job(url):
         print("\n[FAILED] Could not scrape job details.")
 
 if __name__ == "__main__":
-    test_url = "https://www.topcv.vn/viec-lam/chuyen-vien-trien-khai-phan-mem-quan-ly-khach-san-oracle-opera-pms-opera-cloud-opera-pms-implementation-consultant-nhan-viec-ngay/2114007.html"
+    test_url = "https://www.topcv.vn/viec-lam/fullstack-developer-java-springboot-javascript/2139018.html"
     debug_job(test_url)

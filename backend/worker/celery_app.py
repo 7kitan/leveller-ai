@@ -80,7 +80,6 @@ celery_app.conf.update(
         
         # CV parsing tasks → cv_parsing queue
         "worker.tasks.cv_parsing_v3_task.*": {"queue": "cv_parsing"},
-        "worker.langgraph_agents.gap_v3.tasks.cv_parsing_v3_task.*": {"queue": "cv_parsing"},
         "worker.tasks.parse_cv_task.*": {"queue": "cv_parsing"},
         
         # Crawler tasks → market_stats queue (reuse existing worker)
