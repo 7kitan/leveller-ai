@@ -5,8 +5,8 @@ x-service-base: &service-base
     dockerfile: Dockerfile.service
   env_file: .env
   environment:
-    - POSTGRES_HOST=db
-    - REDIS_HOST=redis
+    - POSTGRES_HOST=advisor_db_prod
+    - REDIS_HOST=advisor_redis_prod
   restart: always
   networks:
     - advisor_net_prod
@@ -30,8 +30,8 @@ x-worker-base: &worker-base
     dockerfile: Dockerfile.worker
   env_file: .env
   environment:
-    - POSTGRES_HOST=db
-    - REDIS_HOST=redis
+    - POSTGRES_HOST=advisor_db_prod
+    - REDIS_HOST=advisor_redis_prod
   restart: always
   networks:
     - advisor_net_prod
@@ -81,14 +81,14 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     command: >
       sh -c "
-      if [ -n \"$REDIS_PASSWORD\" ]; then
-        redis-server --requirepass \"$REDIS_PASSWORD\"
+      if [ -n \"$$REDIS_PASSWORD\" ]; then
+        redis-server --requirepass \"$$REDIS_PASSWORD\"
       else
         redis-server
       fi
       "
     healthcheck:
-      test: ["CMD-SHELL", "if [ -n \"$REDIS_PASSWORD\" ]; then redis-cli -a \"$REDIS_PASSWORD\" ping; else redis-cli ping; fi"]
+      test: ["CMD-SHELL", "if [ -n \"$$REDIS_PASSWORD\" ]; then redis-cli -a \"$$REDIS_PASSWORD\" ping; else redis-cli ping; fi"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -185,7 +185,7 @@ services:
   worker-cv-parser:
     <<: *worker-base
     container_name: advisor_worker_cv_parser_prod
-    command: celery -A worker.celery_app worker -Q cv_parsing -n cv_parser@%h --loglevel=info --concurrency=${WORKER_CV_PARSER_CONCURRENCY:-2}
+    command: celery -A worker.celery_app worker -Q cv_parsing -n cv_parser@%h --loglevel=info --concurrency=${WORKER_PARSING_CONCURRENCY:-2}
     volumes:
       - ./data/cv_uploads:/app/data/cv_uploads
 
@@ -197,7 +197,7 @@ services:
   worker-market-stats:
     <<: *worker-base
     container_name: advisor_worker_market_stats_prod
-    command: celery -A worker.celery_app worker -Q market_stats -n market_stats@%h --loglevel=info --concurrency=${WORKER_MARKET_STATS_CONCURRENCY:-1}
+    command: celery -A worker.celery_app worker -Q market_stats -n market_stats@%h --loglevel=info --concurrency=${WORKER_CRAWLER_CONCURRENCY:-1}
 
   worker-email:
     <<: *worker-base

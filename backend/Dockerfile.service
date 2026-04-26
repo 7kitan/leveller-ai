@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     libbrotli-dev \
     zlib1g-dev \
     libzstd-dev \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements và cài đặt dependencies
