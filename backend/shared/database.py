@@ -65,15 +65,31 @@ def get_db():
         db.close()
 
 def init_db():
-    """Initialize database tables and run migrations. Should be called during app startup."""
+    """Initialize database tables, run migrations, and ensure admin exists. Should be called during app startup."""
     from . import models # Ensure models are registered
-    Base.metadata.create_all(bind=engine)
     
-    # Run pending migrations
+    # 1. Create tables
+    Base.metadata.create_all(bind=engine)
+    logger.info("✅ Database tables initialized")
+    
+    # 2. Run pending migrations
     try:
         from scripts.run_migrations import run_migrations
         logger.info("Running database migrations...")
         run_migrations()
+        logger.info("✅ Migrations completed")
     except Exception as e:
-        logger.warning(f"Migration runner not available or failed: {e}")
+        logger.warning(f"⚠️  Migration runner not available or failed: {e}")
         logger.warning("Please run migrations manually: python scripts/run_migrations.py")
+    
+    # 3. Ensure admin user exists
+    try:
+        from shared.auto_admin import ensure_admin_exists
+        db = SessionLocal()
+        try:
+            ensure_admin_exists(db)
+        finally:
+            db.close()
+    except Exception as e:
+        logger.warning(f"⚠️  Admin auto-creation failed: {e}")
+        logger.warning("Please create admin manually: python scripts/create_admin.py")

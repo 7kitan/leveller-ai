@@ -146,7 +146,22 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
     file_path_to_cleanup = None
 
     try:
-        # ── Step 0: Ensure async event loop ──────────────────────────────────
+        # ── Step 0: Get file path early for guaranteed cleanup ───────────────
+        # CRITICAL: Get file path BEFORE pipeline runs so cleanup works even if pipeline fails
+        from shared.models import UserCV
+        import glob
+        
+        cv_record = db.query(UserCV).filter(UserCV.id == cv_id).first()
+        if cv_record and cv_record.file_id:
+            # Find file with any extension matching the file_id
+            UPLOAD_DIR = "/app/data/cv_uploads"
+            pattern = os.path.join(UPLOAD_DIR, f"{cv_record.file_id}.*")
+            matching_files = glob.glob(pattern)
+            if matching_files:
+                file_path_to_cleanup = matching_files[0]
+                logger.info(f"[TASK] File path for cleanup: {file_path_to_cleanup}")
+        
+        # ── Step 1: Ensure async event loop ──────────────────────────────────
         try:
             loop = asyncio.get_event_loop()
             if loop.is_closed():
@@ -156,7 +171,7 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-        # ── Step 1: Invoke LangGraph pipeline ─────────────────────────────────
+        # ── Step 2: Invoke LangGraph pipeline ─────────────────────────────────
         from worker.langgraph_agents.gap_v3.cv_parsing_graph import (
             run_cv_parsing_pipeline,
         )
@@ -167,9 +182,6 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
             run_cv_parsing_pipeline(cv_id=cv_id, user_id=user_id, db=db)
         )
         graph_elapsed = time.monotonic() - t_graph
-
-        # Store file path for cleanup in finally block
-        file_path_to_cleanup = result.get("file_path")
 
         # ── Step 2: Interpret result ─────────────────────────────────────────
         if result.get("status") == "success":
