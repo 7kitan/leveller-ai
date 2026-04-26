@@ -405,6 +405,16 @@ export const translations = {
     cv_history_empty: "Chưa có lịch sử phân tích.",
     cv_history_footer: "Dữ liệu được bảo mật và mã hóa theo tiêu chuẩn ISO/IEC 27001.",
     cv_upload_error: "Lỗi khi tải file. Vui lòng thử lại.",
+    pdf_loading: "Đang tải PDF...",
+    pdf_error: "Không thể hiển thị PDF",
+    pdf_prev: "Trang trước",
+    pdf_next: "Trang sau",
+    pdf_page_of: "Trang {pageNumber} / {numPages}",
+    docx_loading: "Đang tải DOCX...",
+    docx_error: "Không thể hiển thị file DOCX",
+    image_loading: "Đang tải ảnh...",
+    image_preview_alt: "Xem trước CV",
+    unsupported_preview: "Không hỗ trợ xem trước file",
 
     // User Dashboard
     dash_hub_title: "Trung tâm Người dùng",
@@ -1276,6 +1286,16 @@ export const translations = {
     cv_history_empty: "No analysis history found.",
     cv_history_footer: "Data is secured and encrypted following ISO/IEC 27001 standards.",
     cv_upload_error: "Error uploading file. Please try again.",
+    pdf_loading: "Loading PDF...",
+    pdf_error: "Cannot display PDF",
+    pdf_prev: "Previous Page",
+    pdf_next: "Next Page",
+    pdf_page_of: "Page {pageNumber} / {numPages}",
+    docx_loading: "Loading DOCX...",
+    docx_error: "Cannot display DOCX file",
+    image_loading: "Loading image...",
+    image_preview_alt: "CV Preview",
+    unsupported_preview: "Unsupported preview for file",
 
     // User Dashboard
     dash_hub_title: "User Hub",

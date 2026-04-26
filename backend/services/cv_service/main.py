@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field, validator
 
 # SECURITY: File upload constraints
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+MAX_CV_PAGES = 10  # Maximum pages for PDF CV
 ALLOWED_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png', '.docx', '.doc'}
 ALLOWED_MIME_TYPES = {
     'application/pdf',
@@ -142,6 +143,33 @@ def validate_uploaded_file(file: UploadFile, file_content: bytes) -> None:
     pass  # Null byte check removed - PDFs and images contain legitimate null bytes
 
 
+def validate_pdf_page_count(file_path: str) -> None:
+    """
+    Validate PDF page count to prevent resource exhaustion.
+    Max 10 pages for CV - covers 99% of legitimate CVs.
+    """
+    try:
+        from pypdf import PdfReader
+        
+        pdf = PdfReader(file_path)
+        page_count = len(pdf.pages)
+        
+        if page_count > MAX_CV_PAGES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"CV có {page_count} trang, vượt quá giới hạn {MAX_CV_PAGES} trang. Vui lòng rút gọn CV hoặc chỉ upload các trang quan trọng."
+            )
+        
+        logger.info(f"PDF validation passed: {page_count} pages")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.warning(f"Failed to validate PDF page count: {e}")
+        # Don't block upload if validation fails - fail open for better UX
+        pass
+
+
 def is_admin(request: Request) -> bool:
     return request.headers.get("X-User-Role") == UserRole.ADMIN
 
@@ -249,6 +277,18 @@ async def upload_cv(
 
     with open(file_path, "wb") as buffer:
         buffer.write(file_content)
+    
+    # SECURITY: Validate PDF page count to prevent resource exhaustion
+    if file_ext == '.pdf':
+        try:
+            validate_pdf_page_count(file_path)
+        except HTTPException:
+            # Clean up file if validation fails
+            try:
+                os.remove(file_path)
+            except:
+                pass
+            raise
 
     new_cv = UserCV(
         id=cv_id,

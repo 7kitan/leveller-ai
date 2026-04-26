@@ -1,10 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from shared.database import get_db
+from shared.database import get_db, SessionLocal
 from shared.models import SystemSetting, User, LLMLog, SystemLog, YouTubeCourse
 from shared.config_utils import config_manager
 from shared.ai_service import AI_REGISTRY
 from shared.admin_auth import get_current_admin_user, require_admin
+from shared.redis_client import auth_cache
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional, Any, Dict
 from datetime import datetime
@@ -13,6 +14,39 @@ import logging
 
 app = FastAPI(title="Admin Service")
 logger = logging.getLogger("admin_service")
+
+# System settings that should be synced to Redis for gateway access
+GATEWAY_SETTINGS = {"MAINTENANCE_MODE", "MAINTENANCE_DURATION"}
+
+def sync_setting_to_redis(key: str, value: Any):
+    """Sync a system setting to Redis if it's a gateway-level setting."""
+    if key.upper() in GATEWAY_SETTINGS:
+        try:
+            redis_key = f"system:{key.upper()}"
+            auth_cache.set(redis_key, str(value))
+            logger.info(f"[ADMIN] Synced {redis_key} to Redis: {value}")
+        except Exception as e:
+            logger.error(f"[ADMIN] Failed to sync {key} to Redis: {e}")
+
+@app.on_event("startup")
+def load_gateway_settings_to_redis():
+    """Load gateway-level settings from database to Redis on startup."""
+    try:
+        db = SessionLocal()
+        for key in GATEWAY_SETTINGS:
+            setting = db.query(SystemSetting).filter(SystemSetting.key == key).first()
+            if setting:
+                sync_setting_to_redis(key, setting.value)
+            else:
+                # Set default values if not in DB
+                if key == "MAINTENANCE_MODE":
+                    sync_setting_to_redis(key, "false")
+                elif key == "MAINTENANCE_DURATION":
+                    sync_setting_to_redis(key, "Không xác định")
+        db.close()
+        logger.info("[ADMIN] Gateway settings loaded to Redis")
+    except Exception as e:
+        logger.error(f"[ADMIN] Failed to load gateway settings to Redis: {e}")
 
 # --- Pydantic Schemas ---
 
@@ -139,6 +173,7 @@ def admin_update_setting(
     """Admin only: Cập nhật hoặc tạo một setting.
     
     NOTE: Key will be automatically normalized to UPPERCASE for consistency.
+    Gateway-level settings (MAINTENANCE_MODE, MAINTENANCE_DURATION) are synced to Redis.
     """
     # Normalize key to UPPERCASE
     key = key.upper()
@@ -155,6 +190,10 @@ def admin_update_setting(
     
     # Invalidate Cache
     config_manager.invalidate_cache(key)
+    
+    # Sync to Redis if it's a gateway setting
+    sync_setting_to_redis(key, setting_in.value)
+    
     return setting
 
 @app.post("/admin/settings/bulk", response_model=List[SettingResponse])
@@ -167,6 +206,7 @@ def admin_bulk_update_settings(
     """Admin only: Cập nhật nhiều settings cùng lúc.
     
     NOTE: All keys will be automatically normalized to UPPERCASE for consistency.
+    Gateway-level settings (MAINTENANCE_MODE, MAINTENANCE_DURATION) are synced to Redis.
     """
     
     updated_settings = []
@@ -188,6 +228,9 @@ def admin_bulk_update_settings(
         updated_settings.append(setting)
         # Invalidate Cache for each key
         config_manager.invalidate_cache(key)
+        
+        # Sync to Redis if it's a gateway setting
+        sync_setting_to_redis(key, value)
     
     db.commit()
     for s in updated_settings:

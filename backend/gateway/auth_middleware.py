@@ -7,10 +7,38 @@ from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from shared.redis_client import auth_cache
 from shared.auth_utils import hash_token
-from shared.config_utils import config_manager
 from shared.models import UserRole
 
 AUTH_SVC_URL = os.getenv("AUTH_SVC_URL", "http://auth-service:8000")
+
+def get_maintenance_mode() -> tuple[bool, str]:
+    """
+    Get maintenance mode status from Redis cache (centralized at gateway).
+    Redis is populated by admin service when settings are updated.
+    Returns: (is_maintenance, duration_message)
+    """
+    try:
+        # Check Redis cache first (fast path)
+        mode = auth_cache.get("system:MAINTENANCE_MODE")
+        duration = auth_cache.get("system:MAINTENANCE_DURATION")
+        
+        if mode is not None:
+            # Handle both bytes and string (redis-py version compatibility)
+            mode_str = mode.decode('utf-8') if isinstance(mode, bytes) else str(mode)
+            duration_str = duration.decode('utf-8') if isinstance(duration, bytes) else str(duration) if duration else "Không xác định"
+            
+            is_maintenance = mode_str.lower() == 'true'
+            return is_maintenance, duration_str
+        
+        # Redis miss - this shouldn't happen if admin service is working correctly
+        # Fail-safe: assume NOT in maintenance
+        logging.warning("Maintenance mode not found in Redis cache, assuming disabled")
+        return False, "Không xác định"
+        
+    except Exception as e:
+        logging.error(f"Failed to get maintenance mode from Redis: {e}")
+        # Fail-safe: if Redis is down, assume NOT in maintenance
+        return False, "Không xác định"
 
 def get_cors_headers(request: Request) -> dict:
     """Get CORS headers for JSONResponse to allow browser access to response body."""
@@ -47,28 +75,32 @@ async def auth_middleware(request: Request, call_next):
     if is_always_accessible:
         return await call_next(request)
     
-    # 1. Maintenance Mode Check (High Priority - BEFORE token check)
-    maintenance_mode = config_manager.get_setting("MAINTENANCE_MODE", False, cast=bool)
+    # 1. Maintenance Mode Check (Centralized at Gateway via Redis)
+    maintenance_mode, maintenance_duration = get_maintenance_mode()
     
     # Critical paths that should always be accessible to allow admins to login and fix things
-    critical_paths = ["/auth/login", "/user/login", "/admin/settings"]
+    # These paths will handle maintenance mode logic internally (e.g., auth-service checks role after login)
+    critical_paths = ["/auth/login", "/user/login"]
     is_critical = any(path.startswith(p) for p in critical_paths)
 
-    # If maintenance mode is ON and path is NOT critical, block immediately for public paths
-    # (We'll check admin status later for authenticated requests)
-    if maintenance_mode and not is_critical and is_public:
+    # Allow critical paths to pass through (they handle maintenance internally)
+    if is_critical:
+        return await call_next(request)
+
+    # If maintenance mode is ON and path is NOT critical, block for public paths
+    if maintenance_mode and is_public:
         return JSONResponse(
             status_code=503, 
             content={
                 "detail": "Hệ thống đang bảo trì để nâng cấp. Vui lòng quay lại sau.",
                 "maintenance": True,
-                "duration": config_manager.get_setting("MAINTENANCE_DURATION", "Không xác định")
+                "duration": maintenance_duration
             },
             headers=get_cors_headers(request)
         )
     
     # If public and NOT in maintenance, allow through
-    if is_public and not maintenance_mode:
+    if is_public:
         return await call_next(request)
 
     # Extract Token (for protected endpoints or critical paths during maintenance)
@@ -120,7 +152,7 @@ async def auth_middleware(request: Request, call_next):
             
             request.state.user = user_data
             
-            # --- Maintenance Mode Enforcement ---
+            # --- Maintenance Mode Enforcement (Centralized) ---
             if maintenance_mode:
                 # SECURITY: Use the new role-based check for maintenance bypass
                 is_admin_user = (user_role == UserRole.ADMIN)
@@ -131,7 +163,7 @@ async def auth_middleware(request: Request, call_next):
                         content={
                             "detail": "Hệ thống đang bảo trì để nâng cấp. Vui lòng quay lại sau.",
                             "maintenance": True,
-                            "duration": config_manager.get_setting("MAINTENANCE_DURATION", "Không xác định")
+                            "duration": maintenance_duration
                         },
                         headers=get_cors_headers(request)
                     )
@@ -153,7 +185,7 @@ async def auth_middleware(request: Request, call_next):
             content={
                 "detail": "Hệ thống đang bảo trì. Vui lòng đăng nhập bằng tài khoản Quản trị.",
                 "maintenance": True,
-                "duration": config_manager.get_setting("MAINTENANCE_DURATION", "Không xác định")
+                "duration": maintenance_duration
             },
             headers=get_cors_headers(request)
         )

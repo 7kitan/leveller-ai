@@ -35,8 +35,8 @@ const AdminSettingsPage = () => {
   const [activeTab, setActiveTab] = useState<'ai' | 'parser' | 'automation' | 'limits' | 'system'>('ai');
 
   const TABS = [
-    { id: 'ai', label: t("admin_settings_ai_agent_title"), icon: Cpu, keys: ["SIMILARITY_THRESHOLD", "CV_PARSING_MODEL", "GAP_ANALYSIS_MODEL", "CAREER_ADVISOR_MODEL", "DEFAULT_PROVIDER", "DEFAULT_MODEL", "FALLBACK_MODEL", "GAP_LLM_MODEL", "GAP_VECTOR_THRESHOLD"], color: "#10b981" },
-    { id: 'parser', label: t("admin_settings_cv_parser_ocr_title"), icon: ScanLine, keys: ["PARSER_STRATEGY", "OCR_DPI", "CHANDRA_URL", "CHANDRA_KEY"], color: "#ec4899" },
+    { id: 'ai', label: t("admin_settings_ai_agent_title"), icon: Cpu, keys: ["SIMILARITY_THRESHOLD", "CV_PARSING_MODEL", "GAP_ANALYSIS_MODEL", "CAREER_ADVISOR_MODEL", "LLM_PROVIDER", "AI_MODEL", "FALLBACK_AI_MODEL", "GAP_LLM_MODEL", "GAP_VECTOR_SIM_THRESHOLD"], color: "#10b981" },
+    { id: 'parser', label: t("admin_settings_cv_parser_ocr_title"), icon: ScanLine, keys: ["CV_PARSER_STRATEGY", "OCR_DPI", "CHANDRA_API_URL", "CHANDRA_API_KEY"], color: "#ec4899" },
     { id: 'automation', label: t("admin_settings_crawler_manager_title"), icon: Globe, keys: ["TOPCV_CRAWL_ENABLED", "LINKEDIN_BRIDGE_ENABLED", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_FROM", "QUEUE_THRESHOLD"], color: "#f59e0b" },
     { id: 'limits', label: t("admin_settings_limits_title"), icon: ShieldAlert, keys: ["GLOBAL_TOKEN_LIMIT", "USER_TOKEN_LIMIT", "DAILY_ANALYSIS_LIMIT"], color: "#f43f5e" },
     { id: 'system', label: t("admin_settings_security_ops_title"), icon: ShieldAlert, keys: ["MAINTENANCE_MODE", "MAINTENANCE_DURATION", "SYSTEM_BROADCAST", "RESULT_CACHE_TTL", "GAP_CACHE_TTL", "SYSTEM_LOG_TTL_DAYS"], color: "#818cf8" }
@@ -204,7 +204,6 @@ const AdminSettingsPage = () => {
                     className={cn(
                       styles.settingCard, 
                       isModified("SIMILARITY_THRESHOLD") || 
-                      isModified("EMBEDDING_MODEL") || 
                       isModified("CV_PARSING_MODEL") || 
                       isModified("GAP_ANALYSIS_MODEL") || 
                       isModified("GAP_LLM_MODEL") || 
@@ -377,7 +376,7 @@ const AdminSettingsPage = () => {
                 className={cn(
                   styles.settingCard, 
                   isModified("AI_MODEL") || 
-                  isModified("fallback_AI_MODEL") || 
+                  isModified("FALLBACK_AI_MODEL") || 
                   isModified("LLM_PROVIDER") ? styles.settingCardModified : ""
                 )}
               >
@@ -407,7 +406,7 @@ const AdminSettingsPage = () => {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
-                        onClick={() => handleBulkSave(["LLM_PROVIDER", "AI_MODEL", "fallback_AI_MODEL", "GLOBAL_TOKEN_LIMIT", "USER_TOKEN_LIMIT"])}
+                        onClick={() => handleBulkSave(["LLM_PROVIDER", "AI_MODEL", "FALLBACK_AI_MODEL"])}
                         disabled={isSaving}
                         className={styles.sectionSaveBtn}
                       >
@@ -459,18 +458,18 @@ const AdminSettingsPage = () => {
                   </select>
                 </div>
 
-                <div className={cn(styles.field, isModified("fallback_AI_MODEL") ? styles.fieldModified : "")}>
+                <div className={cn(styles.field, isModified("FALLBACK_AI_MODEL") ? styles.fieldModified : "")}>
                   <div className={styles.labelArea}>
                     <label className={styles.label}>
                         {t("admin_settings_fallback_model_label")}
-                        {isModified("fallback_AI_MODEL") && <span className={styles.fieldModifiedDot} />}
+                        {isModified("FALLBACK_AI_MODEL") && <span className={styles.fieldModifiedDot} />}
                     </label>
                     <span className={styles.desc}>{t("admin_settings_fallback_model_desc")}</span>
                   </div>
                   <select 
                     className={styles.input}
-                    value={getValue("fallback_AI_MODEL", "gpt-4o-mini")}
-                    onChange={(e) => handleFieldChange("fallback_AI_MODEL", e.target.value)}
+                    value={getValue("FALLBACK_AI_MODEL", "gpt-4o-mini")}
+                    onChange={(e) => handleFieldChange("FALLBACK_AI_MODEL", e.target.value)}
                   >
                     {availableModels.filter(m => m.type === 'chat').map((model) => (
                       <option key={model.id} value={model.id}>

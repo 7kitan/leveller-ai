@@ -169,6 +169,12 @@ def import_jd_text(job_in: JobCreate, request: Request, db: Session = Depends(ge
     return _job_to_response(new_job)
 
 
+@app.get("/jd/health")
+def health_check():
+    """Health check endpoint for Docker and monitoring."""
+    return {"status": "ok", "service": "jd_service"}
+
+
 @app.get("/jd/list", response_model=List[JobResponse])
 def list_jobs(
     db: Session = Depends(get_db),
@@ -185,21 +191,6 @@ def list_jobs(
         .all()
     )
     return [_job_to_response(j) for j in jobs]
-
-
-@app.get("/jd/{job_id}", response_model=JobResponse)
-def get_job_by_id(job_id: str, db: Session = Depends(get_db)):
-    """Get a single job by ID."""
-    try:
-        job_uuid = uuid.UUID(job_id)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid job ID format")
-    
-    job = db.query(Job).filter(Job.id == job_uuid).first()
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    
-    return _job_to_response(job)
 
 
 @app.get("/jd/search", response_model=PaginatedResponse[JobResponse])
@@ -350,10 +341,19 @@ def search_jobs(
     }
 
 
-@app.get("/jd/health")
-def health_check():
-    """Health check endpoint for Docker and monitoring."""
-    return {"status": "ok", "service": "jd_service"}
+@app.get("/jd/{job_id}", response_model=JobResponse)
+def get_job_by_id(job_id: str, db: Session = Depends(get_db)):
+    """Get a single job by ID."""
+    try:
+        job_uuid = uuid.UUID(job_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid job ID format")
+    
+    job = db.query(Job).filter(Job.id == job_uuid).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    return _job_to_response(job)
 
 
 @app.get("/jd/admin/list", response_model=PaginatedResponse[JobResponse])
