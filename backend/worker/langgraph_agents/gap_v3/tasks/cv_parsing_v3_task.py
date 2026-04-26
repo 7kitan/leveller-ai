@@ -10,6 +10,8 @@ import asyncio
 import time
 import sys
 import logging
+import os
+import glob
 
 
 # ── FORCE all loggers to propagate to stderr with correct level ─────────────
@@ -149,7 +151,6 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
         # ── Step 0: Get file path early for guaranteed cleanup ───────────────
         # CRITICAL: Get file path BEFORE pipeline runs so cleanup works even if pipeline fails
         from shared.models import UserCV
-        import glob
         
         cv_record = db.query(UserCV).filter(UserCV.id == cv_id).first()
         if cv_record and cv_record.file_id:
@@ -240,7 +241,6 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
 
     finally:
         # ── Cleanup: Delete physical file (success or failure) ───────────────
-        import os
         UPLOAD_DIR = "/app/data/cv_uploads"
         if file_path_to_cleanup and os.path.exists(file_path_to_cleanup):
             try:
