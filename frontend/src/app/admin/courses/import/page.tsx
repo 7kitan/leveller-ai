@@ -24,7 +24,10 @@ import {
   ChevronUp,
   X,
   Trash2,
-  FileJson
+  FileJson,
+  Upload,
+  Download,
+  FileUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import styles from "./admin-import.module.css";
@@ -110,6 +113,10 @@ const CourseImportPage = () => {
   const [results, setResults] = useState<ImportResult[]>([]);
   const [isSavingAll, setIsSavingAll] = useState(false);
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingUrls, setPendingUrls] = useState<string[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImportingFull, setIsImportingFull] = useState(false);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
@@ -120,6 +127,98 @@ const CourseImportPage = () => {
     setResults(prev => prev.map(r => r.url === url ? { ...r, ...update } : r));
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.txt')) {
+      showNotification("Please upload a .txt file", "error");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      setUrlsText(content);
+      showNotification(`Loaded ${file.name} successfully`);
+    };
+    reader.onerror = () => {
+      showNotification("Failed to read file", "error");
+    };
+    reader.readAsText(file);
+  };
+
+  const handleFullDataUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.json')) {
+      showNotification("Please upload a .json file", "error");
+      return;
+    }
+
+    setIsImportingFull(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const content = event.target?.result as string;
+        const data = JSON.parse(content);
+        
+        if (!data.courses || !Array.isArray(data.courses)) {
+          showNotification("Invalid JSON format. Expected {courses: [...]}", "error");
+          setIsImportingFull(false);
+          return;
+        }
+
+        const resp = await api.post("recommend/admin/courses/import-full", 
+          { courses: data.courses },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        showNotification(
+          `Imported: ${resp.data.imported_count}, Skipped: ${resp.data.skipped_count}, Errors: ${resp.data.error_count}`
+        );
+      } catch (err: any) {
+        const msg = err.response?.data?.detail || "Failed to import courses";
+        showNotification(msg, "error");
+      } finally {
+        setIsImportingFull(false);
+      }
+    };
+    reader.onerror = () => {
+      showNotification("Failed to read file", "error");
+      setIsImportingFull(false);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const resp = await api.get("recommend/admin/courses/export", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const dataStr = JSON.stringify(resp.data, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `courses_export_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      showNotification(`Exported ${resp.data.count} courses successfully`);
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || "Failed to export courses";
+      showNotification(msg, "error");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleCrawlAll = async () => {
     const lines = urlsText.split("\n").map(l => l.trim()).filter(l => l && l.includes("coursera.org"));
     
@@ -128,7 +227,15 @@ const CourseImportPage = () => {
       return;
     }
 
-    const newResults: ImportResult[] = lines.map(url => ({
+    // Show confirmation dialog
+    setPendingUrls(lines);
+    setShowConfirmDialog(true);
+  };
+
+  const confirmCrawl = async () => {
+    setShowConfirmDialog(false);
+    
+    const newResults: ImportResult[] = pendingUrls.map(url => ({
       url,
       status: 'loading',
       isExpanded: false
@@ -136,6 +243,7 @@ const CourseImportPage = () => {
 
     setResults(prev => [...newResults, ...prev]);
     setUrlsText("");
+    setPendingUrls([]);
 
     newResults.forEach(async (res) => {
       try {
@@ -151,6 +259,11 @@ const CourseImportPage = () => {
         updateResult(res.url, { status: 'error', error: t("admin_courses_import_error_init") });
       }
     });
+  };
+
+  const cancelCrawl = () => {
+    setShowConfirmDialog(false);
+    setPendingUrls([]);
   };
 
   const pollStatus = (url: string, taskId: string) => {
@@ -234,8 +347,8 @@ const CourseImportPage = () => {
       showNotification(t("admin_courses_import_save_success").replace("{name}", d.name));
       setResults(prev => prev.filter(r => r.url !== url));
     } catch (err) {
-      const msg = axios.isAxiosError(err) ? err.response?.data?.detail : "Lỗi khi lưu";
-      showNotification(typeof msg === 'string' ? msg : "Lỗi khi lưu", "error");
+      const msg = axios.isAxiosError(err) ? err.response?.data?.detail : t("course_import_save_error");
+      showNotification(typeof msg === 'string' ? msg : t("course_import_save_error"), "error");
       updateResult(url, { isSavingIndividual: false });
     }
   };
@@ -278,8 +391,8 @@ const CourseImportPage = () => {
       showNotification(t("admin_courses_import_bulk_success").replace("{count}", validResults.length.toString()));
       setResults(prev => prev.filter(r => r.status !== 'success'));
     } catch (err) {
-      const msg = axios.isAxiosError(err) ? err.response?.data?.detail : "Lỗi khi lưu hàng loạt";
-      showNotification(typeof msg === 'string' ? msg : "Lỗi khi lưu hàng loạt", "error");
+      const msg = axios.isAxiosError(err) ? err.response?.data?.detail : t("course_import_bulk_error");
+      showNotification(typeof msg === 'string' ? msg : t("course_import_bulk_error"), "error");
     } finally {
       setIsSavingAll(false);
     }
@@ -301,6 +414,43 @@ const CourseImportPage = () => {
         </PageHeader>
 
         <div className={styles.importContainer}>
+          {/* Action Buttons Bar */}
+          <div className={styles.actionButtonsBar}>
+            <div className={styles.actionGroup}>
+              <label className={styles.uploadBtn}>
+                <Upload size={18} />
+                Upload .txt URLs
+                <input 
+                  type="file" 
+                  accept=".txt" 
+                  onChange={handleFileUpload}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              
+              <label className={cn(styles.uploadBtn, styles.uploadBtnSecondary)}>
+                <FileUp size={18} />
+                {isImportingFull ? <Loader2 className="animate-spin" size={18} /> : "Import Full Data"}
+                <input 
+                  type="file" 
+                  accept=".json" 
+                  onChange={handleFullDataUpload}
+                  disabled={isImportingFull}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+
+            <button 
+              className={styles.exportBtn}
+              onClick={handleExport}
+              disabled={isExporting}
+            >
+              {isExporting ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
+              {isExporting ? "Exporting..." : "Export All with Vectors"}
+            </button>
+          </div>
+
           <div className={styles.inputSection}>
              <h3>{t("admin_courses_import_title")}</h3>
              <div className={styles.urlInputGroup}>
@@ -520,6 +670,57 @@ const CourseImportPage = () => {
             >
                {notification.type === 'success' ? <CheckCircle2 size={24} className="text-emerald-500" /> : <AlertCircle size={24} className="text-red-500" />}
                <span className="font-medium">{notification.message}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Confirmation Dialog */}
+        <AnimatePresence>
+          {showConfirmDialog && (
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              className={styles.dialogOverlay}
+              onClick={cancelCrawl}
+            >
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }} 
+                animate={{ scale: 1, opacity: 1 }} 
+                exit={{ scale: 0.9, opacity: 0 }}
+                className={styles.dialogBox}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className={styles.dialogHeader}>
+                  <AlertCircle size={24} className="text-yellow-500" />
+                  <h3>Confirm Crawl Operation</h3>
+                </div>
+                <div className={styles.dialogContent}>
+                  <p>You are about to crawl <strong>{pendingUrls.length}</strong> URLs from Coursera.</p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    This will fetch full course details for each URL. Estimated time: ~{Math.ceil(pendingUrls.length * 3 / 60)} minutes.
+                  </p>
+                  <div className={styles.dialogStats}>
+                    <div className={styles.statItem}>
+                      <span className="text-2xl font-bold">{pendingUrls.length}</span>
+                      <span className="text-xs text-gray-500">URLs to crawl</span>
+                    </div>
+                    <div className={styles.statItem}>
+                      <span className="text-2xl font-bold">~{Math.ceil(pendingUrls.length * 3 / 60)}m</span>
+                      <span className="text-xs text-gray-500">Estimated time</span>
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.dialogActions}>
+                  <button className={styles.dialogBtnCancel} onClick={cancelCrawl}>
+                    Cancel
+                  </button>
+                  <button className={styles.dialogBtnConfirm} onClick={confirmCrawl}>
+                    <Search size={18} />
+                    Start Crawling
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>

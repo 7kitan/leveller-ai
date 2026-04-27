@@ -160,7 +160,7 @@ const AdminCoursesPage = () => {
       setTotalPages(resp.data.pages);
       setCurrentPage(page);
     } catch (err) {
-      showNotification("Không thể tải danh sách khóa học", "error");
+      showNotification(t("courses_load_error"), "error");
     } finally {
       setIsLoading(false);
     }
@@ -201,15 +201,15 @@ const AdminCoursesPage = () => {
 
       if (editingCourse) {
         await api.patch(`recommend/admin/courses/${editingCourse.id}`, payload);
-        showNotification("Đã cập nhật khóa học");
+        showNotification(t("course_update_success"));
       } else {
         await api.post("recommend/admin/courses", payload);
-        showNotification("Đã tạo khóa học mới");
+        showNotification(t("course_create_success"));
       }
       setIsModalOpen(false);
       fetchCourses();
     } catch (err) {
-      showNotification("Lỗi khi lưu khóa học", "error");
+      showNotification(t("course_save_error"), "error");
     }
   };
 
@@ -226,10 +226,10 @@ const AdminCoursesPage = () => {
     
     try {
       await api.delete(`recommend/admin/courses/${id}`);
-      showSuccess("Đã xóa khóa học");
+      showSuccess(t("course_delete_success"));
       fetchCourses();
     } catch (err) {
-      showError("Lỗi khi xóa");
+      showError(t("course_delete_error"));
     }
   };
 
@@ -441,7 +441,7 @@ const AdminCoursesPage = () => {
                   <input 
                     value={formData.platform}
                     onChange={e => setFormData({...formData, platform: e.target.value})}
-                    placeholder="e.g. Coursera, Udemy"
+                    placeholder={t("placeholder_course_platform")}
                   />
                 </div>
                 <div className={styles.formField}>
@@ -449,7 +449,7 @@ const AdminCoursesPage = () => {
                   <input 
                     value={formData.provider}
                     onChange={e => setFormData({...formData, provider: e.target.value})}
-                    placeholder="e.g. Google, IBM"
+                    placeholder={t("placeholder_course_provider")}
                   />
                 </div>
                 <div className={styles.formField}>
@@ -457,7 +457,7 @@ const AdminCoursesPage = () => {
                   <input 
                     value={formData.source_platform}
                     onChange={e => setFormData({...formData, source_platform: e.target.value})}
-                    placeholder="e.g. coursera"
+                    placeholder={t("placeholder_course_source")}
                   />
                 </div>
                 <div className={styles.formField}>
@@ -465,7 +465,7 @@ const AdminCoursesPage = () => {
                   <input 
                     value={formData.source_id}
                     onChange={e => setFormData({...formData, source_id: e.target.value})}
-                    placeholder="e.g. advanced-patterns"
+                    placeholder={t("placeholder_course_source_id")}
                   />
                 </div>
                 <div className={styles.formField}>
@@ -473,7 +473,7 @@ const AdminCoursesPage = () => {
                   <input 
                     value={formData.external_uuid}
                     onChange={e => setFormData({...formData, external_uuid: e.target.value})}
-                    placeholder="e.g. 22-char ID"
+                    placeholder={t("placeholder_course_uuid")}
                   />
                 </div>
                 <div className={cn(styles.formField, styles.formFieldFull)}>
@@ -481,7 +481,7 @@ const AdminCoursesPage = () => {
                   <input 
                     value={formData.url}
                     onChange={e => setFormData({...formData, url: e.target.value})}
-                    placeholder="https://..."
+                    placeholder={t("placeholder_course_url")}
                   />
                 </div>
                 
@@ -522,7 +522,7 @@ const AdminCoursesPage = () => {
                   <input 
                     value={formData.duration_raw}
                     onChange={e => setFormData({...formData, duration_raw: e.target.value})}
-                    placeholder="e.g. 4 weeks"
+                    placeholder={t("placeholder_course_duration")}
                   />
                 </div>
                 <div className={cn(styles.formField, styles.formFieldFull)}>
@@ -579,7 +579,7 @@ const AdminCoursesPage = () => {
                     className="h-32"
                     value={formData.modules}
                     onChange={e => setFormData({...formData, modules: e.target.value})}
-                    placeholder="Introduction&#10;Basic Syntax&#10;Advanced Patterns..."
+                    placeholder={t("placeholder_course_modules")}
                     maxLength={5000}
                   />
                 </div>

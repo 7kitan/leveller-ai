@@ -63,7 +63,7 @@ const SystemLogsPage = () => {
     
     try {
       await api.delete("admin/system/logs/cleanup?days=30");
-      showInfo("Đã dọn dẹp log cũ");
+      showInfo(t("logs_cleanup_success"));
       fetchLogs(0);
     } catch (err) {
       console.error("Cleanup logs error:", err);

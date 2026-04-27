@@ -24,8 +24,8 @@ async def startup_event():
     init_db()
 logger = logging.getLogger("recommender")
 
-# Thresholds - Now managed via ConfigManager for hot-reloading
-VECTOR_SIM_THRESHOLD = float(config_manager.get_setting("SIMILARITY_THRESHOLD", 0.60))
+# NOTE: VECTOR_SIM_THRESHOLD is now fetched dynamically via config_manager.get_setting()
+# at the point of use to support hot-reloading without service restart
 
 
 class GapSkill(BaseModel):
@@ -67,6 +67,68 @@ class CourseCreate(BaseModel):
 
 class CourseBulkCreate(BaseModel):
     courses: List[CourseCreate]
+
+
+class CourseFullImport(BaseModel):
+    """Schema for importing courses with pre-computed vectors"""
+    id: Optional[uuid.UUID] = None
+    title: str = Field(..., max_length=500)
+    description: Optional[str] = Field(None, max_length=5000)
+    source_platform: str = Field(..., max_length=100)
+    source_id: str = Field(..., max_length=255)
+    external_uuid: Optional[str] = Field(None, max_length=100)
+    provider: Optional[str] = Field(None, max_length=100)
+    platform: Optional[str] = Field(None, max_length=100)
+    url: str = Field(..., max_length=500)
+    level: Optional[str] = Field(None, max_length=50)
+    is_certification: bool = False
+    duration_hours: Optional[float] = Field(None, ge=0, le=10000)
+    duration_raw: Optional[str] = Field(None, max_length=100)
+    cost_usd: float = Field(default=0.0, ge=0, le=999999)
+    languages: Optional[List[str]] = Field(default_factory=list, max_items=50)
+    skills_raw: Optional[List[str]] = Field(default_factory=list, max_items=50)
+    tools_raw: Optional[List[str]] = Field(default_factory=list, max_items=50)
+    outcomes: Optional[List[str]] = Field(default_factory=list, max_items=20)
+    modules: Optional[List[str]] = Field(default_factory=list, max_items=100)
+    tags: Optional[List[str]] = Field(default_factory=list, max_items=20)
+    embedding_context: Optional[str] = Field(None, max_length=10000)
+    vector: List[float] = Field(..., min_length=1536, max_length=1536)
+    is_active: bool = True
+
+
+class CourseFullImportBulk(BaseModel):
+    courses: List[CourseFullImport]
+
+
+class CourseExport(BaseModel):
+    """Schema for exporting courses with vectors"""
+    id: uuid.UUID
+    title: str
+    description: Optional[str] = None
+    source_platform: Optional[str] = None
+    source_id: Optional[str] = None
+    external_uuid: Optional[str] = None
+    provider: Optional[str] = None
+    platform: Optional[str] = None
+    url: Optional[str] = None
+    level: Optional[str] = None
+    is_certification: bool = False
+    duration_hours: Optional[float] = None
+    duration_raw: Optional[str] = None
+    cost_usd: float = 0.0
+    languages: Optional[List[str]] = None
+    skills_raw: Optional[List[str]] = None
+    tools_raw: Optional[List[str]] = None
+    outcomes: Optional[List[str]] = None
+    modules: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
+    embedding_context: Optional[str] = None
+    vector: List[float]
+    is_active: bool = True
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CourseRead(BaseModel):
@@ -166,11 +228,14 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
             LIMIT :limit
         """)
         try:
+            # Get threshold dynamically for hot-reload support
+            sim_threshold = float(config_manager.get_setting("SIMILARITY_THRESHOLD", 0.60))
+            
             results = db.execute(
                 query,
                 {
                     "vec": skill_vector,
-                    "sim_threshold": VECTOR_SIM_THRESHOLD,
+                    "sim_threshold": sim_threshold,
                     "limit": limit,
                 },
             ).fetchall()
@@ -423,18 +488,23 @@ async def admin_list_courses(
     query = db.query(Course)
     
     if q:
+        # Sanitize search query to prevent SQL injection
+        # Escape special characters for ILIKE pattern matching
+        safe_q = q.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+        search_pattern = f"%{safe_q}%"
+        
         # Search across multiple fields using indexes:
         # - title, platform, provider: uses pg_trgm GIN indexes (idx_courses_*_trgm)
         # - tags: uses GIN index (idx_courses_tags_gin) with ANY operator
         # - skills_raw: uses GIN index (idx_courses_skills_raw_gin) with JSONB contains
         query = query.filter(
             or_(
-                Course.title.ilike(f"%{q}%"),
-                Course.platform.ilike(f"%{q}%"),
-                Course.provider.ilike(f"%{q}%"),
+                Course.title.ilike(search_pattern),
+                Course.platform.ilike(search_pattern),
+                Course.provider.ilike(search_pattern),
                 text("(:keyword = ANY(tags))").bindparams(keyword=q),
                 text("(skills_raw::jsonb @> to_jsonb(:skill::text))").bindparams(skill=q),
-                text("EXISTS (SELECT 1 FROM jsonb_array_elements_text(skills_raw::jsonb) skill WHERE skill ILIKE :pattern)").bindparams(pattern=f"%{q}%")
+                text("EXISTS (SELECT 1 FROM jsonb_array_elements_text(skills_raw::jsonb) skill WHERE skill ILIKE :pattern)").bindparams(pattern=search_pattern)
             )
         )
 
@@ -565,6 +635,155 @@ async def admin_bulk_create_courses(
         db.refresh(c)
     
     return {"count": len(new_courses), "status": "success"}
+
+
+@app.get("/recommend/admin/courses/export")
+async def admin_export_courses(
+    request: Request, 
+    db: Session = Depends(get_db),
+    limit: Optional[int] = Query(None, ge=1, le=10000),
+    offset: int = Query(0, ge=0)
+):
+    """Admin only: Export all courses with vectors for backup/migration."""
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    query = db.query(Course).filter(Course.is_active == True)
+    
+    if limit:
+        query = query.limit(limit).offset(offset)
+    
+    courses = query.all()
+    
+    # Convert to export format with vectors as lists
+    export_data = []
+    for course in courses:
+        vector_list = course.vector if isinstance(course.vector, list) else list(course.vector) if course.vector else []
+        
+        export_data.append({
+            "id": str(course.id),
+            "title": course.title,
+            "description": course.description,
+            "source_platform": course.source_platform,
+            "source_id": course.source_id,
+            "external_uuid": course.external_uuid,
+            "provider": course.provider,
+            "platform": course.platform,
+            "url": course.url,
+            "level": course.level,
+            "is_certification": course.is_certification,
+            "duration_hours": course.duration_hours,
+            "duration_raw": course.duration_raw,
+            "cost_usd": course.cost_usd,
+            "languages": course.languages,
+            "skills_raw": course.skills_raw,
+            "tools_raw": course.tools_raw,
+            "outcomes": course.outcomes,
+            "modules": course.modules,
+            "tags": course.tags,
+            "embedding_context": course.embedding_context,
+            "vector": vector_list,
+            "is_active": course.is_active,
+            "created_at": course.created_at.isoformat() if course.created_at else None,
+            "updated_at": course.updated_at.isoformat() if course.updated_at else None
+        })
+    
+    return {
+        "count": len(export_data),
+        "courses": export_data,
+        "metadata": {
+            "exported_at": datetime.utcnow().isoformat(),
+            "total_exported": len(export_data),
+            "offset": offset,
+            "limit": limit
+        }
+    }
+
+
+@app.post("/recommend/admin/courses/import-full")
+async def admin_import_courses_full(
+    req: CourseFullImportBulk,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Admin only: Import courses with pre-computed vectors (skip embedding generation)."""
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    imported = []
+    skipped = []
+    errors = []
+
+    for c_req in req.courses:
+        try:
+            # Check if exists
+            existing = db.query(Course).filter(
+                Course.source_platform == c_req.source_platform,
+                Course.source_id == c_req.source_id
+            ).first()
+            
+            if existing:
+                skipped.append({
+                    "source_platform": c_req.source_platform,
+                    "source_id": c_req.source_id,
+                    "reason": "Already exists"
+                })
+                continue
+
+            # Use provided ID or generate new one
+            course_id = c_req.id if c_req.id else uuid.uuid4()
+
+            # Create course with provided vector (no embedding generation)
+            new_course = Course(
+                id=course_id,
+                title=c_req.title,
+                description=c_req.description,
+                source_platform=c_req.source_platform,
+                source_id=c_req.source_id,
+                external_uuid=c_req.external_uuid,
+                platform=c_req.platform,
+                url=c_req.url,
+                level=c_req.level,
+                provider=c_req.provider,
+                is_certification=c_req.is_certification,
+                duration_hours=c_req.duration_hours,
+                duration_raw=c_req.duration_raw,
+                languages=c_req.languages,
+                cost_usd=c_req.cost_usd,
+                skills_raw=c_req.skills_raw,
+                tools_raw=c_req.tools_raw,
+                outcomes=c_req.outcomes,
+                modules=c_req.modules,
+                tags=c_req.tags,
+                embedding_context=c_req.embedding_context,
+                vector=c_req.vector,  # Use pre-computed vector
+                is_active=c_req.is_active,
+            )
+            db.add(new_course)
+            imported.append(str(course_id))
+            
+        except Exception as e:
+            errors.append({
+                "source_platform": c_req.source_platform,
+                "source_id": c_req.source_id,
+                "error": str(e)
+            })
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database commit failed: {str(e)}")
+    
+    return {
+        "status": "success",
+        "imported_count": len(imported),
+        "skipped_count": len(skipped),
+        "error_count": len(errors),
+        "imported_ids": imported,
+        "skipped": skipped,
+        "errors": errors
+    }
 
 
 @app.patch("/recommend/admin/courses/{course_id}", response_model=CourseRead)

@@ -119,10 +119,12 @@
   text-align: center;
 }
 
+/* Use standardized gradient from theme variables */
 .gradientText {
-  background: linear-gradient(to right, #4f46e5, #0ea5e9);
+  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-style: italic;
 }
 

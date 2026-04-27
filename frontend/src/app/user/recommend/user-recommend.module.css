@@ -62,10 +62,12 @@
   color: var(--color-text-main);
 }
 
+/* Use standardized gradient format for consistency */
 .gradientText {
-  background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
+  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-style: italic;
 }
 
@@ -244,33 +246,11 @@
   letter-spacing: 0.2rem;
 }
 
-.gradientText {
-  background: linear-gradient(to right, var(--color-accent-primary), #0ea5e9);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-style: italic;
-}
-
-.badgeLabel {
-  font-size: 10px;
-  font-weight: 900;
-  color: var(--color-accent-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.2rem;
-}
-
 .titleMain {
   font-size: 3rem;
   font-weight: 900;
   letter-spacing: -0.05rem;
   color: var(--color-text-main);
-}
-
-.gradientText {
-  background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-style: italic;
 }
 
 .headerSubtitle {

@@ -256,13 +256,13 @@ const UserCVPage = () => {
     const fileExtension = selectedFile.name.split('.').pop()?.toLowerCase();
     
     if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
-      showError('Chỉ hỗ trợ file PDF, DOCX, DOC, PNG, JPG, JPEG');
+      showError(t('cv_file_type_error'));
       return;
     }
 
     // Validate file size (max 10MB)
     if (selectedFile.size > 10 * 1024 * 1024) {
-      showError('File không được vượt quá 10MB');
+      showError(t('cv_file_size_error'));
       return;
     }
 
@@ -281,7 +281,7 @@ const UserCVPage = () => {
         const pageCount = pdf.numPages;
         
         if (pageCount > 10) {
-          showError(`CV có ${pageCount} trang, vượt quá giới hạn 10 trang. Vui lòng rút gọn CV hoặc chỉ upload các trang quan trọng.`);
+          showError(t('cv_page_limit_error').replace('{pageCount}', pageCount.toString()));
           return;
         }
       } catch (err) {
@@ -338,7 +338,7 @@ const UserCVPage = () => {
           setStatus("viewing");
           fetchHistory();
         } catch (err) {
-          console.error("Lỗi khi lấy chi tiết CV cũ:", err);
+          console.error(t("console_cv_detail_error"), err);
           setError(t("error"));
           setStatus("idle");
         }

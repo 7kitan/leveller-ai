@@ -134,7 +134,7 @@ export default function LandingNavbar() {
           <button 
             className={styles.mobileToggle} 
             onClick={onToggle}
-            aria-label="Toggle menu"
+            aria-label={t("aria_toggle_menu")}
           >
             <motion.div
               animate={{ rotate: isMenuOpen ? 90 : 0 }}
