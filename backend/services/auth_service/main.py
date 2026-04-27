@@ -5,7 +5,7 @@ import shared.models # Ensure all models are registered
 from shared.models import User, UserRole
 # Ensure tables are created
 # Base.metadata.create_all(bind=engine) - Moved to startup event
-from shared.auth_utils import get_password_hash, verify_password, create_access_token, hash_token, decode_access_token, ACCESS_TOKEN_EXPIRE_SECONDS
+from shared.auth_utils import get_password_hash, verify_password, create_access_token, hash_token, decode_access_token, ACCESS_TOKEN_EXPIRE_SECONDS, get_client_ip
 from shared.config_utils import config_manager
 from shared.redis_client import auth_cache
 from shared.email_utils import send_password_reset_email
@@ -106,8 +106,13 @@ class ResetPasswordRequest(BaseModel):
 
 app = FastAPI(title="Auth Service")
 
-# Initialize Limiter
-limiter = Limiter(key_func=get_remote_address)
+# Custom key function for rate limiter to use real client IP
+def get_real_client_ip(request: Request) -> str:
+    """Get real client IP for rate limiting (not Docker gateway IP)."""
+    return get_client_ip(request)
+
+# Initialize Limiter with custom key function
+limiter = Limiter(key_func=get_real_client_ip)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -148,9 +153,17 @@ async def forgot_password(req: ForgotPasswordRequest, request: Request, db: Sess
 @app.post("/auth/reset-password")
 async def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):
     reset_key = f"pwd_reset:{req.token}"
+    
+    # DEBUG: Log token details
+    logger.info(f"[RESET PASSWORD] Attempting reset with token length: {len(req.token)}")
+    logger.info(f"[RESET PASSWORD] Redis key: {reset_key}")
+    
     user_id = auth_cache.get(reset_key)
     
+    logger.info(f"[RESET PASSWORD] Retrieved user_id from Redis: {user_id}")
+    
     if not user_id:
+        logger.warning(f"[RESET PASSWORD] Token not found in Redis: {reset_key}")
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
     
     user = db.query(User).filter(User.id == user_id).first()
@@ -196,7 +209,7 @@ def is_admin(request: Request) -> bool:
 @limiter.limit("5/day")
 async def register(request: Request, user_in: UserCreate, db: Session = Depends(get_db)):
     # 1. Check registration limit per IP
-    ip_addr = request.client.host if request.client else "unknown"
+    ip_addr = get_client_ip(request)
     reg_key = f"reg_attempts:{ip_addr}"
     reg_count = auth_cache.incr_with_expire(reg_key, 86400)
     if reg_count > 5:
@@ -273,7 +286,7 @@ async def register(request: Request, user_in: UserCreate, db: Session = Depends(
 @limiter.limit("10/minute")
 async def get_captcha_status(request: Request):
     """Check if the current IP requires a captcha based on previous failed attempts."""
-    ip_addr = request.client.host if request.client else "unknown"
+    ip_addr = get_client_ip(request)
     ip_attempt_key = f"login_attempts_ip:{ip_addr}"
     
     attempts = auth_cache.get(ip_attempt_key)
@@ -285,7 +298,7 @@ async def get_captcha_status(request: Request):
 @app.post("/auth/login")
 @limiter.limit("20/minute")
 async def login(request: Request, user_in: UserLogin, db: Session = Depends(get_db)):
-    ip_addr = request.client.host if request.client else "unknown"
+    ip_addr = get_client_ip(request)
     lockout_key = f"lockout:{ip_addr}"
     
     if auth_cache.exists(lockout_key):

@@ -12,6 +12,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import api from "@/lib/api";
 import { formatDistanceToNow } from 'date-fns';
 import Modal from "@/components/shared/Modal";
+import CustomDropdown from "@/components/shared/CustomDropdown";
 import { vi, enUS } from 'date-fns/locale';
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
@@ -124,17 +125,18 @@ export default function JobsPage() {
               </div>
               <div className={styles.inputWrapper}>
                   <MapPin size={18} className={styles.inputIcon} />
-                  <select 
-                      className={styles.input}
+                  <CustomDropdown 
                       value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                  >
-                      <option value="">{t("jobs_location_all")}</option>
-                      <option value="HN">{t("jobs_location_hn")}</option>
-                      <option value="HCM">{t("jobs_location_hcm")}</option>
-                      <option value="DN">{t("jobs_location_dn")}</option>
-                      <option value="Other">{t("jobs_location_other")}</option>
-                  </select>
+                      options={[
+                          { value: "", label: t("jobs_location_all") },
+                          { value: "HN", label: t("jobs_location_hn") },
+                          { value: "HCM", label: t("jobs_location_hcm") },
+                          { value: "DN", label: t("jobs_location_dn") },
+                          { value: "Other", label: t("jobs_location_other") },
+                      ]}
+                      onChange={(val) => setLocation(val)}
+                      buttonClassName={styles.input}
+                  />
               </div>
               <div className={styles.inputWrapper}>
                   <Briefcase size={18} className={styles.inputIcon} />

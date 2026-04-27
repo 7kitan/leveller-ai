@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import api from "@/lib/api";
-import { Loader2, AlertCircle, CheckCircle, ArrowLeft, Lock } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle, ArrowLeft, Lock, Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import LandingNavbar from "@/components/landing/LandingNavbar";
@@ -13,6 +13,8 @@ import styles from "@/components/auth/auth-form.module.css";
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -89,9 +91,9 @@ export default function ResetPasswordPage() {
           </div>
         ) : (
           <form className={styles.form} onSubmit={handleSubmit}>
-            <div className={styles.inputGroup}>
+            <div className={styles.inputGroup} style={{ position: 'relative' }}>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 disabled={!token}
                 className={styles.inputField}
@@ -100,11 +102,33 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 maxLength={128}
                 minLength={8}
+                style={{ paddingRight: '45px' }}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                disabled={!token}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
-            <div className={styles.inputGroup}>
+            <div className={styles.inputGroup} style={{ position: 'relative' }}>
               <input
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 required
                 disabled={!token}
                 className={styles.inputField}
@@ -113,7 +137,29 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 maxLength={128}
                 minLength={8}
+                style={{ paddingRight: '45px' }}
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                disabled={!token}
+              >
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
 
             {error && (

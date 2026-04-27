@@ -68,11 +68,32 @@ app.add_middleware(
 # ============================================================================
 # RATE LIMITING - Giới hạn số lượng requests
 # ============================================================================
+# Custom key function for rate limiter to use real client IP
+def get_real_client_ip_for_limiter(request: Request) -> str:
+    """
+    Get real client IP for rate limiting (not Docker internal IP).
+    
+    Checks X-Real-IP and X-Forwarded-For headers before falling back
+    to request.client.host.
+    """
+    # Check X-Real-IP header
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        return real_ip
+    
+    # Check X-Forwarded-For header (first IP in chain)
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+    
+    # Fallback to direct connection IP
+    return request.client.host if request.client else "unknown"
+
 # Khởi tạo rate limiter với Redis làm storage backend
 # Redis lưu trữ số lượng requests của mỗi IP address
 redis_url = f"redis://{f':{REDIS_PASSWORD}@' if REDIS_PASSWORD else ''}{REDIS_HOST}:{REDIS_PORT}/0"
 limiter = Limiter(
-    key_func=get_remote_address,  # Dùng IP address làm key
+    key_func=get_real_client_ip_for_limiter,  # Use real client IP, not Docker gateway IP
     storage_uri=redis_url          # Lưu counters trong Redis
 )
 app.state.limiter = limiter
@@ -194,6 +215,21 @@ async def proxy(service_name: str, path: str, request: Request):
     
     # Chuẩn bị headers để forward
     headers = dict(request.headers)
+    
+    # SECURITY: Forward real client IP to backend services
+    # This is critical for rate limiting, login attempts tracking, and audit logs
+    client_ip = request.client.host if request.client else "unknown"
+    
+    # Check if there's already an X-Forwarded-For header (from upstream proxy)
+    if "x-forwarded-for" in headers:
+        # Append our client IP to the chain
+        headers["X-Forwarded-For"] = f"{headers['x-forwarded-for']}, {client_ip}"
+    else:
+        # Start the X-Forwarded-For chain
+        headers["X-Forwarded-For"] = client_ip
+    
+    # Set X-Real-IP to the direct client (most reliable for our use case)
+    headers["X-Real-IP"] = client_ip
     
     # Xóa các hop-by-hop headers (không được forward qua proxy)
     # Những headers này chỉ có ý nghĩa giữa client-gateway, không phải gateway-service

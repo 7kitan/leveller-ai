@@ -88,8 +88,12 @@
   font-weight: 900;
   line-height: 0.9;
   letter-spacing: -0.05em;
-  color: var(--color-text-main);
   font-style: italic;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Use standardized gradient for consistency across all pages */

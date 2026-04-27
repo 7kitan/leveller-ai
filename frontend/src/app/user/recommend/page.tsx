@@ -548,9 +548,13 @@ const UserRecommendPage = () => {
                     },
                     lineStyle: { color: '#4f46e5', width: 2 },
                     label: {
-                      show: true, formatter: (params: any) => `${Number(params.value).toFixed(1)}%`,
-                      color: '#fff', fontSize: 11, fontWeight: 900,
-                      backgroundColor: 'rgba(79, 70, 229, 0.9)', borderRadius: 4, padding: [3, 6],
+                      show: true, 
+                      formatter: (params: any) => {
+                        // For radar charts, params.value can be an array. 
+                        // If so, we don't show the label on the points to avoid clutter, 
+                        // as the radar axes already show labels or we use tooltips.
+                        return ''; 
+                      },
                     },
                     itemStyle: { color: '#4f46e5', borderColor: '#fff', borderWidth: 2 },
                   }],
@@ -562,8 +566,19 @@ const UserRecommendPage = () => {
                   borderWidth: 1,
                   textStyle: { color: '#fff', fontSize: 12 },
                   formatter: (params: any) => {
-                    if (!params || !params.value) return '';
-                    return `<div style="padding: 6px 10px;"><strong style="color: #4f46e5;">${params.name}</strong><br/><span>${Number(params.value).toFixed(1)}%</span></div>`;
+                    if (!params || !params.value || !Array.isArray(params.value)) return '';
+                    const indicators = Object.keys(match_breakdown);
+                    let res = `<div style="padding: 8px 12px; min-width: 150px;">`;
+                    res += `<div style="margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px;"><strong style="color: #818cf8; font-size: 13px;">${params.name}</strong></div>`;
+                    indicators.forEach((name, i) => {
+                      const val = params.value[i];
+                      res += `<div style="display: flex; justify-content: space-between; gap: 20px; margin-bottom: 4px;">
+                        <span style="color: rgba(255,255,255,0.7);">${translateRadarCategory(name)}</span>
+                        <strong style="color: #fff;">${Number(val).toFixed(1)}%</strong>
+                      </div>`;
+                    });
+                    res += `</div>`;
+                    return res;
                   }
                 },
               }}

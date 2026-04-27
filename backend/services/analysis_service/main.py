@@ -1008,23 +1008,21 @@ async def simulate_boost(
 async def admin_test_email(request: Request, db: Session = Depends(get_db)):
     """Admin only: Gửi email test để kiểm tra cấu hình SMTP."""
     check_admin(request)
-    user_id = request.headers.get("X-User-ID")
-    user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
     
-    if not user or not user.email:
-        raise HTTPException(status_code=400, detail="Admin user must have an email address")
+    # Hardcoded test email address
+    test_email = "vanbachpk1@gmail.com"
 
     from shared.email_utils import send_email
     success = send_email(
-        to_email=user.email,
+        to_email=test_email,
         subject="[Test] Cấu hình SMTP - Team078",
-        content=f"Xin chào {user.email},\n\nĐây là email kiểm tra tính năng SMTP từ hệ thống Admin Dashboard.\nNếu bạn nhận được email này, cấu hình SMTP của bạn đã hoạt động chính xác.\n\nThời gian: {datetime.now().isoformat()}"
+        body=f"Xin chào,\n\nĐây là email kiểm tra tính năng SMTP từ hệ thống Admin Dashboard.\nNếu bạn nhận được email này, cấu hình SMTP của bạn đã hoạt động chính xác.\n\nThời gian: {datetime.now().isoformat()}"
     )
     
     if not success:
         raise HTTPException(status_code=500, detail="Failed to send test email. Check server logs/configs.")
     
-    return {"message": f"Test email sent to {user.email}"}
+    return {"message": f"Test email sent to {test_email}"}
 
 
 @app.post("/analysis/admin/test-llm")

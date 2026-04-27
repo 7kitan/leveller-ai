@@ -1,0 +1,97 @@
+@reference "tailwindcss";
+@reference "../../app/globals.css";
+
+.customDropdownContainer {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+}
+
+.customDropdownContainerActive {
+  z-index: 1000;
+}
+
+.customDropdownButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: transparent;
+  border: 1px solid var(--color-border-subtle);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+}
+
+.customDropdownButtonActive {
+  border-color: var(--color-accent-primary);
+  background-color: var(--color-panel-bg);
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+}
+
+.dropdownChevron {
+  opacity: 0.5;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dropdownChevronRotate {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+.customDropdownMenu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  min-width: 100%;
+  background-color: white;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.03);
+  padding: 0.5rem;
+  z-index: 1001;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .customDropdownMenu {
+  background-color: var(--color-surface-dark-1);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.customDropdownOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  background: none;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.customDropdownOption:hover {
+  background-color: rgba(79, 70, 229, 0.08);
+  color: var(--color-accent-primary);
+  padding-left: 1.25rem;
+}
+
+[data-theme="dark"] .customDropdownOption:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.customDropdownOptionActive {
+  background-color: rgba(79, 70, 229, 0.1) !important;
+  color: var(--color-accent-primary) !important;
+}
+
+.optionCheck {
+  color: var(--color-accent-primary);
+}

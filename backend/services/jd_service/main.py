@@ -7,7 +7,7 @@ from fastapi import FastAPI, Depends, HTTPException, Request, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import text, or_, and_
 from sqlalchemy.dialects.postgresql import UUID
-from shared.database import get_db
+from shared.database import get_db, init_db
 from shared.models import Job, SystemSetting, UserRole
 from shared.config_utils import config_manager
 from shared.llm_utils import get_embedding, build_job_embedding_context, normalize_location
@@ -26,6 +26,11 @@ import traceback
 from worker.celery_app import celery_app
 
 app = FastAPI(title="JD Service")
+
+@app.on_event("startup")
+async def startup_event():
+    init_db()
+
 logger = logging.getLogger("jd_service")
 
 # Feature flag
@@ -722,7 +727,7 @@ def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = D
 
 
 @app.get("/jd/admin/export")
-def admin_export_jobs(
+async def admin_export_jobs(
     request: Request,
     db: Session = Depends(get_db),
     limit: Optional[int] = Query(None, ge=1, le=10000),
@@ -742,7 +747,19 @@ def admin_export_jobs(
     # Convert to export format with vectors as lists
     export_data = []
     for job in jobs:
-        vector_list = job.vector if isinstance(job.vector, list) else list(job.vector) if job.vector else []
+        # Handle pgvector conversion properly
+        if job.vector is None:
+            vector_list = []
+        elif isinstance(job.vector, list):
+            vector_list = job.vector
+        elif hasattr(job.vector, 'tolist'):
+            vector_list = job.vector.tolist()
+        else:
+            # For pgvector types, convert to string then parse or use direct conversion
+            try:
+                vector_list = [float(x) for x in job.vector]
+            except (TypeError, ValueError):
+                vector_list = []
         
         export_data.append({
             "id": str(job.id),

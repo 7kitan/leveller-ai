@@ -409,6 +409,30 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
             }
         )
         
+        # ── Send Email Notification ──────────────────────────────────────────
+        try:
+            from shared.email_utils import notify_gap_analysis_complete
+            
+            if user and user.email:
+                # Get job title if available
+                job_title = None
+                if job_id:
+                    job = db.query(Job).filter(Job.id == uuid.UUID(job_id)).first()
+                    if job:
+                        job_title = job.title_raw
+                
+                notify_gap_analysis_complete(
+                    user_email=user.email,
+                    match_score=round(report.get('overall_match_pct', 0), 1),
+                    skill_gaps_count=len(report.get('skill_gaps', [])),
+                    courses_count=len(report.get('recommended_courses', [])),
+                    cv_name=cv.full_name or user.email.split('@')[0],
+                    job_title=job_title
+                )
+                logger.info(f"[ANALYSIS STEP 4] ✓ Gap analysis email notification sent to {user.email}")
+        except Exception as email_err:
+            logger.warning(f"[ANALYSIS STEP 4] Failed to send gap analysis email: {email_err}")
+        
         # Ensure cv_id and job_id are in the report for frontend redirection
         if isinstance(report, dict):
             report["cv_id"] = str(cv_id)
