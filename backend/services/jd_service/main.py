@@ -100,6 +100,77 @@ class JobBulkCreate(BaseModel):
     jobs: List[JobCreate]
 
 
+class JobFullImport(BaseModel):
+    """Schema for importing jobs with pre-computed vectors"""
+    id: Optional[uuid.UUID] = None
+    source_id: str = Field(..., max_length=100)
+    title_raw: str = Field(..., max_length=500)
+    title_category: Optional[str] = Field(None, max_length=100)
+    domain_role: Optional[str] = Field(None, max_length=100)
+    company_name: Optional[str] = Field(None, max_length=255)
+    source_url: Optional[str] = Field(None, max_length=1000)
+    source_label: Optional[str] = Field(None, max_length=100)
+    raw_text: Optional[str] = Field(None, max_length=50000)
+    job_description: Optional[str] = Field(None, max_length=10000)
+    requirements: Optional[str] = Field(None, max_length=10000)
+    benefits: Optional[str] = Field(None, max_length=5000)
+    min_salary_vnd: Optional[int] = Field(None, ge=0, le=999999999)
+    max_salary_vnd: Optional[int] = Field(None, ge=0, le=999999999)
+    required_exp_years: Optional[float] = None
+    employment_type: Optional[str] = Field(None, max_length=50)
+    location_raw: Optional[str] = Field(None, max_length=500)
+    location_normalized: Optional[str] = Field(None, max_length=100)
+    location_district: Optional[str] = Field(None, max_length=100)
+    status: str = Field(default="active", max_length=20)
+    embedding_context: Optional[str] = Field(None, max_length=10000)
+    vector: List[float] = Field(..., min_length=1536, max_length=1536)
+    has_insurance: bool = False
+    has_13th_month: bool = False
+    remote_friendly: bool = False
+    extracted_requirements_json: Optional[dict] = None
+
+
+class JobFullImportBulk(BaseModel):
+    jobs: List[JobFullImport]
+
+
+class JobExport(BaseModel):
+    """Schema for exporting jobs with vectors"""
+    id: uuid.UUID
+    source_id: str
+    title_raw: str
+    title_category: Optional[str] = None
+    domain_role: Optional[str] = None
+    company_name: Optional[str] = None
+    source_url: Optional[str] = None
+    source_label: Optional[str] = None
+    raw_text: Optional[str] = None
+    job_description: Optional[str] = None
+    requirements: Optional[str] = None
+    benefits: Optional[str] = None
+    min_salary_vnd: Optional[int] = None
+    max_salary_vnd: Optional[int] = None
+    required_exp_years: Optional[float] = None
+    employment_type: Optional[str] = None
+    location_raw: Optional[str] = None
+    location_normalized: Optional[str] = None
+    location_district: Optional[str] = None
+    status: str
+    embedding_context: Optional[str] = None
+    vector: List[float]
+    has_insurance: bool = False
+    has_13th_month: bool = False
+    remote_friendly: bool = False
+    indexed_at: Optional[datetime] = None
+    last_analyzed_at: Optional[datetime] = None
+    extracted_requirements_json: Optional[dict] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
 # â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
@@ -648,6 +719,158 @@ def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = D
             logger.error(f"[BULK IMPORT] Failed to trigger skill extraction: {e}")
     
     return {"message": f"Successfully imported {new_jobs_count} jobs", "count": new_jobs_count}
+
+
+@app.get("/jd/admin/export")
+def admin_export_jobs(
+    request: Request,
+    db: Session = Depends(get_db),
+    limit: Optional[int] = Query(None, ge=1, le=10000),
+    offset: int = Query(0, ge=0)
+):
+    """Admin only: Export all jobs with vectors for backup/migration."""
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    query = db.query(Job).filter(Job.status == "active")
+    
+    if limit:
+        query = query.limit(limit).offset(offset)
+    
+    jobs = query.all()
+    
+    # Convert to export format with vectors as lists
+    export_data = []
+    for job in jobs:
+        vector_list = job.vector if isinstance(job.vector, list) else list(job.vector) if job.vector else []
+        
+        export_data.append({
+            "id": str(job.id),
+            "source_id": job.source_id,
+            "title_raw": job.title_raw,
+            "title_category": job.title_category,
+            "domain_role": job.domain_role,
+            "company_name": job.company_name,
+            "source_url": job.source_url,
+            "source_label": job.source_label,
+            "raw_text": job.raw_text,
+            "job_description": job.job_description,
+            "requirements": job.requirements,
+            "benefits": job.benefits,
+            "min_salary_vnd": job.min_salary_vnd,
+            "max_salary_vnd": job.max_salary_vnd,
+            "required_exp_years": job.required_exp_years,
+            "employment_type": job.employment_type,
+            "location_raw": job.location_raw,
+            "location_normalized": job.location_normalized,
+            "location_district": job.location_district,
+            "status": job.status,
+            "embedding_context": job.embedding_context,
+            "vector": vector_list,
+            "has_insurance": job.has_insurance,
+            "has_13th_month": job.has_13th_month,
+            "remote_friendly": job.remote_friendly,
+            "indexed_at": job.indexed_at.isoformat() if job.indexed_at else None,
+            "last_analyzed_at": job.last_analyzed_at.isoformat() if job.last_analyzed_at else None,
+            "extracted_requirements_json": job.extracted_requirements_json,
+            "created_at": job.created_at.isoformat() if job.created_at else None,
+            "updated_at": job.updated_at.isoformat() if job.updated_at else None
+        })
+    
+    return {
+        "count": len(export_data),
+        "jobs": export_data,
+        "metadata": {
+            "exported_at": datetime.utcnow().isoformat(),
+            "total_exported": len(export_data),
+            "offset": offset,
+            "limit": limit
+        }
+    }
+
+
+@app.post("/jd/admin/import-full")
+def admin_import_jobs_full(
+    req: JobFullImportBulk,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Admin only: Import jobs with pre-computed vectors (skip embedding generation)."""
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    imported = []
+    skipped = []
+    errors = []
+
+    for job_req in req.jobs:
+        try:
+            # Check if exists by source_id
+            existing = db.query(Job).filter(Job.source_id == job_req.source_id).first()
+            
+            if existing:
+                skipped.append({
+                    "source_id": job_req.source_id,
+                    "reason": "Already exists"
+                })
+                continue
+
+            # Use provided ID or generate new one
+            job_id = job_req.id if job_req.id else uuid.uuid4()
+
+            # Create job with provided vector (no embedding generation)
+            new_job = Job(
+                id=job_id,
+                source_id=job_req.source_id,
+                title_raw=job_req.title_raw,
+                title_category=job_req.title_category,
+                domain_role=job_req.domain_role,
+                company_name=job_req.company_name,
+                source_url=job_req.source_url,
+                source_label=job_req.source_label,
+                raw_text=job_req.raw_text,
+                job_description=job_req.job_description,
+                requirements=job_req.requirements,
+                benefits=job_req.benefits,
+                min_salary_vnd=job_req.min_salary_vnd,
+                max_salary_vnd=job_req.max_salary_vnd,
+                required_exp_years=job_req.required_exp_years,
+                employment_type=job_req.employment_type,
+                location_raw=job_req.location_raw,
+                location_normalized=job_req.location_normalized,
+                location_district=job_req.location_district,
+                status=job_req.status,
+                embedding_context=job_req.embedding_context,
+                vector=job_req.vector,  # Use pre-computed vector
+                has_insurance=job_req.has_insurance,
+                has_13th_month=job_req.has_13th_month,
+                remote_friendly=job_req.remote_friendly,
+                extracted_requirements_json=job_req.extracted_requirements_json
+            )
+            db.add(new_job)
+            imported.append(str(job_id))
+            
+        except Exception as e:
+            errors.append({
+                "source_id": job_req.source_id,
+                "error": str(e)
+            })
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database commit failed: {str(e)}")
+    
+    return {
+        "status": "success",
+        "imported_count": len(imported),
+        "skipped_count": len(skipped),
+        "error_count": len(errors),
+        "imported_ids": imported,
+        "skipped": skipped,
+        "errors": errors
+    }
 
 
 # ─── Skill Extraction Endpoints ──────────────────────────────────────────────

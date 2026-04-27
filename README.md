@@ -72,6 +72,52 @@ python scripts/seed_all.py --force
 ```
 *(Hệ thống sử dụng Vector Search để gợi ý khóa học dựa trên kỹ năng trong CV)*
 
+### Nạp Khóa học từ File URLs (Alternative)
+Nếu bạn có sẵn file `.txt` chứa danh sách URLs Coursera:
+1. Đăng nhập vào Admin Panel: [http://localhost:3000/admin/courses/import](http://localhost:3000/admin/courses/import)
+2. Click **"Upload .txt URLs"** và chọn file
+3. Click **"Crawl All"** để bắt đầu crawl tự động
+4. Review và lưu các khóa học đã crawl
+
+**Lưu ý:** File mẫu `coursera_tech_urls.txt` chứa 3,242 URLs tech courses có sẵn trong thư mục gốc.
+
+---
+
+## Bước 4.5: Import/Export Database (Advanced)
+
+### Export Data với Vectors
+Để backup toàn bộ database bao gồm vector embeddings:
+
+**Export Courses:**
+```bash
+# Qua Admin UI
+1. Vào /admin/courses/import
+2. Click "Export All with Vectors"
+3. File JSON sẽ tự động download
+```
+
+**Export Jobs:**
+```bash
+# Qua Admin UI
+1. Vào /admin/jobs/import
+2. Click "Export All with Vectors"
+3. File JSON sẽ tự động download
+```
+
+### Import Full Data (Skip Crawling)
+Để restore data từ backup hoặc migrate giữa các môi trường:
+
+1. Vào trang import tương ứng (`/admin/courses/import` hoặc `/admin/jobs/import`)
+2. Click **"Import Full Data"**
+3. Chọn file JSON đã export trước đó
+4. Hệ thống sẽ import data với vectors có sẵn (không cần re-generate embeddings)
+
+**Lợi ích:**
+- ✅ Tiết kiệm chi phí OpenAI API (không cần re-embed)
+- ✅ Nhanh hơn nhiều so với crawling (1000 records ~30 giây)
+- ✅ Preserve vectors → maintain search quality
+- ✅ Dễ dàng migrate data giữa dev/staging/production
+
 ---
 
 ## Bước 5: Thu thập Job từ TopCV (Live Import)

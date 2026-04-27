@@ -92,10 +92,12 @@
   font-style: italic;
 }
 
+/* Use standardized gradient for consistency across all pages */
 .nexusText {
-  background: linear-gradient(to right, #f59e0b, #d97706);
+  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .headerSubtitle {

@@ -55,10 +55,12 @@
   font-style: italic;
 }
 
+/* Use standardized gradient for consistency */
 .gradientText {
-  background: linear-gradient(to right, #818cf8, #c084fc);
+  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .sectionSubtitle {

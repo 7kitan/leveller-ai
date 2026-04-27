@@ -667,7 +667,7 @@ const AdminSettingsPage = () => {
                   <input 
                     type="text" 
                     className={styles.input}
-                    placeholder="https://api.datalab.to/..."
+                    placeholder={t("placeholder_api_url")}
                     value={getValue("CHANDRA_API_URL", "")}
                     onChange={(e) => handleFieldChange("CHANDRA_API_URL", e.target.value)}
                     maxLength={500}
@@ -686,7 +686,7 @@ const AdminSettingsPage = () => {
                     <input 
                       type="password" 
                       className={cn(styles.input, "pr-10")}
-                      placeholder="sk-..."
+                      placeholder={t("placeholder_api_key")}
                       value={getValue("CHANDRA_API_KEY", "")}
                       onChange={(e) => handleFieldChange("CHANDRA_API_KEY", e.target.value)}
                       maxLength={255}
@@ -779,7 +779,7 @@ const AdminSettingsPage = () => {
                       </div>
                       <textarea 
                         className={cn(styles.input, "min-h-[100px] font-mono text-sm")}
-                        placeholder="107.150.110.153:4157:user1:pass1&#10;108.160.120.154:4158:user2:pass2&#10;or comma-separated"
+                        placeholder={t("placeholder_proxy_list")}
                         value={getValue("PROXY_LIST", "")}
                         onChange={(e) => handleFieldChange("PROXY_LIST", e.target.value)}
                         rows={4}
@@ -846,7 +846,7 @@ const AdminSettingsPage = () => {
                       <input 
                         type="text"
                         className={styles.input}
-                        placeholder="smtp.gmail.com"
+                        placeholder={t("placeholder_smtp_host")}
                         value={getValue("SMTP_HOST", "")}
                         onChange={(e) => handleFieldChange("SMTP_HOST", e.target.value)}
                         maxLength={255}
@@ -896,7 +896,7 @@ const AdminSettingsPage = () => {
                       <input 
                         type="text"
                         className={styles.input}
-                        placeholder="Lumix AI <noreply@lumix.ai>"
+                        placeholder={t("placeholder_smtp_from")}
                         value={getValue("SMTP_FROM", "")}
                         onChange={(e) => handleFieldChange("SMTP_FROM", e.target.value)}
                       />

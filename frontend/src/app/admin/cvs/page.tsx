@@ -88,11 +88,11 @@ const AdminCVsPage = () => {
     
     try {
       await api.delete(`analysis/admin/cvs/${id}`);
-      showSuccess("Đã xóa CV");
+      showSuccess(t("cv_delete_success"));
       fetchCVs();
     } catch (err) {
       console.error("Delete CV error:", err);
-      showError("Lỗi khi xóa CV");
+      showError(t("cv_delete_error"));
     }
   };
 

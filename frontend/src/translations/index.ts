@@ -868,6 +868,63 @@ export const translations = {
     admin_youtube_delete_confirm: "Xóa video này khỏi cache?",
     admin_youtube_verify_success: "Đã bắt đầu kiểm tra tính khả dụng của video",
     admin_youtube_verify_error: "Lỗi khi kiểm tra video",
+    
+    // Additional translations for hardcoded texts
+    recaptcha_required: "Vui lòng xác nhận bạn không phải là robot.",
+    forgot_password_link: "Quên mật khẩu?",
+    cv_file_type_error: "Chỉ hỗ trợ file PDF, DOCX, DOC, PNG, JPG, JPEG",
+    cv_file_size_error: "File không được vượt quá 10MB",
+    cv_page_limit_error: "CV có {pageCount} trang, vượt quá giới hạn 10 trang. Vui lòng rút gọn CV hoặc chỉ upload các trang quan trọng.",
+    logs_cleanup_success: "Đã dọn dẹp log cũ",
+    cv_delete_success: "Đã xóa CV",
+    cv_delete_error: "Lỗi khi xóa CV",
+    courses_load_error: "Không thể tải danh sách khóa học",
+    course_update_success: "Đã cập nhật khóa học",
+    course_create_success: "Đã tạo khóa học mới",
+    course_save_error: "Lỗi khi lưu khóa học",
+    course_delete_success: "Đã xóa khóa học",
+    course_delete_error: "Lỗi khi xóa",
+    course_import_save_error: "Lỗi khi lưu",
+    course_import_bulk_error: "Lỗi khi lưu hàng loạt",
+    
+    // Placeholders
+    placeholder_api_url: "https://api.datalab.to/...",
+    placeholder_api_key: "sk-...",
+    placeholder_proxy_list: "107.150.110.153:4157:user1:pass1&#10;108.160.120.154:4158:user2:pass2&#10;or comma-separated",
+    placeholder_smtp_host: "smtp.gmail.com",
+    placeholder_smtp_from: "Lumix AI <noreply@lumix.ai>",
+    placeholder_course_platform: "e.g. Coursera, Udemy",
+    placeholder_course_provider: "e.g. Google, IBM",
+    placeholder_course_source: "e.g. coursera",
+    placeholder_course_source_id: "e.g. advanced-patterns",
+    placeholder_course_uuid: "e.g. 22-char ID",
+    placeholder_course_url: "https://...",
+    placeholder_course_duration: "e.g. 4 weeks",
+    placeholder_course_modules: "Introduction&#10;Basic Syntax&#10;Advanced Patterns...",
+    placeholder_job_employment_type: "Full-time, Part-time, etc.",
+    placeholder_job_location: "Hà Nội, Hồ Chí Minh, etc.",
+    
+    // Title attributes
+    title_career_genome: "CAREER GENOME.",
+    title_course_importer: "Course Importer PRO",
+    title_job_importer: "Job Importer PRO",
+    title_view_details: "View All Details",
+    title_view_youtube: "View on YouTube",
+    title_flagged_review: "Flagged for review",
+    
+    // Aria labels
+    aria_toggle_menu: "Toggle menu",
+    aria_close_modal: "Close modal",
+    
+    // Mixed language content
+    explore_opportunities_title: "KHÁM PHÁ CƠ HỘI",
+    
+    // Metadata
+    meta_description: "Giải mã tương lai sự nghiệp với trí tuệ nhân tạo. Phân tích khoảng trống kỹ năng, gợi ý lộ trình học tập và quản trị tri thức kỹ thuật chuyên sâu.",
+    
+    // Console/Debug (optional - usually not translated but included for completeness)
+    console_cv_detail_error: "Lỗi khi lấy chi tiết CV cũ:",
+    console_job_search_error: "Lỗi tìm kiếm jobs:",
   },
   en: {
     // Common
@@ -1689,6 +1746,90 @@ export const translations = {
     explore_title_2: "KNOWLEDGE",
     explore_subtitle: "Smart course recommendation system based on your Skill Genome.",
     platform: "Platform",
+    
+    // Additional translations for hardcoded texts
+    recaptcha_required: "Please confirm you are not a robot.",
+    forgot_password_link: "Forgot password?",
+    cv_file_type_error: "Only PDF, DOCX, DOC, PNG, JPG, JPEG files are supported",
+    cv_file_size_error: "File size must not exceed 10MB",
+    cv_page_limit_error: "CV has {pageCount} pages, exceeding the 10-page limit. Please shorten your CV or upload only the important pages.",
+    logs_cleanup_success: "Old logs cleaned up",
+    cv_delete_success: "CV deleted",
+    cv_delete_error: "Error deleting CV",
+    courses_load_error: "Unable to load course list",
+    course_update_success: "Course updated successfully",
+    course_create_success: "New course created successfully",
+    course_save_error: "Error saving course",
+    course_delete_success: "Course deleted",
+    course_delete_error: "Error deleting",
+    course_import_save_error: "Error saving",
+    course_import_bulk_error: "Error saving in bulk",
+    
+    // Placeholders
+    placeholder_api_url: "https://api.datalab.to/...",
+    placeholder_api_key: "sk-...",
+    placeholder_proxy_list: "107.150.110.153:4157:user1:pass1&#10;108.160.120.154:4158:user2:pass2&#10;or comma-separated",
+    placeholder_smtp_host: "smtp.gmail.com",
+    placeholder_smtp_from: "Lumix AI <noreply@lumix.ai>",
+    placeholder_course_platform: "e.g. Coursera, Udemy",
+    placeholder_course_provider: "e.g. Google, IBM",
+    placeholder_course_source: "e.g. coursera",
+    placeholder_course_source_id: "e.g. advanced-patterns",
+    placeholder_course_uuid: "e.g. 22-char ID",
+    placeholder_course_url: "https://...",
+    placeholder_course_duration: "e.g. 4 weeks",
+    placeholder_course_modules: "Introduction&#10;Basic Syntax&#10;Advanced Patterns...",
+    placeholder_job_employment_type: "Full-time, Part-time, etc.",
+    placeholder_job_location: "Hanoi, Ho Chi Minh City, etc.",
+    
+    // Title attributes
+    title_career_genome: "CAREER GENOME.",
+    title_course_importer: "Course Importer PRO",
+    title_job_importer: "Job Importer PRO",
+    title_view_details: "View All Details",
+    title_view_youtube: "View on YouTube",
+    title_flagged_review: "Flagged for review",
+    
+    // Aria labels
+    aria_toggle_menu: "Toggle menu",
+    aria_close_modal: "Close modal",
+    
+    // Mixed language content
+    explore_opportunities_title: "EXPLORE OPPORTUNITIES",
+    
+    // Metadata
+    meta_description: "Decode your career future with artificial intelligence. Analyze skill gaps, suggest learning paths, and manage deep technical knowledge.",
+    
+    // Console/Debug (optional - usually not translated but included for completeness)
+    console_cv_detail_error: "Error fetching old CV details:",
+    console_job_search_error: "Error searching jobs:",
+    
+    // Additional missing keys
+    current_position: "Current Position",
+    ai_searching: "AI is searching for more courses and building roadmap...",
+    critical: "Critical",
+    match: "match",
+    salary_text: "salary",
+    week_text: "Week",
+    course_library: "Course Library",
+    search_courses_placeholder: "Search courses, skills...",
+    cert_short: "Certificate",
+    filter_by: "Filter by:",
+    has_cert: "Has Certificate",
+    reset_filters: "Reset",
+    clear_all_filters: "Clear all filters",
+    no_courses_found: "No courses found",
+    adjust_filters_desc: "Try adjusting your filters or search keywords.",
+    displaying: "Displaying",
+    of_text: "of",
+    courses_text: "courses",
+    relevance: "Relevance",
+    level_asc: "Level ↑",
+    level_desc: "Level ↓",
+    price_asc: "Price ↑",
+    price_desc: "Price ↓",
+    admin_users_table_date: "Join Date",
+    no_feedback_found: "No feedback found",
   }
 };
 

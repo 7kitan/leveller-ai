@@ -23,7 +23,10 @@ import {
   Trash2,
   FileJson,
   Save,
-  Clock
+  Clock,
+  Upload,
+  Download,
+  FileUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import styles from "./admin-import.module.css";
@@ -72,6 +75,8 @@ const JobImportPage = () => {
   const [results, setResults] = useState<ImportResult[]>([]);
   const [isSavingAll, setIsSavingAll] = useState(false);
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImportingFull, setIsImportingFull] = useState(false);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
@@ -80,6 +85,98 @@ const JobImportPage = () => {
 
   const updateResult = (url: string, update: Partial<ImportResult>) => {
     setResults(prev => prev.map(r => r.url === url ? { ...r, ...update } : r));
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.txt')) {
+      showNotification("Please upload a .txt file", "error");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      setUrlsText(content);
+      showNotification(`Loaded ${file.name} successfully`);
+    };
+    reader.onerror = () => {
+      showNotification("Failed to read file", "error");
+    };
+    reader.readAsText(file);
+  };
+
+  const handleFullDataUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.json')) {
+      showNotification("Please upload a .json file", "error");
+      return;
+    }
+
+    setIsImportingFull(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const content = event.target?.result as string;
+        const data = JSON.parse(content);
+        
+        if (!data.jobs || !Array.isArray(data.jobs)) {
+          showNotification("Invalid JSON format. Expected {jobs: [...]}", "error");
+          setIsImportingFull(false);
+          return;
+        }
+
+        const resp = await api.post("jd/admin/import-full", 
+          { jobs: data.jobs },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        showNotification(
+          `Imported: ${resp.data.imported_count}, Skipped: ${resp.data.skipped_count}, Errors: ${resp.data.error_count}`
+        );
+      } catch (err: any) {
+        const msg = err.response?.data?.detail || "Failed to import jobs";
+        showNotification(msg, "error");
+      } finally {
+        setIsImportingFull(false);
+      }
+    };
+    reader.onerror = () => {
+      showNotification("Failed to read file", "error");
+      setIsImportingFull(false);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const resp = await api.get("jd/admin/export", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const dataStr = JSON.stringify(resp.data, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `jobs_export_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      showNotification(`Exported ${resp.data.count} jobs successfully`);
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || "Failed to export jobs";
+      showNotification(msg, "error");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleCrawlAll = async () => {
@@ -197,6 +294,43 @@ const JobImportPage = () => {
         </PageHeader>
 
         <div className={styles.importContainer}>
+          {/* Action Buttons Bar */}
+          <div className={styles.actionButtonsBar}>
+            <div className={styles.actionGroup}>
+              <label className={styles.uploadBtn}>
+                <Upload size={18} />
+                Upload .txt URLs
+                <input 
+                  type="file" 
+                  accept=".txt" 
+                  onChange={handleFileUpload}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              
+              <label className={cn(styles.uploadBtn, styles.uploadBtnSecondary)}>
+                <FileUp size={18} />
+                {isImportingFull ? <Loader2 className="animate-spin" size={18} /> : "Import Full Data"}
+                <input 
+                  type="file" 
+                  accept=".json" 
+                  onChange={handleFullDataUpload}
+                  disabled={isImportingFull}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+
+            <button 
+              className={styles.exportBtn}
+              onClick={handleExport}
+              disabled={isExporting}
+            >
+              {isExporting ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
+              {isExporting ? "Exporting..." : "Export All with Vectors"}
+            </button>
+          </div>
+
           <div className={styles.inputSection}>
              <h3>{t('admin_jobs_import_input_title')}</h3>
              <div className={styles.urlInputGroup}>
@@ -298,7 +432,7 @@ const JobImportPage = () => {
                             className={styles.formInput} 
                             value={result.data.employment_type || ''} 
                             onChange={e => handleFieldChange(result.url, 'employment_type', e.target.value)} 
-                            placeholder="Full-time, Part-time, etc."
+                            placeholder={t("placeholder_job_employment_type")}
                           />
                         </div>
 
@@ -341,7 +475,7 @@ const JobImportPage = () => {
                             className={styles.formInput} 
                             value={result.data.location_normalized || ''} 
                             onChange={e => handleFieldChange(result.url, 'location_normalized', e.target.value)} 
-                            placeholder="Hà Nội, Hồ Chí Minh, etc."
+                            placeholder={t("placeholder_job_location")}
                           />
                         </div>
 

@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import Portal from "./Portal";
 import styles from "./modal.module.css";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ModalProps {
   isOpen: boolean;
@@ -26,6 +27,8 @@ export default function Modal({
   showCloseButton = true,
   className
 }: ModalProps) {
+  const { t } = useLanguage();
+  
   // Close on Escape key
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -76,7 +79,7 @@ export default function Modal({
                     <button 
                       onClick={onClose} 
                       className={styles.closeBtn}
-                      aria-label="Close modal"
+                      aria-label={t("aria_close_modal")}
                     >
                       <X size={20} />
                     </button>
@@ -87,7 +90,7 @@ export default function Modal({
                 <button 
                   onClick={onClose} 
                   className={cn(styles.closeBtn, styles.closeBtnStandalone)}
-                  aria-label="Close modal"
+                  aria-label={t("aria_close_modal")}
                 >
                   <X size={20} />
                 </button>

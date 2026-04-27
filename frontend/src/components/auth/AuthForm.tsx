@@ -66,7 +66,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
     } catch (err: any) {
       if (err.response?.headers?.['x-requires-captcha'] === 'true') {
         setShowCaptcha(true);
-        setError("Vui lòng xác nhận bạn không phải là robot.");
+        setError(t("recaptcha_required"));
       } else {
         setError(err.response?.data?.detail || t("auth_error"));
       }
@@ -138,7 +138,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
           {isLogin && (
             <div className="flex justify-end -mt-4 mb-4">
               <Link href="/auth/forgot-password" className="text-xs text-indigo-500 hover:underline">
-                Quên mật khẩu?
+                {t("forgot_password_link")}
               </Link>
             </div>
           )}

@@ -139,3 +139,126 @@ Ghi lại các quyết định kỹ thuật, phân công, và brainstorming củ
 **Code thay đổi:** `src/agent.ts` lines 45-67
 
 **Học được:** Luôn thiết kế stop condition trước khi implement retry logic.
+
+---
+
+## Quyết định kỹ thuật - Tuần 3
+
+### [ADR-3] Export/Import System với Vector Preservation — 27/04/2026
+
+**Bối cảnh:** Hệ thống cần khả năng backup/restore database và migrate data giữa các môi trường (dev/staging/production). Vector embeddings được generate bởi OpenAI API tốn chi phí và thời gian, cần preserve khi migrate.
+
+**Các lựa chọn đã xem xét:**
+- **Option A - Database Dump (pg_dump)**: 
+  - Pros: Native PostgreSQL, bao gồm cả vectors, fast
+  - Cons: Không portable giữa các DB versions, khó filter data, binary format khó inspect
+- **Option B - JSON Export với Vectors**:
+  - Pros: Human-readable, portable, có thể filter/transform data, inspect dễ dàng
+  - Cons: File size lớn hơn, cần serialize/deserialize vectors
+- **Option C - CSV Export (không có vectors)**:
+  - Pros: Đơn giản, dễ edit bằng Excel
+  - Cons: Mất vectors → phải re-embed → tốn tiền và thời gian
+
+**Quyết định:** Chọn Option B (JSON Export với Vectors) vì:
+1. Preserve vectors → không cần re-generate embeddings (tiết kiệm $$$)
+2. Human-readable → dễ debug và validate data
+3. Portable → có thể import vào bất kỳ environment nào
+4. Flexible → có thể filter/transform data trước khi import
+
+**Hệ quả:** 
+- File size lớn hơn (~2-3MB cho 1000 courses với vectors)
+- Cần implement proper serialization/deserialization logic
+- Trade-off được chấp nhận vì lợi ích về cost và flexibility
+
+---
+
+### [ADR-4] Deduplication Strategy cho Import Operations — 27/04/2026
+
+**Bối cảnh:** Khi import bulk data, có thể có duplicates hoặc data đã tồn tại trong DB. Cần quyết định cách xử lý.
+
+**Các lựa chọn đã xem xét:**
+- **Option A - Overwrite existing**: Update nếu đã tồn tại
+  - Pros: Luôn có data mới nhất
+  - Cons: Có thể mất data quan trọng, không safe
+- **Option B - Skip duplicates**: Bỏ qua nếu đã tồn tại
+  - Pros: Safe, không mất data cũ
+  - Cons: Không update được data đã thay đổi
+- **Option C - Fail on duplicates**: Throw error và rollback
+  - Pros: Đảm bảo data integrity
+  - Cons: User experience kém, phải manual cleanup
+
+**Quyết định:** Chọn Option B (Skip duplicates) với detailed reporting vì:
+1. Safe by default → không risk mất data
+2. User-friendly → không fail toàn bộ operation vì 1 duplicate
+3. Transparent → báo cáo rõ ràng số lượng imported/skipped/errors
+4. Có thể extend sau để support update mode nếu cần
+
+**Hệ quả:**
+- Cần implement unique constraint checks (source_platform + source_id cho Courses, source_id cho Jobs)
+- Response phải include detailed breakdown: imported_count, skipped_count, error_count
+- User cần review skipped items để quyết định có cần manual update không
+
+---
+
+### [ADR-5] File Upload vs Paste URLs — 27/04/2026
+
+**Bối cảnh:** Admin cần import hàng trăm URLs. Paste thủ công vào textarea không practical.
+
+**Các lựa chọn đã xem xét:**
+- **Option A - Chỉ textarea**: Đơn giản nhất
+  - Pros: Không cần implement file upload
+  - Cons: UX kém với nhiều URLs, dễ lỗi copy/paste
+- **Option B - Chỉ file upload**: Modern approach
+  - Pros: Professional, handle large datasets
+  - Cons: Không flexible cho quick tests với vài URLs
+- **Option C - Cả hai (textarea + file upload)**:
+  - Pros: Flexible, phù hợp mọi use case
+  - Cons: Phức tạp hơn về UI/UX
+
+**Quyết định:** Chọn Option C (cả hai) vì:
+1. Flexibility → admin có thể chọn cách phù hợp với số lượng URLs
+2. Better UX → file upload cho bulk, textarea cho quick tests
+3. Không tốn nhiều effort → file upload chỉ cần FileReader API
+
+**Hệ quả:**
+- UI phức tạp hơn một chút (2 input methods)
+- Cần validate file format (.txt only)
+- Cần handle file reading errors
+
+---
+
+### [ADR-6] Confirmation Dialog cho Bulk Operations — 27/04/2026
+
+**Bối cảnh:** Crawl 3,000+ URLs tốn thời gian (~2-3 giờ) và OpenAI API costs. Cần prevent accidental triggers.
+
+**Các lựa chọn đã xem xét:**
+- **Option A - No confirmation**: Click là chạy ngay
+  - Pros: Nhanh
+  - Cons: Dễ nhầm lẫn, waste resources nếu trigger nhầm
+- **Option B - Simple confirm()**: Browser native dialog
+  - Pros: Đơn giản, không cần code UI
+  - Cons: Ugly, không hiển thị được thông tin chi tiết
+- **Option C - Custom modal với preview**:
+  - Pros: Professional, hiển thị số lượng + estimated time
+  - Cons: Cần code thêm component
+
+**Quyết định:** Chọn Option C (Custom modal) vì:
+1. Better UX → user biết rõ sẽ xảy ra gì
+2. Prevent mistakes → hiển thị estimated time giúp user aware về cost
+3. Professional → phù hợp với admin dashboard standards
+
+**Hệ quả:**
+- Cần implement modal component với animation
+- Cần calculate estimated time (số URLs × average time per URL)
+- Thêm 1 step vào workflow nhưng improve safety
+
+---
+
+## Sprint 3 — 21/04 → 27/04/2026
+
+(Các công việc chi tiết đã được chuyển vào hệ thống quản lý task hoặc JOURNAL.md)
+
+---
+
+
+---
