@@ -523,13 +523,26 @@ def admin_crawl_fetch_job(req: CrawlUrlRequest, request: Request):
         raise HTTPException(status_code=400, detail="Chỉ hỗ trợ URL từ TopCV.vn")
 
     try:
-        # Get proxy from environment variable if available
-        # Format: http://user:pass@proxy.com:8080 or socks5://proxy.com:1080
-        topcv_proxy = os.getenv("TOPCV_PROXY")
+        # Get proxy list from SystemSetting (global PROXY_LIST for all crawlers)
+        db = get_db().__next__()
+        proxy_list = []
+        try:
+            proxy_setting = db.query(SystemSetting).filter(SystemSetting.key == "PROXY_LIST").first()
+            if proxy_setting and proxy_setting.value:
+                # Parse proxy list - support both comma-separated and newline-separated
+                proxy_str = str(proxy_setting.value).strip()
+                if proxy_str:
+                    # Split by both comma and newline, then filter empty strings
+                    proxy_list = [p.strip() for p in re.split(r'[,\n\r]+', proxy_str) if p.strip()]
+                    logger.info(f"[ADMIN CRAWL] Loaded {len(proxy_list)} proxies from global PROXY_LIST")
+            else:
+                logger.info(f"[ADMIN CRAWL] No proxy list configured in settings")
+        except Exception as e:
+            logger.warning(f"[ADMIN CRAWL] Failed to load proxy list from settings: {e}")
+        finally:
+            db.close()
         
-        scraper = TopCVScraper(proxy=topcv_proxy)
-        if topcv_proxy:
-            logger.info(f"[ADMIN CRAWL] Using proxy for TopCV scraping")
+        scraper = TopCVScraper(proxy_list=proxy_list)
         logger.info(f"[ADMIN CRAWL] Fetching job from URL: {req.url}")
         
         # Increase timeout and retries for production environment
