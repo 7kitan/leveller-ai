@@ -78,12 +78,25 @@ async def auth_middleware(request: Request, call_next):
     # 1. Maintenance Mode Check (Centralized at Gateway via Redis)
     maintenance_mode, maintenance_duration = get_maintenance_mode()
     
-    # Critical paths that should always be accessible to allow admins to login and fix things
-    # These paths will handle maintenance mode logic internally (e.g., auth-service checks role after login)
-    critical_paths = ["/auth/login", "/user/login"]
+    # Critical paths that should be accessible during maintenance for admin access
+    # SECURITY: Only admin login endpoints should be here. Regular user login is blocked during maintenance.
+    # The auth service must verify admin role after successful login during maintenance mode.
+    critical_paths = ["/auth/login"]  # Admin login only
     is_critical = any(path.startswith(p) for p in critical_paths)
 
-    # Allow critical paths to pass through (they handle maintenance internally)
+    # During maintenance mode, block regular user login attempts
+    if maintenance_mode and path.startswith("/user/login"):
+        return JSONResponse(
+            status_code=503, 
+            content={
+                "detail": "Hệ thống đang bảo trì. Chỉ quản trị viên mới có thể đăng nhập.",
+                "maintenance": True,
+                "duration": maintenance_duration
+            },
+            headers=get_cors_headers(request)
+        )
+
+    # Allow critical paths to pass through (admin login handles maintenance internally)
     if is_critical:
         return await call_next(request)
 

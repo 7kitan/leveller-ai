@@ -343,6 +343,38 @@ async def login(request: Request, user_in: UserLogin, db: Session = Depends(get_
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is disabled. Please contact administrator.")
 
+    # SECURITY: Check maintenance mode BEFORE creating token
+    # This prevents token creation for non-admin users during maintenance
+    try:
+        mode = auth_cache.get("system:MAINTENANCE_MODE")
+        duration = auth_cache.get("system:MAINTENANCE_DURATION")
+        
+        if mode:
+            # Handle both bytes and string (redis-py version compatibility)
+            mode_str = mode.decode('utf-8') if isinstance(mode, bytes) else str(mode)
+            duration_str = duration.decode('utf-8') if isinstance(duration, bytes) else str(duration) if duration else "Không xác định"
+            
+            if mode_str.lower() == 'true':
+                # Maintenance mode is ON
+                if user.role != UserRole.ADMIN:
+                    # Non-admin users cannot login during maintenance
+                    system_logger.warning(
+                        "Auth",
+                        f"Blocked non-admin login during maintenance: {user.email}",
+                        {"user_id": str(user.id), "ip": ip_addr}
+                    )
+                    raise HTTPException(
+                        status_code=503,
+                        detail=f"Hệ thống đang bảo trì để nâng cấp. Thời gian dự kiến: {duration_str}. Chỉ admin mới có thể đăng nhập trong thời gian này."
+                    )
+                # Admin users can login during maintenance
+                logger.info(f"Admin user {user.email} logging in during maintenance mode")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to check maintenance mode: {e}")
+        # Fail-safe: allow login if Redis check fails
+
     # SECURITY FIX: Clear failed attempts on successful login
     auth_cache.delete(attempt_key)
     auth_cache.delete(ip_attempt_key)
@@ -393,32 +425,6 @@ async def login(request: Request, user_in: UserLogin, db: Session = Depends(get_
             "user_agent": request.headers.get("User-Agent")
         }
     )
-
-    # Check maintenance mode after successful authentication
-    try:
-        mode = auth_cache.get("system:MAINTENANCE_MODE")
-        duration = auth_cache.get("system:MAINTENANCE_DURATION")
-        
-        if mode:
-            # Handle both bytes and string (redis-py version compatibility)
-            mode_str = mode.decode('utf-8') if isinstance(mode, bytes) else str(mode)
-            duration_str = duration.decode('utf-8') if isinstance(duration, bytes) else str(duration) if duration else "Không xác định"
-            
-            if mode_str.lower() == 'true':
-                # Maintenance mode is ON
-                if user.role != UserRole.ADMIN:
-                    # Non-admin users cannot login during maintenance
-                    raise HTTPException(
-                        status_code=503,
-                        detail=f"Hệ thống đang bảo trì để nâng cấp. Thời gian dự kiến: {duration_str}. Chỉ admin mới có thể đăng nhập trong thời gian này."
-                    )
-                # Admin users can login during maintenance
-                logger.info(f"Admin user {user.email} logged in during maintenance mode")
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Failed to check maintenance mode: {e}")
-        # Fail-safe: allow login if Redis check fails
 
     return {
         "access_token": access_token, 

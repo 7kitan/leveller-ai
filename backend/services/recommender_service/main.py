@@ -24,8 +24,8 @@ async def startup_event():
     init_db()
 logger = logging.getLogger("recommender")
 
-# Thresholds - Now managed via ConfigManager for hot-reloading
-VECTOR_SIM_THRESHOLD = float(config_manager.get_setting("SIMILARITY_THRESHOLD", 0.60))
+# NOTE: VECTOR_SIM_THRESHOLD is now fetched dynamically via config_manager.get_setting()
+# at the point of use to support hot-reloading without service restart
 
 
 class GapSkill(BaseModel):
@@ -166,11 +166,14 @@ def _vector_search_courses(skill_name: str, target_level: str, db, limit: int = 
             LIMIT :limit
         """)
         try:
+            # Get threshold dynamically for hot-reload support
+            sim_threshold = float(config_manager.get_setting("SIMILARITY_THRESHOLD", 0.60))
+            
             results = db.execute(
                 query,
                 {
                     "vec": skill_vector,
-                    "sim_threshold": VECTOR_SIM_THRESHOLD,
+                    "sim_threshold": sim_threshold,
                     "limit": limit,
                 },
             ).fetchall()
@@ -423,18 +426,23 @@ async def admin_list_courses(
     query = db.query(Course)
     
     if q:
+        # Sanitize search query to prevent SQL injection
+        # Escape special characters for ILIKE pattern matching
+        safe_q = q.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+        search_pattern = f"%{safe_q}%"
+        
         # Search across multiple fields using indexes:
         # - title, platform, provider: uses pg_trgm GIN indexes (idx_courses_*_trgm)
         # - tags: uses GIN index (idx_courses_tags_gin) with ANY operator
         # - skills_raw: uses GIN index (idx_courses_skills_raw_gin) with JSONB contains
         query = query.filter(
             or_(
-                Course.title.ilike(f"%{q}%"),
-                Course.platform.ilike(f"%{q}%"),
-                Course.provider.ilike(f"%{q}%"),
+                Course.title.ilike(search_pattern),
+                Course.platform.ilike(search_pattern),
+                Course.provider.ilike(search_pattern),
                 text("(:keyword = ANY(tags))").bindparams(keyword=q),
                 text("(skills_raw::jsonb @> to_jsonb(:skill::text))").bindparams(skill=q),
-                text("EXISTS (SELECT 1 FROM jsonb_array_elements_text(skills_raw::jsonb) skill WHERE skill ILIKE :pattern)").bindparams(pattern=f"%{q}%")
+                text("EXISTS (SELECT 1 FROM jsonb_array_elements_text(skills_raw::jsonb) skill WHERE skill ILIKE :pattern)").bindparams(pattern=search_pattern)
             )
         )
 

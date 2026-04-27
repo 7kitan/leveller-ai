@@ -77,6 +77,7 @@ SETTINGS_CONFIG = [
     
     # Crawling
     ("TOPCV_CRAWL_ENABLED", "TOPCV_CRAWL_ENABLED", "true", "Enable TopCV job crawling"),
+    ("PROXY_LIST", "PROXY_LIST", "", "Global proxy list for all crawlers (format: IP:PORT:USER:PASS, newline or comma-separated)"),
 ]
 
 def init_settings(force=False):

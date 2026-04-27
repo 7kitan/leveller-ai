@@ -123,20 +123,35 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False, extract_skills: 
     logger.info(f"🚀 [TOPCV CRAWLER] Starting crawl cycle (limit={limit}, force={force}, extract_skills={extract_skills})...")
     system_logger.info("CRAWLER", f"Starting TopCV crawl cycle (limit={limit})")
     
-    # Get proxy from environment variable if available
-    topcv_proxy = os.getenv("TOPCV_PROXY")
-    scraper = TopCVScraper(proxy=topcv_proxy)
-    if topcv_proxy:
-        logger.info(f"[TOPCV CRAWLER] Using proxy for TopCV scraping")
+    db = SessionLocal()
+    
+    # Get proxy list from SystemSetting (global PROXY_LIST for all crawlers)
+    proxy_list = []
+    try:
+        proxy_setting = db.query(SystemSetting).filter(SystemSetting.key == "PROXY_LIST").first()
+        if proxy_setting and proxy_setting.value:
+            # Parse proxy list - support both comma-separated and newline-separated
+            proxy_str = str(proxy_setting.value).strip()
+            if proxy_str:
+                # Split by both comma and newline, then filter empty strings
+                import re
+                proxy_list = [p.strip() for p in re.split(r'[,\n\r]+', proxy_str) if p.strip()]
+                logger.info(f"[TOPCV CRAWLER] Loaded {len(proxy_list)} proxies from global PROXY_LIST")
+        else:
+            logger.info(f"[TOPCV CRAWLER] No proxy list configured in settings")
+    except Exception as e:
+        logger.warning(f"[TOPCV CRAWLER] Failed to load proxy list from settings: {e}")
+    
+    # Initialize scraper with proxy list
+    scraper = TopCVScraper(proxy_list=proxy_list)
     
     urls = scraper.get_latest_job_urls(limit=limit)
     
     if not urls:
         logger.warning("⚠️ [TOPCV CRAWLER] No job URLs found. Possible block or empty result.")
+        db.close()
         return {"status": "no_urls_found"}
 
-    db = SessionLocal()
-    
     # Check if crawling is enabled in settings (bypass if force=True)
     if not force:
         setting = db.query(SystemSetting).filter(SystemSetting.key == "TOPCV_CRAWL_ENABLED").first()

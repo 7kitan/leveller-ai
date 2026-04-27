@@ -145,7 +145,7 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
         return {"status": "failed", "error": f"Invalid cv_id: {cv_id}", "cv_id": cv_id}
 
     db = SessionLocal()
-    file_path_to_cleanup = None
+    files_to_cleanup = []  # Store ALL matching files, not just first one
 
     try:
         # ── Step 0: Get file path early for guaranteed cleanup ───────────────
@@ -154,13 +154,13 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
         
         cv_record = db.query(UserCV).filter(UserCV.id == cv_id).first()
         if cv_record and cv_record.file_id:
-            # Find file with any extension matching the file_id
+            # Find ALL files with any extension matching the file_id
             UPLOAD_DIR = "/app/data/cv_uploads"
             pattern = os.path.join(UPLOAD_DIR, f"{cv_record.file_id}.*")
             matching_files = glob.glob(pattern)
             if matching_files:
-                file_path_to_cleanup = matching_files[0]
-                logger.info(f"[TASK] File path for cleanup: {file_path_to_cleanup}")
+                files_to_cleanup = matching_files  # Store ALL files for cleanup
+                logger.info(f"[TASK] Found {len(files_to_cleanup)} file(s) for cleanup: {files_to_cleanup}")
         
         # ── Step 1: Ensure async event loop ──────────────────────────────────
         try:
@@ -240,20 +240,22 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
             raise e
 
     finally:
-        # ── Cleanup: Delete physical file (success or failure) ───────────────
+        # ── Cleanup: Delete ALL physical files (success or failure) ──────────
         UPLOAD_DIR = "/app/data/cv_uploads"
-        if file_path_to_cleanup and os.path.exists(file_path_to_cleanup):
-            try:
-                # SECURITY: Prevent Path Traversal
-                abs_f_path = os.path.abspath(file_path_to_cleanup)
-                abs_upload_dir = os.path.abspath(UPLOAD_DIR)
-                if abs_f_path.startswith(abs_upload_dir + os.sep) or abs_f_path == abs_upload_dir:
-                    os.remove(abs_f_path)
-                    logger.info(f"[TASK CLEANUP] ✓ Deleted CV file: {abs_f_path}")
-                else:
-                    logger.warning(f"[SECURITY] Attempted to delete file outside upload directory: {abs_f_path}")
-            except Exception as e:
-                logger.warning(f"[TASK CLEANUP] ⚠ Failed to delete CV file {file_path_to_cleanup}: {e}")
+        if files_to_cleanup:
+            for file_path in files_to_cleanup:
+                if os.path.exists(file_path):
+                    try:
+                        # SECURITY: Prevent Path Traversal
+                        abs_f_path = os.path.abspath(file_path)
+                        abs_upload_dir = os.path.abspath(UPLOAD_DIR)
+                        if abs_f_path.startswith(abs_upload_dir + os.sep) or abs_f_path == abs_upload_dir:
+                            os.remove(abs_f_path)
+                            logger.info(f"[TASK CLEANUP] ✓ Deleted CV file: {abs_f_path}")
+                        else:
+                            logger.warning(f"[SECURITY] Attempted to delete file outside upload directory: {abs_f_path}")
+                    except Exception as e:
+                        logger.warning(f"[TASK CLEANUP] ⚠ Failed to delete CV file {file_path}: {e}")
         
         db.close()
         logger.info(f"[TASK CLEANUP] db closed | cv_id={cv_id}")

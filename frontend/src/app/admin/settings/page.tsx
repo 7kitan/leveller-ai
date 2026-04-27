@@ -37,7 +37,7 @@ const AdminSettingsPage = () => {
   const TABS = [
     { id: 'ai', label: t("admin_settings_ai_agent_title"), icon: Cpu, keys: ["SIMILARITY_THRESHOLD", "CV_PARSING_MODEL", "GAP_ANALYSIS_MODEL", "CAREER_ADVISOR_MODEL", "LLM_PROVIDER", "AI_MODEL", "FALLBACK_AI_MODEL", "GAP_LLM_MODEL", "GAP_VECTOR_SIM_THRESHOLD"], color: "#10b981" },
     { id: 'parser', label: t("admin_settings_cv_parser_ocr_title"), icon: ScanLine, keys: ["CV_PARSER_STRATEGY", "OCR_DPI", "CHANDRA_API_URL", "CHANDRA_API_KEY"], color: "#ec4899" },
-    { id: 'automation', label: t("admin_settings_crawler_manager_title"), icon: Globe, keys: ["TOPCV_CRAWL_ENABLED", "LINKEDIN_BRIDGE_ENABLED", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_FROM", "QUEUE_THRESHOLD"], color: "#f59e0b" },
+    { id: 'automation', label: t("admin_settings_crawler_manager_title"), icon: Globe, keys: ["TOPCV_CRAWL_ENABLED", "LINKEDIN_BRIDGE_ENABLED", "PROXY_LIST", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_FROM", "QUEUE_THRESHOLD"], color: "#f59e0b" },
     { id: 'limits', label: t("admin_settings_limits_title"), icon: ShieldAlert, keys: ["GLOBAL_TOKEN_LIMIT", "USER_TOKEN_LIMIT", "DAILY_ANALYSIS_LIMIT"], color: "#f43f5e" },
     { id: 'system', label: t("admin_settings_security_ops_title"), icon: ShieldAlert, keys: ["MAINTENANCE_MODE", "MAINTENANCE_DURATION", "SYSTEM_BROADCAST", "RESULT_CACHE_TTL", "GAP_CACHE_TTL", "SYSTEM_LOG_TTL_DAYS"], color: "#818cf8" }
   ];
@@ -704,7 +704,7 @@ const AdminSettingsPage = () => {
                 <motion.div 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className={cn(styles.settingCard, isModified("TOPCV_CRAWL_ENABLED") || isModified("LINKEDIN_BRIDGE_ENABLED") ? styles.settingCardModified : "")}
+                  className={cn(styles.settingCard, isModified("TOPCV_CRAWL_ENABLED") || isModified("LINKEDIN_BRIDGE_ENABLED") || isModified("PROXY_LIST") ? styles.settingCardModified : "")}
                 >
                   <div className={styles.cardHeader}>
                     <div className={styles.cardHeaderLeft}>
@@ -716,12 +716,12 @@ const AdminSettingsPage = () => {
                       <h2 className={styles.cardTitle}>{t("admin_settings_crawler_manager_title")}</h2>
                     </div>
                     <AnimatePresence>
-                      {getSectionModifiedCount(["TOPCV_CRAWL_ENABLED", "LINKEDIN_BRIDGE_ENABLED"]) > 0 && (
+                      {getSectionModifiedCount(["TOPCV_CRAWL_ENABLED", "LINKEDIN_BRIDGE_ENABLED", "PROXY_LIST"]) > 0 && (
                         <motion.button
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: 20 }}
-                          onClick={() => handleBulkSave(["TOPCV_CRAWL_ENABLED", "LINKEDIN_BRIDGE_ENABLED"])}
+                          onClick={() => handleBulkSave(["TOPCV_CRAWL_ENABLED", "LINKEDIN_BRIDGE_ENABLED", "PROXY_LIST"])}
                           disabled={isSaving}
                           className={styles.sectionSaveBtn}
                         >
@@ -765,6 +765,25 @@ const AdminSettingsPage = () => {
                           <div className={styles.knob} />
                         </div>
                       </div>
+                    </div>
+
+                    <div className={cn(styles.field, isModified("PROXY_LIST") ? styles.fieldModified : "")}>
+                      <div className={styles.labelArea}>
+                        <label className={styles.label}>
+                          Proxy List (Global)
+                          {isModified("PROXY_LIST") && <span className={styles.fieldModifiedDot} />}
+                        </label>
+                        <span className={styles.desc}>
+                          Proxy list for all crawlers. Format: IP:PORT:USER:PASS (one per line or comma-separated)
+                        </span>
+                      </div>
+                      <textarea 
+                        className={cn(styles.input, "min-h-[100px] font-mono text-sm")}
+                        placeholder="107.150.110.153:4157:user1:pass1&#10;108.160.120.154:4158:user2:pass2&#10;or comma-separated"
+                        value={getValue("PROXY_LIST", "")}
+                        onChange={(e) => handleFieldChange("PROXY_LIST", e.target.value)}
+                        rows={4}
+                      />
                     </div>
                   </div>
                 </motion.div>

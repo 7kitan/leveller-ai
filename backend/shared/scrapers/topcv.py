@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from curl_cffi import requests
 import json
 from datetime import datetime
+import random
 
 # Setup detailed file logging
 logger = logging.getLogger("topcv_scraper")
@@ -39,13 +40,109 @@ logger.info(f"=" * 80)
 logger.info(f"TopCV Scraper initialized. Logging to: {log_file}")
 logger.info(f"=" * 80)
 
-class TopCVScraper:
-    def __init__(self, proxy: str = None):
+
+class ProxyRotator:
+    """Manages proxy rotation with automatic failover."""
+    
+    def __init__(self, proxy_list: List[str]):
         """
-        Initialize TopCV scraper.
+        Initialize proxy rotator.
         
         Args:
-            proxy: Optional proxy URL (e.g., "http://user:pass@proxy.com:8080" or "socks5://proxy.com:1080")
+            proxy_list: List of proxies in format "IP:PORT:USER:PASS"
+        """
+        self.proxies = []
+        self.current_index = 0
+        self.failed_proxies = set()
+        
+        for proxy_str in proxy_list:
+            if proxy_str and proxy_str.strip():
+                try:
+                    parts = proxy_str.strip().split(':')
+                    if len(parts) == 4:
+                        ip, port, user, password = parts
+                        proxy_url = f"http://{user}:{password}@{ip}:{port}"
+                        self.proxies.append({
+                            'url': proxy_url,
+                            'raw': proxy_str,
+                            'ip': ip,
+                            'port': port
+                        })
+                    elif len(parts) == 2:
+                        # Support simple IP:PORT format without auth
+                        ip, port = parts
+                        proxy_url = f"http://{ip}:{port}"
+                        self.proxies.append({
+                            'url': proxy_url,
+                            'raw': proxy_str,
+                            'ip': ip,
+                            'port': port
+                        })
+                except Exception as e:
+                    # Sanitize proxy_str to avoid logging credentials
+                    safe_proxy = proxy_str.split(':')[:2]  # Only log IP:PORT
+                    safe_proxy_str = ':'.join(safe_proxy) if len(safe_proxy) >= 2 else '[invalid]'
+                    logger.warning(f"[PROXY] Invalid proxy format: {safe_proxy_str} - {e}")
+        
+        if self.proxies:
+            logger.info(f"[PROXY] Initialized with {len(self.proxies)} proxies")
+            # Shuffle to distribute load
+            random.shuffle(self.proxies)
+        else:
+            logger.warning(f"[PROXY] No valid proxies loaded")
+    
+    def get_next_proxy(self) -> Optional[str]:
+        """Get next available proxy URL."""
+        if not self.proxies:
+            return None
+        
+        # Try to find a non-failed proxy
+        attempts = 0
+        while attempts < len(self.proxies):
+            proxy = self.proxies[self.current_index]
+            self.current_index = (self.current_index + 1) % len(self.proxies)
+            
+            if proxy['raw'] not in self.failed_proxies:
+                logger.debug(f"[PROXY] Using proxy: {proxy['ip']}:{proxy['port']}")
+                return proxy['url']
+            
+            attempts += 1
+        
+        # All proxies failed, reset failed list and try again
+        logger.warning(f"[PROXY] All proxies failed, resetting failure list")
+        self.failed_proxies.clear()
+        
+        if self.proxies:
+            proxy = self.proxies[self.current_index]
+            self.current_index = (self.current_index + 1) % len(self.proxies)
+            return proxy['url']
+        
+        return None
+    
+    def mark_failed(self, proxy_url: str):
+        """Mark a proxy as failed."""
+        for proxy in self.proxies:
+            if proxy['url'] == proxy_url:
+                self.failed_proxies.add(proxy['raw'])
+                logger.warning(f"[PROXY] Marked as failed: {proxy['ip']}:{proxy['port']}")
+                break
+    
+    def get_proxy_count(self) -> int:
+        """Get total number of proxies."""
+        return len(self.proxies)
+    
+    def get_available_count(self) -> int:
+        """Get number of available (non-failed) proxies."""
+        return len(self.proxies) - len(self.failed_proxies)
+
+
+class TopCVScraper:
+    def __init__(self, proxy_list: List[str] = None):
+        """
+        Initialize TopCV scraper with proxy rotation support.
+        
+        Args:
+            proxy_list: List of proxies in format "IP:PORT:USER:PASS" or ["IP:PORT:USER:PASS", ...]
         """
         self.base_url = "https://www.topcv.vn"
         self.headers = {
@@ -56,14 +153,21 @@ class TopCVScraper:
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
         self.session = requests.Session()
-        self.proxy = proxy
-        if proxy:
-            logger.info(f"[TOPCV] Using proxy: {proxy.split('@')[-1] if '@' in proxy else proxy}")
+        
+        # Initialize proxy rotator
+        if proxy_list:
+            self.proxy_rotator = ProxyRotator(proxy_list)
+            logger.info(f"[TOPCV] Proxy rotation enabled with {self.proxy_rotator.get_proxy_count()} proxies")
+        else:
+            self.proxy_rotator = None
+            logger.info(f"[TOPCV] No proxy configured, using direct connection")
 
     def _init_session(self):
         """Khởi tạo JA3 fingerprint qua trang chủ."""
         try:
-            proxies = {"https": self.proxy, "http": self.proxy} if self.proxy else None
+            proxy_url = self.proxy_rotator.get_next_proxy() if self.proxy_rotator else None
+            proxies = {"https": proxy_url, "http": proxy_url} if proxy_url else None
+            
             self.session.get(
                 self.base_url + "/", 
                 headers=self.headers, 
@@ -75,6 +179,9 @@ class TopCVScraper:
             return True
         except Exception as e:
             logger.error(f"[TOPCV] Failed to init session: {e}")
+            # Mark proxy as failed if we're using one
+            if proxy_url and self.proxy_rotator:
+                self.proxy_rotator.mark_failed(proxy_url)
             return False
 
     def get_latest_job_urls(self, search_url: Optional[str] = None, limit: int = 20) -> List[str]:
@@ -92,64 +199,83 @@ class TopCVScraper:
             logger.error(f"[GET_URLS] Session initialization failed")
             return []
 
-        try:
-            logger.info(f"[GET_URLS] Fetching search page...")
-            proxies = {"https": self.proxy, "http": self.proxy} if self.proxy else None
-            resp = self.session.get(
-                search_url, 
-                headers=self.headers, 
-                impersonate="chrome120", 
-                timeout=20,
-                proxies=proxies
-            )
-            logger.info(f"[GET_URLS] Response status: {resp.status_code}")
-            logger.info(f"[GET_URLS] Response length: {len(resp.text)} chars")
-            
-            if resp.status_code != 200:
-                logger.error(f"[GET_URLS] Search page returned {resp.status_code}")
-                return []
+        # Retry with different proxies
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                if attempt > 0:
+                    wait_time = attempt * 2
+                    logger.info(f"[GET_URLS] Retry attempt {attempt}/{max_retries - 1} after {wait_time}s...")
+                    time.sleep(wait_time)
+                
+                logger.info(f"[GET_URLS] Fetching search page (attempt {attempt + 1})...")
+                proxy_url = self.proxy_rotator.get_next_proxy() if self.proxy_rotator else None
+                proxies = {"https": proxy_url, "http": proxy_url} if proxy_url else None
+                
+                resp = self.session.get(
+                    search_url, 
+                    headers=self.headers, 
+                    impersonate="chrome120", 
+                    timeout=20,
+                    proxies=proxies
+                )
+                logger.info(f"[GET_URLS] Response status: {resp.status_code}")
+                logger.info(f"[GET_URLS] Response length: {len(resp.text)} chars")
+                
+                if resp.status_code != 200:
+                    logger.error(f"[GET_URLS] Search page returned {resp.status_code}")
+                    if proxy_url and self.proxy_rotator:
+                        self.proxy_rotator.mark_failed(proxy_url)
+                    continue
 
+                soup = BeautifulSoup(resp.text, 'html.parser')
+                job_links = []
+                all_links = []
+                
+                # TopCV thường đặt link job trong thẻ a có href chứa /viec-lam/
+                for a in soup.find_all('a', href=True):
+                    href = a['href']
+                    all_links.append(href)
+                    if '/viec-lam/' in href and 'topcv.vn/viec-lam' in href:
+                        # Clean URL: Truncate at .html
+                        clean_href = href.split('.html')[0] + '.html' if '.html' in href else href
+                        if clean_href not in job_links:
+                            job_links.append(clean_href)
+                            logger.debug(f"[GET_URLS] Found job link: {clean_href}")
+                
+                logger.info(f"[GET_URLS] Total links found: {len(all_links)}")
+                logger.info(f"[GET_URLS] Job links found: {len(job_links)}")
+                logger.info(f"[GET_URLS] Returning top {min(limit, len(job_links))} links")
+                
+                # Log sample of non-job links for debugging
+                non_job_links = [l for l in all_links[:20] if '/viec-lam/' not in l]
+                logger.debug(f"[GET_URLS] Sample non-job links: {non_job_links[:5]}")
+                
+                return job_links[:limit]
+                
+            except Exception as e:
+                logger.error(f"[GET_URLS] Error getting job list (attempt {attempt + 1}): {e}", exc_info=True)
+                if proxy_url and self.proxy_rotator:
+                    self.proxy_rotator.mark_failed(proxy_url)
+                if attempt < max_retries - 1:
+                    continue
+        
+        logger.error(f"[GET_URLS] All {max_retries} attempts failed")
+        return []
 
-            soup = BeautifulSoup(resp.text, 'html.parser')
-            job_links = []
-            all_links = []
-            
-            # TopCV thường đặt link job trong thẻ a có href chứa /viec-lam/
-            for a in soup.find_all('a', href=True):
-                href = a['href']
-                all_links.append(href)
-                if '/viec-lam/' in href and 'topcv.vn/viec-lam' in href:
-                    # Clean URL: Truncate at .html
-                    clean_href = href.split('.html')[0] + '.html' if '.html' in href else href
-                    if clean_href not in job_links:
-                        job_links.append(clean_href)
-                        logger.debug(f"[GET_URLS] Found job link: {clean_href}")
-            
-            logger.info(f"[GET_URLS] Total links found: {len(all_links)}")
-            logger.info(f"[GET_URLS] Job links found: {len(job_links)}")
-            logger.info(f"[GET_URLS] Returning top {min(limit, len(job_links))} links")
-            
-            # Log sample of non-job links for debugging
-            non_job_links = [l for l in all_links[:20] if '/viec-lam/' not in l]
-            logger.debug(f"[GET_URLS] Sample non-job links: {non_job_links[:5]}")
-            
-            return job_links[:limit]
-        except Exception as e:
-            logger.error(f"[GET_URLS] Error getting job list: {e}", exc_info=True)
-            return []
-
-    def scrape_job_details(self, job_url: str, max_retries: int = 2) -> Optional[Dict[str, Any]]:
+    def scrape_job_details(self, job_url: str, max_retries: int = 3) -> Optional[Dict[str, Any]]:
         """
         Cào chi tiết 1 job và trả về dict map với Job model.
         
         Args:
             job_url: URL of the job posting
-            max_retries: Number of retry attempts if request fails
+            max_retries: Number of retry attempts if request fails (default 3 for proxy rotation)
         """
+        proxy_url = None
         for attempt in range(max_retries + 1):
             try:
                 if attempt > 0:
-                    wait_time = attempt * 2  # Exponential backoff: 2s, 4s
+                    wait_time = attempt * 2  # Exponential backoff: 2s, 4s, 6s
                     logger.info(f"[SCRAPE_JOB] Retry attempt {attempt}/{max_retries} after {wait_time}s...")
                     time.sleep(wait_time)
                 
@@ -157,7 +283,13 @@ class TopCVScraper:
                 logger.info(f"[SCRAPE_JOB] Starting job detail scrape (attempt {attempt + 1}/{max_retries + 1})")
                 logger.info(f"[SCRAPE_JOB] URL: {job_url}")
                 
-                proxies = {"https": self.proxy, "http": self.proxy} if self.proxy else None
+                # Get next proxy for this attempt
+                proxy_url = self.proxy_rotator.get_next_proxy() if self.proxy_rotator else None
+                proxies = {"https": proxy_url, "http": proxy_url} if proxy_url else None
+                
+                if proxy_url:
+                    logger.info(f"[SCRAPE_JOB] Using proxy for attempt {attempt + 1}")
+                
                 resp = self.session.get(
                     job_url, 
                     headers=self.headers, 
@@ -170,8 +302,10 @@ class TopCVScraper:
                 
                 if resp.status_code != 200:
                     logger.error(f"[SCRAPE_JOB] Job detail page returned {resp.status_code}")
+                    if proxy_url and self.proxy_rotator:
+                        self.proxy_rotator.mark_failed(proxy_url)
                     if attempt < max_retries:
-                        continue  # Retry
+                        continue  # Retry with different proxy
                     return None
 
                 # Clean URL: Remove tracking parameters after .html
@@ -311,8 +445,11 @@ class TopCVScraper:
                 
             except Exception as e:
                 logger.error(f"[SCRAPE_JOB] ❌ Error scraping job {job_url}: {e}", exc_info=True)
+                # Mark proxy as failed if we're using one
+                if proxy_url and self.proxy_rotator:
+                    self.proxy_rotator.mark_failed(proxy_url)
                 if attempt < max_retries:
-                    logger.info(f"[SCRAPE_JOB] Will retry...")
+                    logger.info(f"[SCRAPE_JOB] Will retry with different proxy...")
                     continue
                 return None
         

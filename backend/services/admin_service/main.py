@@ -5,48 +5,75 @@ from shared.models import SystemSetting, User, LLMLog, SystemLog, YouTubeCourse
 from shared.config_utils import config_manager
 from shared.ai_service import AI_REGISTRY
 from shared.admin_auth import get_current_admin_user, require_admin
-from shared.redis_client import auth_cache
+from shared.redis_client import auth_cache, config_cache
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional, Any, Dict
 from datetime import datetime
 from uuid import UUID
 import logging
+import json
 
 app = FastAPI(title="Admin Service")
 logger = logging.getLogger("admin_service")
 
 # System settings that should be synced to Redis for gateway access
+# These use special "system:" prefix for gateway middleware
 GATEWAY_SETTINGS = {"MAINTENANCE_MODE", "MAINTENANCE_DURATION"}
 
 def sync_setting_to_redis(key: str, value: Any):
-    """Sync a system setting to Redis if it's a gateway-level setting."""
-    if key.upper() in GATEWAY_SETTINGS:
-        try:
-            redis_key = f"system:{key.upper()}"
+    """
+    Sync a system setting to Redis for hot-reload support.
+    
+    - Gateway settings (MAINTENANCE_MODE, MAINTENANCE_DURATION) use "system:" prefix
+    - All other settings use direct key for ConfigManager compatibility
+    """
+    key_upper = key.upper()
+    
+    try:
+        if key_upper in GATEWAY_SETTINGS:
+            # Gateway settings: Use "system:" prefix for auth_middleware
+            redis_key = f"system:{key_upper}"
             auth_cache.set(redis_key, str(value))
-            logger.info(f"[ADMIN] Synced {redis_key} to Redis: {value}")
-        except Exception as e:
-            logger.error(f"[ADMIN] Failed to sync {key} to Redis: {e}")
+            logger.info(f"[ADMIN] Synced gateway setting {redis_key} to Redis: {value}")
+        
+        # ALWAYS sync to ConfigManager cache (no prefix)
+        config_cache.set(key_upper, json.dumps(value), ex=3600)
+        logger.info(f"[ADMIN] Synced config setting {key_upper} to Redis cache")
+        
+    except Exception as e:
+        logger.error(f"[ADMIN] Failed to sync {key} to Redis: {e}")
 
 @app.on_event("startup")
-def load_gateway_settings_to_redis():
-    """Load gateway-level settings from database to Redis on startup."""
+def load_settings_to_redis():
+    """
+    Load ALL system settings from database to Redis on startup.
+    This ensures hot-reload works immediately without DB queries.
+    """
     try:
         db = SessionLocal()
-        for key in GATEWAY_SETTINGS:
-            setting = db.query(SystemSetting).filter(SystemSetting.key == key).first()
-            if setting:
-                sync_setting_to_redis(key, setting.value)
-            else:
-                # Set default values if not in DB
+        
+        # Load ALL settings from database
+        all_settings = db.query(SystemSetting).all()
+        
+        if all_settings:
+            for setting in all_settings:
+                sync_setting_to_redis(setting.key, setting.value)
+            logger.info(f"[ADMIN] Loaded {len(all_settings)} settings to Redis")
+        else:
+            logger.warning("[ADMIN] No settings found in database")
+            
+            # Set default gateway settings if DB is empty
+            for key in GATEWAY_SETTINGS:
                 if key == "MAINTENANCE_MODE":
                     sync_setting_to_redis(key, "false")
                 elif key == "MAINTENANCE_DURATION":
                     sync_setting_to_redis(key, "Không xác định")
+        
         db.close()
-        logger.info("[ADMIN] Gateway settings loaded to Redis")
+        logger.info("[ADMIN] Settings preload completed")
+        
     except Exception as e:
-        logger.error(f"[ADMIN] Failed to load gateway settings to Redis: {e}")
+        logger.error(f"[ADMIN] Failed to load settings to Redis: {e}")
 
 # --- Pydantic Schemas ---
 
