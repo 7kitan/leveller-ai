@@ -37,6 +37,36 @@ if len(SECRET_KEY) < 32:
     logger.critical("=" * 80)
     sys.exit(1)
 
+def get_client_ip(request) -> str:
+    """
+    Extract real client IP from request, handling proxy/gateway scenarios.
+    
+    Priority order:
+    1. X-Real-IP (set by gateway with actual client IP)
+    2. X-Forwarded-For (first IP in the chain)
+    3. request.client.host (fallback, may be gateway IP in Docker)
+    
+    Args:
+        request: FastAPI Request object
+        
+    Returns:
+        str: Client IP address
+    """
+    # Check X-Real-IP header (most reliable, set by our gateway)
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        return real_ip
+    
+    # Check X-Forwarded-For header (may contain multiple IPs)
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        # X-Forwarded-For format: "client, proxy1, proxy2"
+        # We want the first IP (original client)
+        return forwarded_for.split(",")[0].strip()
+    
+    # Fallback to direct connection IP (may be gateway IP in Docker)
+    return request.client.host if request.client else "unknown"
+
 def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 

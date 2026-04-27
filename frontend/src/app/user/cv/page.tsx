@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo, useMemo } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -17,8 +17,6 @@ import {
   ShieldCheck,
   Zap,
   Sparkles,
-  Award,
-  ChevronRight,
   Save,
   Plus,
   Trash2,
@@ -26,18 +24,17 @@ import {
   GraduationCap,
   BadgeCheck,
   ArrowLeft,
-  BarChart3,
   X,
-  Check,
-  ChevronDown,
   Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import styles from "./user-cv.module.css";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAlert } from "@/context/AlertContext";
 import Modal from "@/components/shared/Modal";
+import CustomDropdown from "@/components/shared/CustomDropdown";
+import { DebouncedInput } from "@/components/common/DebouncedInput";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 import { CVPreview } from "@/components/cv/CVPreview";
@@ -77,80 +74,6 @@ interface ParsedCV {
   certifications?: string[];
 }
 
-/* -- Custom Select Component --------------------------------------------- */
-interface CustomDropdownProps {
-  value: string;
-  options: string[];
-  onChange: (val: string) => void;
-  className?: string;
-  style?: React.CSSProperties;
-}
-
-const CustomDropdown: React.FC<CustomDropdownProps> = ({
-  value,
-  options,
-  onChange,
-  className,
-  style,
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  return (
-    <div className={cn(styles.customDropdownContainer, isOpen && styles.customDropdownContainerActive)} ref={dropdownRef}>
-      <button
-        type="button"
-        className={cn(styles.customDropdownButton, className, isOpen && styles.customDropdownButtonActive)}
-        onClick={() => setIsOpen(!isOpen)}
-        style={style}
-      >
-        <span>{value}</span>
-        <ChevronDown size={14} className={cn(styles.dropdownChevron, isOpen && styles.dropdownChevronRotate)} />
-      </button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 4, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.98 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className={styles.customDropdownMenu}
-          >
-            {options.map((opt) => (
-              <button
-                key={opt}
-                type="button"
-                className={cn(
-                  styles.customDropdownOption,
-                  value === opt && styles.customDropdownOptionActive
-                )}
-                onClick={() => {
-                  onChange(opt);
-                  setIsOpen(false);
-                }}
-              >
-                {opt}
-                {value === opt && <Check size={12} className={styles.optionCheck} />}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
 const SENIORITY_LEVELS = ["Junior", "Mid-level", "Senior", "Expert", "Unknown"];
 const SKILL_LEVELS = ["Junior", "Mid-level", "Senior", "Expert"];
 
@@ -158,6 +81,23 @@ const UserCVPage = () => {
   const { token } = useAuth();
   const { t, language } = useLanguage();
   const { showSuccess, showError } = useAlert();
+  const router = useRouter();
+
+  // --- State Declarations ---
+  const [file, setFile] = useState<File | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [history, setHistory] = useState<CVHistory[]>([]);
+  const [status, setStatus] = useState<"idle" | "uploading" | "processing" | "viewing">("idle");
+  const [parsedData, setParsedData] = useState<ParsedCV | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const [showRerunModal, setShowRerunModal] = useState(false);
+  const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
+  const [analysisContext, setAnalysisContext] = useState<any>(null);
+  const [realTimeName, setRealTimeName] = useState("");
 
   const getSeniorityLabel = (val: string) => {
     switch (val) {
@@ -169,24 +109,6 @@ const UserCVPage = () => {
       default: return val;
     }
   };
-  const [file, setFile] = useState<File | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
-  const [history, setHistory] = useState<CVHistory[]>([]);
-  const [status, setStatus] = useState<"idle" | "uploading" | "processing" | "viewing">("idle");
-  const [parsedData, setParsedData] = useState<ParsedCV | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
-
-  // --- Change Tracking ---
-  const [isDirty, setIsDirty] = useState(false);
-  const [showRerunModal, setShowRerunModal] = useState(false);
-
-  // --- Gap Analysis Integration ---
-  const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
-  const [analysisContext, setAnalysisContext] = useState<any>(null);
-  const router = useRouter();
 
   const fetchHistory = async () => {
     try {
@@ -197,11 +119,26 @@ const UserCVPage = () => {
     }
   };
 
+  const handleLoadSpecificCV = useCallback(async (cvId: string) => {
+    setStatus("processing");
+    setError(null);
+    setSelectedHistoryId(cvId);
+    try {
+      const resp = await api.get(`cv/${cvId}`);
+      setParsedData(resp.data);
+      setStatus("viewing");
+    } catch (err) {
+      console.error("Auto-load CV detail error:", err);
+      setError(t("error"));
+      setStatus("idle");
+      setSelectedHistoryId(null);
+    }
+  }, [t]);
+
   useEffect(() => {
     if (token) {
       fetchHistory();
 
-      // Load context (including suggested skills) from Gap Analysis
       const storedContext = sessionStorage.getItem("analysis_context");
       const targetCvId = sessionStorage.getItem("target_cv_id");
 
@@ -213,45 +150,180 @@ const UserCVPage = () => {
         }
       }
 
-      // Auto-load targeted CV for editing
       if (targetCvId) {
         handleLoadSpecificCV(targetCvId);
         sessionStorage.removeItem("target_cv_id");
       }
     }
-  }, [token]);
+  }, [token, handleLoadSpecificCV]);
 
-  const handleAddSuggestedSkill = (skillName: string) => {
+  useEffect(() => {
+    if (parsedData?.full_name) {
+      setRealTimeName(parsedData.full_name);
+    }
+  }, [parsedData?.id]);
+
+  const handleAddSuggestedSkill = useCallback((skill: string) => {
     if (!parsedData) return;
-    const newSkill = {
-      name: skillName,
-      category: t("cv_skill_default_cat"),
-      experience_years: 1,
-      level: "Junior",
-    };
+    const next = [...(parsedData.skills || [])];
+    next.push({ name: skill, category: t("cv_skill_default_cat"), experience_years: 1, level: "Junior" });
+    setParsedData({ ...parsedData, skills: next });
+    setIsDirty(true);
+    setSuggestedSkills(prev => prev.filter(s => s !== skill));
+  }, [parsedData, t]);
+
+  const handleUpdateSkill = useCallback((idx: number, field: string, value: any) => {
+    if (!parsedData) return;
+    const next = [...(parsedData.skills || [])];
+    if (next[idx]) {
+      next[idx] = { ...next[idx], [field]: value };
+      if (field === "experience_years") {
+        const yrs = parseFloat(value) || 0;
+        let suggestedLevel = "Junior";
+        if (yrs >= 10) suggestedLevel = "Expert";
+        else if (yrs >= 5) suggestedLevel = "Senior";
+        else if (yrs >= 2) suggestedLevel = "Mid-level";
+        next[idx].level = suggestedLevel;
+      }
+      setParsedData({ ...parsedData, skills: next });
+      setIsDirty(true);
+    }
+  }, [parsedData]);
+
+  const handleDeleteSkill = useCallback((idx: number) => {
+    if (!parsedData) return;
     setParsedData({
       ...parsedData,
-      skills: [...(parsedData.skills || []), newSkill],
+      skills: (parsedData.skills || []).filter((_, i) => i !== idx),
     });
-    // Remove from local state
-    const remaining = suggestedSkills.filter(s => s !== skillName);
-    setSuggestedSkills(remaining);
     setIsDirty(true);
-  };
+  }, [parsedData]);
 
-  const handleRerunAnalysis = () => {
+  const handleManualAddSkill = useCallback(() => {
+    if (!parsedData) return;
+    const next = [...(parsedData.skills || [])];
+    next.push({ name: t("cv_skill_default_name"), category: t("cv_skill_default_cat"), experience_years: 1, level: "Junior" });
+    setParsedData({ ...parsedData, skills: next });
+    setIsDirty(true);
+  }, [parsedData, t]);
+
+  const handleUpdateBasic = useCallback((field: string, value: any) => {
+    if (!parsedData) return;
+    setParsedData({ ...parsedData, [field]: value });
+    setIsDirty(true);
+  }, [parsedData]);
+
+  const handleUpdateWork = useCallback((idx: number, field: string, value: any) => {
+    if (!parsedData) return;
+    const next = [...(parsedData.work_history || [])];
+    if (next[idx]) {
+      next[idx] = { ...next[idx], [field]: value };
+      setParsedData({ ...parsedData, work_history: next });
+      setIsDirty(true);
+    }
+  }, [parsedData]);
+
+  const handleUpdateEdu = useCallback((idx: number, field: string, value: any) => {
+    if (!parsedData) return;
+    const next = [...(parsedData.education || [])];
+    if (next[idx]) {
+      next[idx] = { ...next[idx], [field]: value };
+      setParsedData({ ...parsedData, education: next });
+      setIsDirty(true);
+    }
+  }, [parsedData]);
+
+  const handleUpdateCert = useCallback((idx: number, value: string) => {
+    if (!parsedData) return;
+    const next = [...(parsedData.certifications || [])];
+    next[idx] = value;
+    setParsedData({ ...parsedData, certifications: next });
+    setIsDirty(true);
+  }, [parsedData]);
+
+  const handleDeleteWork = useCallback((idx: number) => {
+    if (!parsedData) return;
+    setParsedData({
+      ...parsedData,
+      work_history: (parsedData.work_history || []).filter((_, i) => i !== idx),
+    });
+    setIsDirty(true);
+  }, [parsedData]);
+
+  const handleDeleteEdu = useCallback((idx: number) => {
+    if (!parsedData) return;
+    setParsedData({
+      ...parsedData,
+      education: (parsedData.education || []).filter((_, i) => i !== idx),
+    });
+    setIsDirty(true);
+  }, [parsedData]);
+
+  const handleRerunAnalysis = useCallback(() => {
     if (!analysisContext) return;
-
-    // Clear the context to avoid showing the banner again later
     sessionStorage.removeItem("suggested_skills");
     sessionStorage.removeItem("analysis_context");
-
-    // Redirect back to analysis engine
     router.push(`/user/analysis?job_id=${analysisContext.jd_id}&auto_run=true`);
-  };
+  }, [analysisContext, router]);
+
+  const handleSaveMatrix = useCallback(async () => {
+    if (!parsedData) return;
+    setSaving(true);
+    
+    const skillNames = (parsedData.skills || []).map(s => s.name.toLowerCase().trim());
+    const duplicateSkills = skillNames.filter((name, index) => skillNames.indexOf(name) !== index);
+    if (duplicateSkills.length > 0) {
+      showError(t("cv_duplicate_skill_error"));
+      setSaving(false);
+      return;
+    }
+
+    try {
+      const normalizedSkills = (parsedData.skills || []).map(skill => {
+        let cat = skill.category || t('uncategorized');
+        const lowerCat = cat.toLowerCase().trim();
+        if (lowerCat === t('cat_technical').toLowerCase() || lowerCat === "công nghệ") {
+          cat = "Technology";
+        }
+        return { ...skill, category: cat };
+      });
+
+      const payload = {
+        id: parsedData.id,
+        full_name: parsedData.full_name,
+        summary: parsedData.summary,
+        experience_years_total: parsedData.experience_years_total,
+        skills: normalizedSkills,
+        work_history: parsedData.work_history,
+        education: parsedData.education,
+        certifications: parsedData.certifications,
+        seniority: parsedData.seniority || "Unknown"
+      };
+      await api.post("cv/finalize", payload);
+      setParsedData({ ...parsedData, is_verified: true });
+      const wasDirty = isDirty;
+      setIsDirty(false);
+
+      if (analysisContext) {
+        const updatedContext = { ...analysisContext, suggested_skills: suggestedSkills };
+        sessionStorage.setItem("analysis_context", JSON.stringify(updatedContext));
+        setAnalysisContext(updatedContext);
+      }
+
+      if (wasDirty && analysisContext) {
+        setShowRerunModal(true);
+      } else {
+        showSuccess(t("cv_save_success"));
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || t("error");
+      showError(Array.isArray(msg) ? msg[0].msg : msg);
+    } finally {
+      setSaving(false);
+    }
+  }, [parsedData, t, isDirty, analysisContext, suggestedSkills, showSuccess, showError]);
 
   const handleFileSelect = async (selectedFile: File) => {
-    // Validate file type
     const allowedExtensions = ['pdf', 'docx', 'doc', 'png', 'jpg', 'jpeg'];
     const fileExtension = selectedFile.name.split('.').pop()?.toLowerCase();
     
@@ -259,71 +331,26 @@ const UserCVPage = () => {
       showError(t('cv_file_type_error'));
       return;
     }
-
-    // Validate file size (max 10MB)
     if (selectedFile.size > 10 * 1024 * 1024) {
       showError(t('cv_file_size_error'));
       return;
     }
-
-    // Validate PDF page count (max 10 pages)
-    if (fileExtension === 'pdf') {
-      try {
-        const { pdfjs } = await import('react-pdf');
-        
-        // Configure worker before using pdfjs
-        if (!pdfjs.GlobalWorkerOptions.workerSrc || pdfjs.GlobalWorkerOptions.workerSrc === 'pdf.worker.mjs') {
-          pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-        }
-        
-        const arrayBuffer = await selectedFile.arrayBuffer();
-        const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-        const pageCount = pdf.numPages;
-        
-        if (pageCount > 10) {
-          showError(t('cv_page_limit_error').replace('{pageCount}', pageCount.toString()));
-          return;
-        }
-      } catch (err) {
-        console.error('Failed to validate PDF pages:', err);
-        // Continue anyway - don't block upload if validation fails
-      }
-    }
-
     setFile(selectedFile);
     setShowPreview(true);
     setError(null);
   };
 
-  const handleConfirmUpload = () => {
-    setShowPreview(false);
-    handleUpload();
-  };
-
-  const handleCancelPreview = () => {
-    setShowPreview(false);
-    setFile(null);
-  };
-
   const handleUpload = async () => {
     if (!file) return;
     setStatus("uploading");
-    setError(null);
-    setSelectedHistoryId(null);
     const formData = new FormData();
     formData.append("file", file);
-
     try {
       const resp = await api.post("cv/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
+      const { parser_id, cv_id, status: uploadStatus, result: inlineResult, is_duplicate } = resp.data;
 
-      const { parser_id, cv_id, status: uploadStatus, result: inlineResult, is_duplicate } =
-        resp.data;
-
-      // Duplicate CV đã completed → hiển thị luôn
       if (is_duplicate && uploadStatus === "completed" && inlineResult) {
         setParsedData(inlineResult);
         setStatus("viewing");
@@ -332,22 +359,12 @@ const UserCVPage = () => {
       }
 
       if (uploadStatus === "completed") {
-        try {
-          const detailResp = await api.get(`cv/${cv_id}`);
-          setParsedData(detailResp.data);
-          setStatus("viewing");
-          fetchHistory();
-        } catch (err) {
-          console.error(t("console_cv_detail_error"), err);
-          setError(t("error"));
-          setStatus("idle");
-        }
+        const detailResp = await api.get(`cv/${cv_id}`);
+        setParsedData(detailResp.data);
+        setStatus("viewing");
+        fetchHistory();
       } else if (parser_id) {
         pollStatus(parser_id, cv_id);
-      } else {
-        console.error("Backend did not return parser_id or completed status", resp.data);
-        setError(t("error"));
-        setStatus("idle");
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || t("cv_upload_error"));
@@ -361,12 +378,10 @@ const UserCVPage = () => {
       try {
         const resp = await api.get(`cv/status/${parserId}`);
         const { status: taskStatus, result, error_message } = resp.data;
-
         if (taskStatus === "completed") {
           clearInterval(interval);
-          if (result) {
-            setParsedData(result);
-          } else {
+          if (result) setParsedData(result);
+          else {
             const detailResp = await api.get(`cv/${cvId}`);
             setParsedData(detailResp.data);
           }
@@ -385,107 +400,7 @@ const UserCVPage = () => {
     }, POLLING_INTERVAL);
   };
 
-  const handleLoadSpecificCV = async (cvId: string) => {
-    setStatus("processing");
-    setError(null);
-    setSelectedHistoryId(cvId);
-    try {
-      const resp = await api.get(`cv/${cvId}`);
-      setParsedData(resp.data);
-      setStatus("viewing");
-    } catch (err) {
-      console.error("Auto-load CV detail error:", err);
-      setError(t("error"));
-      setStatus("idle");
-      setSelectedHistoryId(null);
-    }
-  };
-
-  // ── Load CV from history click ────────────────────────────────────────────
-  const handleHistoryClick = async (item: CVHistory) => {
-    // Show error message if CV failed
-    if (item.status === "failed") {
-      showError(item.error_message || t("cv_analysis_error"));
-      return;
-    }
-    
-    if (item.status !== "completed") return;
-    setStatus("processing");
-    setError(null);
-    setSelectedHistoryId(item.id);
-    try {
-      const resp = await api.get(`cv/${item.id}`);
-      setParsedData(resp.data);
-      setStatus("viewing");
-    } catch (err) {
-      console.error("Load CV detail error:", err);
-      setError(t("error"));
-      setStatus("idle");
-      setSelectedHistoryId(null);
-    }
-  };
-
-  const handleBack = () => {
-    setStatus("idle");
-    setParsedData(null);
-    setSelectedHistoryId(null);
-    setError(null);
-  };
-
-  const handleUpdateBasic = (field: string, value: any) => {
-    if (!parsedData) return;
-    setParsedData({ ...parsedData, [field]: value });
-    setIsDirty(true);
-  };
-
-  const handleUpdateWork = (idx: number, field: string, value: any) => {
-    if (!parsedData) return;
-    const next = [...(parsedData.work_history || [])];
-    if (next[idx]) {
-      next[idx] = { ...next[idx], [field]: value };
-      setParsedData({ ...parsedData, work_history: next });
-      setIsDirty(true);
-    }
-  };
-
-  const handleUpdateEdu = (idx: number, field: string, value: any) => {
-    if (!parsedData) return;
-    const next = [...(parsedData.education || [])];
-    if (next[idx]) {
-      next[idx] = { ...next[idx], [field]: value };
-      setParsedData({ ...parsedData, education: next });
-      setIsDirty(true);
-    }
-  };
-
-  const handleUpdateCert = (idx: number, value: string) => {
-    if (!parsedData) return;
-    const next = [...(parsedData.certifications || [])];
-    next[idx] = value;
-    setParsedData({ ...parsedData, certifications: next });
-    setIsDirty(true);
-  };
-
-  const handleDeleteWork = (idx: number) => {
-    if (!parsedData) return;
-    setParsedData({
-      ...parsedData,
-      work_history: (parsedData.work_history || []).filter((_, i) => i !== idx),
-    });
-    setIsDirty(true);
-  };
-
-  const handleDeleteEdu = (idx: number) => {
-    if (!parsedData) return;
-    setParsedData({
-      ...parsedData,
-      education: (parsedData.education || []).filter((_, i) => i !== idx),
-    });
-    setIsDirty(true);
-  };
-
   const handleGoManual = () => {
-    // Spec 5: Error Handling -> Alternative Paths
     setParsedData({
       id: "manual-" + Date.now(),
       full_name: t("cv_candidate_name_placeholder"),
@@ -499,179 +414,59 @@ const UserCVPage = () => {
     setStatus("viewing");
   };
 
-  const handleManualAddSkill = () => {
-    if (!parsedData) return;
-    const newSkill = {
-      name: t("cv_skill_default_name"),
-      category: t("cv_skill_default_cat"),
-      experience_years: 1,
-      level: "Junior",
-    };
-    setParsedData({
-      ...parsedData,
-      skills: [...(parsedData.skills || []), newSkill],
-    });
-    setIsDirty(true);
-  };
-
-  const handleUpdateSkill = (idx: number, field: string, value: any) => {
-    if (!parsedData) return;
-    const nextSkills = [...(parsedData.skills || [])];
-    if (nextSkills[idx]) {
-      nextSkills[idx] = { ...nextSkills[idx], [field]: value };
-
-      // Auto-suggest level based on experience_years
-      if (field === "experience_years") {
-        const yrs = parseFloat(value) || 0;
-        let suggestedLevel = "Junior";
-        if (yrs >= 10) suggestedLevel = "Expert";
-        else if (yrs >= 5) suggestedLevel = "Senior";
-        else if (yrs >= 2) suggestedLevel = "Mid-level";
-        nextSkills[idx].level = suggestedLevel;
-      }
-
-      setParsedData({ ...parsedData, skills: nextSkills });
-      setIsDirty(true);
-    }
-  };
-
-  const handleDeleteSkill = (idx: number) => {
-    if (!parsedData) return;
-    setParsedData({
-      ...parsedData,
-      skills: (parsedData.skills || []).filter((_, i) => i !== idx),
-    });
-    setIsDirty(true);
-  };
-
-  const handleSaveMatrix = async () => {
-    setSaving(true);
-
-    // Duplicate check
-    const skillNames = (parsedData?.skills || []).map(s => s.name.toLowerCase().trim());
-    const duplicateSkills = skillNames.filter((name, index) => skillNames.indexOf(name) !== index);
-    if (duplicateSkills.length > 0) {
-      const uniqueDupes = Array.from(new Set(duplicateSkills));
-      showError(t("cv_duplicate_skill_error"));
-      setSaving(false);
+  const handleHistoryClick = async (item: CVHistory) => {
+    if (item.status === "failed") {
+      showError(item.error_message || t("cv_analysis_error"));
       return;
     }
-
-    try {
-      // Normalize categories to English for database consistency
-      const normalizedSkills = (parsedData?.skills || []).map(skill => {
-        let cat = skill.category || t('uncategorized');
-        const lowerCat = cat.toLowerCase().trim();
-        if (lowerCat === t('cat_technical').toLowerCase() || lowerCat === "công nghệ") {
-          cat = "Technology";
-        }
-        return { ...skill, category: cat };
-      });
-
-      // Backend Spec 5: Payload validation
-      const payload = {
-        id: parsedData?.id,
-        full_name: parsedData?.full_name,
-        summary: parsedData?.summary,
-        experience_years_total: parsedData?.experience_years_total,
-        skills: normalizedSkills,
-        work_history: parsedData?.work_history,
-        education: parsedData?.education,
-        certifications: parsedData?.certifications,
-        seniority: parsedData?.seniority || "Unknown"
-      };
-      await api.post("cv/finalize", payload);
-      if (parsedData) {
-        setParsedData({ ...parsedData, is_verified: true });
-      }
-
-      const wasDirty = isDirty;
-      setIsDirty(false);
-
-      // Update sessionStorage inside analysis_context to reflect removed skills
-      if (analysisContext) {
-        const updatedContext = { ...analysisContext, suggested_skills: suggestedSkills };
-        sessionStorage.setItem("analysis_context", JSON.stringify(updatedContext));
-        setAnalysisContext(updatedContext);
-      }
-
-      if (wasDirty && analysisContext) {
-        setShowRerunModal(true);
-      } else {
-        showSuccess(t("cv_save_success"));
-      }
-    } catch (err: any) {
-      const msg = err.response?.data?.detail || t("error");
-      showError(Array.isArray(msg) ? msg[0].msg : msg);
-    } finally {
-      setSaving(false);
-    }
+    if (item.status !== "completed") return;
+    handleLoadSpecificCV(item.id);
   };
 
-  // ── Processing state ────────────────────────────────────────────────────────
-  if (status === "processing") {
-    return (
-      <PageContainer>
-        <div className={styles.processingPanel}>
-          <div className={styles.spinnerWrapper}>
-            <div className={styles.spinnerRing}></div>
-            <Loader2 size={48} className={styles.pulseIcon} />
-          </div>
-          <div>
-            <h2 className={styles.processingTitle}>
-              {selectedHistoryId ? t("cv_processing_detail") : t("cv_processing_ai")}
-            </h2>
-            <p className={styles.processingDesc}>
-              {selectedHistoryId
-                ? t("cv_processing_detail_sub")
-                : t("cv_processing_ai_sub")}
-            </p>
-          </div>
-        </div>
-      </PageContainer>
-    );
-  }
+  const handleBack = () => {
+    setStatus("idle");
+    setParsedData(null);
+    setSelectedHistoryId(null);
+    setError(null);
+  };
 
-  // ── Viewing state ─────────────────────────────────────────────────────────
-  if (status === "viewing" && parsedData) {
-    // Include the original index for accurate updates
-    const skillsWithIndex = (parsedData.skills || []).map((s, i) => ({ ...s, originalIndex: i }));
+  const skillsWithIndex = useMemo(() => 
+    (parsedData?.skills || []).map((s, i) => ({ ...s, originalIndex: i })),
+    [parsedData?.skills]
+  );
 
-    // Filter out suggestions that are already present in the CV (case-insensitive)
-    const filteredSuggestions = suggestedSkills.filter(s =>
+  const filteredSuggestions = useMemo(() => {
+    if (!parsedData?.skills) return [];
+    return suggestedSkills.filter(s =>
       !parsedData.skills?.some(existing =>
         existing.name.toLowerCase().trim() === s.toLowerCase().trim()
       )
     );
+  }, [suggestedSkills, parsedData?.skills]);
 
-    const seniorityColor = {
-      Junior: "#22c55e",
-      "Mid-level": "#3b82f6",
-      Senior: "#a855f7",
-      Expert: "#f59e0b",
-      Unknown: "#9ca3af",
-    };
-    const sc = seniorityColor[parsedData.seniority as keyof typeof seniorityColor] || "#9ca3af";
+  const seniorityColor = useMemo(() => ({
+    Junior: "#22c55e",
+    "Mid-level": "#3b82f6",
+    Senior: "#a855f7",
+    Expert: "#f59e0b",
+    Unknown: "#9ca3af",
+  }), []);
+
+  const sc = useMemo(() => 
+    seniorityColor[parsedData?.seniority as keyof typeof seniorityColor] || "#9ca3af",
+    [parsedData?.seniority, seniorityColor]
+  );
+
+  const mainContent = useMemo(() => {
+    if (status !== "viewing" || !parsedData) return null;
 
     return (
-      <PageContainer>
-        <PageHeader 
-          title={parsedData.full_name || t("cv_repository_title")}
-          subtitle={t("cv_processing_ai_sub")}
-        >
-          <button onClick={handleBack} className={styles.backBtn}>
-            <ArrowLeft size={16} />
-            {t("cv_back_to_history")}
-          </button>
-        </PageHeader>
-
-        <motion.div
-          className={styles.pageRoot}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-
+      <motion.div
+        className={styles.pageRoot}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         {/* ── Smart Suggestions Banner ───────────────────────────────── */}
         {filteredSuggestions.length > 0 && parsedData.id === analysisContext?.cv_id && (
           <motion.div
@@ -734,8 +529,12 @@ const UserCVPage = () => {
                 <div className={styles.nameRow}>
                   <input
                     type="text"
-                    value={parsedData.full_name || ""}
-                    onChange={(e) => handleUpdateBasic("full_name", e.target.value)}
+                    value={realTimeName}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setRealTimeName(val);
+                      handleUpdateBasic("full_name", val);
+                    }}
                     className={styles.nameInput}
                     placeholder={t("cv_full_name_placeholder")}
                     maxLength={100}
@@ -779,7 +578,7 @@ const UserCVPage = () => {
               </div>
             </div>
 
-            <div className={styles.ctaRow}>
+            <div className={styles.ctaRowDesktop}>
               {!parsedData.is_verified && (
                 <button
                   onClick={handleSaveMatrix}
@@ -812,9 +611,10 @@ const UserCVPage = () => {
           {parsedData.summary !== undefined && (
             <div className={styles.summarySection}>
               <h4 className={styles.summaryTitle}>{t("cv_professional_summary")}</h4>
-              <textarea
+              <DebouncedInput
+                isTextarea
                 value={parsedData.summary || ""}
-                onChange={(e) => handleUpdateBasic("summary", e.target.value)}
+                onChange={(val) => handleUpdateBasic("summary", val)}
                 className={styles.summaryTextarea}
                 placeholder={t("cv_summary_placeholder")}
                 maxLength={2000}
@@ -831,49 +631,15 @@ const UserCVPage = () => {
           </div>
           <div className={styles.matrixGrid}>
             {skillsWithIndex.map((skill: any) => (
-              <div key={skill.originalIndex} className={styles.skillItem}>
-                <div className={styles.skillMain}>
-                  <input
-                    type="text"
-                    value={skill.name}
-                    onChange={(e) => handleUpdateSkill(skill.originalIndex, "name", e.target.value)}
-                    className={styles.skillNameInput}
-                    maxLength={50}
-                    placeholder={t("cv_skill_default_name")}
-                  />
-                  <div className={styles.skillMeta}>
-                    <div className={styles.skillExpGroup}>
-                      <Clock size={12} />
-                      <input
-                        type="number"
-                        step="0.5"
-                        value={skill.experience_years}
-                        onChange={(e) => handleUpdateSkill(skill.originalIndex, "experience_years", e.target.value)}
-                        className={styles.editInput}
-                        min={0}
-                        max={60}
-                      />
-                      <span>{t("cv_years_short")}</span>
-                    </div>
-                    <CustomDropdown
-                      value={getSeniorityLabel(skill.level)}
-                      options={SKILL_LEVELS.map(getSeniorityLabel)}
-                      onChange={(val) => {
-                        const key = SKILL_LEVELS.find(k => getSeniorityLabel(k) === val);
-                        if (key) handleUpdateSkill(skill.originalIndex, "level", key);
-                      }}
-                      className={styles.skillLevelSelect}
-                      style={{ color: seniorityColor[skill.level as keyof typeof seniorityColor] }}
-                    />
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDeleteSkill(skill.originalIndex)}
-                  className={styles.deleteSkillBtn}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
+              <MemoizedSkillItem 
+                key={skill.originalIndex} 
+                skill={skill} 
+                onUpdate={handleUpdateSkill}
+                onDelete={handleDeleteSkill}
+                seniorityColor={seniorityColor}
+                getSeniorityLabel={getSeniorityLabel}
+                SKILL_LEVELS={SKILL_LEVELS}
+              />
             ))}
             
             <button onClick={handleManualAddSkill} className={styles.addSkillBtn}>
@@ -894,56 +660,18 @@ const UserCVPage = () => {
             </div>
             <div className={styles.timelineList}>
               {(parsedData.work_history || []).map((work, i) => (
-                <div key={i} className={styles.timelineItem}>
-                  <div className={styles.timelineDot} />
-                  <div className={styles.timelineContent}>
-                    <div className={styles.timelineHeader}>
-                      <input
-                        type="text"
-                        value={work.position}
-                        onChange={(e) => handleUpdateWork(i, "position", e.target.value)}
-                        className={styles.timelineInput}
-                        placeholder={t("cv_position_placeholder")}
-                        maxLength={100}
-                      />
-                      <div className={styles.timelineActions}>
-                        <div className={styles.timelineDuration}>
-                          <input
-                            type="number"
-                            step="0.5"
-                            value={work.duration_years || 0}
-                            onChange={(e) => handleUpdateWork(i, "duration_years", e.target.value)}
-                            className={styles.timelineSmallInput}
-                          />
-                          <span>{t("cv_years_short")}</span>
-                        </div>
-                        <button onClick={() => handleDeleteWork(i)} className={styles.itemDeleteBtn}>
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-                    <input
-                      type="text"
-                      value={work.company}
-                      onChange={(e) => handleUpdateWork(i, "company", e.target.value)}
-                      className={styles.timelineSubInput}
-                      placeholder={t("cv_company_placeholder")}
-                      maxLength={100}
-                    />
-                    <textarea
-                      value={work.description || ""}
-                      onChange={(e) => handleUpdateWork(i, "description", e.target.value)}
-                      className={styles.timelineDescTextarea}
-                      placeholder={t("cv_work_desc_placeholder")}
-                      maxLength={1000}
-                    />
-                  </div>
-                </div>
+                <MemoizedWorkItem 
+                  key={i} 
+                  idx={i} 
+                  work={work} 
+                  onUpdate={handleUpdateWork} 
+                  onDelete={handleDeleteWork} 
+                />
               ))}
               <button
                 onClick={() => {
                   const next = [...(parsedData.work_history || [])];
-                  next.unshift({ position: "", company: "" });
+                  next.push({ position: "", company: "" });
                   setParsedData({ ...parsedData, work_history: next });
                   setIsDirty(true);
                 }}
@@ -963,48 +691,18 @@ const UserCVPage = () => {
             </div>
             <div className={styles.timelineList}>
               {(parsedData.education || []).map((edu, i) => (
-                <div key={i} className={styles.timelineItem}>
-                  <div className={styles.timelineDot} />
-                  <div className={styles.timelineContent}>
-                    <div className={styles.timelineHeader}>
-                      <input
-                        type="text"
-                        value={edu.degree}
-                        onChange={(e) => handleUpdateEdu(i, "degree", e.target.value)}
-                        className={styles.timelineInput}
-                        placeholder={t("cv_degree_placeholder")}
-                        maxLength={100}
-                      />
-                      <div className={styles.timelineActions}>
-                        <div className={styles.timelineDuration}>
-                          <input
-                            type="number"
-                            value={edu.year || new Date().getFullYear()}
-                            onChange={(e) => handleUpdateEdu(i, "year", e.target.value)}
-                            className={styles.timelineSmallInput}
-                            style={{ width: '4rem' }}
-                          />
-                        </div>
-                        <button onClick={() => handleDeleteEdu(i)} className={styles.itemDeleteBtn}>
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-                    <input
-                      type="text"
-                      value={edu.institution}
-                      onChange={(e) => handleUpdateEdu(i, "institution", e.target.value)}
-                      className={styles.timelineSubInput}
-                      placeholder={t("cv_institution_placeholder")}
-                      maxLength={100}
-                    />
-                  </div>
-                </div>
+                <MemoizedEduItem 
+                  key={i} 
+                  idx={i} 
+                  edu={edu} 
+                  onUpdate={handleUpdateEdu} 
+                  onDelete={handleDeleteEdu} 
+                />
               ))}
               <button
                 onClick={() => {
                   const next = [...(parsedData.education || [])];
-                  next.unshift({ degree: "", institution: "" });
+                  next.push({ degree: "", institution: "" });
                   setParsedData({ ...parsedData, education: next });
                   setIsDirty(true);
                 }}
@@ -1026,10 +724,10 @@ const UserCVPage = () => {
           <div className={styles.certList}>
             {(parsedData.certifications || []).map((cert, i) => (
               <div key={i} className={styles.certItemEditable}>
-                <input
+                <DebouncedInput
                   type="text"
                   value={cert}
-                  onChange={(e) => handleUpdateCert(i, e.target.value)}
+                  onChange={(val) => handleUpdateCert(i, val)}
                   className={styles.certInput}
                   placeholder={t("cv_new_cert")}
                   maxLength={200}
@@ -1049,7 +747,7 @@ const UserCVPage = () => {
             <button
               onClick={() => {
                 const next = [...(parsedData.certifications || [])];
-                next.unshift("");
+                next.push("");
                 setParsedData({ ...parsedData, certifications: next });
                 setIsDirty(true);
               }}
@@ -1109,12 +807,104 @@ const UserCVPage = () => {
             </div>
           </div>
         </Modal>
-        </motion.div>
+      </motion.div>
+    );
+  }, [
+    status,
+    parsedData, 
+    saving, 
+    showRerunModal, 
+    filteredSuggestions, 
+    analysisContext, 
+    handleSaveMatrix, 
+    handleUpdateSkill, 
+    handleDeleteSkill, 
+    handleManualAddSkill, 
+    handleUpdateWork, 
+    handleDeleteWork, 
+    handleUpdateEdu, 
+    handleDeleteEdu, 
+    handleUpdateCert, 
+    handleUpdateBasic,
+    handleRerunAnalysis,
+    t,
+    sc,
+    seniorityColor,
+    realTimeName,
+    skillsWithIndex,
+    handleAddSuggestedSkill
+  ]);
+
+  if (status === "processing") {
+    return (
+      <PageContainer>
+        <div className={styles.processingPanel}>
+          <div className={styles.spinnerWrapper}>
+            <div className={styles.spinnerRing}></div>
+            <Loader2 size={48} className={styles.pulseIcon} />
+          </div>
+          <div>
+            <h2 className={styles.processingTitle}>
+              {selectedHistoryId ? t("cv_processing_detail") : t("cv_processing_ai")}
+            </h2>
+            <p className={styles.processingDesc}>
+              {selectedHistoryId ? t("cv_processing_detail_sub") : t("cv_processing_ai_sub")}
+            </p>
+          </div>
+        </div>
       </PageContainer>
     );
   }
 
-  // ── Idle / Upload state ───────────────────────────────────────────────────
+  if (status === "viewing" && parsedData) {
+    return (
+      <PageContainer>
+        <PageHeader 
+          title={realTimeName || t("cv_repository_title")}
+          subtitle={t("cv_processing_ai_sub")}
+        >
+          <button onClick={handleBack} className={styles.backBtn}>
+            <ArrowLeft size={16} />
+            {t("cv_back_to_history")}
+          </button>
+        </PageHeader>
+
+        {/* Dedicated Mobile Fixed Footer */}
+        <div className={styles.mobileFixedFooter}>
+          <div className={styles.ctaRow}>
+            {!parsedData.is_verified && (
+              <button
+                onClick={handleSaveMatrix}
+                disabled={saving}
+                className={cn(styles.uploadBtn, styles.verifyBtnGradient)}
+              >
+                {saving ? (
+                  <Loader2 size={18} className={styles.animateSpin} />
+                ) : (
+                  <ShieldCheck size={18} />
+                )}
+                {t("cv_verify_profile")}
+              </button>
+            )}
+            <button
+              onClick={handleSaveMatrix}
+              disabled={saving}
+              className={cn(styles.uploadBtn, styles.uploadBtnFinal)}
+            >
+              {saving ? (
+                <Loader2 size={18} className={styles.animateSpin} />
+              ) : (
+                <Save size={18} />
+              )}
+              {t("cv_save_changes")}
+            </button>
+          </div>
+        </div>
+        {mainContent}
+      </PageContainer>
+    );
+  }
+
   return (
     <AuthGuard requireRole={UserRole.USER}>
       <PageContainer>
@@ -1129,156 +919,65 @@ const UserCVPage = () => {
         </PageHeader>
 
         <div className={styles.uploadGrid}>
-          {/* Left: Upload Area */}
           <div className={styles.uploadZone}>
             <div className={styles.uploadPanel}>
               <div className={styles.uploadGlow} />
-
-              {/* Show Preview when file is selected */}
               {showPreview && file ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className={styles.previewWrapper}
-                >
-                  <CVPreview
-                    file={file}
-                    onConfirm={handleConfirmUpload}
-                    onCancel={handleCancelPreview}
-                  />
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={styles.previewWrapper}>
+                  <CVPreview file={file} onConfirm={() => { setShowPreview(false); handleUpload(); }} onCancel={() => { setShowPreview(false); setFile(null); }} />
                 </motion.div>
               ) : (
                 <>
                   <div
-                    className={cn(
-                      styles.dropZone,
-                      isDragging ? styles.dropZoneActive : styles.dropZoneIdle
-                    )}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      setIsDragging(true);
-                    }}
+                    className={cn(styles.dropZone, isDragging ? styles.dropZoneActive : styles.dropZoneIdle)}
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                     onDragLeave={() => setIsDragging(false)}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      setIsDragging(false);
-                      if (e.dataTransfer.files?.[0]) {
-                        handleFileSelect(e.dataTransfer.files[0]);
-                      }
-                    }}
+                    onDrop={(e) => { e.preventDefault(); setIsDragging(false); if (e.dataTransfer.files?.[0]) handleFileSelect(e.dataTransfer.files[0]); }}
                   >
-                    <motion.div 
-                      className={styles.dropZoneContent}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className={styles.cloudIconWrapper}>
-                        <UploadCloud size={48} className={styles.cloudIcon} />
-                      </div>
+                    <div className={styles.dropZoneContent}>
+                      <div className={styles.cloudIconWrapper}><UploadCloud size={48} className={styles.cloudIcon} /></div>
                       <h3 className={styles.uploadTitle}>{t("cv_dropzone_idle")}</h3>
                       <p className={styles.uploadSub}>{t("cv_dropzone_hint")}</p>
-
-                      <div className={styles.fileTypes}>
-                        <span>PDF</span>
-                        <span className={styles.dotSeparator}>•</span>
-                        <span>DOCX</span>
-                        <span className={styles.dotSeparator}>•</span>
-                        <span>PNG</span>
-                        <span className={styles.dotSeparator}>•</span>
-                        <span>JPG</span>
-                      </div>
-
                       <label className={styles.browseBtn}>
                         {t("cv_browse_files")}
-                        <input
-                          type="file"
-                          hidden
-                          accept=".pdf,.docx,.doc,.png,.jpg,.jpeg"
-                          onChange={(e) => {
-                            if (e.target.files?.[0]) {
-                              handleFileSelect(e.target.files[0]);
-                            }
-                          }}
-                        />
+                        <input type="file" hidden accept=".pdf,.docx,.doc,.png,.jpg,.jpeg" onChange={(e) => { if (e.target.files?.[0]) handleFileSelect(e.target.files[0]); }} />
                       </label>
-                    </motion.div>
+                    </div>
                   </div>
-
                   <div className={styles.manualEntryHint}>
                     <span>{t("cv_or_use")}</span>
-                    <button onClick={handleGoManual} className={styles.manualLink}>
-                      {t("cv_manual_entry")}
-                    </button>
+                    <button onClick={handleGoManual} className={styles.manualLink}>{t("cv_manual_entry")}</button>
                   </div>
-
-                  {error && (
-                    <div className={styles.errorBanner}>
-                      <AlertCircle size={16} />
-                      {error}
-                    </div>
-                  )}
+                  {error && <div className={styles.errorBanner}><AlertCircle size={16} />{error}</div>}
                 </>
               )}
             </div>
           </div>
 
-          {/* Right: History List */}
           <div className={styles.historyZone}>
             <div className={styles.historyHeader}>
-              <h3 className={styles.historyTitle}>
-                <Clock size={20} />
-                {t("cv_history_title")}
-              </h3>
-              <span className={styles.historyCount}>
-                {history.length} {t("cv_files")}
-              </span>
+              <h3 className={styles.historyTitle}><Clock size={20} />{t("cv_history_title")}</h3>
+              <span className={styles.historyCount}>{history.length} {t("cv_files")}</span>
             </div>
-
             <div className={styles.historyList}>
               {history.length > 0 ? (
                 history.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => handleHistoryClick(item)}
-                    className={cn(
-                      styles.historyItem,
-                      (item.status === "completed" || item.status === "failed") ? styles.historyItemClickable : styles.historyItemDisabled,
-                      selectedHistoryId === item.id && styles.historyItemActive
-                    )}
-                  >
-                    <div className={styles.historyIcon}>
-                      <FileText size={20} />
-                    </div>
+                  <div key={item.id} onClick={() => handleHistoryClick(item)} className={cn(styles.historyItem, (item.status === "completed" || item.status === "failed") ? styles.historyItemClickable : styles.historyItemDisabled, selectedHistoryId === item.id && styles.historyItemActive)}>
+                    <div className={styles.historyIcon}><FileText size={20} /></div>
                     <div className={styles.historyInfo}>
-                      <div className={styles.historyName}>
-                        {item.full_name || item.file_name || t("cv_candidate_name_placeholder")}
-                      </div>
-                      <div className={styles.historyMeta}>
-                        {new Date(item.created_at).toLocaleDateString(language === 'vi' ? "vi-VN" : "en-US")}
-                      </div>
+                      <div className={styles.historyName}>{item.full_name || item.file_name || t("cv_candidate_name_placeholder")}</div>
+                      <div className={styles.historyMeta}>{new Date(item.created_at).toLocaleDateString(language === 'vi' ? "vi-VN" : "en-US")}</div>
                     </div>
                     <div className={cn(styles.historyStatus, styles[item.status])}>
                       {item.status === "completed" && <CheckCircle2 size={16} />}
-                      {item.status === "processing" && (
-                        <Loader2 size={16} className={styles.animateSpin} />
-                      )}
+                      {item.status === "processing" && <Loader2 size={16} className={styles.animateSpin} />}
                       {item.status === "failed" && <AlertCircle size={16} />}
                     </div>
                   </div>
                 ))
               ) : (
-                <div className={styles.emptyHistory}>
-                  <FileText size={40} className={styles.emptyIcon} />
-                  <p>{t("cv_no_history")}</p>
-                </div>
+                <div className={styles.emptyHistory}><FileText size={40} className={styles.emptyIcon} /><p>{t("cv_no_history")}</p></div>
               )}
-            </div>
-
-            <div className={styles.historyFooter}>
-              <p>{t("cv_history_footer")}</p>
             </div>
           </div>
         </div>
@@ -1287,7 +986,76 @@ const UserCVPage = () => {
   );
 };
 
+// --- Optimized Sub-components ---
+const MemoizedSkillItem = memo(({ skill, onUpdate, onDelete, seniorityColor, getSeniorityLabel, SKILL_LEVELS }: any) => {
+  const { t } = useLanguage();
+  return (
+    <div className={styles.skillItem}>
+      <div className={styles.skillMain}>
+        <DebouncedInput type="text" value={skill.name} onChange={(val) => onUpdate(skill.originalIndex, "name", val)} className={styles.skillNameInput} maxLength={50} placeholder={t("cv_skill_default_name")} />
+        <div className={styles.skillMeta}>
+          <div className={styles.skillExpGroup}>
+            <Clock size={12} />
+            <input type="number" step="0.5" value={skill.experience_years} onChange={(e) => onUpdate(skill.originalIndex, "experience_years", e.target.value)} className={styles.editInput} min={0} max={60} />
+            <span>{t("cv_years_short")}</span>
+          </div>
+          <CustomDropdown value={getSeniorityLabel(skill.level)} options={SKILL_LEVELS.map(getSeniorityLabel)} onChange={(val: string) => {
+            const key = SKILL_LEVELS.find((k: string) => getSeniorityLabel(k) === val);
+            if (key) onUpdate(skill.originalIndex, "level", key);
+          }} className={styles.skillLevelSelect} style={{ color: seniorityColor[skill.level as keyof typeof seniorityColor] }} />
+        </div>
+      </div>
+      <button onClick={() => onDelete(skill.originalIndex)} className={styles.deleteSkillBtn}><Trash2 size={14} /></button>
+    </div>
+  );
+});
+
+const MemoizedWorkItem = memo(({ idx, work, onUpdate, onDelete }: any) => {
+  const { t } = useLanguage();
+  return (
+    <div className={styles.timelineItem}>
+      <div className={styles.timelineDot} />
+      <div className={styles.timelineContent}>
+        <div className={styles.timelineHeader}>
+          <DebouncedInput type="text" value={work.position} onChange={(val) => onUpdate(idx, "position", val)} className={styles.timelineInput} placeholder={t("cv_position_placeholder")} maxLength={100} />
+          <div className={styles.timelineActions}>
+            <div className={styles.timelineDuration}>
+              <input type="number" step="0.5" value={work.duration_years || 0} onChange={(e) => onUpdate(idx, "duration_years", e.target.value)} className={styles.timelineSmallInput} />
+              <span>{t("cv_years_short")}</span>
+            </div>
+            <button onClick={() => onDelete(idx)} className={styles.itemDeleteBtn}><Trash2 size={14} /></button>
+          </div>
+        </div>
+        <DebouncedInput type="text" value={work.company} onChange={(val) => onUpdate(idx, "company", val)} className={styles.timelineSubInput} placeholder={t("cv_company_placeholder")} maxLength={100} />
+        <DebouncedInput isTextarea value={work.description || ""} onChange={(val) => onUpdate(idx, "description", val)} className={styles.timelineDescTextarea} placeholder={t("cv_work_desc_placeholder")} maxLength={1000} />
+      </div>
+    </div>
+  );
+});
+
+const MemoizedEduItem = memo(({ idx, edu, onUpdate, onDelete }: any) => {
+  const { t } = useLanguage();
+  return (
+    <div className={styles.timelineItem}>
+      <div className={styles.timelineDot} />
+      <div className={styles.timelineContent}>
+        <div className={styles.timelineHeader}>
+          <DebouncedInput type="text" value={edu.degree} onChange={(val) => onUpdate(idx, "degree", val)} className={styles.timelineInput} placeholder={t("cv_degree_placeholder")} maxLength={100} />
+          <div className={styles.timelineActions}>
+            <div className={styles.timelineDuration}>
+              <input type="number" value={edu.year || new Date().getFullYear()} onChange={(e) => onUpdate(idx, "year", e.target.value)} className={styles.timelineSmallInput} />
+            </div>
+            <button onClick={() => onDelete(idx)} className={styles.itemDeleteBtn}><Trash2 size={14} /></button>
+          </div>
+        </div>
+        <DebouncedInput type="text" value={edu.institution} onChange={(val) => onUpdate(idx, "institution", val)} className={styles.timelineSubInput} placeholder={t("cv_institution_placeholder")} maxLength={100} />
+      </div>
+    </div>
+  );
+});
+
+MemoizedSkillItem.displayName = "MemoizedSkillItem";
+MemoizedWorkItem.displayName = "MemoizedWorkItem";
+MemoizedEduItem.displayName = "MemoizedEduItem";
+
 export default UserCVPage;
-
-
-

@@ -658,7 +658,19 @@ async def admin_export_courses(
     # Convert to export format with vectors as lists
     export_data = []
     for course in courses:
-        vector_list = course.vector if isinstance(course.vector, list) else list(course.vector) if course.vector else []
+        # Handle pgvector conversion properly
+        if course.vector is None:
+            vector_list = []
+        elif isinstance(course.vector, list):
+            vector_list = course.vector
+        elif hasattr(course.vector, 'tolist'):
+            vector_list = course.vector.tolist()
+        else:
+            # For pgvector types, convert to string then parse or use direct conversion
+            try:
+                vector_list = [float(x) for x in course.vector]
+            except (TypeError, ValueError):
+                vector_list = []
         
         export_data.append({
             "id": str(course.id),

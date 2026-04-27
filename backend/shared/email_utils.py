@@ -92,3 +92,100 @@ def send_password_reset_email(user_email: str, reset_link: str):
     </div>
     """
     return send_email(user_email, subject, body, is_html=True)
+
+def notify_cv_parsing_complete(user_email: str, cv_name: str, experience_years: int = None, skills_count: int = 0, frontend_url: str = None):
+    """
+    Notify user when CV parsing is completed.
+    Checks EMAIL_NOTIFY_CV_COMPLETE setting before sending.
+    """
+    # Check if CV completion emails are enabled
+    setting_value = config_manager.get_setting("EMAIL_NOTIFY_CV_COMPLETE", default="false")
+    is_enabled = str(setting_value).lower() == "true" if setting_value else False
+    
+    if not is_enabled:
+        logger.info(f"[EMAIL] CV completion notification disabled for {user_email}")
+        return False
+    
+    subject = "✓ CV của bạn đã được phân tích xong - Lumix AI"
+    
+    exp_text = f"{experience_years} năm kinh nghiệm" if experience_years else "Chưa xác định kinh nghiệm"
+    view_link = f"{frontend_url or os.getenv('FRONTEND_URL', 'http://localhost:3000')}/user/cv"
+    
+    body = f"""
+    <div style="font-family: sans-serif; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #f8fafc; max-width: 500px; margin: auto;">
+        <h2 style="color: #10b981; text-align: center; margin-bottom: 24px;">✓ CV đã được phân tích</h2>
+        <p>Chào <strong>{cv_name or 'bạn'}</strong>,</p>
+        <p>CV của bạn đã được hệ thống AI phân tích thành công!</p>
+        
+        <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 8px 0;"><strong>📄 Tên:</strong> {cv_name or 'N/A'}</p>
+            <p style="margin: 8px 0;"><strong>💼 Kinh nghiệm:</strong> {exp_text}</p>
+            <p style="margin: 8px 0;"><strong>🛠️ Kỹ năng:</strong> {skills_count} kỹ năng được trích xuất</p>
+        </div>
+        
+        <p>Bạn có thể xem chi tiết CV hoặc bắt đầu phân tích Gap để tìm việc phù hợp!</p>
+        
+        <div style="text-align: center; margin: 32px 0;">
+            <a href="{view_link}" style="background-color: #10b981; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                Xem CV & Bắt đầu phân tích
+            </a>
+        </div>
+        
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+        <p style="font-size: 12px; color: #94a3b8; text-align: center;">Lumix AI Advisor - Hệ thống tư vấn lộ trình nghề nghiệp AI</p>
+    </div>
+    """
+    return send_email(user_email, subject, body, is_html=True)
+
+def notify_gap_analysis_complete(user_email: str, match_score: float, skill_gaps_count: int, courses_count: int, cv_name: str = None, job_title: str = None, frontend_url: str = None):
+    """
+    Notify user when gap analysis is completed.
+    Checks EMAIL_NOTIFY_GAP_COMPLETE setting before sending.
+    """
+    # Check if Gap analysis completion emails are enabled
+    setting_value = config_manager.get_setting("EMAIL_NOTIFY_GAP_COMPLETE", default="false")
+    is_enabled = str(setting_value).lower() == "true" if setting_value else False
+    
+    if not is_enabled:
+        logger.info(f"[EMAIL] Gap analysis completion notification disabled for {user_email}")
+        return False
+    
+    subject = f"✓ Kết quả phân tích Gap: {match_score}% phù hợp - Lumix AI"
+    
+    match_color = "#10b981" if match_score >= 70 else "#f59e0b" if match_score >= 50 else "#ef4444"
+    match_emoji = "🎉" if match_score >= 70 else "💪" if match_score >= 50 else "📚"
+    
+    job_text = f" cho vị trí <strong>{job_title}</strong>" if job_title else ""
+    view_link = f"{frontend_url or os.getenv('FRONTEND_URL', 'http://localhost:3000')}/user/analysis"
+    
+    body = f"""
+    <div style="font-family: sans-serif; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #f8fafc; max-width: 500px; margin: auto;">
+        <h2 style="color: {match_color}; text-align: center; margin-bottom: 24px;">{match_emoji} Kết quả phân tích Gap</h2>
+        <p>Chào <strong>{cv_name or 'bạn'}</strong>,</p>
+        <p>Phân tích khoảng cách kỹ năng{job_text} đã hoàn tất!</p>
+        
+        <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+            <div style="font-size: 48px; font-weight: bold; color: {match_color}; margin-bottom: 10px;">
+                {match_score}%
+            </div>
+            <p style="color: #64748b; margin: 0;">Độ phù hợp với yêu cầu công việc</p>
+        </div>
+        
+        <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 8px 0;"><strong>📊 Khoảng cách kỹ năng:</strong> {skill_gaps_count} kỹ năng cần cải thiện</p>
+            <p style="margin: 8px 0;"><strong>🎓 Khóa học đề xuất:</strong> {courses_count} khóa học phù hợp</p>
+        </div>
+        
+        <p>Xem chi tiết lộ trình học tập và các khóa học được đề xuất để nâng cao cơ hội nghề nghiệp!</p>
+        
+        <div style="text-align: center; margin: 32px 0;">
+            <a href="{view_link}" style="background-color: #6366f1; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                Xem kết quả chi tiết
+            </a>
+        </div>
+        
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+        <p style="font-size: 12px; color: #94a3b8; text-align: center;">Lumix AI Advisor - Hệ thống tư vấn lộ trình nghề nghiệp AI</p>
+    </div>
+    """
+    return send_email(user_email, subject, body, is_html=True)

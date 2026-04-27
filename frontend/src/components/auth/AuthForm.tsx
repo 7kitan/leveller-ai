@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import LandingNavbar from "@/components/landing/LandingNavbar";
 import { useLanguage } from "@/context/LanguageContext";
 import styles from "./auth-form.module.css";
@@ -26,12 +27,24 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
   
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [captchaToken, setCaptchaToken] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
   
   const { login } = useAuth();
+  const { theme } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
 
-  React.useEffect(() => {
+  const isFormValid = useMemo(() => {
+    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const isPasswordValid = password.length >= 8;
+    const isNameValid = isLogin || (fullName.trim().length >= 2);
+    const isCaptchaValid = !showCaptcha || !!captchaToken;
+    
+    return isEmailValid && isPasswordValid && isNameValid && isCaptchaValid;
+  }, [email, password, fullName, isLogin, showCaptcha, captchaToken, t]);
+
+  useEffect(() => {
     const checkCaptchaStatus = async () => {
       try {
         const res = await api.get("auth/captcha-status");
@@ -64,11 +77,16 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
       const userRole = user.role;
       router.push(`/${userRole}`);
     } catch (err: any) {
+      // Reset captcha on any error (token is consumed)
+      setCaptchaToken("");
+      recaptchaRef.current?.reset();
+      
       if (err.response?.headers?.['x-requires-captcha'] === 'true') {
         setShowCaptcha(true);
         setError(t("recaptcha_required"));
       } else {
-        setError(err.response?.data?.detail || t("auth_error"));
+        const detail = err.response?.data?.detail || t("auth_error");
+        setError(Array.isArray(detail) ? detail[0]?.msg : (typeof detail === 'object' ? (detail as any).msg : detail));
       }
     } finally {
       setLoading(false);
@@ -123,21 +141,31 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
             />
           </div>
           <div className={styles.inputGroup}>
-            <input
-              type="password"
-              required
-              className={styles.inputField}
-              placeholder={t("password_placeholder")}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              maxLength={128}
-              minLength={8}
-            />
+            <div className={styles.passwordWrapper}>
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                className={styles.inputField}
+                placeholder={t("password_placeholder")}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                maxLength={128}
+                minLength={8}
+              />
+              <button
+                type="button"
+                className={styles.eyeBtn}
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
 
           {isLogin && (
-            <div className="flex justify-end -mt-4 mb-4">
-              <Link href="/auth/forgot-password" className="text-xs text-indigo-500 hover:underline">
+            <div className={styles.forgotPasswordContainer}>
+              <Link href="/auth/forgot-password" className={styles.forgotPassword}>
                 {t("forgot_password_link")}
               </Link>
             </div>
@@ -146,9 +174,10 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
           {(showCaptcha || !isLogin) && (
             <div className="mb-4 flex justify-center">
               <ReCAPTCHA
+                ref={recaptchaRef}
                 sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
                 onChange={(token) => setCaptchaToken(token || "")}
-                theme="dark"
+                theme={theme === "dark" ? "dark" : "light"}
               />
             </div>
           )}
@@ -161,7 +190,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
 
           <button
             type="submit"
-            disabled={loading || (showCaptcha && !captchaToken)}
+            disabled={loading || !isFormValid}
             className={styles.submitBtn}
           >
             {loading ? (
@@ -178,7 +207,8 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
           onClick={() => {
             setIsLogin(!isLogin);
             setError("");
-            setShowCaptcha(false);
+            setCaptchaToken("");
+            recaptchaRef.current?.reset();
           }}
           className={styles.toggleBtn}
         >

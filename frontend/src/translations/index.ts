@@ -24,20 +24,20 @@ export const translations = {
     saving: "Đang lưu...",
     deleting: "Đang xóa...",
     uploading: "Đang tải lên...",
-    
+
     // Period labels
     period_24h: "24h",
     period_7d: "7d",
     period_30d: "30d",
-    
+
     // Error messages
     error_no_analysis: "Không tìm thấy phân tích",
     error_connection_failed: "Kết nối thất bại",
     error_refresh_failed: "Làm mới thất bại",
-    
+
     // Platform
     platform_default: "E-learning",
-    
+
     // Navbar/Sidebar
     nav_dashboard: "Bảng điều khiển",
     nav_jobs: "Việc làm",
@@ -63,7 +63,7 @@ export const translations = {
     logout: "Đăng xuất",
     profile_info: "Thông tin cá nhân",
     security_settings: "Cài đặt bảo mật",
-    
+
     // Auth Form
     login_title: "Chào mừng trở lại",
     register_title: "Tạo tài khoản mới",
@@ -147,7 +147,7 @@ export const translations = {
     upload_cv_now: "Upload CV ngay",
     char_count: "ký tự",
     min_char_required: "Cần ít nhất 20 ký tự",
-    
+
     // Pipeline Steps
     step_extract: "Bóc tách JD & CV",
     step_analyze: "Phân tích Gap",
@@ -184,7 +184,7 @@ export const translations = {
     cert_label: "CHỨNG CHỈ",
     confidence: "Độ tin cậy",
     redirecting_recommend: "Đang chuyển sang trang đề xuất...",
-    
+
     // Analysis processing messages
     analysis_msg_1: "AI đang bóc tách từng dòng trong CV của bạn...",
     analysis_msg_2: "Đang so khớp kinh nghiệm của bạn với yêu cầu thị trường...",
@@ -194,7 +194,7 @@ export const translations = {
     analysis_msg_6: "Hệ thống đang chạy các mô phỏng kịch bản sự nghiệp...",
     analysis_msg_7: "Đang tổng hợp các tài liệu học tập từ YouTube...",
     analysis_msg_8: "Gần xong rồi, chúng tôi đang chuẩn bị bản báo cáo cuối cùng...",
-    
+
     // Timeout modal
     analysis_timeout_title: "Hệ thống đang quá tải?",
     analysis_timeout_desc: "Quá trình phân tích đang mất nhiều thời gian hơn dự kiến do độ phức tạp của dữ liệu. Bạn có thể quay lại sau, kết quả sẽ được xử lý ngầm và gửi thông báo cho bạn.",
@@ -229,7 +229,7 @@ export const translations = {
     cat_tools: "Công cụ & Framework",
     cat_domain: "Kiến thức Domain",
     cat_cert: "Chứng chỉ",
-    
+
     // Feedback
     feedback_title: "Phản hồi về kết quả",
     feedback_subtitle: "Đánh giá của bạn giúp AI hoàn thiện lộ trình sự nghiệp chính xác hơn.",
@@ -352,10 +352,10 @@ export const translations = {
     cv_education: "HỌC VẤN",
     cv_certifications: "CHỨNG CHỈ",
     cv_years_short: "Năm",
-    cv_level_junior: "Junior (Sơ cấp)",
-    cv_level_mid: "Mid-level (Trung cấp)",
-    cv_level_senior: "Senior (Cao cấp)",
-    cv_level_expert: "Expert (Chuyên gia)",
+    cv_level_junior: "Sơ cấp",
+    cv_level_mid: "Trung cấp",
+    cv_level_senior: "Cao cấp",
+    cv_level_expert: "Chuyên gia",
     cv_level_unknown: "Chưa xác định",
     cv_save_success: "Hồ sơ năng lực đã được lưu thành công!",
     cv_duplicate_skill_error: "Phát hiện kĩ năng bị trùng lặp. Vui lòng xóa hoặc sửa tên kĩ năng trước khi lưu.",
@@ -558,7 +558,7 @@ export const translations = {
     admin_dash_health_desc: "Hệ thống đang hoạt động ổn định. Cơ sở dữ liệu tri thức được cập nhật theo thời gian thực.",
     admin_dash_badge_graph_sync: "Đồng bộ Graph trực tiếp",
     admin_dash_badge_cache_clear: "Dọn Cache Semantic",
-    
+
     // AI Usage & Logs
     admin_ai_desc: "Theo dõi lượng tiêu thụ token và hiệu suất của các model AI.",
     admin_ai_total_calls: "Tổng lượt gọi",
@@ -576,7 +576,7 @@ export const translations = {
     admin_ai_tokens: "Tokens",
     admin_ai_latency: "Độ trễ",
     admin_ai_status: "Trạng thái",
-    
+
     admin_logs_desc: "Giám sát sức khỏe hệ thống, lỗi ứng dụng và hoạt động của worker.",
     admin_logs_cleanup: "Dọn dẹp log cũ",
     admin_logs_refresh: "Làm mới",
@@ -805,7 +805,7 @@ export const translations = {
     of_text: "trên",
     courses_text: "khóa học",
     load_courses_error: "Không thể tải danh sách khóa học.",
-    
+
     // Sort Options
     relevance: "Độ phù hợp",
     level_asc: "Cấp độ ↑",
@@ -828,6 +828,7 @@ export const translations = {
     admin_feedback_all: "Tất cả",
     admin_feedback_stars: "Sao",
     admin_feedback_no_feedback: "Không tìm thấy phản hồi nào",
+    no_feedback_found: "Không tìm thấy phản hồi",
     admin_feedback_no_comment: "Không có nhận xét",
     admin_courses_import_title: "Nhập Danh Sách Link Coursera",
     admin_courses_import_placeholder: "Một URL trên mỗi dòng...",
@@ -868,7 +869,7 @@ export const translations = {
     admin_youtube_delete_confirm: "Xóa video này khỏi cache?",
     admin_youtube_verify_success: "Đã bắt đầu kiểm tra tính khả dụng của video",
     admin_youtube_verify_error: "Lỗi khi kiểm tra video",
-    
+
     // Additional translations for hardcoded texts
     recaptcha_required: "Vui lòng xác nhận bạn không phải là robot.",
     forgot_password_link: "Quên mật khẩu?",
@@ -886,7 +887,7 @@ export const translations = {
     course_delete_error: "Lỗi khi xóa",
     course_import_save_error: "Lỗi khi lưu",
     course_import_bulk_error: "Lỗi khi lưu hàng loạt",
-    
+
     // Placeholders
     placeholder_api_url: "https://api.datalab.to/...",
     placeholder_api_key: "sk-...",
@@ -903,7 +904,7 @@ export const translations = {
     placeholder_course_modules: "Introduction&#10;Basic Syntax&#10;Advanced Patterns...",
     placeholder_job_employment_type: "Full-time, Part-time, etc.",
     placeholder_job_location: "Hà Nội, Hồ Chí Minh, etc.",
-    
+
     // Title attributes
     title_career_genome: "CAREER GENOME.",
     title_course_importer: "Course Importer PRO",
@@ -911,17 +912,17 @@ export const translations = {
     title_view_details: "View All Details",
     title_view_youtube: "View on YouTube",
     title_flagged_review: "Flagged for review",
-    
+
     // Aria labels
     aria_toggle_menu: "Toggle menu",
     aria_close_modal: "Close modal",
-    
+
     // Mixed language content
     explore_opportunities_title: "KHÁM PHÁ CƠ HỘI",
-    
+
     // Metadata
     meta_description: "Giải mã tương lai sự nghiệp với trí tuệ nhân tạo. Phân tích khoảng trống kỹ năng, gợi ý lộ trình học tập và quản trị tri thức kỹ thuật chuyên sâu.",
-    
+
     // Console/Debug (optional - usually not translated but included for completeness)
     console_cv_detail_error: "Lỗi khi lấy chi tiết CV cũ:",
     console_job_search_error: "Lỗi tìm kiếm jobs:",
@@ -951,17 +952,17 @@ export const translations = {
     saving: "Saving...",
     deleting: "Deleting...",
     uploading: "Uploading...",
-    
+
     // Period labels
     period_24h: "24h",
     period_7d: "7d",
     period_30d: "30d",
-    
+
     // Error messages
     error_no_analysis: "No analysis found",
     error_connection_failed: "Connection failed",
     error_refresh_failed: "Refresh failed",
-    
+
     // Platform
     platform_default: "E-learning",
 
@@ -1106,7 +1107,7 @@ export const translations = {
     no_gaps_detected: "No gaps detected!",
     months_short: "mo",
     cert_label: "CERT",
-    
+
     // Analysis processing messages
     analysis_msg_1: "AI is reading between the lines of your CV...",
     analysis_msg_2: "Matching your experience with global market trends...",
@@ -1116,7 +1117,7 @@ export const translations = {
     analysis_msg_6: "Simulating career growth scenarios...",
     analysis_msg_7: "Aggregating free learning resources from YouTube...",
     analysis_msg_8: "Almost there! Wrapping up your final report...",
-    
+
     // Timeout modal
     analysis_timeout_title: "System is Busy?",
     analysis_timeout_desc: "The analysis is taking longer than expected due to data complexity. You can return later; the results will be processed in the background, and we'll notify you.",
@@ -1264,6 +1265,7 @@ export const translations = {
     posted_at: "Posted At",
     employment_type: "Employment Type",
     close: "Close",
+    view_original: "View Original",
 
     // CV Page
     cv_processing: "Processing",
@@ -1384,6 +1386,10 @@ export const translations = {
     admin_users_table_user: "User",
     admin_users_table_role: "Role",
     admin_users_table_status: "Status",
+    admin_users_table_date: "Join Date",
+    admin_users_table_actions: "Actions",
+    admin_users_status_active: "Active",
+    admin_users_status_banned: "Banned",
     admin_users_role_admin: "ADMIN",
     admin_users_role_user: "USER",
     admin_users_role_label: "Role",
@@ -1602,6 +1608,7 @@ export const translations = {
     admin_jobs_import_ready_count: "Jobs ready",
     admin_jobs_import_discard_all: "Discard all",
     admin_jobs_import_save_bulk: "SAVE {count} JOB LISTINGS",
+    admin_jobs_import_fetch_all: "Fetch All Info",
     admin_jobs_import_job_title: "Job title",
     admin_jobs_import_company: "Company",
     admin_jobs_import_employment_type: "Employment type",
@@ -1698,6 +1705,18 @@ export const translations = {
     admin_feedback_stars: "Stars",
     admin_feedback_no_feedback: "No feedback found",
     admin_feedback_no_comment: "No comment",
+    load_courses_error: "Unable to load course list.",
+    footer_pricing: "Pricing",
+    footer_about: "About Us",
+    footer_get_started: "Get Started",
+    footer_careers: "Careers",
+    footer_blog: "Blog",
+    footer_press: "Press",
+    footer_contact: "Contact",
+    footer_docs: "Documentation",
+    footer_help: "Help Center",
+    footer_api: "API",
+    footer_community: "Community",
     admin_courses_import_title: "Import Coursera Links",
     admin_courses_import_placeholder: "One URL per line...",
     admin_courses_import_crawl_all: "Crawl All",
@@ -1746,7 +1765,7 @@ export const translations = {
     explore_title_2: "KNOWLEDGE",
     explore_subtitle: "Smart course recommendation system based on your Skill Genome.",
     platform: "Platform",
-    
+
     // Additional translations for hardcoded texts
     recaptcha_required: "Please confirm you are not a robot.",
     forgot_password_link: "Forgot password?",
@@ -1764,7 +1783,7 @@ export const translations = {
     course_delete_error: "Error deleting",
     course_import_save_error: "Error saving",
     course_import_bulk_error: "Error saving in bulk",
-    
+
     // Placeholders
     placeholder_api_url: "https://api.datalab.to/...",
     placeholder_api_key: "sk-...",
@@ -1781,7 +1800,7 @@ export const translations = {
     placeholder_course_modules: "Introduction&#10;Basic Syntax&#10;Advanced Patterns...",
     placeholder_job_employment_type: "Full-time, Part-time, etc.",
     placeholder_job_location: "Hanoi, Ho Chi Minh City, etc.",
-    
+
     // Title attributes
     title_career_genome: "CAREER GENOME.",
     title_course_importer: "Course Importer PRO",
@@ -1789,21 +1808,21 @@ export const translations = {
     title_view_details: "View All Details",
     title_view_youtube: "View on YouTube",
     title_flagged_review: "Flagged for review",
-    
+
     // Aria labels
     aria_toggle_menu: "Toggle menu",
     aria_close_modal: "Close modal",
-    
+
     // Mixed language content
     explore_opportunities_title: "EXPLORE OPPORTUNITIES",
-    
+
     // Metadata
     meta_description: "Decode your career future with artificial intelligence. Analyze skill gaps, suggest learning paths, and manage deep technical knowledge.",
-    
+
     // Console/Debug (optional - usually not translated but included for completeness)
     console_cv_detail_error: "Error fetching old CV details:",
     console_job_search_error: "Error searching jobs:",
-    
+
     // Additional missing keys
     current_position: "Current Position",
     ai_searching: "AI is searching for more courses and building roadmap...",

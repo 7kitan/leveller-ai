@@ -748,6 +748,23 @@ async def persist_cv_data_node(state: CVParsingState) -> CVParsingState:
             f"{'─' * 50}"
         )
 
+        # ── Send Email Notification ──────────────────────────────────────────
+        try:
+            from shared.models import User
+            from shared.email_utils import notify_cv_parsing_complete
+            
+            user = db.query(User).filter(User.id == cv_record.user_id).first()
+            if user and user.email:
+                notify_cv_parsing_complete(
+                    user_email=user.email,
+                    cv_name=cv_record.full_name or "CV của bạn",
+                    experience_years=cv_record.experience_years_total,
+                    skills_count=len(cv_parsed.get('skills', []))
+                )
+                logger.info(f"[STEP 4] ✓ Email notification sent to {user.email}")
+        except Exception as email_err:
+            logger.warning(f"[STEP 4] Failed to send email notification: {email_err}")
+
         return {**state, "status": "persisted"}
 
     except Exception as e:

@@ -175,3 +175,88 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 16px;
+  background: none;
+  border: none;
+  color: rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.2s;
+  z-index: 5;
+}
+
+.eyeBtn:hover {
+  color: #0EA5E9;
+}
+
+[data-theme="dark"] .eyeBtn {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+[data-theme="dark"] .eyeBtn:hover {
+  color: #0EA5E9;
+}
+
+.forgotPasswordContainer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -12px;
+  margin-bottom: 8px;
+}
+
+.forgotPassword {
+  color: #0ea5e9;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  opacity: 0.8;
+  text-decoration: none;
+}
+
+.forgotPassword:hover {
+  opacity: 1;
+  color: #06b6d4;
+  text-decoration: underline;
+}
+
+[data-theme="dark"] .formWrapper {
+  background-color: var(--color-apple-black);
+}
+
+[data-theme="dark"] .panel {
+  background: var(--color-surface-dark-1);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .title {
+  background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.6) 100%);
+  -webkit-background-clip: text;
+}
+
+[data-theme="dark"] .subtitle {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .inputField {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .inputField:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #0ea5e9;
+}
