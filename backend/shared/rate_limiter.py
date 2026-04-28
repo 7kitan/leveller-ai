@@ -128,8 +128,10 @@ def check_rate_limit_for_request(request: Request, max_requests: int = 100, wind
         ):
             ...
     """
+    from shared.auth_utils import get_client_ip
+    
     user_id = request.headers.get("X-User-ID")
-    ip_address = request.client.host if request.client else "unknown"
+    ip_address = get_client_ip(request)
     endpoint = request.url.path
     
     return rate_limiter.check_rate_limit(
