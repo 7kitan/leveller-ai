@@ -46,7 +46,7 @@ CREATE INDEX IF NOT EXISTS idx_courses_platform_trgm ON courses USING gin (platf
 CREATE INDEX IF NOT EXISTS idx_courses_provider_trgm ON courses USING gin (provider gin_trgm_ops);
 
 -- JSONB indexes
-CREATE INDEX IF NOT EXISTS idx_courses_skills_raw_gin ON courses USING gin (skills_raw);
+CREATE INDEX IF NOT EXISTS idx_courses_skills_raw_gin ON courses USING gin ((skills_raw::jsonb));
 CREATE INDEX IF NOT EXISTS idx_courses_tags_gin ON courses USING gin (tags);
 
 -- B-tree indexes
