@@ -2,6 +2,15 @@
 
 # Setup Database Indexes for Career Advisor
 # This script runs the SQL setup file to create all necessary indexes
+#
+# Usage:
+#   ./setup_indexes.sh [container_name] [database] [user]
+#
+# Examples:
+#   ./setup_indexes.sh                                    # Use defaults
+#   ./setup_indexes.sh advisor_db_prod                    # Custom container
+#   ./setup_indexes.sh advisor_db_prod career_advisor     # Custom container + db
+#   ./setup_indexes.sh advisor_db_prod career_advisor postgres  # All custom
 
 set -e  # Exit on error
 
@@ -20,18 +29,10 @@ if [ ! -f "$SQL_FILE" ]; then
     exit 1
 fi
 
-# Load environment variables if .env exists
-if [ -f "$SCRIPT_DIR/../.env" ]; then
-    echo "📄 Loading environment variables from .env..."
-    set -a
-    source "$SCRIPT_DIR/../.env"
-    set +a
-fi
-
-# Set default values if not in .env
-POSTGRES_USER=${POSTGRES_USER:-postgres}
-POSTGRES_DB=${POSTGRES_DB:-career_advisor}
-CONTAINER_NAME=${CONTAINER_NAME:-advisor_db_prod}
+# Set values from arguments or use defaults
+CONTAINER_NAME=${1:-advisor_db_prod}
+POSTGRES_DB=${2:-career_advisor}
+POSTGRES_USER=${3:-postgres}
 
 echo "📊 Database Configuration:"
 echo "   Container: $CONTAINER_NAME"

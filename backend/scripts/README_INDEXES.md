@@ -21,7 +21,18 @@ Scripts để setup tất cả indexes cần thiết cho Career Advisor database
 
 ```powershell
 cd backend/scripts
+
+# Sử dụng defaults (advisor_db_prod, career_advisor, postgres)
 .\setup_indexes.ps1
+
+# Custom container name
+.\setup_indexes.ps1 my_db_container
+
+# Custom container + database
+.\setup_indexes.ps1 my_db_container my_database
+
+# Custom tất cả
+.\setup_indexes.ps1 my_db_container my_database my_user
 ```
 
 ### Trên Linux/Mac (Bash)
@@ -29,7 +40,18 @@ cd backend/scripts
 ```bash
 cd backend/scripts
 chmod +x setup_indexes.sh
+
+# Sử dụng defaults (advisor_db_prod, career_advisor, postgres)
 ./setup_indexes.sh
+
+# Custom container name
+./setup_indexes.sh my_db_container
+
+# Custom container + database
+./setup_indexes.sh my_db_container my_database
+
+# Custom tất cả
+./setup_indexes.sh my_db_container my_database my_user
 ```
 
 ### Chạy trực tiếp SQL file
@@ -37,6 +59,15 @@ chmod +x setup_indexes.sh
 ```bash
 docker exec -i advisor_db_prod psql -U postgres -d career_advisor < setup_indexes.sql
 ```
+
+### Parameters
+
+Scripts chấp nhận 3 optional parameters (theo thứ tự):
+1. **container_name** - Tên Docker container (default: `advisor_db_prod`)
+2. **database** - Tên database (default: `career_advisor`)
+3. **user** - PostgreSQL user (default: `postgres`)
+
+**Lưu ý:** Scripts không cần .env file, chỉ cần Docker container đang chạy.
 
 ## Indexes được tạo
 
