@@ -115,7 +115,7 @@ const BlockedIPsPage = () => {
   };
 
   return (
-    <AuthGuard requiredRole="admin">
+    <AuthGuard requireAdmin>
       <PageContainer>
         <PageHeader
           title="Blocked IP Management"
