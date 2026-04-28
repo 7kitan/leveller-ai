@@ -44,7 +44,7 @@ const BlockedIPsPage = () => {
     try {
       setLoading(true);
       const res = await api.get("/admin/blocked-ips");
-      setBlockedIPs(res.data || []);
+      setBlockedIPs(res.data.blocked_ips || []);
     } catch (err: any) {
       console.error("Fetch blocked IPs error:", err);
       toast.error(err.response?.data?.detail || "Failed to load blocked IPs");

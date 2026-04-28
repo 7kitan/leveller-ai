@@ -11,7 +11,7 @@ from shared.database import get_db
 from shared.redis_client import result_cache
 from shared.schemas import PaginatedResponse
 from shared.taxonomy_service import taxonomy_service
-from shared.models import User, UserAnalysis, UserFeedback, Job, UserCV, UserRole
+from shared.models import User, UserAnalysis, UserFeedback, Job, UserCV, UserRole, MarketSkillStats
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List
 import uuid
@@ -1544,6 +1544,58 @@ async def optimize_cv_suggestions(req: OptimizeCVRequest, request: Request, db: 
         return data
     except:
         return {"error": "Failed to parse AI response", "raw": response}
+
+
+# ─── Market Stats Endpoint ──────────────────────────────────────────────────
+
+@app.get("/analysis/market-stats")
+def get_market_stats(
+    request: Request,
+    db: Session = Depends(get_db),
+    limit: int = Query(10, ge=1, le=50)
+):
+    """
+    Get market statistics including top trending skills.
+    
+    Returns:
+        - total_skills: Total number of skills tracked
+        - last_updated: Last update timestamp
+        - top_skills: Top N skills by demand score
+    """
+    try:
+        # Get total count
+        total_skills = db.query(func.count(MarketSkillStats.skill_name)).scalar() or 0
+        
+        # Get last updated timestamp
+        last_updated_row = db.query(func.max(MarketSkillStats.updated_at)).scalar()
+        last_updated = last_updated_row.isoformat() if last_updated_row else None
+        
+        # Get top skills by demand score
+        top_skills_query = db.query(MarketSkillStats).order_by(
+            MarketSkillStats.demand_score.desc().nullslast()
+        ).limit(limit).all()
+        
+        top_skills = [
+            {
+                "skill_name": skill.skill_name,
+                "demand_score": skill.demand_score or 0.0,
+                "avg_salary_min": skill.avg_salary_min or 0,
+                "job_count_30d": skill.job_count_30d or 0,
+                "growth_rate_30d": skill.growth_rate_30d or 0.0,
+                "category": skill.category
+            }
+            for skill in top_skills_query
+        ]
+        
+        return {
+            "total_skills": total_skills,
+            "last_updated": last_updated,
+            "top_skills": top_skills
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get market stats: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve market stats: {str(e)}")
 
 
 # ─── Health Check ───────────────────────────────────────────────────────────

@@ -23,6 +23,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from shared.redis_client import REDIS_HOST, REDIS_PORT, REDIS_PASSWORD
 from shared.logging_utils import setup_logger
+from shared.auth_utils import get_client_ip
 
 # Khởi tạo logger cho Gateway
 logger = setup_logger("gateway", log_file="gateway.log")

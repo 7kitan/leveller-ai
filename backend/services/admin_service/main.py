@@ -574,13 +574,16 @@ class UnblockIPRequest(BaseModel):
     ip_address: str
 
 @app.get("/admin/blocked-ips")
-def get_blocked_ips(request: Request):
+def get_blocked_ips(
+    request: Request,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
     """
     Admin only: Get list of all blocked IP addresses.
     
     Returns list of IPs that are currently locked out due to failed login attempts.
     """
-    require_admin(request)
     
     try:
         # Get all lockout keys from Redis
@@ -632,13 +635,17 @@ def get_blocked_ips(request: Request):
 
 
 @app.post("/admin/unblock-ip")
-def unblock_ip(request: Request, data: UnblockIPRequest):
+def unblock_ip(
+    request: Request,
+    data: dict,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
     """
     Admin only: Unblock a specific IP address.
     
     Removes lockout and clears login attempt counters for the specified IP.
     """
-    require_admin(request)
     
     ip_address = data.ip_address
     
@@ -670,14 +677,17 @@ def unblock_ip(request: Request, data: UnblockIPRequest):
 
 
 @app.delete("/admin/blocked-ips")
-def clear_all_blocked_ips(request: Request):
+def clear_all_blocked_ips(
+    request: Request,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
     """
     Admin only: Clear ALL blocked IP addresses.
     
     WARNING: This will unblock all IPs that are currently locked out.
     Use with caution in production.
     """
-    require_admin(request)
     
     try:
         # Get all lockout keys
@@ -720,13 +730,17 @@ def clear_all_blocked_ips(request: Request):
 
 
 @app.get("/admin/ip-status/{ip_address}")
-def check_ip_status(request: Request, ip_address: str):
+def check_ip_status(
+    request: Request,
+    ip_address: str,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
     """
     Admin only: Check the status of a specific IP address.
     
     Returns whether the IP is blocked, number of failed attempts, and TTL.
     """
-    require_admin(request)
     
     try:
         lockout_key = f"lockout:{ip_address}"
@@ -765,6 +779,40 @@ def check_ip_status(request: Request, ip_address: str):
     except Exception as e:
         logger.error(f"[ADMIN] Failed to check IP status for {ip_address}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to check IP status: {str(e)}")
+
+
+@app.post("/admin/refresh-market-stats")
+def trigger_market_stats_refresh(
+    request: Request,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """
+    Admin only: Manually trigger market stats aggregation.
+    
+    This endpoint triggers the Celery task that aggregates market data
+    from jobs and updates the market_skill_stats table.
+    """
+    try:
+        from worker.celery_app import celery_app
+        
+        # Trigger the market stats aggregation task
+        task = celery_app.send_task(
+            "worker.tasks.market_stats_tasks.aggregate_market_data",
+            queue="market_stats"
+        )
+        
+        logger.info(f"[ADMIN] Market stats refresh triggered by {admin_user.email}, task_id={task.id}")
+        
+        return {
+            "message": "Market stats refresh has been triggered",
+            "task_id": task.id,
+            "status": "queued"
+        }
+        
+    except Exception as e:
+        logger.error(f"[ADMIN] Failed to trigger market stats refresh: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to trigger refresh: {str(e)}")
 
 
 @app.get("/admin/health")
