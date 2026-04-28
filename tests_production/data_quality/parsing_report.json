@@ -1,0 +1,47 @@
+[
+    {
+        "filename": "1. StandardCV.pdf",
+        "status": "SUCCESS",
+        "duration": "14.36s",
+        "parsed_name": "NGUYEN TUAN KIET",
+        "skills_count": 9,
+        "detail_file": "detailed_results\\1. StandardCV_parsed.json",
+        "error_detail": ""
+    },
+    {
+        "filename": "2. The Overlapper.pdf",
+        "status": "SUCCESS",
+        "duration": "10.16s",
+        "parsed_name": "NGUYEN TUAN KIET",
+        "skills_count": 9,
+        "detail_file": "detailed_results\\2. The Overlapper_parsed.json",
+        "error_detail": ""
+    },
+    {
+        "filename": "3. Tech Jargon.pdf",
+        "status": "SUCCESS",
+        "duration": "14.18s",
+        "parsed_name": "NGUYEN TUAN KIET",
+        "skills_count": 9,
+        "detail_file": "detailed_results\\3. Tech Jargon_parsed.json",
+        "error_detail": ""
+    },
+    {
+        "filename": "4. Career Shifter.pdf",
+        "status": "SUCCESS",
+        "duration": "18.22s",
+        "parsed_name": "NGUYEN TUAN KIET",
+        "skills_count": 9,
+        "detail_file": "detailed_results\\4. Career Shifter_parsed.json",
+        "error_detail": ""
+    },
+    {
+        "filename": "5. Messy Format.pdf",
+        "status": "SUCCESS",
+        "duration": "12.16s",
+        "parsed_name": "NGUYEN TUAN KIET",
+        "skills_count": 9,
+        "detail_file": "detailed_results\\5. Messy Format_parsed.json",
+        "error_detail": ""
+    }
+]
