@@ -133,7 +133,7 @@ class JobFullImport(BaseModel):
     has_insurance: bool = False
     has_13th_month: bool = False
     remote_friendly: bool = False
-    extracted_requirements_json: Optional[dict] = None
+    extracted_requirements_json: Optional[List[dict]] = None
 
 
 class JobFullImportBulk(BaseModel):
@@ -169,7 +169,7 @@ class JobExport(BaseModel):
     remote_friendly: bool = False
     indexed_at: Optional[datetime] = None
     last_analyzed_at: Optional[datetime] = None
-    extracted_requirements_json: Optional[dict] = None
+    extracted_requirements_json: Optional[List[dict]] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
