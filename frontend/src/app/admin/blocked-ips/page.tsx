@@ -118,9 +118,8 @@ const BlockedIPsPage = () => {
     <AuthGuard requireAdmin>
       <PageContainer>
         <PageHeader
-          title="Blocked IP Management"
-          description="Manage and monitor blocked IP addresses"
-          icon={<Shield className={styles.headerIcon} />}
+          title={<><Shield className={styles.headerIcon} /> Blocked IP Management</>}
+          subtitle="Manage and monitor blocked IP addresses"
         />
 
         {/* Actions Bar */}
