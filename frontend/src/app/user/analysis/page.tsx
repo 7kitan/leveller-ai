@@ -234,6 +234,20 @@ function AnalysisPageContent() {
 
       const resp = await api.post("analysis/gap", payload);
 
+      // Check if result is cached (no task_id needed)
+      if (resp.data.status === "cached" && resp.data.result) {
+        console.log(`[ANALYSIS] ✅ Cache hit — using cached result`);
+        setProgress(100);
+        setCurrentStep(3);
+        try {
+          sessionStorage.setItem("gap_analysis_result", JSON.stringify(resp.data.result));
+        } catch {}
+        setPhase("completed");
+        setTimeout(() => router.push("/user/recommend"), 1200);
+        return;
+      }
+
+      // Normal flow: poll task status
       const tid = resp.data.task_id as string;
       setTaskId(tid);
       console.log(`[ANALYSIS] Task dispatched — task_id=${tid}`);
