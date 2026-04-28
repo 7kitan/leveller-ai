@@ -51,7 +51,7 @@ export default function JobsPage() {
   const [location, setLocation] = useState("");
   const [minSalary, setMinSalary] = useState("");
   const [role, setRole] = useState("");
-  const { token } = useAuth();
+  const { user } = useAuth();
 
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);

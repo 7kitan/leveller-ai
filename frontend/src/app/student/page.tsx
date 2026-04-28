@@ -328,12 +328,12 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [simData, setSimData] = useState<any>(null);
   const [simulating, setSimulating] = useState(false);
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const { t, language } = useLanguage();
 
   useEffect(() => {
     const fetchLatestAnalysis = async () => {
-      if (!token || !user) return;
+      if (!user || !user) return;
       
       try {
         const response = await api.get("analysis/user/latest");
@@ -351,10 +351,10 @@ const StudentDashboard = () => {
     };
 
     fetchLatestAnalysis();
-  }, [token, user]);
+  }, [ user]);
 
   const handleSimulate = async (courseId: string) => {
-    if (!analysis || !token || !user) return;
+    if (!analysis || !user || !user) return;
     setSimulating(true);
     try {
       const cv_id = analysis.cv_id || analysis.cv_parsed_json?.id;

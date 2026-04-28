@@ -22,7 +22,7 @@ echo ""
 PY=""
 for candidate in python3 python py; do
     if `$candidate --version > /dev/null 2>&1; then
-        PY_VER=`$`($candidate -c "import sys; print(sys.version_info[0])" 2>/dev/null)
+        PY_VER=`$`(`$candidate -c "import sys; print(sys.version_info[0])" 2>/dev/null)
         if [ "`$PY_VER" = "3" ]; then
             PY="`$candidate"
             break

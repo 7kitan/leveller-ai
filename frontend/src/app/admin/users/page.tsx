@@ -42,7 +42,7 @@ interface AdminUser {
 }
 
 const AdminUsersPage = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +65,7 @@ const AdminUsersPage = () => {
   const [pageSize] = useState(10);
 
   const fetchUsers = async (page = 1) => {
-    if (!token) return;
+    if (!user) return;
     try {
       setLoading(true);
       const offset = (page - 1) * pageSize;
@@ -85,13 +85,13 @@ const AdminUsersPage = () => {
   };
 
   useEffect(() => {
-    if (token) fetchUsers(1);
-  }, [token]);
+    if (user) fetchUsers(1);
+  }, [user]);
 
   // Handle search resets pagination
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (token) fetchUsers(1);
+      if (user) fetchUsers(1);
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
@@ -124,7 +124,7 @@ const AdminUsersPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (!user) return;
     setSubmitting(true);
 
     try {
@@ -169,7 +169,7 @@ const AdminUsersPage = () => {
   };
 
   const handleDelete = async () => {
-    if (!userToDelete || !token) return;
+    if (!userToDelete || !user) return;
     setSubmitting(true);
 
     try {
@@ -317,16 +317,9 @@ const AdminUsersPage = () => {
                        <div className={styles.actionBtnGroup}>
                           <button 
                             onClick={async () => {
-                              if (!token) return;
-                              const res = await fetch(`/auth/admin/users/${user.id}`, {
-                                method: "PATCH",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                  "Authorization": `Bearer ${token}`
-                                },
-                                body: JSON.stringify({ is_active: !user.is_active })
-                              });
-                              if (res.ok) {
+                              if (!user) return;
+                              const res = await api.patch(`/auth/admin/users/${user.id}`, { is_active: !user.is_active });
+                              if (res.status === 200 || res.status === 204) {
                                 toast.success(user.is_active ? t("admin_users_status_banned") : t("admin_users_status_active"));
                                 fetchUsers(currentPage);
                               } else {

@@ -10,7 +10,7 @@ import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 
 export default function ProfilePage() {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
   const [profile, setProfile] = useState({
     email: "",
@@ -29,10 +29,10 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetchProfile();
-  }, [token]);
+  }, [user]);
 
   const fetchProfile = async () => {
-    if (!token) return;
+    if (!user) return;
     try {
       setIsLoading(true);
       const res = await api.get("auth/me");

@@ -10,6 +10,7 @@ from typing import List, Optional
 import uuid
 import logging
 import os
+import struct
 from datetime import datetime
 from worker.celery_app import celery_app
 from celery.result import AsyncResult
@@ -638,20 +639,56 @@ async def admin_bulk_create_courses(
 
 
 @app.get("/recommend/admin/courses/export")
+@app.get("/recommend/admin/export-info")
+def get_export_info(request: Request, db: Session = Depends(get_db)):
+    """
+    Admin only: Get export information for planning.
+    
+    Returns total count and recommendations for splitting into parts.
+    """
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    
+    total = db.query(Course).filter(Course.is_active == True).count()
+    
+    # Estimate size (rough calculation)
+    # Average course: ~8KB (text + vector)
+    avg_size_kb = 8
+    total_size_mb = (total * avg_size_kb) / 1024
+    
+    # Recommend parts to keep each part under 20MB
+    max_size_per_part_mb = 20
+    recommended_parts = max(1, int(total_size_mb / max_size_per_part_mb) + 1)
+    recommended_per_part = total // recommended_parts if recommended_parts > 0 else total
+    
+    return {
+        "total_courses": total,
+        "recommended_parts": recommended_parts,
+        "recommended_per_part": recommended_per_part,
+        "estimated_total_size_mb": round(total_size_mb, 2),
+        "estimated_size_per_part_mb": round(total_size_mb / recommended_parts, 2) if recommended_parts > 0 else 0
+    }
+
+
+@app.get("/recommend/admin/export")
 async def admin_export_courses(
     request: Request, 
     db: Session = Depends(get_db),
-    limit: Optional[int] = Query(None, ge=1, le=10000),
-    offset: int = Query(0, ge=0)
+    limit: int = Query(2000, ge=1, le=5000, description="Number of courses per part"),
+    offset: int = Query(0, ge=0, description="Starting position"),
+    part: Optional[int] = Query(None, description="Part number (for reference)")
 ):
-    """Admin only: Export all courses with vectors for backup/migration."""
+    """
+    Admin only: Export courses with vectors for backup/migration.
+    
+    Use /recommender/admin/export-info first to plan your export.
+    Supports pagination for splitting large exports into parts.
+    """
     if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
-    query = db.query(Course).filter(Course.is_active == True)
-    
-    if limit:
-        query = query.limit(limit).offset(offset)
+    total = db.query(Course).filter(Course.is_active == True).count()
+    query = db.query(Course).filter(Course.is_active == True).limit(limit).offset(offset)
     
     courses = query.all()
     
@@ -664,12 +701,40 @@ async def admin_export_courses(
         elif isinstance(course.vector, list):
             vector_list = course.vector
         elif hasattr(course.vector, 'tolist'):
+            # numpy array or similar
             vector_list = course.vector.tolist()
+        elif isinstance(course.vector, memoryview):
+            # pgvector often returns memoryview
+            try:
+                import struct
+                # Convert memoryview to bytes, then unpack as floats
+                vector_bytes = bytes(course.vector)
+                vector_list = list(struct.unpack(f'{len(vector_bytes)//4}f', vector_bytes))
+            except Exception as e:
+                logging.error(f"Failed to convert memoryview vector for course {course.id}: {e}")
+                vector_list = []
+        elif isinstance(course.vector, bytes):
+            # Handle bytes representation
+            try:
+                import struct
+                vector_list = list(struct.unpack(f'{len(course.vector)//4}f', course.vector))
+            except Exception as e:
+                logging.error(f"Failed to convert bytes vector for course {course.id}: {e}")
+                vector_list = []
+        elif isinstance(course.vector, str):
+            # Handle string representation like "[1.0, 2.0, 3.0]"
+            try:
+                import json
+                vector_list = json.loads(course.vector)
+            except Exception as e:
+                logging.error(f"Failed to parse string vector for course {course.id}: {e}")
+                vector_list = []
         else:
-            # For pgvector types, convert to string then parse or use direct conversion
+            # Last resort: try iteration
             try:
                 vector_list = [float(x) for x in course.vector]
-            except (TypeError, ValueError):
+            except (TypeError, ValueError) as e:
+                logging.error(f"Failed to convert vector for course {course.id} (type: {type(course.vector)}): {e}")
                 vector_list = []
         
         export_data.append({
@@ -705,9 +770,13 @@ async def admin_export_courses(
         "courses": export_data,
         "metadata": {
             "exported_at": datetime.utcnow().isoformat(),
-            "total_exported": len(export_data),
+            "total_available": total,
             "offset": offset,
-            "limit": limit
+            "limit": limit,
+            "part": part,
+            "has_more": (offset + limit) < total,
+            "next_offset": offset + limit if (offset + limit) < total else None,
+            "total_exported": len(export_data)
         }
     }
 

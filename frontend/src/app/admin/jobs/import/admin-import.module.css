@@ -54,6 +54,176 @@
   transform: translateX(-2px);
 }
 
+/* Export Modal Styles */
+.exportModalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.exportInfoBox {
+  background-color: rgba(31, 41, 55, 0.8);
+  border: 1px solid rgba(75, 85, 99, 0.5);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.exportInfoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.exportInfoLabel {
+  color: rgb(209, 213, 219);
+}
+
+.exportInfoValue {
+  color: white;
+  font-weight: 600;
+}
+
+.exportInfoValueHighlight {
+  color: rgb(52, 211, 153);
+  font-weight: 600;
+}
+
+.exportInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.exportInputLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(229, 231, 235);
+}
+
+.exportInput {
+  width: 100%;
+  background-color: rgb(31, 41, 55);
+  border: 1px solid rgb(75, 85, 99);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 1rem;
+  color: white;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.exportInput:focus {
+  outline: none;
+  border-color: rgb(16, 185, 129);
+  box-shadow: 0 0 0 1px rgb(16, 185, 129);
+}
+
+.exportInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.exportInputHint {
+  font-size: 0.75rem;
+  color: rgb(156, 163, 175);
+  margin-top: 0.5rem;
+}
+
+.exportProgressBox {
+  background-color: rgba(31, 41, 55, 0.8);
+  border: 1px solid rgba(75, 85, 99, 0.5);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}
+
+.exportProgressHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.exportProgressLabel {
+  font-size: 0.875rem;
+  color: rgb(209, 213, 219);
+}
+
+.exportProgressValue {
+  font-size: 0.875rem;
+  color: white;
+  font-weight: 600;
+}
+
+.exportProgressBar {
+  width: 100%;
+  background-color: rgb(55, 65, 81);
+  border-radius: 9999px;
+  height: 0.5rem;
+  overflow: hidden;
+}
+
+.exportProgressFill {
+  background-color: rgb(16, 185, 129);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.exportModalActions {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.exportModalBtnCancel {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  background-color: rgb(55, 65, 81);
+  color: white;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.exportModalBtnCancel:hover:not(:disabled) {
+  background-color: rgb(75, 85, 99);
+}
+
+.exportModalBtnCancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.exportModalBtnExport {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  background-color: rgb(16, 185, 129);
+  color: white;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.exportModalBtnExport:hover:not(:disabled) {
+  background-color: rgb(5, 150, 105);
+}
+
+.exportModalBtnExport:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .importContainer {
   display: flex;
   flex-direction: column;

@@ -1,0 +1,326 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # ============================================================================
+  # Job 1: Validate PR
+  # ============================================================================
+  validate:
+    name: Validate PR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check PR title format
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          
+          # Check if title follows conventional commits format
+          if ! echo "$PR_TITLE" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|chore|ci|build)(\(.+\))?: .+'; then
+            echo "❌ PR title must follow conventional commits format"
+            echo "Examples:"
+            echo "  feat: add new feature"
+            echo "  fix: resolve bug in vector export"
+            echo "  docs: update CI/CD guide"
+            exit 1
+          fi
+          
+          echo "✓ PR title format is valid"
+
+      - name: Check PR description
+        run: |
+          PR_BODY="${{ github.event.pull_request.body }}"
+          
+          if [ -z "$PR_BODY" ]; then
+            echo "❌ PR description is required"
+            echo "Please add:"
+            echo "  - Summary of changes"
+            echo "  - List of changed files"
+            exit 1
+          fi
+          
+          echo "✓ PR description exists"
+
+  # ============================================================================
+  # Job 2: Code Quality
+  # ============================================================================
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install linting tools
+        run: |
+          pip install black isort flake8 pylint
+
+      - name: Run Black
+        run: |
+          black --check --diff . || {
+            echo "❌ Code formatting issues found"
+            echo "Run: black ."
+            exit 1
+          }
+
+      - name: Run isort
+        run: |
+          isort --check-only --diff . || {
+            echo "❌ Import sorting issues found"
+            echo "Run: isort ."
+            exit 1
+          }
+
+      - name: Run Flake8
+        run: flake8 . --count --statistics --max-line-length=120
+
+      - name: Comment on PR with lint results
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ **Code quality checks failed**\n\nPlease run:\n```bash\nblack .\nisort .\nflake8 .\n```'
+            })
+
+  # ============================================================================
+  # Job 3: Security Scan
+  # ============================================================================
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install security tools
+        run: pip install bandit safety
+
+      - name: Run Bandit (security linter)
+        run: bandit -r . -f json -o bandit-report.json || true
+
+      - name: Check for known vulnerabilities
+        run: |
+          pip install -r requirements.txt
+          safety check --json || true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+
+  # ============================================================================
+  # Job 4: Run Tests
+  # ============================================================================
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: ankane/pgvector:v0.5.1
+        env:
+          POSTGRES_DB: career_advisor_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev libmagic1 poppler-utils
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt pytest pytest-cov
+
+      - name: Run migrations
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_DB: career_advisor_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          REDIS_HOST: localhost
+        run: python scripts/run_migrations.py
+
+      - name: Run tests with coverage
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_DB: career_advisor_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          REDIS_HOST: localhost
+          PYTHONPATH: .
+        run: |
+          pytest tests/ -v --tb=short --cov=. --cov-report=xml --cov-report=html
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
+
+      - name: Comment coverage on PR
+        uses: py-cov-action/python-coverage-comment-action@v3
+        if: always()
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  # ============================================================================
+  # Job 5: Check AI Logging Setup
+  # ============================================================================
+  check-ai-logging:
+    name: Verify AI Logging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check setup_hooks.sh exists
+        run: |
+          if [ ! -f "scripts/setup_hooks.sh" ]; then
+            echo "❌ scripts/setup_hooks.sh not found"
+            exit 1
+          fi
+          echo "✓ setup_hooks.sh exists"
+
+      - name: Check .ai-log is gitignored
+        run: |
+          if ! grep -q "^\.ai-log" .gitignore 2>/dev/null; then
+            echo "❌ .ai-log/ should be in .gitignore"
+            exit 1
+          fi
+          echo "✓ .ai-log is properly gitignored"
+
+      - name: Verify AGENTS.md compliance
+        run: |
+          if [ ! -f "AGENTS.md" ]; then
+            echo "⚠️  AGENTS.md not found"
+            exit 0
+          fi
+          echo "✓ AGENTS.md exists"
+
+  # ============================================================================
+  # Job 6: Build Test (no push)
+  # ============================================================================
+  build-test:
+    name: Test Docker Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: [service, worker]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (no push)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.${{ matrix.image }}
+          push: false
+          tags: test-${{ matrix.image }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================================================
+  # Job 7: Summary
+  # ============================================================================
+  summary:
+    name: PR Check Summary
+    runs-on: ubuntu-latest
+    needs: [validate, lint, security, test, check-ai-logging, build-test]
+    if: always()
+    steps:
+      - name: Check all jobs status
+        run: |
+          echo "## PR Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.validate.result }}" == "success" ]; then
+            echo "✅ Validation: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Validation: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.lint.result }}" == "success" ]; then
+            echo "✅ Code Quality: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Code Quality: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.security.result }}" == "success" ]; then
+            echo "✅ Security: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️  Security: Check reports" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.test.result }}" == "success" ]; then
+            echo "✅ Tests: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Tests: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.check-ai-logging.result }}" == "success" ]; then
+            echo "✅ AI Logging: Compliant" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ AI Logging: Non-compliant" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.build-test.result }}" == "success" ]; then
+            echo "✅ Docker Build: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Docker Build: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail if any required check failed
+        if: |
+          needs.validate.result != 'success' ||
+          needs.lint.result != 'success' ||
+          needs.test.result != 'success' ||
+          needs.build-test.result != 'success'
+        run: exit 1

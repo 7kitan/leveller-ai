@@ -15,8 +15,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
-  login: (token: string, user: User) => void;
+  login: (user: User, token: string) => void;
   logout: () => void;
   loading: boolean;
   maintenanceMode: boolean;
@@ -27,7 +26,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [maintenanceDuration, setMaintenanceDuration] = useState("");
@@ -73,16 +71,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // 2. Initialize Auth & Detect Maintenance
   useEffect(() => {
     const initializeAuth = async () => {
+      const storedUser = typeof window !== 'undefined' ? localStorage.getItem("auth_user") : null;
       const storedToken = typeof window !== 'undefined' ? localStorage.getItem("auth_token") : null;
       
-      if (!storedToken) {
+      if (!storedUser || !storedToken) {
         setLoading(false);
         return;
       }
 
       try {
-        // Verify token with backend - retrieves user data AND maintenance status
-        // Token is sent via Authorization header automatically by api client
+        // Verify token with backend - Authorization header is automatically added by api interceptor
         const res = await api.get("auth/me", {
           timeout: 8000 
         });
@@ -90,7 +88,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (res.data) {
           const userData = res.data;
           setUser(userData);
-          setToken(storedToken);
           setMaintenanceMode(res.data.MAINTENANCE_MODE || false);
           setMaintenanceDuration(res.data.MAINTENANCE_DURATION || "");
           localStorage.setItem("auth_user", JSON.stringify(userData));
@@ -110,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setMaintenanceMode(true);
         } else {
           console.error("Session verification failed:", e.message);
-          // If token is invalid or server is slow, clear everything and allow access to public pages
+          // If token is invalid or server error, clear everything
           logout();
         }
       } finally {
@@ -121,22 +118,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initializeAuth();
   }, []);
 
-  const login = (newToken: string, userData: User) => {
-    setToken(newToken);
+  const login = (userData: User, token: string) => {
     setUser(userData);
-    localStorage.setItem("auth_token", newToken);
     localStorage.setItem("auth_user", JSON.stringify(userData));
+    localStorage.setItem("auth_token", token);
   };
 
-  const logout = () => {
-    setToken(null);
+  const logout = async () => {
+    try {
+      // Authorization header will be automatically added by api interceptor
+      await api.post("auth/logout");
+    } catch (e) {
+      console.error("Logout error", e);
+    }
     setUser(null);
-    localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
+    localStorage.removeItem("auth_token");
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading, maintenanceMode, maintenanceDuration }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, maintenanceMode, maintenanceDuration }}>
       {children}
     </AuthContext.Provider>
   );

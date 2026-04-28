@@ -60,7 +60,7 @@ interface SystemSetting {
 }
 
 const AdminJobsPage = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
   const { confirm, showSuccess, showError } = useAlert();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -145,16 +145,16 @@ const AdminJobsPage = () => {
   };
 
   useEffect(() => {
-    if (token) {
+    if (user) {
       fetchJobs(1);
       fetchSettings();
     }
-  }, [token]);
+  }, [user]);
 
   // Handle search resets pagination
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (token) fetchJobs(1);
+      if (user) fetchJobs(1);
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
@@ -275,7 +275,7 @@ const AdminJobsPage = () => {
     
     setIsLoading(true);
     try {
-      await api.post("jd/admin/crawl", {});
+      await api.post("jd/admin/crawl");
       showSuccess(t("admin_jobs_crawl_success"));
       setTimeout(() => fetchJobs(), 3000);
     } catch (err) {

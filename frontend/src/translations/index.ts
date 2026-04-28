@@ -542,7 +542,7 @@ export const translations = {
     admin_dash_module_jobs_title: "Job Portal",
     admin_dash_module_jobs_desc: "Quản trị tin tuyển dụng, trạng thái và cập nhật thị trường.",
     admin_dash_module_ai_usage_title: "Giám sát AI",
-    admin_dash_module_ai_usage_desc: "Theo dõi lượng token, hiệu suất model và chi phí.",
+    admin_dash_module_ai_usage_desc: "Theo dõi lượng  hiệu suất model và chi phí.",
     admin_dash_module_system_logs_title: "Log hệ thống",
     admin_dash_module_system_logs_desc: "Xem các sự kiện hệ thống, lỗi và nhật ký kiểm tra.",
     admin_dash_module_courses_title: "Course Catalog",

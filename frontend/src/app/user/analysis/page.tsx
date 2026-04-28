@@ -68,7 +68,7 @@ function detectStep(pct: number): number {
 function AnalysisPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { language, t } = useLanguage();
   
   const initialJobId = searchParams.get("job_id");
@@ -151,7 +151,7 @@ function AnalysisPageContent() {
 
   /* -- Load CVs ------------------------------------------------------- */
   useEffect(() => {
-    if (!token) return;
+    if (!user) return;
     api
       .get("/cv/list")
       .then((r) => {
@@ -160,17 +160,17 @@ function AnalysisPageContent() {
         if (done.length > 0) setSelectedCvId(done[0].id);
       })
       .catch((e) => console.error("[ANALYSIS] load CVs:", e));
-  }, [token]);
+  }, [user]);
 
   /* -- Search jobs when switching to select mode --------------------- */
   useEffect(() => {
-    if (jdMode !== "select" || !token) return;
+    if (jdMode !== "select" || !user) return;
     const t = setTimeout(() => searchJobs(jobSearch), 400);
     return () => clearTimeout(t);
-  }, [jobSearch, jdMode, token]);
+  }, [jobSearch, jdMode]);
 
   const searchJobs = (q: string) => {
-    if (!token) return;
+    if (!user) return;
     setSearchingJobs(true);
     api
       .get("/jd/search", {
@@ -340,7 +340,7 @@ function AnalysisPageContent() {
 
   /* -- Point 4: Graceful Cancellation ----------------------------- */
   const handleCancel = async () => {
-    if (!taskId || !token) return;
+    if (!taskId || !user) return;
     try {
       await api.delete(`analysis/status/${taskId}`);
       console.log(`[ANALYSIS] Revoke request sent — task_id=${taskId}`);
@@ -354,9 +354,9 @@ function AnalysisPageContent() {
   /* -- Point 2: Leave & Return (Notification) --------------------- */
   const [notified, setNotified] = useState(false);
   const handleNotify = async () => {
-    if (!taskId || !token) return;
+    if (!taskId || !user) return;
     try {
-      await api.post(`analysis/notify/${taskId}`, {});
+      await api.post(`analysis/notify/${taskId}`);
       setNotified(true);
     } catch (err) {
       console.error("[ANALYSIS] Notify failed:", err);

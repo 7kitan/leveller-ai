@@ -558,6 +558,215 @@ def admin_verify_all_youtube_videos(request: Request):
     )
 
 
+# ============================================================================
+# IP Block Management Endpoints
+# ============================================================================
+
+class BlockedIPInfo(BaseModel):
+    """Schema for blocked IP information"""
+    ip_address: str
+    ttl_seconds: int
+    blocked_at: Optional[str] = None
+    attempts: Optional[int] = None
+
+class UnblockIPRequest(BaseModel):
+    """Schema for unblock IP request"""
+    ip_address: str
+
+@app.get("/admin/blocked-ips")
+def get_blocked_ips(request: Request):
+    """
+    Admin only: Get list of all blocked IP addresses.
+    
+    Returns list of IPs that are currently locked out due to failed login attempts.
+    """
+    require_admin(request)
+    
+    try:
+        # Get all lockout keys from Redis
+        lockout_pattern = "lockout:*"
+        blocked_ips = []
+        
+        # Scan for all lockout keys
+        cursor = 0
+        while True:
+            cursor, keys = auth_cache.scan(cursor, match=lockout_pattern, count=100)
+            
+            for key in keys:
+                # Extract IP from key (format: "lockout:192.168.1.1")
+                if isinstance(key, bytes):
+                    key = key.decode('utf-8')
+                
+                ip_address = key.replace("lockout:", "")
+                
+                # Get TTL (time to live) for this block
+                ttl = auth_cache.ttl(key)
+                
+                # Get login attempts count if available
+                attempt_key = f"login_attempts_ip:{ip_address}"
+                attempts = auth_cache.get(attempt_key)
+                if attempts:
+                    attempts = int(attempts) if isinstance(attempts, (str, bytes)) else attempts
+                
+                blocked_ips.append({
+                    "ip_address": ip_address,
+                    "ttl_seconds": ttl if ttl > 0 else 0,
+                    "ttl_hours": round(ttl / 3600, 2) if ttl > 0 else 0,
+                    "attempts": attempts,
+                    "expires_in": f"{ttl // 3600}h {(ttl % 3600) // 60}m" if ttl > 0 else "Expired"
+                })
+            
+            if cursor == 0:
+                break
+        
+        logger.info(f"[ADMIN] Listed {len(blocked_ips)} blocked IPs")
+        
+        return {
+            "total": len(blocked_ips),
+            "blocked_ips": sorted(blocked_ips, key=lambda x: x['ttl_seconds'], reverse=True)
+        }
+        
+    except Exception as e:
+        logger.error(f"[ADMIN] Failed to get blocked IPs: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve blocked IPs: {str(e)}")
+
+
+@app.post("/admin/unblock-ip")
+def unblock_ip(request: Request, data: UnblockIPRequest):
+    """
+    Admin only: Unblock a specific IP address.
+    
+    Removes lockout and clears login attempt counters for the specified IP.
+    """
+    require_admin(request)
+    
+    ip_address = data.ip_address
+    
+    try:
+        # Delete lockout key
+        lockout_key = f"lockout:{ip_address}"
+        deleted_lockout = auth_cache.delete(lockout_key)
+        
+        # Delete login attempts counter
+        attempt_key = f"login_attempts_ip:{ip_address}"
+        deleted_attempts = auth_cache.delete(attempt_key)
+        
+        # Also check for email-based attempts (optional cleanup)
+        # Note: We can't easily map IP to email, so we skip this
+        
+        logger.info(f"[ADMIN] Unblocked IP {ip_address} by admin {request.headers.get('X-User-Email')}")
+        
+        return {
+            "message": f"IP {ip_address} has been unblocked",
+            "ip_address": ip_address,
+            "lockout_removed": bool(deleted_lockout),
+            "attempts_cleared": bool(deleted_attempts),
+            "status": "success"
+        }
+        
+    except Exception as e:
+        logger.error(f"[ADMIN] Failed to unblock IP {ip_address}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to unblock IP: {str(e)}")
+
+
+@app.delete("/admin/blocked-ips")
+def clear_all_blocked_ips(request: Request):
+    """
+    Admin only: Clear ALL blocked IP addresses.
+    
+    WARNING: This will unblock all IPs that are currently locked out.
+    Use with caution in production.
+    """
+    require_admin(request)
+    
+    try:
+        # Get all lockout keys
+        lockout_pattern = "lockout:*"
+        attempt_pattern = "login_attempts_ip:*"
+        
+        deleted_lockouts = 0
+        deleted_attempts = 0
+        
+        # Delete all lockout keys
+        cursor = 0
+        while True:
+            cursor, keys = auth_cache.scan(cursor, match=lockout_pattern, count=100)
+            if keys:
+                deleted_lockouts += auth_cache.delete(*keys)
+            if cursor == 0:
+                break
+        
+        # Delete all IP-based attempt counters
+        cursor = 0
+        while True:
+            cursor, keys = auth_cache.scan(cursor, match=attempt_pattern, count=100)
+            if keys:
+                deleted_attempts += auth_cache.delete(*keys)
+            if cursor == 0:
+                break
+        
+        logger.warning(f"[ADMIN] Cleared ALL blocked IPs ({deleted_lockouts} lockouts, {deleted_attempts} attempts) by admin {request.headers.get('X-User-Email')}")
+        
+        return {
+            "message": "All blocked IPs have been cleared",
+            "lockouts_removed": deleted_lockouts,
+            "attempts_cleared": deleted_attempts,
+            "status": "success"
+        }
+        
+    except Exception as e:
+        logger.error(f"[ADMIN] Failed to clear all blocked IPs: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to clear blocked IPs: {str(e)}")
+
+
+@app.get("/admin/ip-status/{ip_address}")
+def check_ip_status(request: Request, ip_address: str):
+    """
+    Admin only: Check the status of a specific IP address.
+    
+    Returns whether the IP is blocked, number of failed attempts, and TTL.
+    """
+    require_admin(request)
+    
+    try:
+        lockout_key = f"lockout:{ip_address}"
+        attempt_key = f"login_attempts_ip:{ip_address}"
+        
+        # Check if IP is blocked
+        is_blocked = auth_cache.exists(lockout_key)
+        
+        # Get TTL if blocked
+        ttl = auth_cache.ttl(lockout_key) if is_blocked else 0
+        
+        # Get attempt count
+        attempts = auth_cache.get(attempt_key)
+        if attempts:
+            attempts = int(attempts) if isinstance(attempts, (str, bytes)) else attempts
+        else:
+            attempts = 0
+        
+        # Get attempt TTL
+        attempt_ttl = auth_cache.ttl(attempt_key) if attempts > 0 else 0
+        
+        status = {
+            "ip_address": ip_address,
+            "is_blocked": bool(is_blocked),
+            "failed_attempts": attempts,
+            "lockout_ttl_seconds": ttl if ttl > 0 else 0,
+            "lockout_expires_in": f"{ttl // 3600}h {(ttl % 3600) // 60}m" if ttl > 0 else "Not blocked",
+            "attempts_ttl_seconds": attempt_ttl if attempt_ttl > 0 else 0,
+            "attempts_reset_in": f"{attempt_ttl // 60}m {attempt_ttl % 60}s" if attempt_ttl > 0 else "No attempts"
+        }
+        
+        logger.info(f"[ADMIN] Checked IP status for {ip_address}: blocked={is_blocked}, attempts={attempts}")
+        
+        return status
+        
+    except Exception as e:
+        logger.error(f"[ADMIN] Failed to check IP status for {ip_address}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to check IP status: {str(e)}")
+
+
 @app.get("/admin/health")
 def health_check():
     return {"status": "ok", "service": "admin_service"}

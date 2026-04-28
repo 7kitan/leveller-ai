@@ -144,6 +144,14 @@ async def course_recommendation_llm_node(
             domain = "web-development"
         elif "mobile" in category or "android" in category or "ios" in category:
             domain = "mobile"
+        elif "domain" in category:
+            domain = "domain-knowledge"
+        elif "soft" in category:
+            domain = "soft-skills"
+        elif "cert" in category:
+            domain = "certifications"
+        else:
+            domain = "programming" # Default to programming if none match
         
         v_results = await youtube_service.search_and_cache(
             query=f"{skill_name} {level_name}",

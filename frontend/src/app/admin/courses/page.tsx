@@ -108,7 +108,7 @@ const TagInput = ({ tags, setTags, placeholder }: { tags: string[], setTags: (ta
 };
 
 const AdminCoursesPage = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
   const { confirm, showSuccess, showError } = useAlert();
   const [courses, setCourses] = useState<Course[]>([]);
@@ -167,13 +167,13 @@ const AdminCoursesPage = () => {
   };
 
   useEffect(() => {
-    if (token) fetchCourses(1);
-  }, [token]);
+    if (user) fetchCourses(1);
+  }, [user]);
 
   // Handle search with debounce ideally, but for now reset page
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (token) fetchCourses(1);
+      if (user) fetchCourses(1);
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);

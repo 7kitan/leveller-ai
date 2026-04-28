@@ -43,7 +43,7 @@ interface YouTubeCourse {
 }
 
 const AdminYouTubePage = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
   const [courses, setCourses] = useState<YouTubeCourse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +62,7 @@ const AdminYouTubePage = () => {
   const [pageSize] = useState(10);
 
   const fetchYouTubeCache = async (page = 1) => {
-    if (!token) return;
+    if (!user) return;
     try {
       setLoading(true);
       const offset = (page - 1) * pageSize;
@@ -84,13 +84,13 @@ const AdminYouTubePage = () => {
   };
 
   useEffect(() => {
-    if (token) fetchYouTubeCache(1);
-  }, [token]);
+    if (user) fetchYouTubeCache(1);
+  }, [user]);
 
   // Handle search resets pagination
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (token) fetchYouTubeCache(1);
+      if (user) fetchYouTubeCache(1);
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
@@ -106,7 +106,7 @@ const AdminYouTubePage = () => {
   };
 
   const handleDelete = async () => {
-    if (!videoToDelete || !token) return;
+    if (!videoToDelete || !user) return;
     setSubmitting(true);
 
     try {
@@ -125,10 +125,10 @@ const AdminYouTubePage = () => {
   };
 
   const handleVerifyAll = async () => {
-    if (!token) return;
+    if (!user) return;
     try {
       setSubmitting(true);
-      const res = await api.post("admin/youtube/verify-all", {});
+      const res = await api.post("admin/youtube/verify-all");
       toast.success(t("admin_youtube_verify_success"));
     } catch (err) {
       toast.error(t("admin_youtube_verify_error"));

@@ -27,7 +27,7 @@ import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 
 const AdminDashboard = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
   const [stats, setStats] = useState({
     users: 0,
@@ -45,8 +45,8 @@ const AdminDashboard = () => {
         console.error("Fetch stats error:", err);
       }
     };
-    if (token) fetchStats();
-  }, [token]);
+    if (user) fetchStats();
+  }, [user]);
 
   const dashboardModules = [
     { 

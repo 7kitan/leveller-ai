@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 # JWT Config - NO DEFAULT VALUES FOR SECURITY
 SECRET_KEY = os.getenv("JWT_SECRET")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "10080"))  # 7 days default
 ACCESS_TOKEN_EXPIRE_SECONDS = ACCESS_TOKEN_EXPIRE_MINUTES * 60
 
 # SECURITY: Enforce JWT secret in ALL environments
@@ -79,18 +79,49 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """
+    Create a short-lived access token (default: 15 minutes).
+    
+    Args:
+        data: Token payload (user_id, email, role)
+        expires_delta: Optional custom expiration time
+        
+    Returns:
+        str: Encoded JWT token
+    """
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
+    
+    to_encode.update({
+        "exp": expire,
+        "type": "access",  # Token type for validation
+        "iat": datetime.now(timezone.utc)  # Issued at
+    })
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 def decode_access_token(token: str):
+    """
+    Decode and validate an access token.
+    
+    Args:
+        token: JWT token string
+        
+    Returns:
+        dict: Token payload if valid, None otherwise
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        
+        # Validate token type
+        if payload.get("type") != "access":
+            logger.warning("Token type mismatch: expected 'access', got '%s'", payload.get("type"))
+            return None
+            
         return payload
-    except JWTError:
+    except JWTError as e:
+        logger.debug("JWT decode failed: %s", str(e))
         return None

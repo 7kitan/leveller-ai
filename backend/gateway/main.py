@@ -218,18 +218,33 @@ async def proxy(service_name: str, path: str, request: Request):
     
     # SECURITY: Forward real client IP to backend services
     # This is critical for rate limiting, login attempts tracking, and audit logs
-    client_ip = request.client.host if request.client else "unknown"
     
-    # Check if there's already an X-Forwarded-For header (from upstream proxy)
-    if "x-forwarded-for" in headers:
-        # Append our client IP to the chain
-        headers["X-Forwarded-For"] = f"{headers['x-forwarded-for']}, {client_ip}"
+    # Determine the real client IP, handling proxy chains properly
+    real_client_ip = None
+    
+    # If we're behind another proxy (Cloudflare, Nginx), trust X-Real-IP or X-Forwarded-For
+    if "x-real-ip" in headers:
+        # X-Real-IP from upstream proxy (most reliable if set by trusted proxy)
+        real_client_ip = headers["x-real-ip"]
+    elif "x-forwarded-for" in headers:
+        # X-Forwarded-For contains chain of IPs, first one is the original client
+        forwarded_ips = headers["x-forwarded-for"].split(",")
+        real_client_ip = forwarded_ips[0].strip()
     else:
-        # Start the X-Forwarded-For chain
-        headers["X-Forwarded-For"] = client_ip
+        # No proxy headers, use direct connection IP
+        real_client_ip = request.client.host if request.client else "unknown"
     
-    # Set X-Real-IP to the direct client (most reliable for our use case)
-    headers["X-Real-IP"] = client_ip
+    # Build X-Forwarded-For chain
+    direct_client = request.client.host if request.client else "unknown"
+    if "x-forwarded-for" in headers:
+        # Append our direct client to the existing chain
+        headers["X-Forwarded-For"] = f"{headers['x-forwarded-for']}, {direct_client}"
+    else:
+        # Start the chain with direct client
+        headers["X-Forwarded-For"] = direct_client
+    
+    # Set X-Real-IP to the actual client (first IP in proxy chain)
+    headers["X-Real-IP"] = real_client_ip
     
     # Xóa các hop-by-hop headers (không được forward qua proxy)
     # Những headers này chỉ có ý nghĩa giữa client-gateway, không phải gateway-service
@@ -271,14 +286,18 @@ async def proxy(service_name: str, path: str, request: Request):
             "trailers",            # Chunked transfer
             "upgrade"              # Protocol upgrade
         ]
-        resp_headers = {k: v for k, v in response.headers.items() if k.lower() not in excluded_headers}
-        
-        # Trả response về client
-        return Response(
+        # Tạo response rỗng
+        proxy_response = Response(
             content=response.content,
             status_code=response.status_code,
-            headers=resp_headers
         )
+        
+        # Dùng multi_items() để giữ lại TẤT CẢ các header trùng tên (vd: Set-Cookie)
+        for k, v in response.headers.multi_items():
+            if k.lower() not in excluded_headers:
+                proxy_response.headers.append(k, v)
+                
+        return proxy_response
     except httpx.RequestError as exc:
         # Service không available hoặc network error
         raise HTTPException(status_code=502, detail=f"Service unavailable: {str(exc)}")

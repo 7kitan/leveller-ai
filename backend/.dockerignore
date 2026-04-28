@@ -7,6 +7,9 @@ venv/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+*.egg-info/
+dist/
+build/
 
 # Data & Temp
 data/
@@ -15,16 +18,40 @@ logs/
 -
 *.log
 
+# Tests (don't include in production images)
+tests/
+pytest.ini
+.coverage
+htmlcov/
+
 # Git & IDE
 .git/
 .gitignore
 .vscode/
 .idea/
 
+# CI/CD
+.github/
+.gitlab-ci.yml
+.circleci/
+
 # Backend env
 .env
 .env.*
 !.env.example
 
+# Deployment scripts (not needed in container)
+deploy_prod.sh
+deploy_prod.ps1
+rollback.sh
+rebuild_worker.sh
+restart_service.sh
+*.md
+!README.md
+
+# AI logging (per AGENTS.md)
+.ai-log/
+
 # OS
 .DS_Store
+Thumbs.db

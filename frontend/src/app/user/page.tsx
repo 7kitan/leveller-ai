@@ -35,7 +35,7 @@ import {
 const icons = [BowArrow, AppWindow, Layers, Rocket, Network];
 
 const UserDashboard = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
   const [marketData, setMarketData] = useState<any>(null);
   const [latestAnalysis, setLatestAnalysis] = useState<any>(null);
@@ -52,7 +52,7 @@ const UserDashboard = () => {
   const [period, setPeriod] = useState("month");
 
   useEffect(() => {
-    if (!token) return;
+    if (!user) return;
     const fetchData = async () => {
       try {
         const [marketFitRes, latestRes] = await Promise.all([
@@ -68,7 +68,7 @@ const UserDashboard = () => {
       }
     };
     fetchData();
-  }, [token, period]);
+  }, [ period]);
 
   interface JobCard {
     id: number;

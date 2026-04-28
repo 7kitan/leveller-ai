@@ -23,6 +23,7 @@ import json
 import logging
 import re
 import traceback
+import struct
 from worker.celery_app import celery_app
 
 app = FastAPI(title="JD Service")
@@ -726,21 +727,56 @@ def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = D
     return {"message": f"Successfully imported {new_jobs_count} jobs", "count": new_jobs_count}
 
 
+@app.get("/jd/admin/export-info")
+def get_export_info(request: Request, db: Session = Depends(get_db)):
+    """
+    Admin only: Get export information for planning.
+    
+    Returns total count and recommendations for splitting into parts.
+    """
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    
+    total = db.query(Job).filter(Job.status == "active").count()
+    
+    # Estimate size (rough calculation)
+    # Average job: ~10KB (text + vector)
+    avg_size_kb = 10
+    total_size_mb = (total * avg_size_kb) / 1024
+    
+    # Recommend parts to keep each part under 20MB
+    max_size_per_part_mb = 20
+    recommended_parts = max(1, int(total_size_mb / max_size_per_part_mb) + 1)
+    recommended_per_part = total // recommended_parts if recommended_parts > 0 else total
+    
+    return {
+        "total_jobs": total,
+        "recommended_parts": recommended_parts,
+        "recommended_per_part": recommended_per_part,
+        "estimated_total_size_mb": round(total_size_mb, 2),
+        "estimated_size_per_part_mb": round(total_size_mb / recommended_parts, 2) if recommended_parts > 0 else 0
+    }
+
+
 @app.get("/jd/admin/export")
 async def admin_export_jobs(
     request: Request,
     db: Session = Depends(get_db),
-    limit: Optional[int] = Query(None, ge=1, le=10000),
-    offset: int = Query(0, ge=0)
+    limit: int = Query(2000, ge=1, le=5000, description="Number of jobs per part"),
+    offset: int = Query(0, ge=0, description="Starting position"),
+    part: Optional[int] = Query(None, description="Part number (for reference)")
 ):
-    """Admin only: Export all jobs with vectors for backup/migration."""
+    """
+    Admin only: Export jobs with vectors for backup/migration.
+    
+    Use /jd/admin/export-info first to plan your export.
+    Supports pagination for splitting large exports into parts.
+    """
     if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
-    query = db.query(Job).filter(Job.status == "active")
-    
-    if limit:
-        query = query.limit(limit).offset(offset)
+    total = db.query(Job).filter(Job.status == "active").count()
+    query = db.query(Job).filter(Job.status == "active").limit(limit).offset(offset)
     
     jobs = query.all()
     
@@ -753,12 +789,39 @@ async def admin_export_jobs(
         elif isinstance(job.vector, list):
             vector_list = job.vector
         elif hasattr(job.vector, 'tolist'):
+            # numpy array or similar
             vector_list = job.vector.tolist()
+        elif isinstance(job.vector, memoryview):
+            # pgvector often returns memoryview
+            try:
+                import struct
+                # Convert memoryview to bytes, then unpack as floats
+                vector_bytes = bytes(job.vector)
+                vector_list = list(struct.unpack(f'{len(vector_bytes)//4}f', vector_bytes))
+            except Exception as e:
+                logging.error(f"Failed to convert memoryview vector for job {job.id}: {e}")
+                vector_list = []
+        elif isinstance(job.vector, bytes):
+            # Handle bytes representation
+            try:
+                import struct
+                vector_list = list(struct.unpack(f'{len(job.vector)//4}f', job.vector))
+            except Exception as e:
+                logging.error(f"Failed to convert bytes vector for job {job.id}: {e}")
+                vector_list = []
+        elif isinstance(job.vector, str):
+            # Handle string representation like "[1.0, 2.0, 3.0]"
+            try:
+                vector_list = json.loads(job.vector)
+            except Exception as e:
+                logging.error(f"Failed to parse string vector for job {job.id}: {e}")
+                vector_list = []
         else:
-            # For pgvector types, convert to string then parse or use direct conversion
+            # Last resort: try iteration
             try:
                 vector_list = [float(x) for x in job.vector]
-            except (TypeError, ValueError):
+            except (TypeError, ValueError) as e:
+                logging.error(f"Failed to convert vector for job {job.id} (type: {type(job.vector)}): {e}")
                 vector_list = []
         
         export_data.append({
@@ -799,9 +862,13 @@ async def admin_export_jobs(
         "jobs": export_data,
         "metadata": {
             "exported_at": datetime.utcnow().isoformat(),
-            "total_exported": len(export_data),
+            "total_available": total,
             "offset": offset,
-            "limit": limit
+            "limit": limit,
+            "part": part,
+            "has_more": (offset + limit) < total,
+            "next_offset": offset + limit if (offset + limit) < total else None,
+            "total_exported": len(export_data)
         }
     }
 

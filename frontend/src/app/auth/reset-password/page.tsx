@@ -25,10 +25,10 @@ export default function ResetPasswordPage() {
   const { t } = useLanguage();
 
   useEffect(() => {
-    if (!token) {
+    if (!user) {
       setError(t("reset_password_invalid_token"));
     }
-  }, [token, t]);
+  }, [ t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +46,7 @@ export default function ResetPasswordPage() {
 
     try {
       await api.post("auth/reset-password", { 
-        token, 
+         
         new_password: password 
       });
       setSuccess(true);

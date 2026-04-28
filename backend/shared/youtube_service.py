@@ -58,8 +58,11 @@ class YouTubeSearchService:
                 "devops": "DevOps",
                 "data-science": "Khoa học dữ liệu",
                 "web-development": "Phát triển web",
-                "mobile": "Lập trình mobile"
-            }.get(domain, "Lập trình")
+                "mobile": "Lập trình mobile",
+                "domain-knowledge": "về",
+                "soft-skills": "Kỹ năng mềm",
+                "certifications": "Chứng chỉ"
+            }.get(domain, "")
             
             if level_suffix:
                 final_q = f"Khóa học {domain_prefix} {skill_name} {level_suffix} trọn bộ"
