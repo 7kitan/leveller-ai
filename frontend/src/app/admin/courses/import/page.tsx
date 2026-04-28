@@ -499,7 +499,7 @@ const CourseImportPage = () => {
                         <div className="font-semibold text-gray-200 truncate">
                           {result.data?.name || result.url}
                         </div>
-                        <div className="text-xs text-gray-500 flex items-center gap-2 overflow-hidden">
+                        <div className="text-sm text-gray-500 flex items-center gap-2 overflow-hidden">
                           {result.status === 'loading' && t("admin_courses_import_loading")}
                           {result.status === 'error' && <span className="text-red-400">{result.error}</span>}
                           {result.status === 'success' && (
@@ -703,11 +703,11 @@ const CourseImportPage = () => {
                   <div className={styles.dialogStats}>
                     <div className={styles.statItem}>
                       <span className="text-2xl font-bold">{pendingUrls.length}</span>
-                      <span className="text-xs text-gray-500">URLs to crawl</span>
+                      <span className="text-sm text-gray-500">URLs to crawl</span>
                     </div>
                     <div className={styles.statItem}>
                       <span className="text-2xl font-bold">~{Math.ceil(pendingUrls.length * 3 / 60)}m</span>
-                      <span className="text-xs text-gray-500">Estimated time</span>
+                      <span className="text-sm text-gray-500">Estimated time</span>
                     </div>
                   </div>
                 </div>
