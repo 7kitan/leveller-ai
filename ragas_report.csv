@@ -1,0 +1,16 @@
+user_input,retrieved_contexts,response,reference,faithfulness,answer_relevancy,context_precision
+Lộ trình để trở thành Senior Backend từ vị trí hiện tại là gì?,"['Job yêu cầu: Python, Django, AWS, Kubernetes. Ứng viên có: Python, Django, Docker.']","1. Mức độ tương thích: Medium. Bạn đáp ứng tốt về ngôn ngữ (Python, Django) nhưng thiếu kỹ năng hạ tầng.
+2. Lộ trình hành động: Cần học ngay Kubernetes và AWS Cloud để làm quen với môi trường cloud-native.
+3. Lời khuyên tối ưu CV: Nên liệt kê chi tiết các project đã triển khai bằng Docker để làm nổi bật nền tảng Containerization.",Mức độ tương thích: Medium. Bạn cần tập trung bổ sung Kubernetes và AWS Cloud để đạt mức Senior Backend như yêu cầu của Job.,0.8571428571428571,0.20880779882890285,0.9999999999
+Tại sao tôi phù hợp với công việc Python Developer tại TechCorp?,"['Job yêu cầu: 3 năm Python, PostgreSQL. Ứng viên có: 4 năm Python, PostgreSQL.']","1. Mức độ tương thích: High. Bạn hoàn toàn đáp ứng yêu cầu về Python và PostgreSQL.
+2. Lộ trình hành động: Không cần bổ sung kỹ năng cứng, có thể tập trung chuẩn bị cho bài test thuật toán.
+3. Lời khuyên tối ưu CV: Nên nêu bật các project Python có quy mô lớn hoặc xử lý dữ liệu phức tạp với PostgreSQL.",Mức độ tương thích: High. Bạn hoàn toàn đáp ứng đủ yêu cầu về ngôn ngữ (Python) và database (PostgreSQL) cho vị trí này.,0.42857142857142855,0.26843799346260133,0.9999999999
+"Tôi là Frontend Developer, tôi cần học gì để làm được vị trí Fullstack tại VinGroup?","['Vị trí Fullstack VinGroup yêu cầu: React, Node.js, MongoDB. Ứng viên hiện tại: React, CSS, HTML.']","1. Mức độ tương thích: Medium. Bạn đã có nền tảng tốt về React nhưng thiếu hoàn toàn mảng Server-side.
+2. Lộ trình hành động: Tập trung học Node.js (Express) và MongoDB để hoàn thiện kỹ năng Fullstack.
+3. Lời khuyên tối ưu CV: Hãy nhấn mạnh khả năng học hỏi nhanh và các project Frontend phức tạp bạn đã từng làm.",Mức độ tương thích: Medium. Bạn cần học thêm Node.js và MongoDB để hoàn thiện kỹ năng Fullstack theo yêu cầu của VinGroup.,0.2857142857142857,0.437167574430922,0.9999999999
+Kinh nghiệm của tôi có đủ ứng tuyển vị trí AI Engineer không?,"['Job AI Engineer yêu cầu: PyTorch, MLOps, Docker. Ứng viên có: Python, SQL, Pandas, Scikit-learn.']","1. Mức độ tương thích: Low. Bạn mạnh về phân tích dữ liệu nhưng thiếu kinh nghiệm triển khai AI thực tế.
+2. Lộ trình hành động: Cần học thêm Docker, FastAPI và quy trình MLOps để đưa model lên Production.
+3. Lời khuyên tối ưu CV: Nên thêm các chứng chỉ liên quan đến ML hoặc các project cá nhân có triển khai API.","Mức độ tương thích: Low. Bạn chưa đủ điều kiện, cần bổ sung gấp kỹ năng MLOps và Docker để ứng tuyển AI Engineer.",0.5555555555555556,0.4363287317714017,0.9999999999
+Tại sao CV của tôi bị đánh giá là thiếu kỹ năng Cloud?,"['Job yêu cầu: Experience with AWS/Azure/GCP. Ứng viên có: Local server management, Nginx, Linux.']","1. Mức độ tương thích: Low. CV hiện tại chỉ tập trung vào quản trị server vật lý/local.
+2. Lộ trình hành động: Đăng ký khóa học AWS Certified Cloud Practitioner hoặc Azure Fundamentals.
+3. Lời khuyên tối ưu CV: Cần thay thế các kỹ năng quản trị local bằng các từ khóa tương ứng trên Cloud như EC2, S3 hoặc VPC.",Mức độ tương thích: Low. Bạn bị đánh giá thấp do thiếu kinh nghiệm thực tế với các nền tảng Public Cloud (AWS/Azure/GCP).,0.5,0.2766522652537189,0.9999999999
