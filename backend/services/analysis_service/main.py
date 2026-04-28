@@ -187,12 +187,16 @@ async def start_gap_analysis(
         job = db.query(Job).filter(Job.id == req.job_id).first()
         if job:
             # Find existing analysis that is newer than both CV and Job updates
+            # Handle NULL updated_at (from import/export) by falling back to created_at
+            cv_timestamp = cv.updated_at if cv.updated_at else cv.created_at
+            job_timestamp = job.updated_at if job.updated_at else job.created_at
+            
             cached_analysis = db.query(UserAnalysis).filter(
                 UserAnalysis.user_id == uuid.UUID(user_id),
                 UserAnalysis.cv_id == req.cv_id,
                 UserAnalysis.job_id == req.job_id,
-                UserAnalysis.created_at > cv.updated_at,  # Analysis after CV update
-                UserAnalysis.created_at > job.updated_at   # Analysis after Job update
+                UserAnalysis.created_at > cv_timestamp,   # Analysis after CV update
+                UserAnalysis.created_at > job_timestamp   # Analysis after Job update
             ).order_by(UserAnalysis.created_at.desc()).first()
             
             if cached_analysis:
