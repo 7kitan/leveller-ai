@@ -555,8 +555,6 @@ export const translations = {
     admin_dash_module_settings_desc: "Cấu hình tham số hệ thống và các thiết lập chung.",
     admin_dash_module_youtube_title: "Quản lý YouTube",
     admin_dash_module_youtube_desc: "Quản lý bộ nhớ đệm video YouTube và kiểm tra tính khả dụng.",
-    admin_dash_module_market_title: "Thị trường",
-    admin_dash_module_market_desc: "Giám sát và làm mới dữ liệu thống kê thị trường kỹ năng.",
     admin_dash_access_module: "Access Module",
     admin_dash_health_title: "System Intelligence Health",
     admin_dash_health_desc: "Hệ thống đang hoạt động ổn định. Cơ sở dữ liệu tri thức được cập nhật theo thời gian thực.",
