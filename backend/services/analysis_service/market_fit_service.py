@@ -34,6 +34,23 @@ async def update_user_market_fit(user_id: uuid.UUID, db: Session) -> dict:
 
     total_jobs = db.query(Job).filter(Job.status == "active").count()
     
+    # Get Trending Skills (for all users, regardless of CV status)
+    trends = db.query(MarketSkillStats).filter(
+        MarketSkillStats.demand_score.isnot(None)
+    ).order_by(
+        MarketSkillStats.demand_score.desc()
+    ).limit(5).all()
+    
+    trending_skills = [
+        {
+            "name": t.skill_name, 
+            "growth": round(t.growth_rate_30d * 100, 1) if t.growth_rate_30d else 0, 
+            "demand": t.demand_score,
+            "avg_salary": (t.avg_salary_min + t.avg_salary_max) / 2 if t.avg_salary_min and t.avg_salary_max else (t.avg_salary_min or t.avg_salary_max or 0)
+        }
+        for t in trends
+    ]
+    
     if not latest_cv:
         market_fit_data = {
             "matched_jobs": 0,
@@ -43,7 +60,7 @@ async def update_user_market_fit(user_id: uuid.UUID, db: Session) -> dict:
             "market_sentiment": "",
             "total_jobs": total_jobs,
             "percentile": 0,
-            "top_trending_skills": [],
+            "top_trending_skills": trending_skills,
             "last_updated": now.isoformat()
         }
     else:
@@ -103,18 +120,6 @@ async def update_user_market_fit(user_id: uuid.UUID, db: Session) -> dict:
                     market_sentiment = "Tăng trưởng cao" if matched_jobs_count > 3 else "Ổn định"
             
             courses_to_return = course_recs
-
-        # 3. Lấy Trending Skills
-        trends = db.query(MarketSkillStats).order_by(MarketSkillStats.growth_rate_30d.desc()).limit(5).all()
-        trending_skills = [
-            {
-                "name": t.skill_name, 
-                "growth": round(t.growth_rate_30d * 100, 1), 
-                "demand": t.demand_score,
-                "avg_salary": (t.avg_salary_min + t.avg_salary_max) / 2 if t.avg_salary_min and t.avg_salary_max else (t.avg_salary_min or t.avg_salary_max or 0)
-            }
-            for t in trends
-        ]
 
         # 4. Tính Percentile
         percentile = min(99, int((matched_jobs_count / 10) * 100)) if matched_jobs_count > 0 else 0
