@@ -56,8 +56,12 @@ class PrefixedRedis:
     def setex(self, key, time, value):
         return self._client.setex(self._prefix_key(key), time, value)
 
-    def delete(self, key):
-        return self._client.delete(self._prefix_key(key))
+    def delete(self, *keys):
+        """Delete one or more keys."""
+        if not keys:
+            return 0
+        prefixed_keys = [self._prefix_key(k) for k in keys]
+        return self._client.delete(*prefixed_keys)
 
     def exists(self, key):
         return self._client.exists(self._prefix_key(key))
@@ -71,6 +75,38 @@ class PrefixedRedis:
 
     def expire(self, key, time):
         return self._client.expire(self._prefix_key(key), time)
+    
+    def ttl(self, key):
+        """Get the time to live for a key in seconds."""
+        return self._client.ttl(self._prefix_key(key))
+    
+    def scan(self, cursor=0, match=None, count=None):
+        """
+        Scan keys with automatic prefix handling.
+        
+        Args:
+            cursor: The cursor position (0 to start)
+            match: Pattern to match (will be prefixed automatically)
+            count: Number of keys to return per iteration
+            
+        Returns:
+            Tuple of (next_cursor, list_of_keys)
+        """
+        # Prefix the match pattern if provided
+        if match:
+            prefixed_match = self._prefix_key(match)
+        else:
+            prefixed_match = f"{self._prefix}*"
+        
+        # Call the underlying Redis scan
+        kwargs = {"match": prefixed_match}
+        if count is not None:
+            kwargs["count"] = count
+            
+        cursor, keys = self._client.scan(cursor=cursor, **kwargs)
+        
+        # Return keys as-is (with prefix) for consistency
+        return cursor, keys
     
     def eval(self, script, numkeys, *keys_and_args):
         """Execute Lua script with automatic key prefixing."""
