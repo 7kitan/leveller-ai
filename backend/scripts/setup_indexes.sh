@@ -23,7 +23,9 @@ fi
 # Load environment variables if .env exists
 if [ -f "$SCRIPT_DIR/../.env" ]; then
     echo "📄 Loading environment variables from .env..."
-    export $(grep -v '^#' "$SCRIPT_DIR/../.env" | xargs)
+    set -a
+    source "$SCRIPT_DIR/../.env"
+    set +a
 fi
 
 # Set default values if not in .env
