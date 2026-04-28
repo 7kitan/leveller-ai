@@ -163,7 +163,8 @@ async def add_auth_middleware(request: Request, call_next):
         req_method = request.headers.get("access-control-request-method", "NONE")
         logger.info(f"[MIDDLEWARE] OPTIONS {request.url.path} | Origin: {origin} | Req-Headers: {req_headers} | Req-Method: {req_method}")
     else:
-        logger.info(f"[MIDDLEWARE] {request.method} {request.url.path} | Origin: {origin} | Client: {request.client.host if request.client else 'unknown'}")
+        client_ip = get_client_ip(request)
+        logger.info(f"[MIDDLEWARE] {request.method} {request.url.path} | Origin: {origin} | Client: {client_ip}")
     
     # Set request vào ContextVar để rate limiter có thể access
     token = request_var.set(request)
@@ -219,20 +220,8 @@ async def proxy(service_name: str, path: str, request: Request):
     # SECURITY: Forward real client IP to backend services
     # This is critical for rate limiting, login attempts tracking, and audit logs
     
-    # Determine the real client IP, handling proxy chains properly
-    real_client_ip = None
-    
-    # If we're behind another proxy (Cloudflare, Nginx), trust X-Real-IP or X-Forwarded-For
-    if "x-real-ip" in headers:
-        # X-Real-IP from upstream proxy (most reliable if set by trusted proxy)
-        real_client_ip = headers["x-real-ip"]
-    elif "x-forwarded-for" in headers:
-        # X-Forwarded-For contains chain of IPs, first one is the original client
-        forwarded_ips = headers["x-forwarded-for"].split(",")
-        real_client_ip = forwarded_ips[0].strip()
-    else:
-        # No proxy headers, use direct connection IP
-        real_client_ip = request.client.host if request.client else "unknown"
+    # Determine the real client IP using helper function
+    real_client_ip = get_client_ip(request)
     
     # Build X-Forwarded-For chain
     direct_client = request.client.host if request.client else "unknown"
