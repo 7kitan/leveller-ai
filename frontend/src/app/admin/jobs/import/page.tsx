@@ -90,6 +90,7 @@ const JobImportPage = () => {
   const [exportInfo, setExportInfo] = useState<ExportInfo | null>(null);
   const [numParts, setNumParts] = useState(1);
   const [exportProgress, setExportProgress] = useState<{current: number, total: number} | null>(null);
+  const [isUploadingUrls, setIsUploadingUrls] = useState(false);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
@@ -119,6 +120,38 @@ const JobImportPage = () => {
       showNotification("Failed to read file", "error");
     };
     reader.readAsText(file);
+  };
+
+  const handleUploadUrlsForCrawl = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.txt')) {
+      showNotification("Please upload a .txt file", "error");
+      return;
+    }
+
+    setIsUploadingUrls(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const resp = await api.post("jd/admin/crawl/upload-urls", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      showNotification(
+        `Queued ${resp.data.queued} URLs for crawling. Skipped: ${resp.data.skipped}`
+      );
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || "Failed to upload URLs";
+      showNotification(msg, "error");
+    } finally {
+      setIsUploadingUrls(false);
+      e.target.value = ''; // Reset file input
+    }
   };
 
   const handleFullDataUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -342,6 +375,18 @@ const JobImportPage = () => {
                   type="file" 
                   accept=".txt" 
                   onChange={handleFileUpload}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              
+              <label className={cn(styles.uploadBtn, styles.uploadBtnSecondary)}>
+                <FileUp size={18} />
+                {isUploadingUrls ? <Loader2 className="animate-spin" size={18} /> : "Upload & Auto Crawl"}
+                <input 
+                  type="file" 
+                  accept=".txt" 
+                  onChange={handleUploadUrlsForCrawl}
+                  disabled={isUploadingUrls}
                   style={{ display: 'none' }}
                 />
               </label>

@@ -721,6 +721,48 @@ GET /jd/admin/export?limit=2000&offset=4000&part=3
 
 ---
 
+#### Upload URLs for Batch Crawling
+
+Upload a .txt file with TopCV job URLs (one per line) and queue them for background crawling. Each URL will be crawled by a worker and automatically saved to the database.
+
+**POST** `/jd/admin/crawl/upload-urls`
+
+**Headers:**
+```
+Authorization: Bearer ADMIN_TOKEN
+Content-Type: multipart/form-data
+```
+
+**Request Body:**
+- `file`: .txt file with URLs (one per line)
+
+**Example .txt file:**
+```
+https://www.topcv.vn/viec-lam/senior-backend-developer/123456.html
+https://www.topcv.vn/viec-lam/frontend-developer/789012.html
+https://www.topcv.vn/viec-lam/devops-engineer/345678.html
+```
+
+**Response:** `200 OK`
+```json
+{
+  "message": "URLs queued for background crawling",
+  "queued": 150,
+  "skipped": 5,
+  "total_urls": 155,
+  "task_ids": ["task-id-1", "task-id-2", "..."]
+}
+```
+
+**Notes:**
+- Only TopCV URLs are supported
+- Invalid URLs are automatically skipped
+- Each URL is processed by a Celery worker
+- Duplicate jobs (by source_id) are automatically skipped
+- Skills are extracted asynchronously after job is saved
+
+---
+
 #### Import Jobs
 
 Import jobs with pre-computed vectors. Duplicates (by source_id) are automatically skipped.
@@ -843,6 +885,48 @@ GET /recommend/admin/export?limit=1500&offset=1500&part=2
   }
 }
 ```
+
+---
+
+#### Upload URLs for Batch Crawling
+
+Upload a .txt file with Coursera course URLs (one per line) and queue them for background crawling. Each URL will be crawled by a worker and automatically saved to the database.
+
+**POST** `/recommend/admin/courses/crawl/upload-urls`
+
+**Headers:**
+```
+Authorization: Bearer ADMIN_TOKEN
+Content-Type: multipart/form-data
+```
+
+**Request Body:**
+- `file`: .txt file with URLs (one per line)
+
+**Example .txt file:**
+```
+https://www.coursera.org/learn/machine-learning
+https://www.coursera.org/learn/deep-learning
+https://www.coursera.org/specializations/data-science
+```
+
+**Response:** `200 OK`
+```json
+{
+  "message": "URLs queued for background crawling",
+  "queued": 45,
+  "skipped": 2,
+  "total_urls": 47,
+  "task_ids": ["task-id-1", "task-id-2", "..."]
+}
+```
+
+**Notes:**
+- Only Coursera URLs are supported
+- Invalid URLs are automatically skipped
+- Each URL is processed by a Celery worker
+- Duplicate courses (by source_id or URL) are automatically skipped
+- Embeddings are generated automatically
 
 ---
 

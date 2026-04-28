@@ -36,7 +36,7 @@ export default function ResetPasswordPage() {
       setError(t("reset_password_mismatch"));
       return;
     }
-    if (password.length < 6) {
+    if (password.length < 8) {
       setError(t("reset_password_min_length"));
       return;
     }

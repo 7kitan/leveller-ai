@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Request, HTTPException, Query
+from fastapi import FastAPI, Depends, Request, HTTPException, Query, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func, or_
 from shared.database import get_db
@@ -977,6 +977,86 @@ async def admin_crawl_course(req: CrawlRequest, request: Request):
         queue="market_stats",
     )
     return {"task_id": task.id, "status": "processing"}
+
+
+@app.post("/recommend/admin/courses/crawl/upload-urls")
+async def admin_upload_course_urls_for_crawl(
+    file: UploadFile = File(...),
+    request: Request = None
+):
+    """
+    Admin only: Upload a .txt file with Coursera URLs (one per line) and queue them for background crawling.
+    Each URL will be crawled by a worker and auto-saved to the database.
+    Uses existing crawl_course_task with auto_save=True.
+    
+    Returns:
+        - queued: number of URLs queued for crawling
+        - skipped: number of invalid URLs skipped
+        - task_ids: list of Celery task IDs
+    """
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    
+    # Validate file type
+    if not file.filename.endswith('.txt'):
+        raise HTTPException(status_code=400, detail="Only .txt files are supported")
+    
+    try:
+        # Read file content
+        content = await file.read()
+        text = content.decode('utf-8')
+        
+        # Parse URLs (one per line)
+        lines = text.split('\n')
+        urls = [line.strip() for line in lines if line.strip()]
+        
+        # Filter valid Coursera URLs
+        valid_urls = []
+        skipped = 0
+        
+        for url in urls:
+            if 'coursera.org' in url and url.startswith('http'):
+                valid_urls.append(url)
+            else:
+                skipped += 1
+                logger.warning(f"[UPLOAD CRAWL] Skipped invalid URL: {url}")
+        
+        if not valid_urls:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"No valid Coursera URLs found in file. Skipped {skipped} invalid lines."
+            )
+        
+        # Queue each URL to worker using existing task with auto_save=True
+        task_ids = []
+        for url in valid_urls:
+            try:
+                task = celery_app.send_task(
+                    "worker.tasks.crawler_tasks.crawl_course_task",
+                    args=[url, True],  # auto_save=True
+                    queue="market_stats"
+                )
+                task_ids.append(task.id)
+                logger.info(f"[UPLOAD CRAWL] Queued URL: {url} (task: {task.id})")
+            except Exception as e:
+                logger.error(f"[UPLOAD CRAWL] Failed to queue URL {url}: {e}")
+                skipped += 1
+        
+        logger.info(f"[UPLOAD CRAWL] Successfully queued {len(task_ids)} URLs for crawling")
+        
+        return {
+            "message": "URLs queued for background crawling",
+            "queued": len(task_ids),
+            "skipped": skipped,
+            "total_urls": len(urls),
+            "task_ids": task_ids[:10]  # Return first 10 task IDs only
+        }
+        
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=400, detail="File must be UTF-8 encoded text")
+    except Exception as e:
+        logger.error(f"[UPLOAD CRAWL] Error processing file: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to process file: {str(e)}")
 
 
 @app.get("/recommend/admin/courses/crawl/status/{task_id}")
