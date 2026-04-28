@@ -31,7 +31,7 @@ interface AdminCV {
 }
 
 const AdminCVsPage = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
   const { confirm, showSuccess, showError } = useAlert();
   const [cvs, setCvs] = useState<AdminCV[]>([]);
@@ -64,13 +64,13 @@ const AdminCVsPage = () => {
   };
 
   useEffect(() => {
-    if (token) fetchCVs(1);
-  }, [token]);
+    if (user) fetchCVs(1);
+  }, [user]);
 
   // Handle search resets pagination
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (token) fetchCVs(1);
+      if (user) fetchCVs(1);
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);

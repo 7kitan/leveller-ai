@@ -136,7 +136,7 @@ function levelColor(level: string) {
 }
 
 const UserRecommendPage = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { theme } = useTheme();
   const router = useRouter();
   const { t } = useLanguage();
@@ -171,7 +171,7 @@ const UserRecommendPage = () => {
 
   /* ── Progressive Polling Logic ───────────────────────────────────────── */
   useEffect(() => {
-    if (!token || !taskIdFromUrl) return;
+    if (!user || !taskIdFromUrl) return;
 
     console.log("[RECOMMEND] Polling for progressive updates - Task ID:", taskIdFromUrl);
     setIsProcessing(true);
@@ -321,11 +321,11 @@ const UserRecommendPage = () => {
     });
 
     return () => {};
-  }, [token, taskIdFromUrl]);
+  }, [ taskIdFromUrl]);
 
   /* ── Load initial gap result (if no task_id) ─────────────────────────── */
   useEffect(() => {
-    if (!token || taskIdFromUrl) return;
+    if (!user || taskIdFromUrl) return;
 
     try {
       const stored = sessionStorage.getItem("gap_analysis_result");
@@ -353,10 +353,10 @@ const UserRecommendPage = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, [token]);
+  }, [user]);
 
   const handleRefresh = async () => {
-    if (!token) return;
+    if (!user) return;
     setRefreshing(true);
     try {
       const resp = await api.get("analysis/user/latest");

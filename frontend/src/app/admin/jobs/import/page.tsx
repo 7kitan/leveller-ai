@@ -34,6 +34,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 import Link from "next/link";
+import Modal from "@/components/shared/Modal";
 
 interface CrawledJobData {
   source_id: string;
@@ -68,8 +69,16 @@ interface ImportResult {
   isSavingIndividual?: boolean;
 }
 
+interface ExportInfo {
+  total_jobs: number;
+  recommended_parts: number;
+  recommended_per_part: number;
+  estimated_total_size_mb: number;
+  estimated_size_per_part_mb: number;
+}
+
 const JobImportPage = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
   const [urlsText, setUrlsText] = useState("");
   const [results, setResults] = useState<ImportResult[]>([]);
@@ -77,6 +86,11 @@ const JobImportPage = () => {
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isImportingFull, setIsImportingFull] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [exportInfo, setExportInfo] = useState<ExportInfo | null>(null);
+  const [numParts, setNumParts] = useState(1);
+  const [exportProgress, setExportProgress] = useState<{current: number, total: number} | null>(null);
+  const [isUploadingUrls, setIsUploadingUrls] = useState(false);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
@@ -108,74 +122,143 @@ const JobImportPage = () => {
     reader.readAsText(file);
   };
 
-  const handleFullDataUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadUrlsForCrawl = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.endsWith('.json')) {
-      showNotification("Please upload a .json file", "error");
+    if (!file.name.endsWith('.txt')) {
+      showNotification("Please upload a .txt file", "error");
       return;
     }
 
+    setIsUploadingUrls(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const resp = await api.post("jd/admin/crawl/upload-urls", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      showNotification(
+        `Queued ${resp.data.queued} URLs for crawling. Skipped: ${resp.data.skipped}`
+      );
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || "Failed to upload URLs";
+      showNotification(msg, "error");
+    } finally {
+      setIsUploadingUrls(false);
+      e.target.value = ''; // Reset file input
+    }
+  };
+
+  const handleFullDataUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
     setIsImportingFull(true);
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const content = event.target?.result as string;
+    let totalImported = 0;
+    let totalSkipped = 0;
+    let totalErrors = 0;
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        if (!file.name.endsWith('.json')) {
+          showNotification(`Skipped ${file.name} - not a JSON file`, "error");
+          continue;
+        }
+
+        const content = await file.text();
         const data = JSON.parse(content);
         
         if (!data.jobs || !Array.isArray(data.jobs)) {
-          showNotification("Invalid JSON format. Expected {jobs: [...]}", "error");
-          setIsImportingFull(false);
-          return;
+          showNotification(`Invalid format in ${file.name}. Expected {jobs: [...]}`, "error");
+          continue;
         }
 
         const resp = await api.post("jd/admin/import-full", 
-          { jobs: data.jobs },
-          { headers: { Authorization: `Bearer ${token}` } }
+          { jobs: data.jobs }
         );
 
-        showNotification(
-          `Imported: ${resp.data.imported_count}, Skipped: ${resp.data.skipped_count}, Errors: ${resp.data.error_count}`
-        );
-      } catch (err: any) {
-        const msg = err.response?.data?.detail || "Failed to import jobs";
-        showNotification(msg, "error");
-      } finally {
-        setIsImportingFull(false);
+        totalImported += resp.data.imported || 0;
+        totalSkipped += resp.data.skipped || 0;
+        totalErrors += resp.data.errors || 0;
       }
-    };
-    reader.onerror = () => {
-      showNotification("Failed to read file", "error");
+
+      showNotification(
+        `Imported: ${totalImported}, Skipped: ${totalSkipped}, Errors: ${totalErrors}`
+      );
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || "Failed to import jobs";
+      showNotification(msg, "error");
+    } finally {
       setIsImportingFull(false);
-    };
-    reader.readAsText(file);
+      e.target.value = ''; // Reset file input
+    }
   };
 
   const handleExport = async () => {
-    setIsExporting(true);
     try {
-      const resp = await api.get("jd/admin/export", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const resp = await api.get("jd/admin/export-info");
+      setExportInfo(resp.data);
+      setNumParts(resp.data.recommended_parts || 1);
+      setShowExportDialog(true);
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || "Failed to get export info";
+      showNotification(msg, "error");
+    }
+  };
 
-      const dataStr = JSON.stringify(resp.data, null, 2);
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `jobs_export_${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+  const handleExportWithParts = async () => {
+    if (!exportInfo) return;
+    
+    setIsExporting(true);
+    setExportProgress({ current: 0, total: numParts });
+    
+    try {
+      const perPart = Math.ceil(exportInfo.total_jobs / numParts);
+      
+      for (let i = 0; i < numParts; i++) {
+        const offset = i * perPart;
+        const resp = await api.get("jd/admin/export", {
+          params: {
+            limit: perPart,
+            offset: offset,
+            part: i + 1
+          }
+        });
 
-      showNotification(`Exported ${resp.data.count} jobs successfully`);
+        const dataStr = JSON.stringify(resp.data, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `jobs_export_part${i + 1}_of_${numParts}_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        setExportProgress({ current: i + 1, total: numParts });
+        
+        // Small delay between downloads
+        if (i < numParts - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+
+      showNotification(`Exported ${exportInfo.total_jobs} jobs in ${numParts} parts successfully`);
+      setShowExportDialog(false);
     } catch (err: any) {
       const msg = err.response?.data?.detail || "Failed to export jobs";
       showNotification(msg, "error");
     } finally {
       setIsExporting(false);
+      setExportProgress(null);
     }
   };
 
@@ -198,11 +281,7 @@ const JobImportPage = () => {
 
     newResults.forEach(async (res) => {
       try {
-        const resp = await api.post("jd/admin/crawl/fetch", { url: res.url }, {
-          headers: { 
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const resp = await api.post("jd/admin/crawl/fetch", { url: res.url });
         
         updateResult(res.url, { 
           status: 'success', 
@@ -239,11 +318,7 @@ const JobImportPage = () => {
 
     updateResult(url, { isSavingIndividual: true });
     try {
-      await api.post("jd/admin/bulk", { jobs: [result.data] }, {
-        headers: { 
-          Authorization: `Bearer ${token}`
-        }
-      });
+      await api.post("jd/admin/bulk", { jobs: [result.data] });
       
       showNotification(t('admin_jobs_import_notif_save_success').replace('{title}', result.data.title_raw));
       setResults(prev => prev.filter(r => r.url !== url));
@@ -262,10 +337,6 @@ const JobImportPage = () => {
     try {
       await api.post("jd/admin/bulk", {
         jobs: validResults.map(r => r.data)
-      }, {
-        headers: { 
-          Authorization: `Bearer ${token}`
-        }
       });
       
       showNotification(t('admin_jobs_import_notif_bulk_success').replace('{count}', validResults.length.toString()));
@@ -310,12 +381,25 @@ const JobImportPage = () => {
               
               <label className={cn(styles.uploadBtn, styles.uploadBtnSecondary)}>
                 <FileUp size={18} />
+                {isUploadingUrls ? <Loader2 className="animate-spin" size={18} /> : "Upload & Auto Crawl"}
+                <input 
+                  type="file" 
+                  accept=".txt" 
+                  onChange={handleUploadUrlsForCrawl}
+                  disabled={isUploadingUrls}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              
+              <label className={cn(styles.uploadBtn, styles.uploadBtnSecondary)}>
+                <FileUp size={18} />
                 {isImportingFull ? <Loader2 className="animate-spin" size={18} /> : "Import Full Data"}
                 <input 
                   type="file" 
                   accept=".json" 
                   onChange={handleFullDataUpload}
                   disabled={isImportingFull}
+                  multiple
                   style={{ display: 'none' }}
                 />
               </label>
@@ -598,6 +682,97 @@ const JobImportPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Export Dialog */}
+        {exportInfo && (
+          <Modal
+            isOpen={showExportDialog}
+            onClose={() => !isExporting && setShowExportDialog(false)}
+            title="Export Jobs"
+            maxWidth="28rem"
+            showCloseButton={!isExporting}
+          >
+            <div className={styles.exportModalContent}>
+              <div className={styles.exportInfoBox}>
+                <div className={styles.exportInfoRow}>
+                  <span className={styles.exportInfoLabel}>Total jobs:</span>
+                  <span className={styles.exportInfoValue}>{exportInfo.total_jobs.toLocaleString()}</span>
+                </div>
+                <div className={styles.exportInfoRow}>
+                  <span className={styles.exportInfoLabel}>Estimated size:</span>
+                  <span className={styles.exportInfoValue}>~{exportInfo.estimated_total_size_mb.toFixed(1)} MB</span>
+                </div>
+                <div className={styles.exportInfoRow}>
+                  <span className={styles.exportInfoLabel}>Recommended parts:</span>
+                  <span className={styles.exportInfoValueHighlight}>{exportInfo.recommended_parts}</span>
+                </div>
+              </div>
+
+              <div className={styles.exportInputGroup}>
+                <label className={styles.exportInputLabel}>
+                  Number of parts to split:
+                </label>
+                <input 
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={numParts}
+                  onChange={(e) => setNumParts(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
+                  disabled={isExporting}
+                  className={styles.exportInput}
+                />
+                <p className={styles.exportInputHint}>
+                  {Math.ceil(exportInfo.total_jobs / numParts).toLocaleString()} jobs per part
+                  (~{(exportInfo.estimated_total_size_mb / numParts).toFixed(1)} MB each)
+                </p>
+              </div>
+
+              {exportProgress && (
+                <div className={styles.exportProgressBox}>
+                  <div className={styles.exportProgressHeader}>
+                    <span className={styles.exportProgressLabel}>Exporting...</span>
+                    <span className={styles.exportProgressValue}>
+                      {exportProgress.current} / {exportProgress.total}
+                    </span>
+                  </div>
+                  <div className={styles.exportProgressBar}>
+                    <div 
+                      className={styles.exportProgressFill}
+                      style={{ width: `${(exportProgress.current / exportProgress.total) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className={styles.exportModalActions}>
+                <button
+                  onClick={() => setShowExportDialog(false)}
+                  disabled={isExporting}
+                  className={styles.exportModalBtnCancel}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleExportWithParts}
+                  disabled={isExporting}
+                  className={styles.exportModalBtnExport}
+                >
+                  {isExporting ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} />
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <Download size={18} />
+                      Export
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </Modal>
+        )}
       </PageContainer>
     </AuthGuard>
   );

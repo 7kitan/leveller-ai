@@ -291,6 +291,135 @@ def extract_job_skills_task(job_id: str):
         db.close()
 
 
+@celery_app.task(name="worker.tasks.crawler_tasks.crawl_single_job_url_task")
+def crawl_single_job_url_task(url: str):
+    """
+    Background task to crawl a single job URL from TopCV and auto-save to DB.
+    Used for batch URL uploads from admin panel.
+    
+    Args:
+        url: TopCV job URL to crawl
+        
+    Returns:
+        dict with status and job info
+    """
+    logger.info(f"🚀 [SINGLE JOB CRAWLER] Starting crawl for URL: {url}")
+    
+    if "topcv.vn" not in url:
+        logger.error(f"❌ [SINGLE JOB CRAWLER] Invalid URL (not TopCV): {url}")
+        return {"status": "error", "error": "Only TopCV URLs are supported", "url": url}
+    
+    db = SessionLocal()
+    
+    try:
+        # Get proxy list from SystemSetting
+        proxy_list = []
+        try:
+            proxy_setting = db.query(SystemSetting).filter(SystemSetting.key == "PROXY_LIST").first()
+            if proxy_setting and proxy_setting.value:
+                proxy_str = str(proxy_setting.value).strip()
+                if proxy_str:
+                    proxy_list = [p.strip() for p in re.split(r'[,\n\r]+', proxy_str) if p.strip()]
+        except Exception as e:
+            logger.warning(f"[SINGLE JOB CRAWLER] Failed to load proxy list: {e}")
+        
+        # Check if job already exists
+        job_id_match = re.search(r'/(\d+)\.html', url)
+        if job_id_match:
+            source_id = f"TOPCV_{job_id_match.group(1)}"
+            existing = db.query(Job).filter(Job.source_id == source_id).first()
+            if existing:
+                logger.info(f"⏭️ [SINGLE JOB CRAWLER] Job already exists: {source_id}")
+                return {
+                    "status": "skipped",
+                    "reason": "already_exists",
+                    "url": url,
+                    "source_id": source_id
+                }
+        
+        # Initialize scraper and crawl
+        scraper = TopCVScraper(proxy_list=proxy_list)
+        data = scraper.scrape_job_details(url, max_retries=3)
+        
+        if not data:
+            logger.error(f"❌ [SINGLE JOB CRAWLER] Scraper returned None for URL: {url}")
+            return {"status": "error", "error": "Failed to scrape job data", "url": url}
+        
+        # Normalize location
+        location_raw = data.get('location_raw', '')
+        location_normalized = normalize_location(location_raw)
+        data['location_normalized'] = location_normalized
+        
+        # Generate embedding
+        requirements = data.get('requirements', '')
+        job_description = data.get('job_description', '')
+        
+        embedding_ctx = build_job_embedding_context(
+            requirements=requirements,
+            extracted_skills=None,
+            job_description=job_description
+        )
+        
+        if not embedding_ctx:
+            embedding_ctx = f"Job requirements not available. Description: {job_description[:200] if job_description else 'N/A'}"
+        
+        vector = get_embedding(embedding_ctx, log_cost=True)
+        
+        # Save to database
+        job = Job(**data)
+        job.embedding_context = embedding_ctx
+        job.vector = vector
+        
+        db.add(job)
+        db.flush()
+        
+        job_id = str(job.id)
+        title = data.get('title_raw', 'Unknown')
+        
+        db.commit()
+        
+        logger.info(f"✨ [SINGLE JOB CRAWLER] Successfully saved job: {title} (ID: {job_id})")
+        system_logger.info("CRAWLER", f"Single URL crawl success: {title}")
+        
+        # Extract skills synchronously (wait before moving to next URL)
+        try:
+            logger.info(f"[SINGLE JOB CRAWLER] Starting skill extraction for {job_id}...")
+            
+            if job.requirements:
+                skills_count = extract_and_save_job_skills(
+                    db=db,
+                    job=job,
+                    model_key="ai_model",
+                    commit=True
+                )
+                
+                if skills_count:
+                    logger.info(f"✅ [SINGLE JOB CRAWLER] Extracted {skills_count} skills for {job_id}")
+                else:
+                    logger.warning(f"⚠️ [SINGLE JOB CRAWLER] No skills extracted for {job_id}")
+            else:
+                logger.warning(f"⚠️ [SINGLE JOB CRAWLER] Job {job_id} has no requirements, skipping skill extraction")
+                
+        except Exception as e:
+            logger.error(f"[SINGLE JOB CRAWLER] Skill extraction failed for {job_id}: {e}")
+            # Don't fail the whole task if skill extraction fails
+        
+        return {
+            "status": "success",
+            "url": url,
+            "job_id": job_id,
+            "title": title,
+            "source_id": data.get('source_id')
+        }
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"💥 [SINGLE JOB CRAWLER] Error crawling {url}: {e}", exc_info=True)
+        return {"status": "error", "error": str(e), "url": url}
+    finally:
+        db.close()
+
+
 @celery_app.task(name="worker.tasks.crawler_tasks.batch_extract_skills_task")
 def batch_extract_skills_task(limit: int = 100, skip_existing: bool = True):
     """

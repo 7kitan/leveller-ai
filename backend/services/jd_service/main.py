@@ -3,7 +3,7 @@ JD Service â€” Job Description management + Hybrid search.
 Spec: 1.6 JD Parsing, 1.8 Advanced Job Search, 5.1+5.2 Market Analytics.
 """
 
-from fastapi import FastAPI, Depends, HTTPException, Request, Query
+from fastapi import FastAPI, Depends, HTTPException, Request, Query, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy import text, or_, and_
 from sqlalchemy.dialects.postgresql import UUID
@@ -23,6 +23,7 @@ import json
 import logging
 import re
 import traceback
+import struct
 from worker.celery_app import celery_app
 
 app = FastAPI(title="JD Service")
@@ -639,6 +640,138 @@ def admin_crawl_fetch_job(req: CrawlUrlRequest, request: Request):
         raise
     except Exception as e:
         logger.error(f"[ADMIN CRAWL] Unexpected error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Lỗi không mong đợi: {str(e)}")
+
+
+@app.post("/jd/admin/crawl/upload-urls")
+async def admin_upload_urls_for_crawl(
+    file: UploadFile = File(...),
+    request: Request = None
+):
+    """
+    Admin only: Upload a .txt file with TopCV URLs (one per line) and queue them for background crawling.
+    Each URL will be crawled by a worker and auto-saved to the database.
+    
+    Returns:
+        - queued: number of URLs queued for crawling
+        - skipped: number of invalid URLs skipped
+        - task_ids: list of Celery task IDs
+    """
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    
+    # Validate file type
+    if not file.filename.endswith('.txt'):
+        raise HTTPException(status_code=400, detail="Only .txt files are supported")
+    
+    try:
+        # Read file content
+        content = await file.read()
+        text = content.decode('utf-8')
+        
+        # Parse URLs (one per line)
+        lines = text.split('\n')
+        urls = [line.strip() for line in lines if line.strip()]
+        
+        # Filter valid TopCV URLs
+        valid_urls = []
+        skipped = 0
+        
+        for url in urls:
+            if 'topcv.vn' in url and url.startswith('http'):
+                valid_urls.append(url)
+            else:
+                skipped += 1
+                logger.warning(f"[UPLOAD CRAWL] Skipped invalid URL: {url}")
+        
+        if not valid_urls:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"No valid TopCV URLs found in file. Skipped {skipped} invalid lines."
+            )
+        
+        # Queue each URL to worker
+        task_ids = []
+        for url in valid_urls:
+            try:
+                task = celery_app.send_task(
+                    "worker.tasks.crawler_tasks.crawl_single_job_url_task",
+                    args=[url],
+                    queue="market_stats"
+                )
+                task_ids.append(task.id)
+                logger.info(f"[UPLOAD CRAWL] Queued URL: {url} (task: {task.id})")
+            except Exception as e:
+                logger.error(f"[UPLOAD CRAWL] Failed to queue URL {url}: {e}")
+                skipped += 1
+        
+        logger.info(f"[UPLOAD CRAWL] Successfully queued {len(task_ids)} URLs for crawling")
+        
+        return {
+            "message": "URLs queued for background crawling",
+            "queued": len(task_ids),
+            "skipped": skipped,
+            "total_urls": len(urls),
+            "task_ids": task_ids[:10]  # Return first 10 task IDs only
+        }
+        
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=400, detail="File must be UTF-8 encoded text")
+    except Exception as e:
+        logger.error(f"[UPLOAD CRAWL] Error processing file: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to process file: {str(e)}")
+
+
+@app.post("/jd/admin/crawl/fetch")
+def admin_crawl_fetch_job(req: CrawlUrlRequest, request: Request):
+    """Admin only: Cào dữ liệu từ 1 URL TopCV để hiển thị ra form (chưa lưu)."""
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    if "topcv.vn" not in req.url:
+        raise HTTPException(status_code=400, detail="Chỉ hỗ trợ URL từ TopCV.vn")
+
+    try:
+        # Get proxy list from SystemSetting (global PROXY_LIST for all crawlers)
+        db = get_db().__next__()
+        proxy_list = []
+        try:
+            proxy_setting = db.query(SystemSetting).filter(SystemSetting.key == "PROXY_LIST").first()
+            if proxy_setting and proxy_setting.value:
+                # Parse proxy list - support both comma-separated and newline-separated
+                proxy_str = str(proxy_setting.value).strip()
+                if proxy_str:
+                    # Split by both comma and newline, then filter empty strings
+                    proxy_list = [p.strip() for p in re.split(r'[,\n\r]+', proxy_str) if p.strip()]
+                    logger.info(f"[ADMIN CRAWL] Loaded {len(proxy_list)} proxies from global PROXY_LIST")
+            else:
+                logger.info(f"[ADMIN CRAWL] No proxy list configured in settings")
+        except Exception as e:
+            logger.warning(f"[ADMIN CRAWL] Failed to load proxy list from settings: {e}")
+        finally:
+            db.close()
+        
+        scraper = TopCVScraper(proxy_list=proxy_list)
+        logger.info(f"[ADMIN CRAWL] Fetching job from URL: {req.url}")
+        
+        # Increase timeout and retries for production environment
+        data = scraper.scrape_job_details(req.url, max_retries=3)
+        
+        if not data:
+            logger.error(f"[ADMIN CRAWL] Scraper returned None for URL: {req.url}")
+            logger.error(f"[ADMIN CRAWL] Check logs at /app/data/logs/ for detailed error information")
+            raise HTTPException(
+                status_code=404, 
+                detail="Không thể lấy dữ liệu từ URL này. Vui lòng kiểm tra:\n1. URL có đúng format không?\n2. Job còn active trên TopCV không?\n3. Thử lại sau vài giây.\n4. Kiểm tra logs để biết chi tiết lỗi."
+            )
+        
+        logger.info(f"[ADMIN CRAWL] Successfully scraped: {data.get('title_raw')}")
+        return data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[ADMIN CRAWL] Unexpected error: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"Lỗi khi cào dữ liệu: {str(e)}"
@@ -726,21 +859,56 @@ def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = D
     return {"message": f"Successfully imported {new_jobs_count} jobs", "count": new_jobs_count}
 
 
+@app.get("/jd/admin/export-info")
+def get_export_info(request: Request, db: Session = Depends(get_db)):
+    """
+    Admin only: Get export information for planning.
+    
+    Returns total count and recommendations for splitting into parts.
+    """
+    if request.headers.get("X-User-Role") != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    
+    total = db.query(Job).filter(Job.status == "active").count()
+    
+    # Estimate size (rough calculation)
+    # Average job: ~10KB (text + vector)
+    avg_size_kb = 10
+    total_size_mb = (total * avg_size_kb) / 1024
+    
+    # Recommend parts to keep each part under 20MB
+    max_size_per_part_mb = 20
+    recommended_parts = max(1, int(total_size_mb / max_size_per_part_mb) + 1)
+    recommended_per_part = total // recommended_parts if recommended_parts > 0 else total
+    
+    return {
+        "total_jobs": total,
+        "recommended_parts": recommended_parts,
+        "recommended_per_part": recommended_per_part,
+        "estimated_total_size_mb": round(total_size_mb, 2),
+        "estimated_size_per_part_mb": round(total_size_mb / recommended_parts, 2) if recommended_parts > 0 else 0
+    }
+
+
 @app.get("/jd/admin/export")
 async def admin_export_jobs(
     request: Request,
     db: Session = Depends(get_db),
-    limit: Optional[int] = Query(None, ge=1, le=10000),
-    offset: int = Query(0, ge=0)
+    limit: int = Query(2000, ge=1, le=5000, description="Number of jobs per part"),
+    offset: int = Query(0, ge=0, description="Starting position"),
+    part: Optional[int] = Query(None, description="Part number (for reference)")
 ):
-    """Admin only: Export all jobs with vectors for backup/migration."""
+    """
+    Admin only: Export jobs with vectors for backup/migration.
+    
+    Use /jd/admin/export-info first to plan your export.
+    Supports pagination for splitting large exports into parts.
+    """
     if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
-    query = db.query(Job).filter(Job.status == "active")
-    
-    if limit:
-        query = query.limit(limit).offset(offset)
+    total = db.query(Job).filter(Job.status == "active").count()
+    query = db.query(Job).filter(Job.status == "active").limit(limit).offset(offset)
     
     jobs = query.all()
     
@@ -753,12 +921,39 @@ async def admin_export_jobs(
         elif isinstance(job.vector, list):
             vector_list = job.vector
         elif hasattr(job.vector, 'tolist'):
+            # numpy array or similar
             vector_list = job.vector.tolist()
+        elif isinstance(job.vector, memoryview):
+            # pgvector often returns memoryview
+            try:
+                import struct
+                # Convert memoryview to bytes, then unpack as floats
+                vector_bytes = bytes(job.vector)
+                vector_list = list(struct.unpack(f'{len(vector_bytes)//4}f', vector_bytes))
+            except Exception as e:
+                logging.error(f"Failed to convert memoryview vector for job {job.id}: {e}")
+                vector_list = []
+        elif isinstance(job.vector, bytes):
+            # Handle bytes representation
+            try:
+                import struct
+                vector_list = list(struct.unpack(f'{len(job.vector)//4}f', job.vector))
+            except Exception as e:
+                logging.error(f"Failed to convert bytes vector for job {job.id}: {e}")
+                vector_list = []
+        elif isinstance(job.vector, str):
+            # Handle string representation like "[1.0, 2.0, 3.0]"
+            try:
+                vector_list = json.loads(job.vector)
+            except Exception as e:
+                logging.error(f"Failed to parse string vector for job {job.id}: {e}")
+                vector_list = []
         else:
-            # For pgvector types, convert to string then parse or use direct conversion
+            # Last resort: try iteration
             try:
                 vector_list = [float(x) for x in job.vector]
-            except (TypeError, ValueError):
+            except (TypeError, ValueError) as e:
+                logging.error(f"Failed to convert vector for job {job.id} (type: {type(job.vector)}): {e}")
                 vector_list = []
         
         export_data.append({
@@ -799,9 +994,13 @@ async def admin_export_jobs(
         "jobs": export_data,
         "metadata": {
             "exported_at": datetime.utcnow().isoformat(),
-            "total_exported": len(export_data),
+            "total_available": total,
             "offset": offset,
-            "limit": limit
+            "limit": limit,
+            "part": part,
+            "has_more": (offset + limit) < total,
+            "next_offset": offset + limit if (offset + limit) < total else None,
+            "total_exported": len(export_data)
         }
     }
 

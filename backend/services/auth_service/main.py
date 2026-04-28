@@ -1,11 +1,19 @@
-from fastapi import FastAPI, Depends, HTTPException, Request, Query
+from fastapi import FastAPI, Depends, HTTPException, Request, Query, Response
 from sqlalchemy.orm import Session
 from shared.database import get_db, engine, Base
 import shared.models # Ensure all models are registered
 from shared.models import User, UserRole
 # Ensure tables are created
 # Base.metadata.create_all(bind=engine) - Moved to startup event
-from shared.auth_utils import get_password_hash, verify_password, create_access_token, hash_token, decode_access_token, ACCESS_TOKEN_EXPIRE_SECONDS, get_client_ip
+from shared.auth_utils import (
+    get_password_hash, 
+    verify_password, 
+    create_access_token, 
+    hash_token, 
+    decode_access_token, 
+    ACCESS_TOKEN_EXPIRE_SECONDS,
+    get_client_ip
+)
 from shared.config_utils import config_manager
 from shared.redis_client import auth_cache
 from shared.email_utils import send_password_reset_email
@@ -20,6 +28,7 @@ import secrets
 import os
 import httpx
 from typing import Optional, List
+from datetime import datetime, timezone
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -207,7 +216,12 @@ def is_admin(request: Request) -> bool:
 
 @app.post("/auth/register", response_model=AuthResponse)
 @limiter.limit("5/day")
-async def register(request: Request, user_in: UserCreate, db: Session = Depends(get_db)):
+async def register(
+    request: Request, 
+    response: Response,
+    user_in: UserCreate, 
+    db: Session = Depends(get_db)
+):
     # 1. Check registration limit per IP
     ip_addr = get_client_ip(request)
     reg_key = f"reg_attempts:{ip_addr}"
@@ -241,7 +255,7 @@ async def register(request: Request, user_in: UserCreate, db: Session = Depends(
     db.commit()
     db.refresh(new_user)
     
-    # Include is_admin in JWT token for security
+    # Create access token (7 days)
     access_token = create_access_token(data={
         "sub": str(new_user.id), 
         "email": new_user.email,
@@ -254,6 +268,8 @@ async def register(request: Request, user_in: UserCreate, db: Session = Depends(
         "role": new_user.role,
         "full_name": new_user.full_name
     }
+    
+    # Store token in Redis
     token_key = f"token:{hash_token(access_token)}"
     session_pointer = f"user_session:{new_user.id}"
 
@@ -279,7 +295,8 @@ async def register(request: Request, user_in: UserCreate, db: Session = Depends(
     return {
         "access_token": access_token, 
         "token_type": "bearer",
-        "user": user_data
+        "user": user_data,
+        "expires_in": ACCESS_TOKEN_EXPIRE_SECONDS
     }
 
 @app.get("/auth/captcha-status")
@@ -297,7 +314,12 @@ async def get_captcha_status(request: Request):
 
 @app.post("/auth/login")
 @limiter.limit("20/minute")
-async def login(request: Request, user_in: UserLogin, db: Session = Depends(get_db)):
+async def login(
+    request: Request, 
+    response: Response,
+    user_in: UserLogin, 
+    db: Session = Depends(get_db)
+):
     ip_addr = get_client_ip(request)
     lockout_key = f"lockout:{ip_addr}"
     
@@ -398,10 +420,9 @@ async def login(request: Request, user_in: UserLogin, db: Session = Depends(get_
     db.refresh(user)
     
     # SECURITY FIX: Session Fixation Prevention - Generate new token after successful login
-    # Include session version to allow invalidation of all sessions
     session_version = secrets.token_hex(8)
     
-    # Include is_admin in JWT token for security
+    # Create access token (7 days)
     access_token = create_access_token(data={
         "sub": str(user.id), 
         "email": user.email,
@@ -416,6 +437,8 @@ async def login(request: Request, user_in: UserLogin, db: Session = Depends(get_
         "full_name": user.full_name,
         "session_version": session_version
     }
+    
+    # Store access token in Redis (7 days TTL)
     token_key = f"token:{hash_token(access_token)}"
     session_pointer = f"user_session:{user.id}"
 
@@ -440,18 +463,75 @@ async def login(request: Request, user_in: UserLogin, db: Session = Depends(get_
     )
 
     return {
-        "access_token": access_token, 
+        "access_token": access_token,  # Still return for backward compatibility
         "token_type": "bearer",
-        "user": user_data
+        "user": user_data,
+        "expires_in": ACCESS_TOKEN_EXPIRE_SECONDS
     }
 
 
-    if cached:
-        user_data = json.loads(cached)
-        return user_data
+@app.post("/auth/logout")
+async def logout(
+    request: Request,
+    response: Response
+):
+    """
+    Logout user by revoking token from Redis.
     
-    # Cache miss -> Deep Verification (JWT Decode + DB Check)
-    logger.info(f"DEBUG Auth: Cache miss for token. Performing deep verification...")
+    This endpoint:
+    1. Revokes access token from Redis
+    2. Clears session pointer
+    
+    Note: Cookies are no longer used. Client should remove token from localStorage.
+    """
+    # Get token from Authorization header
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.lower().startswith("bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+    
+    access_token = auth_header.split(" ", 1)[1].strip()
+    
+    # Revoke access token
+    if access_token:
+        token_key = f"token:{hash_token(access_token)}"
+        auth_cache.delete(token_key)
+        
+        # Also clear session pointer
+        payload = decode_access_token(access_token)
+        if payload and "sub" in payload:
+            session_pointer = f"user_session:{payload['sub']}"
+            auth_cache.delete(session_pointer)
+    
+    # LOG: User logout
+    if access_token:
+        payload = decode_access_token(access_token)
+        if payload:
+            system_logger.info(
+                "Auth",
+                f"User logout: {payload.get('email', 'unknown')}",
+                {
+                    "user_id": payload.get("sub"),
+                    "ip": get_client_ip(request)
+                }
+            )
+    
+    return {"message": "Logged out successfully"}
+
+
+@app.post("/auth/verify-token")
+async def verify_token_endpoint(request: Request, token: str, db: Session = Depends(get_db)):
+    """Legacy endpoint - kept for backward compatibility"""
+    token_key = f"token:{hash_token(token)}"
+    cached = auth_cache.get(token_key)
+    
+    # Check cache first
+    if cached:
+        try:
+            return json.loads(cached)
+        except:
+            pass
+    
+    # Decode and verify token
     payload = decode_access_token(token)
     if not payload:
         logger.error("DEBUG Auth: JWT decode failed or token expired.")

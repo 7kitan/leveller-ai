@@ -36,6 +36,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 import Link from "next/link";
+import Modal from "@/components/shared/Modal";
 
 interface CrawledData {
   source_platform: string;
@@ -64,6 +65,14 @@ interface ImportResult {
   error?: string;
   isExpanded?: boolean;
   isSavingIndividual?: boolean;
+}
+
+interface ExportInfo {
+  total_courses: number;
+  recommended_parts: number;
+  recommended_per_part: number;
+  estimated_total_size_mb: number;
+  estimated_size_per_part_mb: number;
 }
 
 const TagEditor = ({ tags, onChange, label, icon: Icon, colorClass = "" }: { tags: string[], onChange: (newTags: string[]) => void, label: string, icon: any, colorClass?: string }) => {
@@ -107,7 +116,7 @@ const TagEditor = ({ tags, onChange, label, icon: Icon, colorClass = "" }: { tag
 };
 
 const CourseImportPage = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
   const [urlsText, setUrlsText] = useState("");
   const [results, setResults] = useState<ImportResult[]>([]);
@@ -117,6 +126,11 @@ const CourseImportPage = () => {
   const [pendingUrls, setPendingUrls] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [isImportingFull, setIsImportingFull] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [exportInfo, setExportInfo] = useState<ExportInfo | null>(null);
+  const [numParts, setNumParts] = useState(1);
+  const [exportProgress, setExportProgress] = useState<{current: number, total: number} | null>(null);
+  const [isUploadingUrls, setIsUploadingUrls] = useState(false);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
@@ -148,74 +162,143 @@ const CourseImportPage = () => {
     reader.readAsText(file);
   };
 
-  const handleFullDataUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadUrlsForCrawl = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.endsWith('.json')) {
-      showNotification("Please upload a .json file", "error");
+    if (!file.name.endsWith('.txt')) {
+      showNotification("Please upload a .txt file", "error");
       return;
     }
 
+    setIsUploadingUrls(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const resp = await api.post("recommend/admin/courses/crawl/upload-urls", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      showNotification(
+        `Queued ${resp.data.queued} URLs for crawling. Skipped: ${resp.data.skipped}`
+      );
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || "Failed to upload URLs";
+      showNotification(msg, "error");
+    } finally {
+      setIsUploadingUrls(false);
+      e.target.value = ''; // Reset file input
+    }
+  };
+
+  const handleFullDataUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
     setIsImportingFull(true);
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const content = event.target?.result as string;
+    let totalImported = 0;
+    let totalSkipped = 0;
+    let totalErrors = 0;
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        if (!file.name.endsWith('.json')) {
+          showNotification(`Skipped ${file.name} - not a JSON file`, "error");
+          continue;
+        }
+
+        const content = await file.text();
         const data = JSON.parse(content);
         
         if (!data.courses || !Array.isArray(data.courses)) {
-          showNotification("Invalid JSON format. Expected {courses: [...]}", "error");
-          setIsImportingFull(false);
-          return;
+          showNotification(`Invalid format in ${file.name}. Expected {courses: [...]}`, "error");
+          continue;
         }
 
         const resp = await api.post("recommend/admin/courses/import-full", 
-          { courses: data.courses },
-          { headers: { Authorization: `Bearer ${token}` } }
+          { courses: data.courses }
         );
 
-        showNotification(
-          `Imported: ${resp.data.imported_count}, Skipped: ${resp.data.skipped_count}, Errors: ${resp.data.error_count}`
-        );
-      } catch (err: any) {
-        const msg = err.response?.data?.detail || "Failed to import courses";
-        showNotification(msg, "error");
-      } finally {
-        setIsImportingFull(false);
+        totalImported += resp.data.imported || 0;
+        totalSkipped += resp.data.skipped || 0;
+        totalErrors += resp.data.errors || 0;
       }
-    };
-    reader.onerror = () => {
-      showNotification("Failed to read file", "error");
+
+      showNotification(
+        `Imported: ${totalImported}, Skipped: ${totalSkipped}, Errors: ${totalErrors}`
+      );
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || "Failed to import courses";
+      showNotification(msg, "error");
+    } finally {
       setIsImportingFull(false);
-    };
-    reader.readAsText(file);
+      e.target.value = ''; // Reset file input
+    }
   };
 
   const handleExport = async () => {
-    setIsExporting(true);
     try {
-      const resp = await api.get("recommend/admin/courses/export", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const resp = await api.get("recommend/admin/export-info");
+      setExportInfo(resp.data);
+      setNumParts(resp.data.recommended_parts || 1);
+      setShowExportDialog(true);
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || "Failed to get export info";
+      showNotification(msg, "error");
+    }
+  };
 
-      const dataStr = JSON.stringify(resp.data, null, 2);
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `courses_export_${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+  const handleExportWithParts = async () => {
+    if (!exportInfo) return;
+    
+    setIsExporting(true);
+    setExportProgress({ current: 0, total: numParts });
+    
+    try {
+      const perPart = Math.ceil(exportInfo.total_courses / numParts);
+      
+      for (let i = 0; i < numParts; i++) {
+        const offset = i * perPart;
+        const resp = await api.get("recommend/admin/export", {
+          params: {
+            limit: perPart,
+            offset: offset,
+            part: i + 1
+          }
+        });
 
-      showNotification(`Exported ${resp.data.count} courses successfully`);
+        const dataStr = JSON.stringify(resp.data, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `courses_export_part${i + 1}_of_${numParts}_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        setExportProgress({ current: i + 1, total: numParts });
+        
+        // Small delay between downloads
+        if (i < numParts - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+
+      showNotification(`Exported ${exportInfo.total_courses} courses in ${numParts} parts successfully`);
+      setShowExportDialog(false);
     } catch (err: any) {
       const msg = err.response?.data?.detail || "Failed to export courses";
       showNotification(msg, "error");
     } finally {
       setIsExporting(false);
+      setExportProgress(null);
     }
   };
 
@@ -247,11 +330,7 @@ const CourseImportPage = () => {
 
     newResults.forEach(async (res) => {
       try {
-        const resp = await api.post("recommend/admin/courses/crawl", { url: res.url }, {
-          headers: { 
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const resp = await api.post("recommend/admin/courses/crawl", { url: res.url });
         
         const taskId = resp.data.task_id;
         pollStatus(res.url, taskId);
@@ -269,11 +348,7 @@ const CourseImportPage = () => {
   const pollStatus = (url: string, taskId: string) => {
     const interval = setInterval(async () => {
       try {
-        const resp = await api.get(`recommend/admin/courses/crawl/status/${taskId}`, {
-          headers: { 
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const resp = await api.get(`recommend/admin/courses/crawl/status/${taskId}`);
         
         if (resp.data.status === "completed") {
           // resp.data.result chính là object data trả về từ scraper
@@ -338,11 +413,7 @@ const CourseImportPage = () => {
         tags: [...d.skills, d.provider].filter(Boolean)
       };
 
-      await api.post("recommend/admin/courses", payload, {
-        headers: { 
-          Authorization: `Bearer ${token}`
-        }
-      });
+      await api.post("recommend/admin/courses", payload);
       
       showNotification(t("admin_courses_import_save_success").replace("{name}", d.name));
       setResults(prev => prev.filter(r => r.url !== url));
@@ -382,11 +453,7 @@ const CourseImportPage = () => {
         })
       };
 
-      await api.post("recommend/admin/courses/bulk", payload, {
-        headers: { 
-          Authorization: `Bearer ${token}`
-        }
-      });
+      await api.post("recommend/admin/courses/bulk", payload);
       
       showNotification(t("admin_courses_import_bulk_success").replace("{count}", validResults.length.toString()));
       setResults(prev => prev.filter(r => r.status !== 'success'));
@@ -430,12 +497,25 @@ const CourseImportPage = () => {
               
               <label className={cn(styles.uploadBtn, styles.uploadBtnSecondary)}>
                 <FileUp size={18} />
+                {isUploadingUrls ? <Loader2 className="animate-spin" size={18} /> : "Upload & Auto Crawl"}
+                <input 
+                  type="file" 
+                  accept=".txt" 
+                  onChange={handleUploadUrlsForCrawl}
+                  disabled={isUploadingUrls}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              
+              <label className={cn(styles.uploadBtn, styles.uploadBtnSecondary)}>
+                <FileUp size={18} />
                 {isImportingFull ? <Loader2 className="animate-spin" size={18} /> : "Import Full Data"}
                 <input 
                   type="file" 
                   accept=".json" 
                   onChange={handleFullDataUpload}
                   disabled={isImportingFull}
+                  multiple
                   style={{ display: 'none' }}
                 />
               </label>
@@ -724,6 +804,97 @@ const CourseImportPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Export Dialog */}
+        {exportInfo && (
+          <Modal
+            isOpen={showExportDialog}
+            onClose={() => !isExporting && setShowExportDialog(false)}
+            title="Export Courses"
+            maxWidth="28rem"
+            showCloseButton={!isExporting}
+          >
+            <div className={styles.exportModalContent}>
+              <div className={styles.exportInfoBox}>
+                <div className={styles.exportInfoRow}>
+                  <span className={styles.exportInfoLabel}>Total courses:</span>
+                  <span className={styles.exportInfoValue}>{exportInfo.total_courses.toLocaleString()}</span>
+                </div>
+                <div className={styles.exportInfoRow}>
+                  <span className={styles.exportInfoLabel}>Estimated size:</span>
+                  <span className={styles.exportInfoValue}>~{exportInfo.estimated_total_size_mb.toFixed(1)} MB</span>
+                </div>
+                <div className={styles.exportInfoRow}>
+                  <span className={styles.exportInfoLabel}>Recommended parts:</span>
+                  <span className={styles.exportInfoValueHighlight}>{exportInfo.recommended_parts}</span>
+                </div>
+              </div>
+
+              <div className={styles.exportInputGroup}>
+                <label className={styles.exportInputLabel}>
+                  Number of parts to split:
+                </label>
+                <input 
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={numParts}
+                  onChange={(e) => setNumParts(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
+                  disabled={isExporting}
+                  className={styles.exportInput}
+                />
+                <p className={styles.exportInputHint}>
+                  {Math.ceil(exportInfo.total_courses / numParts).toLocaleString()} courses per part
+                  (~{(exportInfo.estimated_total_size_mb / numParts).toFixed(1)} MB each)
+                </p>
+              </div>
+
+              {exportProgress && (
+                <div className={styles.exportProgressBox}>
+                  <div className={styles.exportProgressHeader}>
+                    <span className={styles.exportProgressLabel}>Exporting...</span>
+                    <span className={styles.exportProgressValue}>
+                      {exportProgress.current} / {exportProgress.total}
+                    </span>
+                  </div>
+                  <div className={styles.exportProgressBar}>
+                    <div 
+                      className={styles.exportProgressFill}
+                      style={{ width: `${(exportProgress.current / exportProgress.total) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className={styles.exportModalActions}>
+                <button
+                  onClick={() => setShowExportDialog(false)}
+                  disabled={isExporting}
+                  className={styles.exportModalBtnCancel}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleExportWithParts}
+                  disabled={isExporting}
+                  className={styles.exportModalBtnExport}
+                >
+                  {isExporting ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} />
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <Download size={18} />
+                      Export
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </Modal>
+        )}
       </PageContainer>
     </AuthGuard>
   );

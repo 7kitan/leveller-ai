@@ -27,7 +27,7 @@ import {
 import { format } from "date-fns";
 
 const AIUsagePage = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
   const [stats, setStats] = useState<any>(null);
   const [logs, setLogs] = useState<any[]>([]);
@@ -57,8 +57,8 @@ const AIUsagePage = () => {
   };
 
   useEffect(() => {
-    if (token) fetchData();
-  }, [token, period, days]);
+    if (user) fetchData();
+  }, [ period, days]);
 
   if (loading) {
     return (

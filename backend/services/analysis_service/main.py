@@ -1005,12 +1005,19 @@ async def simulate_boost(
 
 
 @app.post("/analysis/admin/test-email")
-async def admin_test_email(request: Request, db: Session = Depends(get_db)):
+async def admin_test_email(
+    request: Request, 
+    db: Session = Depends(get_db),
+    to_email: Optional[str] = Query(None, description="Override recipient email (defaults to admin's email)")
+):
     """Admin only: Gửi email test để kiểm tra cấu hình SMTP."""
     check_admin(request)
     
-    # Hardcoded test email address
-    test_email = "vanbachpk1@gmail.com"
+    # Use admin's email from auth headers, or allow override via query param
+    test_email = to_email or request.headers.get("X-User-Email")
+    
+    if not test_email:
+        raise HTTPException(status_code=400, detail="No email address available. Provide to_email parameter.")
 
     from shared.email_utils import send_email
     success = send_email(

@@ -11,7 +11,7 @@ import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 
 export default function AdminProfilePage() {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
   const [profile, setProfile] = useState({
     email: "",
@@ -30,10 +30,10 @@ export default function AdminProfilePage() {
 
   useEffect(() => {
     fetchProfile();
-  }, [token]);
+  }, [user]);
 
   const fetchProfile = async () => {
-    if (!token) return;
+    if (!user) return;
     try {
       setIsLoading(true);
       const res = await api.get("auth/me");

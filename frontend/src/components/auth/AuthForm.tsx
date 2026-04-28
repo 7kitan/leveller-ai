@@ -70,9 +70,9 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
         : { email, password, full_name: fullName, captcha_token: captchaToken };
       const res = await api.post(endpoint, payload);
       
-      const { access_token, user } = res.data;
+      const { user, access_token } = res.data;
       
-      login(access_token, user);
+      login(user, access_token);
       
       const userRole = user.role;
       router.push(`/${userRole}`);
