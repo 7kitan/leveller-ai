@@ -25,10 +25,10 @@ export default function ResetPasswordPage() {
   const { t } = useLanguage();
 
   useEffect(() => {
-    if (!user) {
+    if (!token) {
       setError(t("reset_password_invalid_token"));
     }
-  }, [ t]);
+  }, [token, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
