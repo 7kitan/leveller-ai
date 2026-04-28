@@ -1,6 +1,6 @@
 import logging
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, and_
 from worker.celery_app import celery_app
 from shared.database import SessionLocal
@@ -22,7 +22,7 @@ def aggregate_market_data():
     try:
         logger.info("[MARKET STATS] Starting daily aggregation...")
         
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         thirty_days_ago = now - timedelta(days=30)
         sixty_days_ago = now - timedelta(days=60)
 
@@ -46,20 +46,13 @@ def aggregate_market_data():
                 
             is_current = job.created_at >= thirty_days_ago
             
-            # Extract all skills (handle both type="skill" and type="group")
+            # Extract all skills from extracted_requirements_json
+            # Format: [{"skill_name": "Python", "category": "...", ...}, ...]
             all_skills = []
             for req in reqs:
-                if req.get("type") == "skill":
-                    skill_name = req.get("skill")
-                    if skill_name:
-                        all_skills.append(skill_name)
-                elif req.get("type") == "group":
-                    # Extract skills from nested group
-                    group_skills = req.get("skills", [])
-                    for skill_obj in group_skills:
-                        skill_name = skill_obj.get("skill")
-                        if skill_name:
-                            all_skills.append(skill_name)
+                skill_name = req.get("skill_name")
+                if skill_name:
+                    all_skills.append(skill_name)
             
             # Aggregate stats for each skill
             for skill_name in all_skills:
