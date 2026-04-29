@@ -155,8 +155,6 @@
     text-align: left;
     font-size: var(--font-size-small);
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     color: var(--text-secondary);
 }
 
@@ -299,8 +297,6 @@
     display: block;
     font-size: var(--font-size-small);
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     color: var(--text-secondary);
     margin-bottom: 0.5rem;
 }
@@ -331,8 +327,6 @@
     display: block;
     font-size: var(--font-size-small);
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     color: var(--text-secondary);
     margin-bottom: 0.5rem;
 }

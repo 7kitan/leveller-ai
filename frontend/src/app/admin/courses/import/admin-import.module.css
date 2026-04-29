@@ -96,8 +96,6 @@
   border-radius: var(--radius-md);
   font-weight: 700;
   font-size: var(--font-size-base);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   border: none;
@@ -161,8 +159,6 @@
 .metaLabel {
   color: #666;
   font-size: var(--font-size-small);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   font-weight: 600;
 }
 
@@ -418,7 +414,6 @@
   font-size: var(--font-size-small);
   font-weight: 600;
   color: #888;
-  text-transform: uppercase;
 }
 
 .formInput, .formTextarea {
@@ -530,7 +525,6 @@
   border-radius: var(--radius-md);
   font-weight: 700;
   font-size: var(--font-size-small);
-  text-transform: uppercase;
   box-shadow: 0 4px 12px rgba(0, 113, 227, 0.2);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -553,7 +547,6 @@
   color: var(--color-text-muted);
   font-weight: 700;
   font-size: var(--font-size-small);
-  text-transform: uppercase;
   cursor: pointer;
   transition: all 0.2s ease;
   border-radius: var(--radius-md);
@@ -622,8 +615,6 @@
   border-radius: var(--radius-md);
   font-weight: 700;
   font-size: var(--font-size-small);
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
@@ -659,8 +650,6 @@
   border-radius: var(--radius-md);
   font-weight: 700;
   font-size: var(--font-size-small);
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }

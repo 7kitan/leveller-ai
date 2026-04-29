@@ -20,7 +20,6 @@
   font-weight: 900;
   letter-spacing: -0.05em;
   color: var(--color-text-main);
-  text-transform: uppercase;
   font-style: italic;
 }
 
@@ -55,8 +54,6 @@
 .sectionTitle {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   color: var(--color-accent-primary);
   opacity: 0.8;
   display: flex;
@@ -132,8 +129,6 @@
   color: white;
   border-radius: 1.5rem;
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   font-size: var(--font-size-small);
   cursor: pointer;
   border: none;
@@ -215,7 +210,6 @@
 
   .sectionTitle {
     font-size: var(--font-size-small);
-    letter-spacing: 0.15em;
   }
 
   /* Input Group */

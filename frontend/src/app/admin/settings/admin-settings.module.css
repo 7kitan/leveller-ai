@@ -154,8 +154,6 @@
   font-size: var(--font-size-medium);
   font-weight: 900;
   color: var(--color-text-main);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .sectionSaveBtn {
@@ -168,8 +166,6 @@
   border-radius: 1rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
 }
@@ -196,8 +192,6 @@
   border-radius: 1rem;
   font-size: var(--font-size-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   transition: all 0.3s ease;
 }
 
@@ -334,8 +328,6 @@
   border-radius: 1.25rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   transition: all 0.3s ease;
   box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
 }
@@ -387,7 +379,6 @@
   border-radius: 1rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
   color: var(--color-text-muted);
   transition: all 0.3s ease;
 }
@@ -404,7 +395,6 @@
   border-radius: 1rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
   box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
   transition: all 0.3s ease;
 }

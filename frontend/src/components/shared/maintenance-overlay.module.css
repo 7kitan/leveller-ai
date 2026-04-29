@@ -58,8 +58,6 @@
   border-radius: 99px;
   font-size: var(--font-size-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   border: 1px solid rgba(14, 165, 233, 0.1);
 }
 
@@ -115,8 +113,6 @@
   font-weight: 600;
   color: rgba(0, 0, 0, 0.4);
   margin-bottom: 0.15rem;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
 }
 
 .infoValue {

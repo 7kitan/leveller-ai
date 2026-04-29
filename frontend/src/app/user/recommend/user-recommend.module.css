@@ -29,8 +29,6 @@
 .loadingText {
   color: var(--color-accent-primary);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2rem;
   font-size: var(--font-size-small);
   animation: pulse 2s infinite;
 }
@@ -142,8 +140,6 @@
   font-weight: 900;
   color: var(--color-text-main);
   margin-bottom: 2rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
 
 .infoList {
@@ -195,8 +191,6 @@
   font-weight: 900;
   color: var(--color-accent-primary);
   margin-bottom: 2rem;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
 }
 
 .insightContent {
@@ -238,8 +232,6 @@
   font-size: var(--font-size-small);
   font-weight: 900;
   color: var(--color-accent-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.2rem;
 }
 
 .titleMain {
@@ -270,8 +262,6 @@
   color: var(--color-text-main);
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15rem;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
@@ -407,8 +397,6 @@
   font-size: var(--font-size-small);
   font-weight: 900;
   color: #10b981;
-  text-transform: uppercase;
-  letter-spacing: 0.1rem;
 }
 
 .cardHeader {
@@ -437,8 +425,6 @@
 .skillLabel {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2rem;
   color: var(--color-text-muted);
 }
 
@@ -467,8 +453,6 @@
   border-radius: 1.25rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15rem;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
@@ -586,8 +570,6 @@
   gap: 0.5rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   color: var(--color-text-muted);
   opacity: 0.5;
   background: none;
@@ -652,8 +634,6 @@
 .matchLabel {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   color: var(--color-text-muted);
   opacity: 0.5;
 }
@@ -700,8 +680,6 @@
 .matchStatLabel {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   color: var(--color-text-muted);
   opacity: 0.4;
 }
@@ -734,8 +712,6 @@
   gap: 0.5rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   color: var(--color-text-muted);
 }
 
@@ -758,7 +734,6 @@
   border-radius: 99px;
   font-weight: 900;
   font-style: normal;
-  letter-spacing: 0;
 }
 
 .marketInsight {
@@ -797,8 +772,6 @@
   border: 1px solid;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
 
 /* ── Tab Bar ──────────────────────────────────────────────────────────── */
@@ -819,8 +792,6 @@
   border-radius: 1.5rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--color-text-muted);
   background: none;
   border: none;
@@ -934,7 +905,6 @@
   border-radius: 9999px;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
 }
 
 .emptyIcon {
@@ -964,8 +934,6 @@
   border-radius: 1.5rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   box-shadow: 0 15px 40px rgba(79, 70, 229, 0.3);
   transition: all 0.3s;
   cursor: pointer;
@@ -1019,8 +987,6 @@
   border: 1px solid;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
 
 .gapCardMeta {
@@ -1054,7 +1020,6 @@
 .gapLevel {
   font-size: var(--font-size-small);
   font-weight: 700;
-  text-transform: uppercase;
   color: var(--color-text-muted);
   opacity: 0.8;
 }
@@ -1071,10 +1036,8 @@
   color: white;
   font-size: var(--font-size-small);
   font-weight: 950;
-  text-transform: uppercase;
   padding: 0.2rem 0.6rem;
   border-radius: 0.5rem;
-  letter-spacing: 0.1em;
 }
 
 .gapLearningPath {
@@ -1103,8 +1066,6 @@
 .gapType {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--color-text-muted);
   opacity: 0.5;
 }
@@ -1122,8 +1083,6 @@
 .gapEffort {
   font-size: var(--font-size-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--color-accent-primary);
   opacity: 0.5;
 }
@@ -1215,8 +1174,6 @@
 .roadmapStageNum {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   color: var(--color-accent-primary);
   opacity: 0.5;
   margin-bottom: 0.75rem;
@@ -1237,8 +1194,6 @@
   font-weight: 700;
   color: var(--color-text-muted);
   opacity: 0.5;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   margin-bottom: 1.5rem;
 }
 
@@ -1343,8 +1298,6 @@
   border-radius: 1rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--color-text-muted);
   background: transparent;
   border: none;
@@ -1935,8 +1888,6 @@
   font-size: var(--font-size-medium);
   font-weight: 900;
   color: var(--color-text-main);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
 
 .impactChartContainer {
@@ -1974,7 +1925,6 @@
   font-weight: 600;
   color: var(--color-text-main);
   font-style: italic;
-  letter-spacing: 0.02em;
 }
 
 @keyframes spin {

@@ -67,8 +67,6 @@
   font-size: var(--font-size-small);
   font-weight: 700;
   color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   border-bottom: 1px solid rgba(var(--text-rgb), 0.05);
 }
 

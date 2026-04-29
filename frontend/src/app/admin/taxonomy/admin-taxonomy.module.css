@@ -57,8 +57,6 @@
   border-radius: 1.25rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
 }
@@ -175,8 +173,6 @@
   text-align: left;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   color: var(--color-text-muted);
   border-bottom: 1px solid var(--color-border-subtle);
   opacity: 0.6;
@@ -257,7 +253,6 @@
     font-size: var(--font-size-small);
     font-weight: 900;
     color: var(--color-text-muted);
-    text-transform: uppercase;
     opacity: 0.7;
 }
 
@@ -268,8 +263,6 @@
 .emptyAlias {
     font-size: var(--font-size-small);
     font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
     color: var(--color-text-muted);
     opacity: 0.2;
     font-style: italic;
@@ -350,7 +343,6 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  text-transform: uppercase;
   font-style: italic;
 }
 
@@ -365,8 +357,6 @@
   font-size: var(--font-size-small);
   font-weight: 900;
   color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   padding: 0 0.25rem;
   opacity: 0.5;
 }
@@ -403,8 +393,6 @@
 .modalCancelBtn {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   color: rgba(255, 255, 255, 0.3);
 }
 
@@ -423,8 +411,6 @@
   border-radius: 1.25rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   transition: all 0.3s ease;
 }
 
@@ -447,8 +433,6 @@
 .emptyStateText {
   font-size: var(--font-size-base);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   font-style: italic;
 }
 

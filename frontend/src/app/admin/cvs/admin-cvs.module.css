@@ -75,8 +75,6 @@
 .statLabel {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2rem;
   color: var(--color-text-muted);
   margin-bottom: 1rem;
   opacity: 0.6;
@@ -191,8 +189,6 @@
   text-align: left;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   color: var(--color-text-muted);
   border-bottom: 1px solid var(--color-border-subtle);
   opacity: 0.6;
@@ -240,8 +236,6 @@
   border-radius: 9999px;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   border: 1px solid transparent;
 }
 
@@ -323,8 +317,6 @@
 .emptyStateTextSmall {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   color: var(--color-text-muted);
   opacity: 0.6;
 }
@@ -332,8 +324,6 @@
 .emptyStateTextMain {
   font-size: var(--font-size-base);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   font-style: italic;
   color: var(--color-text-main);
 }

@@ -44,7 +44,6 @@
   color: var(--color-text-main);
   font-style: italic;
   letter-spacing: -0.01em;
-  text-transform: uppercase;
 }
 
 .closeBtn {

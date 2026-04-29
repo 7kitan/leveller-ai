@@ -155,8 +155,6 @@
     /* UI Element Font Scale */
     .font-micro {
         font-size: var(--font-size-small);
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
         font-weight: 700;
     }
 
@@ -179,8 +177,6 @@
 
     .font-stat-label {
         font-size: var(--font-size-small);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
         font-weight: 700;
         opacity: 0.5;
     }

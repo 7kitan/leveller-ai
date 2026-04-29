@@ -166,8 +166,6 @@
   border-radius: 9999px;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -180,8 +178,6 @@
   font-weight: 700;
   color: var(--color-text-muted);
   opacity: 0.5;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 /* --- Growth Forecast --- */
@@ -215,8 +211,6 @@
   gap: 0.5rem;
   font-size: var(--font-size-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: var(--color-text-muted);
 }
 
@@ -263,7 +257,6 @@
   font-size: var(--font-size-small);
   font-weight: 600;
   color: var(--color-text-muted);
-  text-transform: uppercase;
 }
 
 .emptyStateCenter {
@@ -440,8 +433,6 @@
   font-size: var(--font-size-small);
   font-weight: 800;
   color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .snapshotValue {

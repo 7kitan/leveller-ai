@@ -44,8 +44,6 @@
   font-size: var(--font-size-small);
   font-weight: 900;
   color: #10b981;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   flex-shrink: 0;
 }
 
@@ -58,8 +56,6 @@
   font-weight: 700;
   color: var(--color-text-muted);
   opacity: 0.5;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .platformName {
@@ -118,8 +114,6 @@
   gap: 0.5rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--color-accent-primary);
   text-decoration: none;
   transition: all 0.2s;

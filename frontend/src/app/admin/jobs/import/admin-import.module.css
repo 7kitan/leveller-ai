@@ -88,8 +88,6 @@
   border-radius: var(--radius-md);
   font-weight: 700;
   font-size: var(--font-size-small);
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
@@ -131,8 +129,6 @@
   border-radius: var(--radius-md);
   font-weight: 700;
   font-size: var(--font-size-small);
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -160,10 +156,8 @@
 .inputSection h3 {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
   color: var(--color-text-muted);
   margin-bottom: 1rem;
-  letter-spacing: 0.1em;
 }
 
 .urlInputGroup {
@@ -205,8 +199,6 @@
   border-radius: var(--radius-md);
   font-weight: 700;
   font-size: var(--font-size-base);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   border: none;
@@ -303,7 +295,6 @@
 .formLabel {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
   color: var(--color-text-muted);
   opacity: 0.6;
 }
@@ -330,7 +321,6 @@
   color: var(--color-text-muted);
   font-weight: 700;
   font-size: var(--font-size-small);
-  text-transform: uppercase;
   cursor: pointer;
   transition: all 0.2s ease;
   border-radius: var(--radius-md);
@@ -353,7 +343,6 @@
   border-radius: var(--radius-md);
   font-weight: 700;
   font-size: var(--font-size-small);
-  text-transform: uppercase;
   box-shadow: 0 4px 12px rgba(0, 113, 227, 0.2);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

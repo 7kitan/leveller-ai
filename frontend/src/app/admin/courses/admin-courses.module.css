@@ -60,8 +60,6 @@
   border-radius: 1.25rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
 }
 
@@ -145,8 +143,6 @@
   text-align: left;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   color: var(--color-text-muted);
   border-bottom: 1px solid var(--color-border-subtle);
   opacity: 0.6;
@@ -207,7 +203,6 @@
   color: #0891b2;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
 }
 
 .statusDot {
@@ -312,9 +307,7 @@
   grid-column: 1 / -1;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
   color: var(--color-accent-primary);
-  letter-spacing: 0.1em;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--color-border-subtle);
   margin-top: 1rem;
@@ -329,7 +322,6 @@
 .formField label {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
   color: var(--color-text-muted);
   opacity: 0.6;
 }
@@ -383,7 +375,6 @@
   border-radius: 1rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
 }
 
 .notification {

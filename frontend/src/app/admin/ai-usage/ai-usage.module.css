@@ -53,8 +53,6 @@
   border-radius: 0.5rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   transition: all 0.2s;
 }
 
@@ -129,8 +127,6 @@
 .modelCalls {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: var(--color-text-muted);
 }
 
@@ -234,8 +230,6 @@
   border-bottom: 1px solid var(--color-border-subtle);
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .tr {
@@ -263,8 +257,6 @@
   font-size: var(--font-size-small);
   font-weight: 700;
   color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .statusBadge {
@@ -272,8 +264,6 @@
   border-radius: 9999px;
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .statusSuccess {
