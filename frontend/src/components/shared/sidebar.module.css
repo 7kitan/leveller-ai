@@ -85,14 +85,14 @@
 }
 
 .item {
-  @apply flex items-center gap-3.5 px-4 py-3 font-semibold transition-colors relative overflow-hidden;
+  @apply flex items-center gap-3.5 px-4 py-3 font-medium transition-colors relative overflow-hidden;
   color: var(--color-text-muted);
   font-size: 0.9rem;
   overflow-x: hidden;
 }
 
 .collapsed .item {
-  @apply px-4 py-3 justify-center;
+  @apply px-4 py-3;
 }
 
 .label {
