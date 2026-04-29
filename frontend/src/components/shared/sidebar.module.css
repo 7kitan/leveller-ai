@@ -33,13 +33,15 @@
 
 .collapseToggle {
   @apply h-8 w-8 rounded-lg flex items-center justify-center text-black hover:bg-black/10;
-  margin: 0 10px 10px auto;
-  opacity: 1;
-  transition: margin 500ms ease-in-out;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  transition: right 500ms ease-in-out;
 }
 
 .collapsed .collapseToggle {
-  margin: 0 auto 10px auto;
+  right: 50%;
+  transform: translateX(8px);
 }
 
 [data-theme="dark"] .collapsed .collapseToggle {
