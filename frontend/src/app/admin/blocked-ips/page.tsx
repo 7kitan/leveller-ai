@@ -18,6 +18,7 @@ import PageContainer from "@/components/common/PageContainer";
 import Portal from "@/components/shared/Portal";
 import Modal from "@/components/shared/Modal";
 import api from "@/lib/api";
+import { formatHours, formatNumber } from "@/lib/utils";
 import styles from "./blocked-ips.module.css";
 
 interface BlockedIP {
@@ -214,7 +215,7 @@ const BlockedIPsPage = () => {
                         <Clock size={14} className={styles.inlineIcon} />
                         {ip.expires_in}
                       </td>
-                      <td>{ip.ttl_hours.toFixed(1)}h</td>
+                      <td>{formatHours(ip.ttl_hours)}</td>
                       <td>
                         <button
                           onClick={() => {
@@ -250,7 +251,7 @@ const BlockedIPsPage = () => {
                     </div>
                     <div className={styles.cardRow}>
                       <span className={styles.label}>TTL:</span>
-                      <span className={styles.value}>{ip.ttl_hours.toFixed(1)} hours</span>
+                      <span className={styles.value}>{formatNumber(ip.ttl_hours)} hours</span>
                     </div>
                   </div>
                   <div className={styles.cardFooter}>

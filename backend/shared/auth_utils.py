@@ -42,9 +42,10 @@ def get_client_ip(request) -> str:
     Extract real client IP from request, handling proxy/gateway scenarios.
     
     Priority order:
-    1. X-Real-IP (set by gateway with actual client IP)
-    2. X-Forwarded-For (first IP in the chain)
-    3. request.client.host (fallback, may be gateway IP in Docker)
+    1. CF-Connecting-IP (Cloudflare-specific, most reliable)
+    2. X-Real-IP (set by gateway with actual client IP)
+    3. X-Forwarded-For (first IP in the chain)
+    4. request.client.host (fallback, may be gateway IP in Docker)
     
     Args:
         request: FastAPI Request object
@@ -52,7 +53,12 @@ def get_client_ip(request) -> str:
     Returns:
         str: Client IP address
     """
-    # Check X-Real-IP header (most reliable, set by our gateway)
+    # Check CF-Connecting-IP header (Cloudflare-specific, most reliable)
+    cf_ip = request.headers.get("CF-Connecting-IP")
+    if cf_ip:
+        return cf_ip
+    
+    # Check X-Real-IP header (set by our gateway)
     real_ip = request.headers.get("X-Real-IP")
     if real_ip:
         return real_ip

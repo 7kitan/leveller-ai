@@ -17,6 +17,7 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 import api from "@/lib/api";
+import { formatNumber } from "@/lib/utils";
 import styles from "./market.module.css";
 
 interface MarketStats {
@@ -84,7 +85,8 @@ const AdminMarketPage = () => {
 
   const formatSalary = (salary: number) => {
     if (!salary) return "N/A";
-    return `$${(salary / 1000000).toFixed(1)}M`;
+    const millions = salary / 1000000;
+    return `$${formatNumber(millions)}M`;
   };
 
   return (
@@ -179,7 +181,7 @@ const AdminMarketPage = () => {
                             </td>
                             <td className={styles.scoreCell}>
                               <span className={styles.scoreBadge}>
-                                {skill.demand_score.toFixed(1)}
+                                {formatNumber(skill.demand_score)}
                               </span>
                             </td>
                             <td className={styles.salaryCell}>

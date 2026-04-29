@@ -29,7 +29,7 @@ import {
   Download,
   FileUp
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 import styles from "./admin-import.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
@@ -822,7 +822,7 @@ const CourseImportPage = () => {
                 </div>
                 <div className={styles.exportInfoRow}>
                   <span className={styles.exportInfoLabel}>Estimated size:</span>
-                  <span className={styles.exportInfoValue}>~{exportInfo.estimated_total_size_mb.toFixed(1)} MB</span>
+                  <span className={styles.exportInfoValue}>~{formatNumber(exportInfo.estimated_total_size_mb)} MB</span>
                 </div>
                 <div className={styles.exportInfoRow}>
                   <span className={styles.exportInfoLabel}>Recommended parts:</span>
@@ -845,7 +845,7 @@ const CourseImportPage = () => {
                 />
                 <p className={styles.exportInputHint}>
                   {Math.ceil(exportInfo.total_courses / numParts).toLocaleString()} courses per part
-                  (~{(exportInfo.estimated_total_size_mb / numParts).toFixed(1)} MB each)
+                  (~{formatNumber(exportInfo.estimated_total_size_mb / numParts)} MB each)
                 </p>
               </div>
 

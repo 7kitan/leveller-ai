@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { cn, formatSalaryVND } from "@/lib/utils";
 import styles from "./user-jobs.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, MapPin, Search, Loader2, Info, Sparkles, Building2, DollarSign, Clock, Layers } from "lucide-react";
@@ -229,10 +229,9 @@ export default function JobsPage() {
                                 const min = selectedJob.min_salary_vnd;
                                 const max = selectedJob.max_salary_vnd;
                                 if (!min && !max) return t("jobs_salary_negotiable");
-                                const format = (val: number) => `${(val / 1000000).toFixed(0)}M`;
-                                if (min && !max) return `${t("jobs_salary_from")} ${format(min)}`;
-                                if (!min && max) return `${t("jobs_salary_up_to")} ${format(max)}`;
-                                return `${format(min!)} - ${format(max!)}`;
+                                if (min && !max) return `${t("jobs_salary_from")} ${formatSalaryVND(min)}`;
+                                if (!min && max) return `${t("jobs_salary_up_to")} ${formatSalaryVND(max)}`;
+                                return `${formatSalaryVND(min!)} - ${formatSalaryVND(max!)}`;
                              })()}
                         </span>
                     </div>
@@ -329,10 +328,9 @@ function JobCard({ job, onShowDetails }: { job: Job; onShowDetails: (j: Job) => 
   
   const formatSalary = (min?: number, max?: number) => {
     if (!min && !max) return t("jobs_salary_negotiable");
-    const format = (val: number) => `${(val / 1000000).toFixed(0)}M`;
-    if (min && !max) return `${t("jobs_salary_from")} ${format(min)}`;
-    if (!min && max) return `${t("jobs_salary_up_to")} ${format(max)}`;
-    return `${format(min!)} - ${format(max!)}`;
+    if (min && !max) return `${t("jobs_salary_from")} ${formatSalaryVND(min)}`;
+    if (!min && max) return `${t("jobs_salary_up_to")} ${formatSalaryVND(max)}`;
+    return `${formatSalaryVND(min!)} - ${formatSalaryVND(max!)}`;
   };
 
   const getRelativeTime = (dateString?: string) => {

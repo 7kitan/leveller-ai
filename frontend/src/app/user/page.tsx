@@ -20,7 +20,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, formatPercent } from "@/lib/utils";
 import styles from "./user-dashboard.module.css";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
@@ -132,7 +132,7 @@ const UserDashboard = () => {
     },
     {
       label: t("cv_match_score"),
-      value: loading ? "..." : `${(marketData?.market_fit_pct || 0).toFixed(1)}%`,
+      value: loading ? "..." : formatPercent(marketData?.market_fit_pct || 0),
       icon: TrendingUp,
     },
   ];
@@ -214,9 +214,9 @@ const UserDashboard = () => {
                       {t("dash_potential_match")}
                     </div>
                     <div className={styles.forecastValue}>
-                      {marketData.potential_match_pct.toFixed(1)}%
+                      {formatPercent(marketData.potential_match_pct)}
                       <span className={styles.growthBadge}>
-                        +{(marketData.potential_match_pct - (marketData.market_fit_pct || 0)).toFixed(1)}%
+                        +{formatPercent(marketData.potential_match_pct - (marketData.market_fit_pct || 0))}
                       </span>
                     </div>
                   </div>
@@ -226,7 +226,7 @@ const UserDashboard = () => {
                       {t("dash_salary_boost")}
                     </div>
                     <div className={styles.forecastValue}>
-                      +{marketData.salary_growth_pct.toFixed(1)}%
+                      +{formatPercent(marketData.salary_growth_pct)}
                     </div>
                   </div>
                 </div>
