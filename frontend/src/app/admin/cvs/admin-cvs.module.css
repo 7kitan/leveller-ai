@@ -34,7 +34,6 @@
   font-size: var(--font-size-xlarge);
   font-weight: 900;
   color: var(--color-text-main);
-  font-style: italic;
   letter-spacing: -0.05em;
 }
 
@@ -83,7 +82,6 @@
 .statValue {
   font-size: var(--font-size-xlarge);
   font-weight: 900;
-  font-style: italic;
   letter-spacing: -0.05em;
   line-height: 1;
   color: var(--color-text-main);
@@ -220,7 +218,6 @@
 .userName {
   font-weight: 900;
   color: var(--color-text-main);
-  font-style: italic;
 }
 
 .userEmail {
@@ -324,7 +321,6 @@
 .emptyStateTextMain {
   font-size: var(--font-size-base);
   font-weight: 900;
-  font-style: italic;
   color: var(--color-text-main);
 }
 

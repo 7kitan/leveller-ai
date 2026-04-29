@@ -27,7 +27,6 @@
   font-size: var(--font-size-xlarge);
   font-weight: 900;
   color: var(--color-text-main);
-  font-style: italic;
   letter-spacing: -0.05em;
 }
 

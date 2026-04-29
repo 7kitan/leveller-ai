@@ -50,7 +50,6 @@
   line-height: 1;
   letter-spacing: -0.05em;
   color: white;
-  font-style: italic;
 }
 
 /* Use standardized gradient for consistency */
@@ -89,7 +88,6 @@
 .statValue {
   font-size: var(--font-size-large);
   font-weight: 900;
-  font-style: italic;
   letter-spacing: tight;
 }
 
@@ -343,7 +341,6 @@
     font-size: var(--font-size-small);
     font-weight: 900;
     color: rgba(255, 255, 255, 0.2);
-    font-style: italic;
 }
 
 .resultsCountHighlight {
@@ -425,7 +422,6 @@
   margin-left: auto;
   font-size: var(--font-size-small);
   font-weight: 900;
-  font-style: italic;
 }
 
 .costFree { color: #34d399; }

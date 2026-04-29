@@ -579,7 +579,6 @@ select.input option {
   font-size: var(--font-size-small);
   font-weight: 900;
   color: rgba(255, 255, 255, 0.2);
-  font-style: italic;
 }
 
 .emptyState {
@@ -606,7 +605,6 @@ select.input option {
   font-weight: 900;
   color: var(--color-text-main);
   letter-spacing: -0.05em;
-  font-style: italic;
 }
 
 .emptySub {

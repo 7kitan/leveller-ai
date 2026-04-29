@@ -243,7 +243,6 @@
   font-size: var(--font-size-base);
   color: var(--color-text-muted);
   opacity: 0.6;
-  font-style: italic;
 }
 
 .inputWrapper {

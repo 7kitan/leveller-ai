@@ -86,7 +86,6 @@
   font-weight: 900;
   line-height: 0.9;
   letter-spacing: -0.05em;
-  font-style: italic;
   background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -131,7 +130,6 @@
   font-size: var(--font-size-display);
   font-weight: 900;
   color: var(--color-text-main);
-  font-style: italic;
   line-height: 1;
   letter-spacing: -0.05em;
 }
@@ -140,7 +138,6 @@
   font-size: var(--font-size-display);
   font-weight: 900;
   color: #f59e0b;
-  font-style: italic;
   line-height: 1;
   letter-spacing: -0.05em;
   text-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
@@ -189,7 +186,6 @@
   font-size: var(--font-size-xlarge);
   font-weight: 900;
   color: var(--color-text-main);
-  font-style: italic;
   letter-spacing: -0.02em;
   display: flex;
   align-items: center;
@@ -300,7 +296,6 @@
   font-size: var(--font-size-xlarge);
   font-weight: 900;
   color: var(--color-text-main);
-  font-style: italic;
   letter-spacing: -0.02em;
 }
 
@@ -492,7 +487,6 @@
   font-size: var(--font-size-medium);
   font-weight: 900;
   color: white;
-  font-style: italic;
   margin-bottom: 1rem;
 }
 
@@ -597,7 +591,6 @@
   font-size: var(--font-size-base);
   color: rgba(255,255,255,0.4);
   font-weight: 500;
-  font-style: italic;
 }
 
 [data-theme="light"] .milestoneText {
@@ -832,7 +825,6 @@
   line-height: 1.5;
   color: var(--color-text-main);
   opacity: 0.8;
-  font-style: italic;
 }
 
 .copySuggesterBtn {
@@ -993,7 +985,6 @@
   color: var(--color-text-main);
   line-height: 1.1;
   letter-spacing: -0.04em;
-  font-style: italic;
 }
 
 .emptyStateSub {

@@ -289,7 +289,7 @@ export default function JobsPage() {
             {/* No structured data available */}
             {!selectedJob.job_description && !selectedJob.requirements && !selectedJob.benefits && (
               <div className={styles.modalSection}>
-                <div className={styles.modalDescription} style={{ opacity: 0.6, fontStyle: 'italic' }}>
+                <div className={styles.modalDescription} style={{ opacity: 0.6 }}>
                   {t("no_description_available")}
                 </div>
               </div>
