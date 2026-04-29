@@ -1,18 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-    /* Font Size Scale - 5 Value System */
-    --font-size-caption: 0.625rem;
-    --font-size-label: 0.75rem;
-    --font-size-body: 0.875rem;
-    --font-size-heading: 1rem;
-    --font-size-title: 1.25rem;
-    --font-size-display: 2rem;
-
-    /* Accent Gradients */
-    --gradient-primary: linear-gradient(135deg, #4f46e5, #0ea5e9);
-    --gradient-sky: linear-gradient(135deg, #0EA5E9, #06B6D4);
-    --gradient-accent: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+    /* Font Size Scale - UI & Body */
+    --font-size-xs: 0.6875rem;
+    --font-size-sm: 0.75rem;
+    --font-size-base: 0.875rem;
+    --font-size-lg: 1rem;
+    --font-size-xl: 1.125rem;
+    --font-size-2xl: 1.25rem;
+    --font-size-3xl: 1.5rem;
+    --font-size-4xl: 1.875rem;
+    --font-size-5xl: 2.25rem;
+    --font-size-6xl: 3rem;
+    --font-size-7xl: 3.75rem;
+    --font-size-8xl: 4.5rem;
 
     /* Apple Design System Palette */
     --color-apple-black: #000000;
@@ -50,12 +51,6 @@
     --radius-xl: 18px;
     --radius-2xl: 24px;
     --radius-full: 9999px;
-
-    /* Icon Sizes */
-    --icon-size-xs: 14px;
-    --icon-size-sm: 16px;
-    --icon-size-md: 20px;
-    --icon-size-lg: 24px;
 }
 
 @layer base {
@@ -236,7 +231,6 @@
     .text-premium-gradient {
         background: linear-gradient(180deg, var(--text-primary) 0%, rgba(255, 255, 255, 0.4) 100%);
         -webkit-background-clip: text;
-        background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
@@ -287,5 +281,9 @@
 
 /* Global Gradient Text Utility - Standardized across all pages */
 .gradient-text {
-    color: var(--color-accent-primary);
+    background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-block;
 }

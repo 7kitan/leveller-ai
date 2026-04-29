@@ -15,7 +15,7 @@ interface AuthGuardProps {
 }
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin, requireRole }) => {
-  const { user, loading, maintenanceMode } = useAuth();
+  const { user, loading, maintenanceMode, maintenanceDuration } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -81,7 +81,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin, requireRo
   // Hide protected content if redirects are about to happen
   const publicRoutes = ["/", "/login", "/register", "/auth/login", "/auth/register", "/auth", "/auth/forgot-password", "/auth/reset-password"];
   const isAuthorized = !user ? publicRoutes.includes(pathname) : true;
-
+  
   if (!isAuthorized && !showMaintenance) return null;
 
   return (
