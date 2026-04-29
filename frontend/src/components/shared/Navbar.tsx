@@ -67,7 +67,7 @@ export default function Navbar({
     <nav className={styles.navbar}>
       <div className={styles.container}>
 
-        {/* Left: Mobile Toggle + Desktop Collapse + Search */}
+        {/* Left: Mobile Toggle + Desktop Collapse} */}
         <div className={styles.left}>
           {/* Mobile hamburger */}
           <button className={styles.mobileHamburger} onClick={toggleMobileMenu}>
@@ -75,9 +75,10 @@ export default function Navbar({
                 <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>
              </svg>
           </button>
+        </div>
 
-
-
+        {/* Right: Search + theme toggle + notifications + user */}
+        <div className={styles.right}>
           <div className={styles.searchWrapper}>
             <div className={styles.inputWrapper}>
               <svg className={styles.inputIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -86,10 +87,7 @@ export default function Navbar({
               <input type="text" placeholder={t("search_placeholder")} className={styles.input} />
             </div>
           </div>
-        </div>
 
-        {/* Right: theme toggle + notifications + user */}
-        <div className={styles.right}>
           <div className={styles.actions}>
             <button 
               onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
