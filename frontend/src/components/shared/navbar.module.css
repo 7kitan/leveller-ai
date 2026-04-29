@@ -20,9 +20,7 @@
   }
 }
 
-[data-theme="light"] .navbar {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
+
 
 .container {
   height: 100%;
