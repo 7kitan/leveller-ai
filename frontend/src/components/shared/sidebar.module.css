@@ -40,11 +40,10 @@
 .collapseToggle {
   @apply h-8 w-8 rounded-lg flex items-center justify-center transition-all bg-black/5 text-black/40 hover:bg-black/10 hover:text-black;
   margin-left: auto;
+  opacity: 1;
 }
 
 .collapsed .collapseToggle {
-  opacity: 0;
-  pointer-events: none;
   position: absolute;
   left: 50%;
   top: 50%;
@@ -56,11 +55,6 @@
 
 [data-theme="dark"] .collapsed .collapseToggle {
   @apply bg-white/10 text-white;
-}
-
-.collapsed .brand:hover .collapseToggle {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .collapsed .brand:hover .brandIcon {
