@@ -35,12 +35,12 @@
   @apply h-8 w-8 rounded-lg flex items-center justify-center text-black hover:bg-black/10;
   position: absolute;
   top: 10px;
-  left: calc(100% - 42px);
-  transition: left 200ms ease-out;
+  right: 10px;
+  transition: right 500ms ease-in-out;
 }
 
 .collapsed .collapseToggle {
-  left: calc(50% - 16px);
+  right: calc(50% - 16px);
 }
 
 [data-theme="dark"] .collapsed .collapseToggle {
