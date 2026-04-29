@@ -150,12 +150,4 @@
 
 .active .icon { opacity: 1; }
 
-.dot {
-  @apply absolute right-3 w-1.5 h-1.5 rounded-full bg-blue-500;
-}
-
-.collapsed .dot {
-  @apply right-1.5;
-}
-
 

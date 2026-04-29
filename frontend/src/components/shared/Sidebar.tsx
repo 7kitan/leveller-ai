@@ -129,7 +129,6 @@ export default function Sidebar({
               <div className={`${styles.item} ${isActive ? styles.active : ""}`}>
                 <item.icon className={styles.icon} width={20} height={20} title={isMini ? translatedName : ""} />
                 <span className={styles.label}>{translatedName}</span>
-                {isActive && <div className={styles.dot} />}
               </div>
             </Link>
           );
