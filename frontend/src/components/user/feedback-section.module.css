@@ -62,7 +62,7 @@
 
 .subtitle {
   color: var(--text-secondary);
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
 }
 
 .card {
@@ -162,7 +162,7 @@
   border-radius: 0.75rem;
   padding: 0.6rem 0.8rem;
   color: var(--text-primary);
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   transition: all 0.2s ease;
 }
 
@@ -258,7 +258,7 @@
 
 .error {
   color: #ef4444;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   text-align: center;
 }
 

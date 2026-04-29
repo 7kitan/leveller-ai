@@ -199,7 +199,7 @@
 }
 
 .linkText {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 800;
   color: var(--color-accent-primary);
   display: flex;

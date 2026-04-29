@@ -678,7 +678,7 @@
 }
 
 .footerCopyright {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   color: rgba(0, 0, 0, 0.3);
 }
 
@@ -696,7 +696,7 @@
 }
 
 .footerLinks a {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   color: rgba(0, 0, 0, 0.3);
   text-decoration: none;
   transition: color 0.2s ease;

@@ -215,7 +215,7 @@
 .statusInactive { background-color: #f43f5e; box-shadow: 0 0 10px rgba(244, 63, 94, 0.4); }
 
 .statusText {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--color-text-main);
 }
@@ -431,7 +431,7 @@
   height: 1.2rem;
   border-radius: 50%;
   color: var(--color-text-muted);
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   cursor: pointer;
   transition: all 0.2s ease;
 }

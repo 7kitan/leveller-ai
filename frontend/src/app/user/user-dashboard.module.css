@@ -174,7 +174,7 @@
 }
 
 .learningEffort {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--color-text-muted);
   opacity: 0.5;
@@ -337,7 +337,7 @@
 
 .barValue {
   width: 3rem;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 800;
   color: var(--color-accent-primary);
   text-align: right;
@@ -349,7 +349,7 @@
 }
 
 .trendSalary {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--color-text-muted);
 }

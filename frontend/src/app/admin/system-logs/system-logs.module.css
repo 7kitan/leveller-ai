@@ -168,7 +168,7 @@
 }
 
 .details {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-family: monospace;
   color: var(--color-text-muted);
   margin-top: 0.25rem;
@@ -200,7 +200,7 @@
 }
 
 .paginationText {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: #64748b;
 }

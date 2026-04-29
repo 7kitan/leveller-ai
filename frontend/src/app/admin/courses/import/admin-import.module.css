@@ -475,7 +475,7 @@
   border: none;
   outline: none;
   color: #fff;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   padding: 0.25rem;
   flex: 1;
   min-width: 100px;

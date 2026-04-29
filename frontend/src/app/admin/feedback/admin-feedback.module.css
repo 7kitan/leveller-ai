@@ -64,7 +64,7 @@
 .table th {
   padding: 1.25rem 1.5rem;
   background: rgba(var(--text-rgb), 0.03);
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--text-secondary);
   border-bottom: 1px solid rgba(var(--text-rgb), 0.05);
@@ -138,7 +138,7 @@
 
 .noComment {
   color: var(--text-secondary);
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
 }
 
 .missingSkills {
@@ -164,13 +164,13 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   color: var(--text-secondary);
 }
 
 .taskId {
   font-family: monospace;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   color: var(--text-secondary);
   margin-top: 0.25rem;
   opacity: 0.6;

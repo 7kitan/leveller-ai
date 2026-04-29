@@ -184,7 +184,7 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
   background: rgba(0, 0, 0, 0.05);
   color: #1d1d1f;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -202,7 +202,7 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
   background: rgba(0, 0, 0, 0.05);
   color: #1d1d1f;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;

@@ -266,7 +266,7 @@
 }
 
 .userName {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: #ffffff;
 }
@@ -284,7 +284,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 600;
 }
 
@@ -353,7 +353,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.06);
   color: #ffffff;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   outline: none;
   transition: all 0.2s ease;
   min-width: 180px;
@@ -437,7 +437,7 @@
   position: absolute;
   bottom: 4px;
   right: 4px;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--color-apple-bright-blue);
   background: rgba(255, 255, 255, 0.9);
@@ -462,7 +462,7 @@
   border: none;
   cursor: pointer;
   transition: background 0.2s ease;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 600;
   font-family: inherit;
   justify-content: flex-start;

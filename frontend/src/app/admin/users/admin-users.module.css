@@ -220,7 +220,7 @@
 }
 
 .userEmail {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   color: var(--color-text-muted);
   margin-top: 0.25rem;
   opacity: 0.6;
@@ -256,7 +256,7 @@
 }
 
 .usageText {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 900;
   color: var(--color-text-muted);
   opacity: 0.8;
@@ -360,7 +360,7 @@
 }
 
 .skeletonText {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 900;
   color: rgba(255, 255, 255, 0.2);
 }

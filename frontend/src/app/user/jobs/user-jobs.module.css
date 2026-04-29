@@ -576,7 +576,7 @@ select.input option {
 }
 
 .loadingText {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 900;
   color: rgba(255, 255, 255, 0.2);
 }

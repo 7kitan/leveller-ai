@@ -201,7 +201,7 @@
 
 .fileSize {
   color: #6b7280;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
 }
 
 .previewActions {
