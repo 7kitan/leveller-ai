@@ -6,6 +6,7 @@
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(25px);
   border-right: 1px solid rgba(0, 0, 0, 0.05);
+  padding-top: 10px;
 }
 
 @media (max-width: 1024px) {
@@ -32,18 +33,13 @@
 
 .collapseToggle {
   @apply h-8 w-8 rounded-lg flex items-center justify-center text-black hover:bg-black/10;
-  margin-left: auto;
+  margin: 0 10px 10px auto;
   opacity: 1;
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  transition: right 300ms ease-in-out 500ms, transform 300ms ease-in-out 500ms;
+  transition: margin 500ms ease-in-out;
 }
 
 .collapsed .collapseToggle {
-  right: auto;
-  left: 50%;
-  transform: translateX(-50%);
+  margin: 0 auto 10px auto;
 }
 
 [data-theme="dark"] .collapsed .collapseToggle {
