@@ -105,7 +105,7 @@
 }
 
 .brandText {
-  font-size: 17px;
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: #ffffff;
   letter-spacing: -0.01em;
@@ -188,7 +188,7 @@
   justify-content: center;
   background: linear-gradient(135deg, var(--color-apple-blue), #0071e3);
   color: #ffffff;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -224,7 +224,7 @@
 .dropdownItem {
   @apply flex items-center gap-3 px-4 py-3 cursor-pointer no-underline;
   color: var(--color-text-main);
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 500;
 }
 
@@ -266,7 +266,7 @@
 }
 
 .userName {
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 600;
   color: #ffffff;
 }
@@ -284,7 +284,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: var(--font-size-small);
   font-weight: 600;
 }
 
@@ -353,7 +353,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.06);
   color: #ffffff;
-  font-size: 13px;
+  font-size: var(--font-size-small);
   outline: none;
   transition: all 0.2s ease;
   min-width: 180px;
@@ -437,7 +437,7 @@
   position: absolute;
   bottom: 4px;
   right: 4px;
-  font-size: 7px;
+  font-size: var(--font-size-small);
   font-weight: 700;
   color: var(--color-apple-bright-blue);
   background: rgba(255, 255, 255, 0.9);
@@ -462,7 +462,7 @@
   border: none;
   cursor: pointer;
   transition: background 0.2s ease;
-  font-size: 12px;
+  font-size: var(--font-size-small);
   font-weight: 600;
   font-family: inherit;
   justify-content: flex-start;
@@ -486,7 +486,7 @@
 }
 
 .dropdownRole {
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
@@ -642,7 +642,7 @@
   gap: 14px;
   padding: 14px 16px;
   border-radius: 14px;
-  font-size: 15px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: rgba(0, 0, 0, 0.65);
   transition: all 0.25s ease;

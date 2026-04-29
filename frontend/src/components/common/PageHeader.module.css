@@ -15,7 +15,7 @@
 }
 
 .headerTitle {
-  font-size: var(--font-size-display);
+  font-size: var(--font-size-xlarge);
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1.2;
@@ -24,7 +24,7 @@
 }
 
 .headerSubtitle {
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-base);
   color: var(--color-text-muted);
   max-width: 45rem;
   line-height: 1.6;

@@ -30,7 +30,7 @@
 }
 
 .subtitle {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   color: var(--color-text-muted);
   margin-top: 1rem;
   max-width: 40rem;
@@ -74,7 +74,7 @@
   gap: 0.75rem;
   padding: 0.75rem 1.5rem;
   border-radius: 1rem;
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--color-text-muted);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -99,7 +99,7 @@
 .tabBadge {
   background-color: rgba(255, 255, 255, 0.2);
   color: white;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   padding: 1px 6px;
   border-radius: 10px;
   font-weight: 900;
@@ -151,7 +151,7 @@
 }
 
 .cardTitle {
-  font-size: 1.25rem;
+  font-size: var(--font-size-medium);
   font-weight: 900;
   color: var(--color-text-main);
   text-transform: uppercase;
@@ -166,7 +166,7 @@
   background-color: var(--color-accent-primary);
   color: white;
   border-radius: 1rem;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -194,7 +194,7 @@
   border: 1px solid var(--color-border-subtle);
   color: var(--color-text-main);
   border-radius: 1rem;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -240,13 +240,13 @@
 }
 
 .label {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 900;
   color: var(--color-text-main);
 }
 
 .desc {
-  font-size: 11px;
+  font-size: var(--font-size-base);
   color: var(--color-text-muted);
   opacity: 0.6;
   font-style: italic;
@@ -332,7 +332,7 @@
   background-color: var(--color-accent-primary);
   color: white;
   border-radius: 1.25rem;
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
@@ -372,7 +372,7 @@
 }
 
 .saveBarText {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--color-text-main);
 }
@@ -385,7 +385,7 @@
 .discardBtn {
   padding: 0.75rem 1.5rem;
   border-radius: 1rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -402,7 +402,7 @@
   color: white;
   padding: 0.75rem 2rem;
   border-radius: 1rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);

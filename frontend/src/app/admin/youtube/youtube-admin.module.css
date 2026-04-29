@@ -7,7 +7,7 @@
     color: white;
     border-radius: 0.75rem;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);
 }
@@ -48,7 +48,7 @@
     border: 1px solid var(--border-color);
     border-radius: 0.75rem;
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     transition: all 0.2s ease;
 }
 
@@ -99,7 +99,7 @@
 .th {
     padding: 1rem 1.5rem;
     text-align: left;
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -165,7 +165,7 @@
     display: block;
     font-weight: 600;
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     line-height: 1.25rem;
     margin-bottom: 0.125rem;
     white-space: nowrap;
@@ -189,7 +189,7 @@
 
 .videoId {
     font-family: monospace;
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
     color: var(--text-secondary);
     background: var(--bg-tertiary);
     padding: 0.125rem 0.375rem;
@@ -198,13 +198,13 @@
 }
 
 .duration {
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
     color: #f43f5e;
     font-weight: 600;
 }
 
 .channelName {
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
     color: var(--text-secondary);
     display: flex;
     align-items: center;
@@ -212,7 +212,7 @@
 }
 
 .dateCell {
-    font-size: 0.8125rem;
+    font-size: var(--font-size-small);
     color: var(--text-secondary);
 }
 
@@ -221,7 +221,7 @@
     align-items: center;
     padding: 0.25rem 0.625rem;
     border-radius: 9999px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
     letter-spacing: 0.025em;
 }
@@ -309,7 +309,7 @@
 }
 
 .emptyStateText {
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     font-weight: 500;
 }
 
@@ -327,7 +327,7 @@
 
 .detailItem label {
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
     text-transform: uppercase;
     color: var(--text-secondary);
@@ -341,7 +341,7 @@
 
 .detailItemFull label {
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
     text-transform: uppercase;
     color: var(--text-secondary);
@@ -350,7 +350,7 @@
 }
 
 .detailValue {
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     color: var(--text-primary);
     background: var(--bg-tertiary);
     padding: 0.75rem;
@@ -360,7 +360,7 @@
 }
 
 .detailValueLong {
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     color: var(--text-primary);
     background: var(--bg-tertiary);
     padding: 0.75rem;
@@ -428,14 +428,14 @@
 }
 
 .deleteConfirmTitle {
-    font-size: 1.125rem;
+    font-size: var(--font-size-medium);
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
 }
 
 .deleteConfirmDesc {
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     color: var(--text-secondary);
     line-height: 1.5;
 }

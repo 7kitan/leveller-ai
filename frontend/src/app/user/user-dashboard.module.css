@@ -64,7 +64,7 @@
   color: #fff;
   border-radius: 9999px;
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
 }
 
 /* Stats Bento */
@@ -147,7 +147,7 @@
 
 .gapMiniTitle {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
   margin-bottom: 0.5rem;
   color: var(--color-text-main);
 }
@@ -156,7 +156,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 600;
   color: var(--color-text-muted);
 }
@@ -164,7 +164,7 @@
 .miniSeverity {
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -176,7 +176,7 @@
 }
 
 .learningEffort {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 700;
   color: var(--color-text-muted);
   opacity: 0.5;
@@ -213,7 +213,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -221,7 +221,7 @@
 }
 
 .forecastValue {
-  font-size: 1.5rem;
+  font-size: var(--font-size-large);
   font-weight: 800;
   color: var(--color-text-main);
   display: flex;
@@ -230,7 +230,7 @@
 }
 
 .growthBadge {
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   padding: 0.25rem 0.5rem;
   background: rgba(16, 185, 129, 0.1);
   color: var(--color-success);
@@ -254,13 +254,13 @@
 }
 
 .bottomStatValue {
-  font-size: 1.25rem;
+  font-size: var(--font-size-medium);
   font-weight: 800;
   color: var(--color-text-main);
 }
 
 .bottomStatLabel {
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 600;
   color: var(--color-text-muted);
   text-transform: uppercase;
@@ -316,7 +316,7 @@
 
 .barLabel {
   width: 8rem;
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--color-text-main);
   white-space: nowrap;
@@ -344,7 +344,7 @@
 
 .barValue {
   width: 3rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 800;
   color: var(--color-accent-primary);
   text-align: right;
@@ -356,14 +356,14 @@
 }
 
 .trendSalary {
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 600;
   color: var(--color-text-muted);
 }
 
 .trendGrowthBadge {
   color: var(--color-success);
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 800;
   background: rgba(16, 185, 129, 0.05);
   padding: 0.25rem 0.5rem;
@@ -387,7 +387,7 @@
 .periodBtn {
   padding: 0.35rem 0.75rem;
   border-radius: 6px;
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 700;
   color: var(--color-text-muted);
   transition: all 0.2s;
@@ -437,7 +437,7 @@
 }
 
 .snapshotLabel {
-  font-size: 0.7rem;
+  font-size: var(--font-size-small);
   font-weight: 800;
   color: var(--color-text-muted);
   text-transform: uppercase;
@@ -445,7 +445,7 @@
 }
 
 .snapshotValue {
-  font-size: 1.5rem;
+  font-size: var(--font-size-large);
   font-weight: 800;
   color: var(--color-text-main);
   letter-spacing: -0.02em;
@@ -467,7 +467,7 @@
 }
 
 .jobListTitle {
-  font-size: 1.25rem;
+  font-size: var(--font-size-medium);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--color-text-main);
@@ -530,7 +530,7 @@
   color: #000;
   border-radius: var(--radius-md);
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   transition: transform 0.3s;
   margin-top: 1.5rem;
 }
@@ -633,7 +633,7 @@
 
   .uploadBtn {
     padding: 0.875rem 1.75rem;
-    font-size: 10px;
+    font-size: var(--font-size-small);
   }
 
   /* Stats Grid */
@@ -647,7 +647,7 @@
   }
 
   .statValue {
-    font-size: 2rem;
+    font-size: var(--font-size-xlarge);
   }
 
   /* Trends Card */
@@ -669,7 +669,7 @@
   .periodBtn {
     flex: 1;
     padding: 0.5rem;
-    font-size: 10px;
+    font-size: var(--font-size-small);
   }
 
   /* Market Snapshot */
@@ -683,18 +683,18 @@
   }
 
   .snapshotValue {
-    font-size: 1.25rem;
+    font-size: var(--font-size-medium);
   }
 
   /* Bar Chart */
   .barLabel {
     width: 5rem;
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
   }
 
   .barValue {
     width: 2.5rem;
-    font-size: 0.7rem;
+    font-size: var(--font-size-small);
   }
 
   /* Gap Grid */
@@ -708,11 +708,11 @@
   }
 
   .gapMiniTitle {
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
   }
 
   .gapMiniMeta {
-    font-size: 0.7rem;
+    font-size: var(--font-size-small);
     gap: 0.5rem;
   }
 
@@ -723,7 +723,7 @@
   }
 
   .forecastValue {
-    font-size: 1.25rem;
+    font-size: var(--font-size-medium);
   }
 
   /* Bottom Stats */
@@ -734,7 +734,7 @@
   }
 
   .bottomStatValue {
-    font-size: 1rem;
+    font-size: var(--font-size-base);
   }
 
   /* Job Grid */
@@ -750,13 +750,13 @@
   }
 
   .ctaTitle {
-    font-size: 1.75rem;
+    font-size: var(--font-size-large);
     margin-bottom: 1rem;
   }
 
   .ctaMainBtn {
     padding: 0.875rem 1.5rem;
-    font-size: 10px;
+    font-size: var(--font-size-small);
   }
 
   /* Radar Container */

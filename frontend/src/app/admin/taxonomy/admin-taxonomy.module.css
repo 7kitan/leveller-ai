@@ -32,7 +32,7 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  font-size: 2.5rem;
+  font-size: var(--font-size-xlarge);
   font-weight: 900;
   color: var(--color-text-main);
   font-style: italic;
@@ -40,7 +40,7 @@
 }
 
 .subtitle {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-text-muted);
   margin-top: 0.5rem;
@@ -55,7 +55,7 @@
   background-color: #4f46e5;
   color: white;
   border-radius: 1.25rem;
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -173,7 +173,7 @@
 .th {
   padding: 1.5rem 2rem;
   text-align: left;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
@@ -254,7 +254,7 @@
     background-color: rgba(0, 0, 0, 0.02);
     border: 1px solid var(--color-border-subtle);
     border-radius: 0.75rem;
-    font-size: 9px;
+    font-size: var(--font-size-small);
     font-weight: 900;
     color: var(--color-text-muted);
     text-transform: uppercase;
@@ -266,7 +266,7 @@
 }
 
 .emptyAlias {
-    font-size: 10px;
+    font-size: var(--font-size-small);
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.2em;
@@ -343,7 +343,7 @@
 }
 
 .modalTitle {
-  font-size: 1.5rem;
+  font-size: var(--font-size-large);
   font-weight: 900;
   color: var(--color-text-main);
   letter-spacing: tight;
@@ -362,7 +362,7 @@
 }
 
 .inputLabel {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   color: var(--color-text-muted);
   text-transform: uppercase;
@@ -401,7 +401,7 @@
 }
 
 .modalCancelBtn {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -421,7 +421,7 @@
   background-color: #4f46e5;
   color: white;
   border-radius: 1.25rem;
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -445,7 +445,7 @@
 }
 
 .emptyStateText {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -466,7 +466,7 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   z-index: 100;
   color: var(--color-text-main);
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
 }
 
 .notifSuccess { background-color: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2); }
@@ -497,7 +497,7 @@
 }
 
 .modalHelpText {
-  font-size: 10px;
+  font-size: var(--font-size-base);
   color: rgba(255, 255, 255, 0.2);
   font-style: italic;
   padding: 0.5rem;

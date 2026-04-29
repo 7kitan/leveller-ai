@@ -7,7 +7,7 @@
     color: white;
     border-radius: 0.75rem;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
@@ -29,7 +29,7 @@
 }
 
 .toggleLabel {
-    font-size: 0.8125rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
     color: var(--text-secondary);
 }
@@ -103,7 +103,7 @@
     border: 1px solid var(--border-color);
     border-radius: 0.75rem;
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     transition: all 0.2s ease;
 }
 
@@ -153,7 +153,7 @@
 .th {
     padding: 1rem 1.5rem;
     text-align: left;
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -195,19 +195,19 @@
 .jobTitleText {
     font-weight: 700;
     color: var(--text-primary);
-    font-size: 1rem;
+    font-size: var(--font-size-base);
     margin-bottom: 0.25rem;
 }
 
 .companyName {
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     color: var(--text-secondary);
 }
 
 .sourceLabel {
     padding: 0.25rem 0.625rem;
     border-radius: 0.5rem;
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
     text-transform: capitalize;
 }
@@ -226,14 +226,14 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.8125rem;
+    font-size: var(--font-size-small);
     color: var(--text-secondary);
 }
 
 .statusBadge {
     padding: 0.25rem 0.625rem;
     border-radius: 9999px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
 }
 
@@ -280,7 +280,7 @@
 
 /* Modal Styling */
 .modalTitle {
-    font-size: 1.25rem;
+    font-size: var(--font-size-medium);
     font-weight: 700;
     color: var(--text-primary);
 }
@@ -297,7 +297,7 @@
 
 .formField label {
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -312,7 +312,7 @@
     border: 1px solid var(--border-color);
     border-radius: 0.75rem;
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     transition: all 0.2s ease;
 }
 
@@ -329,7 +329,7 @@
 
 .formFieldFull label {
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -344,7 +344,7 @@
     border: 1px solid var(--border-color);
     border-radius: 0.75rem;
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     transition: all 0.2s ease;
 }
 
@@ -411,7 +411,7 @@
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     z-index: 9999;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
 }
 
 .notifSuccess {

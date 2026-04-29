@@ -71,7 +71,7 @@
   background-color: rgba(245, 158, 11, 0.05);
   border: 1px solid rgba(245, 158, 11, 0.1);
   border-radius: 1.25rem;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -84,7 +84,7 @@
 }
 
 .headerTitle {
-  font-size: 5rem;
+  font-size: var(--font-size-display);
   font-weight: 900;
   line-height: 0.9;
   letter-spacing: -0.05em;
@@ -105,7 +105,7 @@
 }
 
 .headerSubtitle {
-  font-size: 1.25rem;
+  font-size: var(--font-size-medium);
   font-weight: 500;
   color: var(--color-text-muted);
   max-width: 32rem;
@@ -131,7 +131,7 @@
 }
 
 .statValue {
-  font-size: 3.5rem;
+  font-size: var(--font-size-display);
   font-weight: 900;
   color: var(--color-text-main);
   font-style: italic;
@@ -140,7 +140,7 @@
 }
 
 .statValueAmber {
-  font-size: 3.5rem;
+  font-size: var(--font-size-display);
   font-weight: 900;
   color: #f59e0b;
   font-style: italic;
@@ -150,7 +150,7 @@
 }
 
 .statLabel {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
@@ -191,7 +191,7 @@
 }
 
 .sectionTitle {
-  font-size: 2rem;
+  font-size: var(--font-size-xlarge);
   font-weight: 900;
   color: var(--color-text-main);
   text-transform: uppercase;
@@ -215,7 +215,7 @@
 }
 
 .sectionSubtitle {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -292,7 +292,7 @@
 }
 
 .levelBadge {
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -307,7 +307,7 @@
 }
 
 .skillTitle {
-  font-size: 2.25rem;
+  font-size: var(--font-size-xlarge);
   font-weight: 900;
   color: var(--color-text-main);
   font-style: italic;
@@ -323,7 +323,7 @@
 .progressLabel {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
@@ -371,7 +371,7 @@
 }
 
 .drillDownTitle {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
@@ -391,7 +391,7 @@
   background-color: rgba(245, 158, 11, 0.05);
   color: #b45309;
   border-radius: 1rem;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   display: flex;
@@ -425,7 +425,7 @@
 }
 
 .nodeOptimizeLink {
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   color: white;
 }
@@ -445,7 +445,7 @@
 }
 
 .coursePlatform {
-  font-size: 9px;
+  font-size: var(--font-size-small);
   color: rgba(255,255,255,0.2);
   font-weight: 900;
 }
@@ -504,7 +504,7 @@
 }
 
 .graphSyncTitle {
-  font-size: 1.25rem;
+  font-size: var(--font-size-medium);
   font-weight: 900;
   color: white;
   font-style: italic;
@@ -516,7 +516,7 @@
 }
 
 .graphSyncDesc {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   color: rgba(255,255,255,0.3);
   line-height: 1.6;
 }
@@ -526,7 +526,7 @@
 }
 
 .roadmapTitle {
-  font-size: 1.25rem;
+  font-size: var(--font-size-medium);
   margin-bottom: 3rem;
 }
 
@@ -560,7 +560,7 @@
 }
 
 .stepStatus {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
@@ -580,7 +580,7 @@
 }
 
 .stepTitle {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   font-weight: 900;
   color: white;
 }
@@ -601,7 +601,7 @@
 }
 
 .milestoneLabel {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   color: white;
@@ -612,7 +612,7 @@
 }
 
 .milestoneText {
-  font-size: 0.75rem;
+  font-size: var(--font-size-base);
   color: rgba(255,255,255,0.4);
   font-weight: 500;
   font-style: italic;
@@ -649,7 +649,7 @@
 }
 
 .complexityBadge {
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
@@ -659,7 +659,7 @@
 }
 
 .courseTitleSmall {
-  font-size: 1.5rem;
+  font-size: var(--font-size-large);
   font-weight: 900;
   color: var(--color-text-main);
   line-height: 1.2;
@@ -670,7 +670,7 @@
   background-color: rgba(6, 182, 212, 0.05);
   color: #0891b2;
   border-radius: 1.25rem;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   display: flex;
@@ -700,7 +700,7 @@
 .categoryHeader {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
@@ -713,7 +713,7 @@
 
 /* Stat Boost */
 .statBoost {
-  font-size: 1.5rem;
+  font-size: var(--font-size-large);
   color: #10b981;
   margin-left: 0.5rem;
   font-weight: 700;
@@ -736,7 +736,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   color: #06b6d4;
   letter-spacing: 0.2em;
@@ -747,7 +747,7 @@
 }
 
 .aiReasoningText {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   line-height: 1.6;
   color: var(--color-text-muted);
   font-weight: 500;
@@ -799,7 +799,7 @@
 }
 
 .radarLabel {
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   fill: var(--color-text-muted);
@@ -827,7 +827,7 @@
 }
 
 .categoryTitle {
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -845,7 +845,7 @@
 }
 
 .aiSuggesterTitle {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   color: #818cf8;
@@ -856,7 +856,7 @@
 }
 
 .aiSuggesterText {
-  font-size: 0.8rem;
+  font-size: var(--font-size-base);
   line-height: 1.5;
   color: var(--color-text-main);
   opacity: 0.8;
@@ -865,7 +865,7 @@
 
 .copySuggesterBtn {
   margin-top: 1rem;
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   color: #818cf8;
   text-transform: uppercase;
@@ -888,7 +888,7 @@
 }
 
 .badgeLabel {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
@@ -1019,7 +1019,7 @@
 }
 
 .emptyStateTitle {
-  font-size: 3.5rem;
+  font-size: var(--font-size-display);
   font-weight: 900;
   color: var(--color-text-main);
   line-height: 1.1;
@@ -1028,7 +1028,7 @@
 }
 
 .emptyStateSub {
-  font-size: 1.25rem;
+  font-size: var(--font-size-medium);
   color: var(--color-text-muted);
   max-width: 32rem;
   margin: 0 auto;
@@ -1059,7 +1059,7 @@
   align-items: center;
   justify-content: center;
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: var(--font-size-small);
   font-weight: 900;
 }
 
@@ -1068,7 +1068,7 @@
 }
 
 .emptyStepLabel {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -1082,7 +1082,7 @@
   background: linear-gradient(135deg, #f59e0b, #d97706);
   color: white;
   border-radius: var(--radius-md);
-  font-size: 1.125rem;
+  font-size: var(--font-size-medium);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;

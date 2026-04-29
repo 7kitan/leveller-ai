@@ -1,13 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-    /* Font Size Scale - 5 Value System */
-    --font-size-caption: 0.625rem;
-    --font-size-label: 0.75rem;
-    --font-size-body: 0.875rem;
-    --font-size-heading: 1rem;
-    --font-size-title: 1.25rem;
-    --font-size-display: 2rem;
+    /* Font Size Scale - Semantic Modular Scale (1.25 ratio, 16px base)
+     * WCAG AAA Compliant - Minimum 16px for body text
+     * Usage Guide:
+     * - small: metadata, captions, labels (14px)
+     * - base: body text, paragraphs (16px - WCAG AAA)
+     * - medium: emphasized text, leads, small headings (20px)
+     * - large: section headings, card titles (25px)
+     * - xlarge: page titles, major headings (32px)
+     * - display: hero text, landing page titles (40px)
+     */
+    --font-size-small: 0.875rem;    /* 14px */
+    --font-size-base: 1rem;         /* 16px */
+    --font-size-medium: 1.25rem;    /* 20px */
+    --font-size-large: 1.5625rem;   /* 25px */
+    --font-size-xlarge: 2rem;       /* 32px */
+    --font-size-display: 2.5rem;    /* 40px */
 
     /* Accent Gradients */
     --gradient-primary: linear-gradient(135deg, #4f46e5, #0ea5e9);
@@ -131,28 +140,28 @@
 /* Apple Pro Typography Utilities */
 @layer utilities {
     .text-display-hero {
-        font-size: 56px;
+        font-size: var(--font-size-display);
         font-weight: 600;
         line-height: 1.07;
         letter-spacing: -0.015em;
     }
 
     .text-section-heading {
-        font-size: 40px;
+        font-size: var(--font-size-xlarge);
         font-weight: 600;
         line-height: 1.10;
     }
 
     /* UI Element Font Scale */
     .font-micro {
-        font-size: var(--font-size-xs);
+        font-size: var(--font-size-small);
         letter-spacing: 0.05em;
         text-transform: uppercase;
         font-weight: 700;
     }
 
     .font-meta {
-        font-size: var(--font-size-sm);
+        font-size: var(--font-size-small);
         font-weight: 600;
         opacity: 0.6;
     }
@@ -163,13 +172,13 @@
     }
 
     .font-stat {
-        font-size: 2.5rem;
+        font-size: var(--font-size-display);
         font-weight: 800;
         letter-spacing: -0.05em;
     }
 
     .font-stat-label {
-        font-size: var(--font-size-sm);
+        font-size: var(--font-size-small);
         text-transform: uppercase;
         letter-spacing: 0.1em;
         font-weight: 700;
@@ -178,23 +187,23 @@
 
     /* Semantic Text Classes */
     .text-body {
-        font-size: var(--font-size-lg);
+        font-size: var(--font-size-medium);
         line-height: 1.5;
     }
 
     .text-subheading {
-        font-size: var(--font-size-2xl);
+        font-size: var(--font-size-xlarge);
         font-weight: 700;
     }
 
     .text-card-title {
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-large);
         font-weight: 700;
         letter-spacing: -0.02em;
     }
 
     .text-page-title {
-        font-size: var(--font-size-5xl);
+        font-size: var(--font-size-display);
         font-weight: 800;
         letter-spacing: -0.04em;
     }

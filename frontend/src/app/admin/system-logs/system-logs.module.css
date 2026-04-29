@@ -13,7 +13,7 @@
   color: #f43f5e;
   transition: all 0.2s;
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
 }
 
 .cleanupBtn:hover {
@@ -50,7 +50,7 @@
 }
 
 .filterLabel {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -62,7 +62,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.75rem;
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 700;
   outline: none;
   transition: all 0.2s;
@@ -81,7 +81,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.75rem;
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 700;
   outline: none;
   transition: all 0.2s;
@@ -108,7 +108,7 @@
 .thead {
   color: var(--color-text-muted);
   border-bottom: 1px solid var(--color-border-subtle);
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -135,7 +135,7 @@
 }
 
 .timestamp {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-text-muted);
   width: 12rem;
@@ -144,7 +144,7 @@
 .levelBadge {
   padding: 0.25rem 0.75rem;
   border-radius: 0.5rem;
-  font-size: 0.625rem;
+  font-size: var(--font-size-small);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -156,7 +156,7 @@
 }
 
 .module {
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 900;
   color: #f43f5e;
   text-transform: uppercase;
@@ -165,7 +165,7 @@
 }
 
 .message {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--color-text-main);
   display: -webkit-box;
@@ -175,7 +175,7 @@
 }
 
 .details {
-  font-size: 0.625rem;
+  font-size: var(--font-size-small);
   font-family: monospace;
   color: var(--color-text-muted);
   margin-top: 0.25rem;
@@ -192,7 +192,7 @@
 .detailsBtn {
   color: #94a3b8;
   transition: color 0.2s;
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
 }
 
 .detailsBtn:hover {
@@ -207,7 +207,7 @@
 }
 
 .paginationText {
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 700;
   color: #64748b;
   text-transform: uppercase;

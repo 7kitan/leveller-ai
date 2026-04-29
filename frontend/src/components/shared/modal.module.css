@@ -39,7 +39,7 @@
 }
 
 .modalTitle {
-  font-size: 1.5rem;
+  font-size: var(--font-size-large);
   font-weight: 900;
   color: var(--color-text-main);
   font-style: italic;
