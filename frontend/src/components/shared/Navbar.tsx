@@ -131,7 +131,6 @@ export default function Navbar({
             >
               <div className={styles.userInfo}>
                 <span className={styles.userName}>{user.full_name || user.email.split("@")[0]}</span>
-                <span className={styles.userRole}>{user.role}</span>
               </div>
               <div className={cn(styles.avatar, isUserMenuOpen && styles.avatarActive)}>
                  {(user.full_name?.[0] || user.email[0]).toUpperCase()}

@@ -268,7 +268,7 @@
 }
 
 .userName {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: #ffffff;
 }
@@ -277,28 +277,16 @@
   color: var(--color-apple-near-black);
 }
 
-.userRole {
-  font-size: 10px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-[data-theme="light"] .userRole {
-  color: rgba(0, 0, 0, 0.45);
-}
-
 .avatar {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background-color: var(--color-apple-blue);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -499,15 +487,15 @@
   font-weight: 700;
 }
 
-.userRole {
-  font-size: 10px;
+.dropdownRole {
+  font-size: 9px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-[data-theme="light"] .userRole {
+[data-theme="light"] .dropdownRole {
   color: rgba(0, 0, 0, 0.45);
 }
 
