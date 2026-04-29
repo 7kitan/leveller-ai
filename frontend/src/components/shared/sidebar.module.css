@@ -76,22 +76,7 @@
   @apply px-0 justify-center;
 }
 
-.brandIcon {
-  @apply h-8 w-8 rounded-lg flex items-center justify-center border transition-all;
-  background: #fff;
-  color: #000;
-  border-color: rgba(0, 0, 0, 0.1);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  flex-shrink: 0;
-}
 
-[data-theme="dark"] .brandIcon {
-  background: #000;
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.mobileClose {
   @apply h-9 w-9 rounded-lg flex items-center justify-center transition-all bg-black/5 text-black/40 hover:bg-red-500/10 hover:text-red-500;
   margin-left: auto;
 }
@@ -106,28 +91,7 @@
   }
 }
 
-.brandName {
-  @apply text-lg font-bold tracking-tight;
-  color: var(--color-text-main);
-}
 
-.collapsed .brandName,
-.collapsed .brandSub {
-  display: none;
-}
-
-.brandSub {
-  @apply text-[9px] font-bold uppercase tracking-[0.2em];
-  color: var(--color-accent-primary);
-}
-
-.collapsed .navLabel {
-  @apply opacity-0 pointer-events-none h-0 my-0;
-}
-
-[data-theme="dark"] .navLabel {
-  color: rgba(255, 255, 255, 0.4);
-}
 
 .nav {
   @apply px-4 space-y-1 flex-1 transition-all mt-2 overflow-hidden;
