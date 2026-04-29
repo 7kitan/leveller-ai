@@ -94,7 +94,7 @@
   padding: 1.125rem 1.25rem 1.125rem 3.5rem;
   background-color: rgba(0, 0, 0, 0.02);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 1.25rem;
+  border-radius: var(--radius-md);
   color: var(--color-text-main);
   font-weight: 600;
   transition: all 0.3s ease;
@@ -155,7 +155,7 @@
   padding: 1.25rem 1.5rem;
   background-color: rgba(244, 63, 94, 0.05);
   border: 1px solid rgba(244, 63, 94, 0.1);
-  border-radius: 1.25rem;
+  border-radius: var(--radius-md);
   color: #f43f5e;
   font-size: 0.875rem;
   font-weight: 600;
@@ -168,7 +168,7 @@
   padding: 1.25rem 1.5rem;
   background-color: rgba(16, 185, 129, 0.05);
   border: 1px solid rgba(16, 185, 129, 0.1);
-  border-radius: 1.25rem;
+  border-radius: var(--radius-md);
   color: #10b981;
   font-size: 0.875rem;
   font-weight: 600;

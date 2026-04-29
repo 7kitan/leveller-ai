@@ -106,7 +106,7 @@
   position: relative;
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 3rem;
+  border-radius: var(--radius-md);
   padding: 3rem 2rem;
   overflow: hidden;
   display: flex;
@@ -266,7 +266,7 @@
   background-color: rgba(244, 63, 94, 0.05);
   border: 1px solid rgba(244, 63, 94, 0.1);
   padding: 1rem 1.5rem;
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   color: #f43f5e;
   font-size: 0.875rem;
   font-weight: 600;
@@ -321,7 +321,7 @@
   padding: 1.25rem 1.5rem;
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 1.75rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
@@ -354,7 +354,7 @@
   height: 3.5rem;
   background-color: rgba(79, 70, 229, 0.04);
   color: var(--color-accent-primary);
-  border-radius: 1.25rem;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -434,7 +434,7 @@
   padding: 0.75rem 1.5rem;
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 1.25rem;
+  border-radius: var(--radius-md);
   color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 900;
@@ -682,7 +682,7 @@
   padding: 0.875rem 1.25rem;
   background-color: rgba(16, 185, 129, 0.05);
   border: 1px solid rgba(16, 185, 129, 0.12);
-  border-radius: 1.25rem;
+  border-radius: var(--radius-md);
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--color-text-main);
@@ -762,7 +762,7 @@
 .processingPanel {
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 5rem;
+  border-radius: var(--radius-md);
   padding: 10rem 4rem;
   display: flex;
   flex-direction: column;
@@ -895,7 +895,7 @@
   background: rgba(0, 0, 0, 0.02);
   border: 1px solid var(--color-border-subtle);
   padding: 1rem;
-  border-radius: 1.25rem;
+  border-radius: var(--radius-md);
   width: fit-content;
 }
 
@@ -906,7 +906,7 @@
 .resultHeader {
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 3rem;
+  border-radius: var(--radius-md);
   padding: 4rem;
   box-shadow:
     0 4px 20px rgba(0, 0, 0, 0.02),
@@ -940,7 +940,7 @@
   padding: 0.625rem 1.25rem;
   background-color: rgba(6, 182, 212, 0.05);
   border: 1px solid rgba(6, 182, 212, 0.1);
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   font-size: 10px;
   font-weight: 900;
   text-transform: uppercase;
@@ -1315,7 +1315,7 @@
   margin-top: 2rem;
   padding: 1.5rem;
   background: rgba(255, 255, 255, 0.02);
-  border-radius: 1.5rem;
+  border-radius: var(--radius-md);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -1652,7 +1652,7 @@
   height: 3.5rem;
   background-color: rgba(245, 158, 11, 0.1);
   color: #f59e0b;
-  border-radius: 1.25rem;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1764,7 +1764,7 @@
   min-height: 12rem;
   background: rgba(0, 0, 0, 0.015);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 1.5rem;
+  border-radius: var(--radius-md);
   padding: 2rem;
   color: var(--color-text-main);
   font-size: 1.1rem;
@@ -1834,7 +1834,7 @@
   width: 100%;
   background: rgba(0, 0, 0, 0.015);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   padding: 1rem;
   color: var(--color-text-main);
   font-size: 0.9rem;
@@ -1952,7 +1952,7 @@
   padding: 1.5rem 2.5rem;
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.03));
   border: 1px solid rgba(245, 158, 11, 0.2);
-  border-radius: 1.5rem;
+  border-radius: var(--radius-md);
   margin-bottom: 3rem;
   position: relative;
   overflow: hidden;

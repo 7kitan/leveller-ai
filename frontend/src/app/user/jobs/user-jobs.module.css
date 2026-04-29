@@ -488,7 +488,7 @@ select.input option {
   width: 2.5rem;
   height: 2.5rem;
   background-color: var(--color-panel-bg);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
