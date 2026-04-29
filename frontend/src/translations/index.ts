@@ -128,7 +128,7 @@ export const translations = {
     profile_load_error: "Không thể tải thông tin cá nhân.",
 
     // Analysis Page
-    analysis_title: "Phân tích khoảng cách kỹ năng",
+    analysis_title: "KẾT QUẢ",
     analysis_subtitle: "Chọn JD và CV để AI phân tích khoảng cách kỹ năng và đề xuất lộ trình học tập.",
     select_job: "Chọn vị trí công việc",
     paste_jd: "Dán mô tả công việc (JD)",
@@ -176,7 +176,7 @@ export const translations = {
     analysis_done: "PHÂN TÍCH HOÀN TẤT!",
     analysis_results_badge: "Kết quả Genome Nghề nghiệp",
     analysis_results_title_1: "KẾT QUẢ",
-    analysis_results_title_2: "PHÂN TÍCH.",
+    analysis_results_title_2: "PHÂN TÍCH",
     compatibility_label: "Sự tương thích",
     no_assessment_available: "Không có đánh giá nào.",
     analyzing_data: "Đang phân tích dữ liệu...",
@@ -1209,7 +1209,7 @@ export const translations = {
     profile_load_error: "Failed to load profile information.",
 
     // Analysis Page
-    analysis_title: "Skill Gap Analysis",
+    analysis_title: "RESULTS",
     analysis_subtitle: "Select JD and CV for AI to analyze skill gaps and suggest a learning roadmap.",
     select_job: "Select Job Position",
     paste_jd: "Paste Job Description (JD)",
@@ -1254,7 +1254,7 @@ export const translations = {
     redirecting_recommend: "Redirecting to recommendations...",
     analysis_results_badge: "Career Genome Results",
     analysis_results_title_1: "ANALYSIS",
-    analysis_results_title_2: "RESULTS.",
+    analysis_results_title_2: "RESULTS",
     compatibility_label: "Compatibility",
     no_assessment_available: "No assessment available.",
     analyzing_data: "Analyzing data...",

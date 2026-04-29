@@ -4,7 +4,7 @@
   justify-content: space-between;
   align-items: flex-end;
   gap: 2rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   position: relative;
 }
 
@@ -15,20 +15,16 @@
 }
 
 .headerTitle {
-  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-size: var(--font-size-display);
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1.2;
   margin: 0;
   text-transform: uppercase;
-  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .headerSubtitle {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-body);
   color: var(--color-text-muted);
   max-width: 45rem;
   line-height: 1.6;
@@ -44,22 +40,19 @@
   margin-bottom: 1rem;
 }
 
-/* Standard gradient text for header highlights */
+/* Standard accent text for header highlights */
 .gradientText {
-  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--color-accent-primary);
 }
 
 /* Variant for Admin pages or secondary pages */
 .headerSection.compact {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   gap: 1rem;
 }
 
 .headerSection.compact .headerTitle {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-size: var(--font-size-heading);
 }
 
 .headerActions {

@@ -42,30 +42,26 @@
 
 /* Use global gradient-text class from globals.css */
 .gradientText {
-  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--color-accent-primary);
 }
 
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 1rem;
-  background-color: rgba(245, 158, 11, 0.05);
-  border: 1px solid rgba(245, 158, 11, 0.1);
-  border-radius: var(--radius-md);
-  font-size: 10px;
-  font-weight: 900;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-caption);
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: #fbbf24;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
   width: fit-content;
 }
 
 .badgeLabel {
-  color: #f59e0b;
+  color: var(--color-text-muted);
+  opacity: 0.7;
 }
 
 .searchForm {
@@ -196,7 +192,7 @@ select.input option {
 }
 
 .searchBtn {
-  background: linear-gradient(135deg, #0891b2, #06b6d4);
+  background: var(--gradient-sky);
   color: white;
   padding: 1rem 3rem;
   border-radius: var(--radius-md);
@@ -488,7 +484,7 @@ select.input option {
   width: 2.5rem;
   height: 2.5rem;
   background-color: var(--color-panel-bg);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;

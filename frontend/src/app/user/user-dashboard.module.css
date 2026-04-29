@@ -46,7 +46,7 @@
 .uploadIcon {
   width: 4rem;
   height: 4rem;
-  border-radius: 1.25rem;
+  border-radius: var(--radius-md);
   background: #fff;
   display: flex;
   justify-content: center;
@@ -234,7 +234,7 @@
   padding: 0.25rem 0.5rem;
   background: rgba(16, 185, 129, 0.1);
   color: var(--color-success);
-  border-radius: 99px;
+  border-radius: var(--radius-md);
   font-weight: 700;
 }
 
@@ -367,7 +367,7 @@
   font-weight: 800;
   background: rgba(16, 185, 129, 0.05);
   padding: 0.25rem 0.5rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 
 .trendGrowthBadge.negative {
@@ -514,7 +514,7 @@
 }
 
 .ctaTitle {
-  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-size: var(--font-size-title);
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: -0.05em;

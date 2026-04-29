@@ -462,7 +462,7 @@ const JobImportPage = () => {
                         <div className="font-semibold text-gray-200 truncate">
                           {result.data?.title_raw || result.url}
                         </div>
-                        <div className="text-xs text-gray-500 flex items-center gap-2 overflow-hidden">
+                        <div className="text-sm text-gray-500 flex items-center gap-2 overflow-hidden">
                           {result.status === 'loading' && t('admin_jobs_import_fetching_data')}
                           {result.status === 'error' && <span className="text-red-400">{result.error}</span>}
                           {result.status === 'success' && (
