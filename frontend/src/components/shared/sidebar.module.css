@@ -43,11 +43,13 @@
   opacity: 1;
   position: absolute;
   right: 10px;
-  transition: right 300ms ease-in-out 500ms;
+  transition: right 300ms ease-in-out 500ms, transform 300ms ease-in-out 500ms;
 }
 
 .collapsed .collapseToggle {
-  right: calc(50% - 16px);
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 [data-theme="dark"] .collapsed .collapseToggle {
@@ -65,6 +67,7 @@
 
 .collapsed .brand {
   @apply px-0 justify-center;
+  min-height: 48px;
 }
 
 .mobileClose {
