@@ -193,46 +193,4 @@
   @apply right-1.5;
 }
 
-.footer {
-  @apply p-6 border-t mt-auto transition-all;
-  border-color: rgba(0, 0, 0, 0.05);
-}
 
-[data-theme="dark"] .footer {
-  border-color: rgba(255, 255, 255, 0.05);
-}
-
-.collapsed .footer {
-  @apply p-4 flex justify-center;
-}
-
-.langToggle {
-  @apply flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all font-bold w-full;
-  background: rgba(0, 0, 0, 0.03);
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 0.8rem;
-  border: 1px solid transparent;
-}
-
-[data-theme="dark"] .langToggle {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.langToggle:hover {
-  background: #000;
-  color: #fff;
-}
-
-[data-theme="dark"] .langToggle:hover {
-  background: #fff;
-  color: #000;
-}
-
-.collapsed .langToggle {
-  @apply w-10 h-10 p-0 justify-center;
-}
-
-.langLabel {
-  @apply tracking-widest;
-}
