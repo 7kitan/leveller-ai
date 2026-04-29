@@ -4,8 +4,8 @@
   position: fixed;
   top: 0;
   right: 0;
-  height: 60px;
-  /* Standard Modern Nav Height */
+  height: 50px;
+  /* Thinner Nav Height */
   backdrop-filter: saturate(180%) blur(12px);
   -webkit-backdrop-filter: saturate(180%) blur(12px);
   z-index: 1000;
@@ -18,7 +18,7 @@
 @media (max-width: 1024px) {
   .navbar {
     left: 0 !important;
-    height: 64px;
+    height: 54px;
     background-color: rgba(10, 10, 15, 0.85);
   }
 }
@@ -162,7 +162,7 @@
 }
 
 .userDropdown {
-  @apply fixed lg:absolute right-4 lg:right-0 top-[60px] lg:top-full lg:mt-3 w-[calc(100vw-32px)] lg:w-72 z-[1100] overflow-hidden;
+  @apply fixed lg:absolute right-4 lg:right-0 top-[50px] lg:top-full lg:mt-3 w-[calc(100vw-32px)] lg:w-72 z-[1100] overflow-hidden;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(30px) saturate(180%);
   -webkit-backdrop-filter: blur(30px) saturate(180%);
