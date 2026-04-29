@@ -1847,7 +1847,6 @@ export const translations = {
     level_desc: "Level ↓",
     price_asc: "Price ↑",
     price_desc: "Price ↓",
-    admin_users_table_date: "Join Date",
     no_feedback_found: "No feedback found",
   }
 };
