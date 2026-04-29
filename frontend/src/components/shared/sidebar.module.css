@@ -2,7 +2,7 @@
 @reference "../../app/globals.css";
 
 .sidebar {
-  @apply fixed left-0 top-0 h-screen w-72 flex flex-col z-50 transition-all duration-500 ease-in-out overflow-hidden;
+  @apply fixed left-0 top-0 h-screen w-72 flex flex-col z-50 transition-all duration-500 ease-in-out;
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(25px);
   border-right: 1px solid rgba(0, 0, 0, 0.05);
@@ -23,7 +23,6 @@
 .collapsed {
   width: 56px !important;
   cursor: pointer;
-  overflow: hidden;
 }
 
 [data-theme="dark"] .sidebar {
@@ -83,10 +82,9 @@
 }
 
 .item {
-  @apply flex items-center gap-3.5 px-4 py-3 font-medium transition-colors relative overflow-hidden;
+  @apply flex items-center gap-3.5 px-4 py-3 font-medium transition-colors relative;
   color: var(--color-text-muted);
   font-size: 0.9rem;
-  overflow-x: hidden;
 }
 
 .collapsed .item {
@@ -97,14 +95,15 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: opacity 300ms ease-in-out;
+  display: inline-block;
+  transition: opacity 400ms ease-out;
 }
 
 .collapsed .label {
   opacity: 0;
-  width: 0;
   margin: 0;
   pointer-events: none;
+  transition: opacity 700ms ease-out;
 }
 
 [data-theme="dark"] .item {
