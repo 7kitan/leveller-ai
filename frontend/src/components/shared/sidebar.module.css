@@ -41,17 +41,10 @@
   @apply h-8 w-8 rounded-lg flex items-center justify-center text-black hover:bg-black/10;
   margin-left: auto;
   opacity: 1;
-  transition: transform 500ms ease-in-out, opacity 500ms ease-in-out;
 }
 
 .collapsed .collapseToggle {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  margin: 0;
-  z-index: 2;
-  transition: transform 500ms ease-in-out, opacity 500ms ease-in-out;
+  margin-left: 0;
 }
 
 [data-theme="dark"] .collapsed .collapseToggle {
