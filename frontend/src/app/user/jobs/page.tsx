@@ -79,7 +79,7 @@ export default function JobsPage() {
       setTotalPages(res.data.pages);
       setCurrentPage(page);
     } catch (err) {
-      console.error("Lỗi tìm kiếm jobs:", err);
+      console.error("Job search error:", err);
     } finally {
       setLoading(false);
     }

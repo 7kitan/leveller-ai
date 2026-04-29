@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import AuthGuard from "@/components/auth/AuthGuard";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
@@ -30,6 +31,7 @@ interface BlockedIP {
 
 const BlockedIPsPage = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [blockedIPs, setBlockedIPs] = useState<BlockedIP[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,7 +50,7 @@ const BlockedIPsPage = () => {
       setBlockedIPs(res.data.blocked_ips || []);
     } catch (err: any) {
       console.error("Fetch blocked IPs error:", err);
-      toast.error(err.response?.data?.detail || "Failed to load blocked IPs");
+      toast.error(err.response?.data?.detail || t("blocked_ips_load_error"));
     } finally {
       setLoading(false);
     }
@@ -64,37 +66,37 @@ const BlockedIPsPage = () => {
     setRefreshing(true);
     await fetchBlockedIPs();
     setRefreshing(false);
-    toast.success("Refreshed successfully");
+    toast.success(t("blocked_ips_refreshed"));
   };
 
   const handleUnblock = async (ip: string) => {
     try {
       await api.post("/admin/unblock-ip", { ip_address: ip });
-      toast.success(`IP ${ip} has been unblocked`);
+      toast.success(t("blocked_ips_unblocked").replace("{ip}", ip));
       setShowUnblockModal(false);
       setSelectedIP(null);
       fetchBlockedIPs();
     } catch (err: any) {
       console.error("Unblock error:", err);
-      toast.error(err.response?.data?.detail || "Failed to unblock IP");
+      toast.error(err.response?.data?.detail || t("blocked_ips_unblock_error"));
     }
   };
 
   const handleClearAll = async () => {
     if (confirmText.toLowerCase() !== "clear all") {
-      toast.error("Please type 'CLEAR ALL' to confirm");
+      toast.error(t("blocked_ips_type_clear_all"));
       return;
     }
 
     try {
       const res = await api.delete("/admin/blocked-ips");
-      toast.success(res.data.message || "All IPs cleared");
+      toast.success(res.data.message || t("blocked_ips_cleared"));
       setShowClearAllModal(false);
       setConfirmText("");
       fetchBlockedIPs();
     } catch (err: any) {
       console.error("Clear all error:", err);
-      toast.error(err.response?.data?.detail || "Failed to clear all IPs");
+      toast.error(err.response?.data?.detail || t("blocked_ips_clear_error"));
     }
   };
 
@@ -119,8 +121,8 @@ const BlockedIPsPage = () => {
     <AuthGuard requireAdmin>
       <PageContainer>
         <PageHeader
-          title={<><Shield className={styles.headerIcon} /> Blocked IP Management</>}
-          subtitle="Manage and monitor blocked IP addresses"
+          title={<><Shield className={styles.headerIcon} /> {t("blocked_ips_title")}</>}
+          subtitle={t("blocked_ips_subtitle")}
         />
 
         {/* Actions Bar */}
@@ -129,7 +131,7 @@ const BlockedIPsPage = () => {
             <Search className={styles.searchIcon} size={18} />
             <input
               type="text"
-              placeholder="Search IP address..."
+              placeholder={t("blocked_ips_search_placeholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={styles.searchInput}
@@ -143,7 +145,7 @@ const BlockedIPsPage = () => {
               className={styles.btnSecondary}
             >
               <RefreshCcw size={16} className={refreshing ? styles.spinning : ""} />
-              Refresh
+              {t("blocked_ips_refresh")}
             </button>
             <button
               onClick={() => setShowClearAllModal(true)}
@@ -151,7 +153,7 @@ const BlockedIPsPage = () => {
               className={styles.btnDanger}
             >
               <Trash2 size={16} />
-              Clear All
+              {t("blocked_ips_clear_all")}
             </button>
           </div>
         </div>
@@ -160,12 +162,12 @@ const BlockedIPsPage = () => {
         <div className={styles.statsBar}>
           <div className={styles.statItem}>
             <Ban size={18} />
-            <span className={styles.statLabel}>Total Blocked:</span>
+            <span className={styles.statLabel}>{t("blocked_ips_total")}</span>
             <span className={styles.statValue}>{blockedIPs.length}</span>
           </div>
           <div className={styles.statItem}>
             <Search size={18} />
-            <span className={styles.statLabel}>Showing:</span>
+            <span className={styles.statLabel}>{t("blocked_ips_showing")}</span>
             <span className={styles.statValue}>{filteredIPs.length}</span>
           </div>
         </div>
@@ -174,16 +176,16 @@ const BlockedIPsPage = () => {
         {loading ? (
           <div className={styles.loadingState}>
             <div className={styles.spinner}></div>
-            <p>Loading blocked IPs...</p>
+            <p>{t("blocked_ips_loading")}</p>
           </div>
         ) : filteredIPs.length === 0 ? (
           <div className={styles.emptyState}>
             <Shield size={64} className={styles.emptyIcon} />
-            <h3>No Blocked IPs</h3>
+            <h3>{t("blocked_ips_no_blocked")}</h3>
             <p>
               {searchTerm
-                ? "No IPs match your search"
-                : "No IP addresses are currently blocked"}
+                ? t("blocked_ips_no_match")
+                : t("blocked_ips_no_currently_blocked")}
             </p>
           </div>
         ) : (
@@ -193,11 +195,11 @@ const BlockedIPsPage = () => {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th>IP Address</th>
-                    <th>Failed Attempts</th>
-                    <th>Time Remaining</th>
-                    <th>TTL (Hours)</th>
-                    <th>Actions</th>
+                    <th>{t("blocked_ips_table_ip")}</th>
+                    <th>{t("blocked_ips_table_attempts")}</th>
+                    <th>{t("blocked_ips_table_remaining")}</th>
+                    <th>{t("blocked_ips_table_ttl")}</th>
+                    <th>{t("blocked_ips_table_actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -208,7 +210,7 @@ const BlockedIPsPage = () => {
                       </td>
                       <td>
                         <span className={`${styles.attemptsBadge} ${getAttemptsClass(ip.attempts)}`}>
-                          {ip.attempts || "N/A"}
+                          {ip.attempts || t("blocked_ips_na")}
                         </span>
                       </td>
                       <td>
@@ -225,7 +227,7 @@ const BlockedIPsPage = () => {
                           className={styles.btnUnblock}
                         >
                           <Shield size={14} />
-                          Unblock
+                          {t("blocked_ips_unblock")}
                         </button>
                       </td>
                     </tr>
@@ -241,17 +243,17 @@ const BlockedIPsPage = () => {
                   <div className={styles.cardHeader}>
                     <span className={styles.ipBadge}>{ip.ip_address}</span>
                     <span className={`${styles.attemptsBadge} ${getAttemptsClass(ip.attempts)}`}>
-                      {ip.attempts || "N/A"} attempts
+                      {ip.attempts || t("blocked_ips_na")} {t("blocked_ips_attempts_suffix")}
                     </span>
                   </div>
                   <div className={styles.cardBody}>
                     <div className={styles.cardRow}>
-                      <span className={styles.label}>Expires in:</span>
+                      <span className={styles.label}>{t("blocked_ips_expires_in")}</span>
                       <span className={styles.value}>{ip.expires_in}</span>
                     </div>
                     <div className={styles.cardRow}>
-                      <span className={styles.label}>TTL:</span>
-                      <span className={styles.value}>{formatNumber(ip.ttl_hours)} hours</span>
+                      <span className={styles.label}>{t("blocked_ips_ttl_label")}</span>
+                      <span className={styles.value}>{formatNumber(ip.ttl_hours)} {t("blocked_ips_hours")}</span>
                     </div>
                   </div>
                   <div className={styles.cardFooter}>
@@ -263,7 +265,7 @@ const BlockedIPsPage = () => {
                       className={styles.btnUnblockFull}
                     >
                       <Shield size={14} />
-                      Unblock
+                      {t("blocked_ips_unblock")}
                     </button>
                   </div>
                 </div>
@@ -281,18 +283,18 @@ const BlockedIPsPage = () => {
                 setShowUnblockModal(false);
                 setSelectedIP(null);
               }}
-              title="Confirm Unblock"
+              title={t("blocked_ips_confirm_unblock_title")}
             >
               <div className={styles.modalContent}>
                 <div className={styles.warningIcon}>
                   <AlertTriangle size={48} />
                 </div>
                 <p className={styles.modalMessage}>
-                  Are you sure you want to unblock this IP address?
+                  {t("blocked_ips_confirm_unblock_msg")}
                 </p>
                 <div className={styles.ipHighlight}>{selectedIP}</div>
                 <p className={styles.modalNote}>
-                  This will immediately allow login attempts from this IP address.
+                  {t("blocked_ips_confirm_unblock_note")}
                 </p>
                 <div className={styles.modalActions}>
                   <button
@@ -302,13 +304,13 @@ const BlockedIPsPage = () => {
                     }}
                     className={styles.btnSecondary}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     onClick={() => handleUnblock(selectedIP)}
                     className={styles.btnPrimary}
                   >
-                    Yes, Unblock
+                    {t("blocked_ips_yes_unblock")}
                   </button>
                 </div>
               </div>
@@ -325,34 +327,34 @@ const BlockedIPsPage = () => {
                 setShowClearAllModal(false);
                 setConfirmText("");
               }}
-              title="⚠️ Dangerous Action"
+              title={t("blocked_ips_dangerous_action")}
             >
               <div className={styles.modalContent}>
                 <div className={styles.dangerIcon}>
                   <AlertTriangle size={48} />
                 </div>
                 <p className={styles.modalMessage}>
-                  You are about to unblock <strong>{blockedIPs.length} IP addresses</strong>.
+                  {t("blocked_ips_clear_all_warning").replace("{count}", blockedIPs.length.toString())}
                 </p>
-                <p className={styles.modalWarning}>This action will:</p>
+                <p className={styles.modalWarning}>{t("blocked_ips_clear_all_consequences")}</p>
                 <ul className={styles.warningList}>
-                  <li>Remove all IP lockouts immediately</li>
-                  <li>Clear all failed login attempt counters</li>
-                  <li>Allow previously blocked IPs to attempt login again</li>
+                  <li>{t("blocked_ips_clear_all_item1")}</li>
+                  <li>{t("blocked_ips_clear_all_item2")}</li>
+                  <li>{t("blocked_ips_clear_all_item3")}</li>
                 </ul>
                 <p className={styles.modalNote}>
-                  This action cannot be undone. Use with extreme caution in production.
+                  {t("blocked_ips_clear_all_caution")}
                 </p>
                 <div className={styles.confirmInputGroup}>
                   <label htmlFor="confirm-text">
-                    Type <code>CLEAR ALL</code> to confirm:
+                    {t("blocked_ips_type_to_confirm").replace("{text}", "CLEAR ALL")}
                   </label>
                   <input
                     id="confirm-text"
                     type="text"
                     value={confirmText}
                     onChange={(e) => setConfirmText(e.target.value)}
-                    placeholder="Type here..."
+                    placeholder={t("blocked_ips_confirm_placeholder")}
                     className={styles.confirmInput}
                     autoFocus
                   />
@@ -365,14 +367,14 @@ const BlockedIPsPage = () => {
                     }}
                     className={styles.btnSecondary}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     onClick={handleClearAll}
                     disabled={confirmText.toLowerCase() !== "clear all"}
                     className={styles.btnDanger}
                   >
-                    Clear All {blockedIPs.length} IPs
+                    {t("blocked_ips_clear_all")} {blockedIPs.length} IPs
                   </button>
                 </div>
               </div>
