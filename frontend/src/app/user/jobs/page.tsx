@@ -357,22 +357,6 @@ function JobCard({ job, onShowDetails }: { job: Job; onShowDetails: (j: Job) => 
         <div className={styles.iconBox}>
           {job.source_label?.toLowerCase() === 'topcv' ? <Layers size={22} /> : <Briefcase size={22} />}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-            <span className={cn(
-              styles.statusBadge,
-              job.status?.toLowerCase() === "active" ? styles.statusActive : styles.statusOther
-            )}>
-              {job.status || t("status_closed")}
-            </span>
-            {job.source_label && (
-                <span className={cn(
-                    styles.sourceBadge,
-                    job.source_label.toLowerCase() === 'topcv' ? styles.sourceTopcv : styles.sourceManual
-                )}>
-                    {job.source_label}
-                </span>
-            )}
-        </div>
       </div>
       
       <div style={{ flex: 1 }}>
@@ -403,6 +387,23 @@ function JobCard({ job, onShowDetails }: { job: Job; onShowDetails: (j: Job) => 
                 <Briefcase size={14} style={{ opacity: 0.6 }} /> 
                 <span>{job.employment_type || t("jobs_employment_fulltime")}</span>
             </div>
+          </div>
+
+          <div className={styles.badgeContainer}>
+            <span className={cn(
+              styles.statusBadge,
+              job.status?.toLowerCase() === "active" ? styles.statusActive : styles.statusOther
+            )}>
+              {job.status || t("status_closed")}
+            </span>
+            {job.source_label && (
+                <span className={cn(
+                    styles.sourceBadge,
+                    job.source_label.toLowerCase() === 'topcv' ? styles.sourceTopcv : styles.sourceManual
+                )}>
+                    {job.source_label}
+                </span>
+            )}
           </div>
       </div>
       

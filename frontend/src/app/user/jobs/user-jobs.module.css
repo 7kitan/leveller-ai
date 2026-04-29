@@ -29,7 +29,6 @@
   font-weight: 900;
   letter-spacing: -0.05em;
   color: var(--color-text-main);
-  text-transform: uppercase;
 }
 
 .subtitle {
@@ -53,8 +52,6 @@
   border-radius: var(--radius-sm);
   font-size: var(--font-size-caption);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--color-text-muted);
   width: fit-content;
 }
@@ -197,8 +194,6 @@ select.input option {
   padding: 1rem 3rem;
   border-radius: var(--radius-md);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   font-size: var(--font-size-small);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
@@ -279,8 +274,6 @@ select.input option {
   border-radius: 9999px;
   font-size: var(--font-size-small);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05rem;
   opacity: 0.7;
 }
 
@@ -301,8 +294,6 @@ select.input option {
   border-radius: 9999px;
   font-size: var(--font-size-small);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   opacity: 0.7;
 }
 
@@ -343,6 +334,13 @@ select.input option {
   margin-bottom: 0.5rem;
 }
 
+.badgeContainer {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
 .cardMeta {
   display: flex;
   align-items: center;
@@ -374,8 +372,6 @@ select.input option {
   color: white;
   font-weight: 900;
   font-size: var(--font-size-small);
-  text-transform: uppercase;
-  letter-spacing: 0.05rem;
   text-align: center;
   transition: all 0.3s ease;
   display: flex;
@@ -399,8 +395,6 @@ select.input option {
   color: var(--color-text-primary);
   font-weight: 900;
   font-size: var(--font-size-small);
-  text-transform: uppercase;
-  letter-spacing: 0.05rem;
   text-align: center;
   transition: all 0.3s ease;
   display: flex;
@@ -431,8 +425,6 @@ select.input option {
 .modalSectionLabel {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15rem;
   color: var(--color-accent-primary);
   opacity: 0.8;
 }
@@ -494,8 +486,6 @@ select.input option {
 .modalMetaLabel {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1rem;
   color: var(--color-text-muted);
   opacity: 0.5;
 }
@@ -537,8 +527,6 @@ select.input option {
   border-radius: 12px;
   font-weight: 900;
   font-size: var(--font-size-small);
-  text-transform: uppercase;
-  letter-spacing: 0.1rem;
   color: var(--color-text-primary);
 }
 
@@ -550,8 +538,6 @@ select.input option {
   color: white;
   font-weight: 900;
   font-size: var(--font-size-small);
-  text-transform: uppercase;
-  letter-spacing: 0.1rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -566,8 +552,6 @@ select.input option {
   color: white;
   font-weight: 900;
   font-size: var(--font-size-small);
-  text-transform: uppercase;
-  letter-spacing: 0.1rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -596,8 +580,6 @@ select.input option {
 .loadingText {
   font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.3rem;
   color: rgba(255, 255, 255, 0.2);
   font-style: italic;
 }
@@ -625,7 +607,6 @@ select.input option {
   font-size: var(--font-size-large);
   font-weight: 900;
   color: var(--color-text-main);
-  text-transform: uppercase;
   letter-spacing: -0.05em;
   font-style: italic;
 }
