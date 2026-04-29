@@ -162,36 +162,41 @@
 
 .userDropdown {
   @apply fixed lg:absolute right-4 lg:right-0 top-[50px] lg:top-full lg:mt-3 w-[calc(100vw-32px)] lg:w-72 z-[1100] overflow-hidden;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 20px;
+  border-radius: 8px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
 }
 
 [data-theme="dark"] .userDropdown {
-  background: rgba(10, 10, 15, 0.85);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  background: #1c1c1e;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
 }
 
 .dropdownHeader {
-  padding: 20px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  background: rgba(0, 0, 0, 0.02);
+  gap: 12px;
+  padding: 16px 16px 12px;
 }
 
 [data-theme="dark"] .dropdownHeader {
-  background: rgba(255, 255, 255, 0.02);
+  /* No background needed */
 }
 
 .dropdownAvatar {
-  @apply h-12 w-12 rounded-full flex items-center justify-center text-white font-bold text-lg;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: linear-gradient(135deg, var(--color-apple-blue), #0071e3);
-  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .dropdownInfo {
@@ -219,22 +224,22 @@
 }
 
 .dropdownBody {
-  padding: 8px;
+  padding: 0;
 }
 
 .dropdownItem {
-  @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer no-underline;
+  @apply flex items-center gap-3 px-4 py-3 cursor-pointer no-underline;
   color: var(--color-text-main);
   font-size: 14px;
   font-weight: 500;
 }
 
 .dropdownItem:hover {
-  background: rgba(0, 0, 0, 0.04);
+  /* No hover background */
 }
 
 [data-theme="dark"] .dropdownItem:hover {
-  background: rgba(255, 255, 255, 0.06);
+  /* No hover background */
 }
 
 .logoutAction {
@@ -245,7 +250,7 @@
 }
 
 .logoutAction:hover {
-  background: rgba(239, 68, 68, 0.08) !important;
+  /* No hover background */
 }
 
 /* --- Utilities --- */
