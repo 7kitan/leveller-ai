@@ -100,7 +100,7 @@
 }
 
 .collapsed .icon {
-  margin-left: calc(var(--icon-size-sm) * -0.375);
+  margin-left: -6px;
 }
 
 .label {
