@@ -41,10 +41,13 @@
   @apply h-8 w-8 rounded-lg flex items-center justify-center text-black hover:bg-black/10;
   margin-left: auto;
   opacity: 1;
+  position: absolute;
+  right: 10px;
+  transition: right 300ms ease-in-out 500ms;
 }
 
 .collapsed .collapseToggle {
-  margin-left: 0;
+  right: calc(50% - 16px);
 }
 
 [data-theme="dark"] .collapsed .collapseToggle {
