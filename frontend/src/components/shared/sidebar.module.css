@@ -30,13 +30,6 @@
   border-color: rgba(255, 255, 255, 0.05);
 }
 
-.brand {
-  @apply flex items-center gap-4 relative transition-all duration-500;
-  padding: 0 1rem;
-  height: 48px;
-}
-
-
 .collapseToggle {
   @apply h-8 w-8 rounded-lg flex items-center justify-center text-black hover:bg-black/10;
   margin-left: auto;
@@ -63,11 +56,6 @@
   .collapseToggle {
     display: none !important;
   }
-}
-
-.collapsed .brand {
-  @apply px-0 justify-center;
-  min-height: 48px;
 }
 
 .mobileClose {
