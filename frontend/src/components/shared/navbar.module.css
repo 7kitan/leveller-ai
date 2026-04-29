@@ -10,22 +10,18 @@
   -webkit-backdrop-filter: saturate(180%) blur(12px);
   z-index: 1000;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background-color: rgba(10, 10, 15, 0.7);
   left: var(--sidebar-width, 0);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 @media (max-width: 1024px) {
   .navbar {
     left: 0 !important;
     height: 54px;
-    background-color: rgba(10, 10, 15, 0.85);
   }
 }
 
 [data-theme="light"] .navbar {
-  background-color: rgba(255, 255, 255, 0.75);
-  border-bottom-color: rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .container {
