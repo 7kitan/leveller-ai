@@ -100,7 +100,7 @@ export default function Sidebar({
       {/* Brand */}
       <div className={styles.brand}>
         <button className={styles.collapseToggle} onClick={(e) => { e.stopPropagation(); toggleSidebar?.(); }} title={isMini ? "Open sidebar" : "Close sidebar"}>
-          {isMini ? <PanelRight size={18} /> : <PanelLeft size={18} />}
+          {isMini ? <PanelRight size={20} /> : <PanelLeft size={20} />}
         </button>
 
         {isMobileOpen && (
