@@ -514,7 +514,7 @@
 }
 
 .ctaTitle {
-  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-size: var(--font-size-title);
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: -0.05em;

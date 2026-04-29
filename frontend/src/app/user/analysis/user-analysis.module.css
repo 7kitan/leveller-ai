@@ -714,7 +714,7 @@
 }
 
 .sectionTitle {
-  font-size: 0.8rem;
+  font-size: var(--font-size-label);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
@@ -1275,7 +1275,7 @@
 }
 
 .doneTitle {
-  font-size: 2.5rem;
+  font-size: var(--font-size-title);
   font-weight: 900;
   color: var(--color-text-main);
   letter-spacing: -0.04em;

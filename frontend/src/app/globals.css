@@ -1,15 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-    /* Font Size Scale - UI & Body */
-    --font-size-sm: 0.75rem;
-    --font-size-base: 0.875rem;
-    --font-size-lg: 1rem;
-    --font-size-xl: 1.125rem;
-    --font-size-2xl: 1.25rem;
-    --font-size-3xl: 1.5rem;
-    --font-size-4xl: 1.875rem;
-    --font-size-5xl: 2.25rem;
+    /* Font Size Scale - 5 Value System */
+    --font-size-caption: 0.625rem;
+    --font-size-label: 0.75rem;
+    --font-size-body: 0.875rem;
+    --font-size-heading: 1rem;
+    --font-size-title: 1.25rem;
+    --font-size-display: 2rem;
 
     /* Apple Design System Palette */
     --color-apple-black: #000000;
