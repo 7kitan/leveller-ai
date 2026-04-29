@@ -458,7 +458,7 @@
   gap: 4px;
   padding: 6px 8px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
   color: #ffffff;
   border: none;
   cursor: pointer;
@@ -470,20 +470,20 @@
 }
 
 .langToggle:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="light"] .langToggle {
-  background: rgba(0, 0, 0, 0.05);
   color: var(--color-apple-near-black);
 }
 
 [data-theme="light"] .langToggle:hover {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.08);
 }
 
 .langText {
-  font-weight: 700;
+  min-width: 24px;
+  text-align: center;
 }
 
 .dropdownRole {

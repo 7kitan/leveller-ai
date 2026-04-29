@@ -95,7 +95,6 @@ export default function Navbar({
               title={language === 'vi' ? "Switch to English" : "Chuyển sang Tiếng Việt"}
             >
               <Globe width="16" height="16" />
-              <span>{language === 'vi' ? '🇻🇳' : '🇺🇸'}</span>
               <span className={styles.langText}>{language.toUpperCase()}</span>
             </button>
             <button onClick={toggle} className={styles.iconBtn}>
