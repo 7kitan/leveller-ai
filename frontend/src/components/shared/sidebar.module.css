@@ -22,6 +22,7 @@
 .collapsed {
   width: 60px !important;
   cursor: pointer;
+  overflow: hidden;
 }
 
 [data-theme="dark"] .sidebar {
@@ -135,7 +136,7 @@
 }
 
 .nav {
-  @apply px-4 space-y-1 flex-1 transition-all mt-2;
+  @apply px-4 space-y-1 flex-1 transition-all mt-2 overflow-hidden;
 }
 
 .collapsed .nav {
@@ -146,6 +147,7 @@
   @apply flex items-center gap-3.5 px-4 py-3 rounded-2xl font-semibold transition-all relative overflow-hidden;
   color: var(--color-text-muted);
   font-size: 0.9rem;
+  overflow-x: hidden;
 }
 
 .collapsed .item {
