@@ -95,18 +95,26 @@
 }
 
 .item {
-  @apply flex items-center gap-3.5 px-4 py-3 rounded-2xl font-semibold transition-all relative overflow-hidden;
+  @apply flex items-center gap-3.5 px-4 py-3 rounded-2xl font-semibold transition-colors relative overflow-hidden;
   color: var(--color-text-muted);
   font-size: 0.9rem;
   overflow-x: hidden;
 }
 
 .collapsed .item {
-  @apply justify-center px-0 h-11 w-11 mx-auto;
+  @apply px-0 h-11 w-11;
+}
+
+.label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 300ms ease-in-out;
 }
 
 .collapsed .label {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
 }
 
 [data-theme="dark"] .item {
