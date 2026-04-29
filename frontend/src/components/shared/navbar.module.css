@@ -139,16 +139,16 @@
   gap: 8px;
   cursor: pointer;
   padding: 4px;
-  border-radius: 980px;
+  border-radius: 8px;
   transition: all 0.2s ease;
 }
 
 .userTrigger:hover {
-  background: rgba(255, 255, 255, 0.05);
+  /* No hover background - keep it subtle */
 }
 
 [data-theme="light"] .userTrigger:hover {
-  background: rgba(0, 0, 0, 0.03);
+  /* No hover background */
 }
 
 .userTrigger:hover .avatar {
@@ -398,7 +398,7 @@
   position: relative;
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: 8px;
   background: transparent;
   color: #ffffff;
   border: none;
