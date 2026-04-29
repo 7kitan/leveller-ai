@@ -81,7 +81,7 @@
 }
 
 .collapsed .nav {
-  @apply px-2;
+  @apply px-2 pt-12;
 }
 
 .item {
@@ -104,6 +104,8 @@
 
 .collapsed .label {
   opacity: 0;
+  width: 0;
+  margin: 0;
   pointer-events: none;
 }
 
