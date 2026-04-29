@@ -601,7 +601,7 @@ function AnalysisPageContent() {
     return (
       <PageContainer>
         <PageHeader 
-          title="RESULTS"
+          title="CAREER GENOME."
           subtitle={t("analysis_engine_badge")}
         />
 

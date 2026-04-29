@@ -67,7 +67,7 @@ export default function Navbar({
     <nav className={styles.navbar}>
       <div className={styles.container}>
 
-        {/* Left: Mobile Toggle + Desktop Collapse} */}
+        {/* Left: Mobile Toggle + Desktop Collapse + Search */}
         <div className={styles.left}>
           {/* Mobile hamburger */}
           <button className={styles.mobileHamburger} onClick={toggleMobileMenu}>
@@ -75,10 +75,16 @@ export default function Navbar({
                 <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>
              </svg>
           </button>
-        </div>
 
-        {/* Right: Search + theme toggle + notifications + user */}
-        <div className={styles.right}>
+          <Link href={dashboardPath} className={cn(styles.brandLink, styles.hideOnDesktop)}>
+            <div className={styles.brandIcon}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+            </div>
+            <span className={styles.brandText}>LUMIX</span>
+          </Link>
+
           <div className={styles.searchWrapper}>
             <div className={styles.inputWrapper}>
               <svg className={styles.inputIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -87,7 +93,10 @@ export default function Navbar({
               <input type="text" placeholder={t("search_placeholder")} className={styles.input} />
             </div>
           </div>
+        </div>
 
+        {/* Right: theme toggle + notifications + user */}
+        <div className={styles.right}>
           <div className={styles.actions}>
             <button 
               onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
@@ -95,6 +104,7 @@ export default function Navbar({
               title={language === 'vi' ? "Switch to English" : "Chuyển sang Tiếng Việt"}
             >
               <Globe width="16" height="16" />
+              <span>{language === 'vi' ? '🇻🇳' : '🇺🇸'}</span>
               <span className={styles.langText}>{language.toUpperCase()}</span>
             </button>
             <button onClick={toggle} className={styles.iconBtn}>
@@ -121,6 +131,7 @@ export default function Navbar({
             >
               <div className={styles.userInfo}>
                 <span className={styles.userName}>{user.full_name || user.email.split("@")[0]}</span>
+                <span className={styles.userRole}>{user.role}</span>
               </div>
               <div className={cn(styles.avatar, isUserMenuOpen && styles.avatarActive)}>
                  {(user.full_name?.[0] || user.email[0]).toUpperCase()}

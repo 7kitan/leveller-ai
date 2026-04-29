@@ -87,7 +87,7 @@ export default function ResetPasswordPage() {
             <p className="text-sm font-bold text-emerald-500">
               {t("reset_password_success_msg")}
             </p>
-            <p className="text-sm opacity-60"> {t("reset_password_redirecting")} </p>
+            <p className="text-xs opacity-60"> {t("reset_password_redirecting")} </p>
           </div>
         ) : (
           <form className={styles.form} onSubmit={handleSubmit}>

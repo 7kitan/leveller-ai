@@ -30,6 +30,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
+          {showAccent && <span className={styles.titleAccent} />}
           <h1 className={styles.headerTitle}>{title}</h1>
           {subtitle && <p className={styles.headerSubtitle}>{subtitle}</p>}
         </motion.div>

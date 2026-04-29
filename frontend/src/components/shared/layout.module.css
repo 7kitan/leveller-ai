@@ -26,7 +26,7 @@
 }
 
 .pageContainer {
-  @apply flex-1 p-4 md:p-8 pt-16 md:pt-20 w-full mx-auto overflow-x-auto;
+  @apply flex-1 p-4 md:p-8 pt-20 md:pt-24 w-full mx-auto overflow-x-auto;
   max-width: 1600px;
   /* Ensure horizontal scroll doesn't break layout */
   display: block; 
