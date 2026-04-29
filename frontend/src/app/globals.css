@@ -1,29 +1,152 @@
 @import "tailwindcss";
 
 @theme {
-    /* Font Size Scale - Semantic Modular Scale (1.25 ratio, 16px base)
-     * WCAG AAA Compliant - Minimum 16px for body text
-     * Usage Guide:
-     * - small: metadata, captions, labels (14px)
-     * - base: body text, paragraphs (16px - WCAG AAA)
-     * - medium: emphasized text, leads, small headings (20px)
-     * - large: section headings, card titles (25px)
-     * - xlarge: page titles, major headings (32px)
-     * - display: hero text, landing page titles (40px)
+    /**
+     * ============================================================================
+     * LUMIX AI - GLOBAL COLOR SYSTEM
+     * ============================================================================
+     * 
+     * NASA-INSPIRED PALETTE: Space exploration theme with modern approachability
+     * 
+     * This is the SINGLE SOURCE OF TRUTH for all colors in the application.
+     * 
+     * USAGE RULES:
+     * ✅ DO: Use semantic aliases (--color-bg-primary, --color-text-primary)
+     * ✅ DO: Use scale values for specific needs (--color-primary-300)
+     * ✅ DO: Compose gradients from global colors
+     * ❌ DON'T: Create local color variables in component CSS
+     * ❌ DON'T: Use hardcoded hex, rgb, or named colors
+     * 
+     * COLOR SCALES (40 values):
+     * - Primary (Space Blue): Brand identity, primary actions - 5 shades
+     * - Secondary (Mars Red): Accents, CTAs, highlights - 5 shades
+     * - Light/Gray: Neutral colors for light mode - 7 shades
+     * - Dark: Neutral colors for dark mode - 7 shades
+     * - Success (Green): Success states, positive actions - 4 shades
+     * - Warning (Amber): Warnings, caution states - 4 shades
+     * - Error (Red/Pink): Errors, destructive actions - 4 shades
+     * - Info (Blue): Information, neutral highlights - 4 shades
+     * 
+     * SEMANTIC ALIASES:
+     * Use these 90% of the time for consistency. They automatically adjust
+     * for dark mode via [data-theme="dark"] overrides.
+     * 
+     * ============================================================================
      */
-    --font-size-small: 0.875rem;    /* 14px */
-    --font-size-base: 1rem;         /* 16px */
-    --font-size-medium: 1.25rem;    /* 20px */
-    --font-size-large: 1.5625rem;   /* 25px */
-    --font-size-xlarge: 2rem;       /* 32px */
-    --font-size-display: 2.5rem;    /* 40px */
 
-    /* Accent Gradients */
-    --gradient-primary: linear-gradient(135deg, #4f46e5, #0ea5e9);
-    --gradient-sky: linear-gradient(135deg, #0EA5E9, #06B6D4);
-    --gradient-accent: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+    /* ========================================================================
+     * PRIMARY COLOR SCALE - SPACE BLUE (NASA-Inspired)
+     * Brand identity, primary actions, main UI elements
+     * ======================================================================== */
+    --color-primary-100: #e6eef9;    /* Light backgrounds, subtle highlights */
+    --color-primary-300: #7a9dd9;    /* Borders, light accents */
+    --color-primary-500: #2563eb;    /* Main brand color (brighter than NASA) */
+    --color-primary-600: #1e4db7;    /* Closer to official NASA blue */
+    --color-primary-700: #0B3D91;    /* Official NASA blue */
+    --color-primary-800: #082e6f;    /* Darker states */
+    --color-primary-900: #082a5e;    /* Darkest, text on light backgrounds */
 
-    /* Apple Design System Palette */
+    /* ========================================================================
+     * SECONDARY COLOR SCALE - MARS RED (NASA-Inspired)
+     * CTAs, accents, highlights, important actions
+     * ======================================================================== */
+    --color-secondary-100: #fee5e0;  /* Light backgrounds */
+    --color-secondary-300: #fca89a;  /* Borders, light accents */
+    --color-secondary-500: #FC3D21;  /* Official NASA red - main accent */
+    --color-secondary-700: #d42f15;  /* Hover states */
+    --color-secondary-900: #8a1f0e;  /* Dark text, gradients */
+
+    /* ========================================================================
+     * LIGHT/GRAY SCALE - NEUTRALS (Light Mode)
+     * Backgrounds, text, borders for light theme
+     * ======================================================================== */
+    --color-light-50: #ffffff;       /* Pure white, cards, elevated surfaces */
+    --color-light-100: #f9fafb;      /* Subtle backgrounds */
+    --color-light-200: #f5f5f7;      /* Apple light gray, secondary backgrounds */
+    --color-light-300: #e5e7eb;      /* Subtle borders */
+    --color-light-500: #9ca3af;      /* Muted text, placeholders */
+    --color-light-700: #4b5563;      /* Secondary text */
+    --color-light-800: #374151;      /* Strong text */
+    --color-light-900: #1d1d1f;      /* Primary text (Apple near-black) */
+
+    /* ========================================================================
+     * DARK SCALE - NEUTRALS (Dark Mode)
+     * Backgrounds, surfaces for dark theme
+     * ======================================================================== */
+    --color-dark-100: #28282a;       /* Elevated surfaces */
+    --color-dark-200: #272729;       /* Secondary backgrounds */
+    --color-dark-300: #262628;       /* Tertiary backgrounds */
+    --color-dark-400: #1e1e20;       /* Deep backgrounds */
+    --color-dark-600: #0f172a;       /* Deeper backgrounds */
+    --color-dark-700: #0a0a0b;       /* Very deep */
+    --color-dark-800: #050505;       /* Near black */
+    --color-dark-900: #000000;       /* Pure black */
+
+    /* ========================================================================
+     * SEMANTIC COLOR SCALES - LIMITED SHADES
+     * Success, Warning, Error, Info - 4 key shades each
+     * ======================================================================== */
+    
+    /* Success (Green) - Success states, positive actions */
+    --color-success-100: #d1fae5;    /* Success backgrounds */
+    --color-success-500: #10b981;    /* Success default */
+    --color-success-700: #047857;    /* Success hover */
+    --color-success-900: #064e3b;    /* Success text */
+
+    /* Warning (Amber) - Warnings, caution states */
+    --color-warning-100: #fef3c7;    /* Warning backgrounds */
+    --color-warning-500: #f59e0b;    /* Warning default */
+    --color-warning-700: #b45309;    /* Warning hover */
+    --color-warning-900: #78350f;    /* Warning text */
+
+    /* Error (Red/Pink) - Errors, destructive actions */
+    --color-error-100: #ffe4e6;      /* Error backgrounds */
+    --color-error-500: #f43f5e;      /* Error default */
+    --color-error-700: #be123c;      /* Error hover */
+    --color-error-900: #881337;      /* Error text */
+
+    /* Info (Blue) - Information, neutral highlights */
+    --color-info-100: #dbeafe;       /* Info backgrounds */
+    --color-info-500: #3b82f6;       /* Info default */
+    --color-info-700: #0284c7;       /* Info hover */
+    --color-info-900: #075985;       /* Info text */
+
+    /* ========================================================================
+     * GRADIENTS - REUSABLE GRADIENT PATTERNS
+     * Common gradient combinations for backgrounds, text, etc.
+     * ======================================================================== */
+    --gradient-primary: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-900));
+    --gradient-secondary: linear-gradient(135deg, var(--color-secondary-500), var(--color-secondary-900));
+    --gradient-brand: linear-gradient(135deg, var(--color-primary-600), var(--color-info-500));
+    --gradient-sky: linear-gradient(135deg, var(--color-info-500), var(--color-primary-500));
+    --gradient-text: linear-gradient(180deg, var(--color-light-900), var(--color-light-700));
+    --gradient-hero: linear-gradient(135deg, var(--color-light-100), var(--color-light-200));
+
+    /* ========================================================================
+     * SHADOWS - ELEVATION SYSTEM
+     * Standardized shadow tokens with color references
+     * ======================================================================== */
+    --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.02);
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 30px 60px rgba(0, 0, 0, 0.08);
+    --shadow-primary: 0 4px 20px rgba(37, 99, 235, 0.3);
+    --shadow-secondary: 0 4px 20px rgba(252, 61, 33, 0.3);
+
+    /* ========================================================================
+     * OPACITY UTILITIES
+     * For composing transparent overlays and effects
+     * ======================================================================== */
+    --opacity-subtle: 0.05;
+    --opacity-light: 0.1;
+    --opacity-medium: 0.3;
+    --opacity-strong: 0.5;
+    --opacity-heavy: 0.8;
+
+    /* ========================================================================
+     * LEGACY COMPATIBILITY
+     * Apple Design System references (kept for backward compatibility)
+     * ======================================================================== */
     --color-apple-black: #000000;
     --color-apple-light-gray: #f5f5f7;
     --color-apple-near-black: #1d1d1f;
@@ -31,28 +154,28 @@
     --color-apple-link-blue: #0066cc;
     --color-apple-bright-blue: #2997ff;
 
-    /* Fonts */
+    /* ========================================================================
+     * TYPOGRAPHY SCALE
+     * Font sizes with semantic naming
+     * ======================================================================== */
+    --font-size-small: 0.875rem;    /* 14px */
+    --font-size-base: 1rem;         /* 16px */
+    --font-size-medium: 1.25rem;    /* 20px */
+    --font-size-large: 1.5625rem;   /* 25px */
+    --font-size-xlarge: 2rem;       /* 32px */
+    --font-size-display: 2.5rem;    /* 40px */
+
+
+    /* ========================================================================
+     * FONTS
+     * ======================================================================== */
     --font-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
     --font-display: var(--font-sans), "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --font-mono: var(--font-sans), monospace;
 
-    /* Text & Surface */
-    --color-text-primary-light: #1d1d1f;
-    --color-text-secondary-light: rgba(0, 0, 0, 0.8);
-    --color-text-tertiary-light: rgba(0, 0, 0, 0.48);
-
-    --color-surface-dark-1: #272729;
-    --color-surface-dark-2: #262628;
-    --color-surface-dark-3: #28282a;
-
-
-
-    /* Elevation & Effects */
-    --shadow-apple-card: 0 3px 5px 30px rgba(0, 0, 0, 0.22);
-    --glass-blur: blur(20px);
-    --glass-saturate: saturate(180%);
-
-    /* Radius Scale */
+    /* ========================================================================
+     * BORDER RADIUS SCALE
+     * ======================================================================== */
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 14px;
@@ -60,54 +183,202 @@
     --radius-2xl: 24px;
     --radius-full: 9999px;
 
-    /* Icon Sizes */
+    /* ========================================================================
+     * ICON SIZES
+     * ======================================================================== */
     --icon-size-xs: 14px;
     --icon-size-sm: 16px;
     --icon-size-md: 20px;
     --icon-size-lg: 24px;
+
+    /* ========================================================================
+     * EFFECTS
+     * ======================================================================== */
+    --glass-blur: blur(20px);
+    --glass-saturate: saturate(180%);
 }
 
 @layer base {
     :root {
+        /**
+         * ====================================================================
+         * SEMANTIC ALIASES - LIGHT MODE
+         * ====================================================================
+         * These are what developers should use 90% of the time.
+         * They automatically adjust for dark mode.
+         * ====================================================================
+         */
+
+        /* Brand Colors */
+        --color-primary: var(--color-primary-500);
+        --color-primary-hover: var(--color-primary-600);
+        --color-primary-active: var(--color-primary-700);
+        --color-primary-light: var(--color-primary-100);
+
+        --color-secondary: var(--color-secondary-500);
+        --color-secondary-hover: var(--color-secondary-700);
+        --color-secondary-active: var(--color-secondary-900);
+        --color-secondary-light: var(--color-secondary-100);
+
+        /* Backgrounds */
+        --color-bg-primary: var(--color-light-50);
+        --color-bg-secondary: var(--color-light-100);
+        --color-bg-tertiary: var(--color-light-200);
+        --color-bg-elevated: var(--color-light-50);
+        --color-bg-overlay: rgba(0, 0, 0, 0.5);
+        --color-bg-glass: rgba(0, 0, 0, 0.8);
+
+        /* Text */
+        --color-text-primary: var(--color-light-900);
+        --color-text-secondary: var(--color-light-700);
+        --color-text-tertiary: var(--color-light-500);
+        --color-text-disabled: var(--color-light-300);
+        --color-text-inverse: var(--color-light-50);
+
+        /* Borders */
+        --color-border-subtle: var(--color-light-300);
+        --color-border-default: var(--color-light-500);
+        --color-border-strong: var(--color-light-700);
+
+        /* Semantic States */
+        --color-success: var(--color-success-500);
+        --color-success-bg: var(--color-success-100);
+        --color-success-hover: var(--color-success-700);
+        --color-success-text: var(--color-success-900);
+
+        --color-warning: var(--color-warning-500);
+        --color-warning-bg: var(--color-warning-100);
+        --color-warning-hover: var(--color-warning-700);
+        --color-warning-text: var(--color-warning-900);
+
+        --color-error: var(--color-error-500);
+        --color-error-bg: var(--color-error-100);
+        --color-error-hover: var(--color-error-700);
+        --color-error-text: var(--color-error-900);
+
+        --color-info: var(--color-info-500);
+        --color-info-bg: var(--color-info-100);
+        --color-info-hover: var(--color-info-700);
+        --color-info-text: var(--color-info-900);
+
+        /* ====================================================================
+         * LEGACY COMPATIBILITY ALIASES
+         * For backward compatibility with existing code
+         * ==================================================================== */
+        --bg-primary: var(--color-bg-primary);
+        --bg-secondary: var(--color-bg-secondary);
+        --text-primary: var(--color-text-primary);
+        --text-secondary: var(--color-text-secondary);
+        --accent-color: var(--color-primary);
+        --border-subtle: var(--color-border-subtle);
+
+        --color-bg-light: var(--color-bg-primary);
+        --color-bg-dark: var(--color-dark-900);
+        --color-text-main: var(--color-text-primary);
+        --color-text-muted: var(--color-text-secondary);
+        --color-panel-bg: var(--color-bg-secondary);
+        --color-accent-primary: var(--color-primary);
+        --color-accent-secondary: var(--color-secondary);
+
+        /* Legacy text colors */
+        --color-text-primary-light: var(--color-light-900);
+        --color-text-secondary-light: var(--color-light-700);
+        --color-text-tertiary-light: var(--color-light-500);
+
+        /* Legacy surface colors */
+        --color-surface-dark-1: var(--color-dark-200);
+        --color-surface-dark-2: var(--color-dark-300);
+        --color-surface-dark-3: var(--color-dark-100);
+
+        /* Legacy gradients */
+        --gradient-accent: var(--gradient-brand);
+
+        /* Legacy shadow */
+        --shadow-apple-card: var(--shadow-xl);
+
         /* Fonts */
         --font-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
         --font-display: 'Open Sans', -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
-
-        --bg-primary: #ffffff;
-        --bg-secondary: #fbfbfd;
-        --text-primary: var(--color-text-primary-light);
-        --text-secondary: var(--color-text-secondary-light);
-        --accent-color: var(--color-apple-blue);
-        --border-subtle: rgba(0, 0, 0, 0.05);
-
-        /* Compatibility Aliases */
-        --color-bg-light: var(--bg-primary);
-        --color-bg-dark: var(--color-apple-black);
-        --color-text-main: var(--text-primary);
-        --color-text-muted: var(--text-secondary);
-        --color-border-subtle: var(--border-subtle);
-        --color-panel-bg: var(--bg-secondary);
-        --color-accent-primary: var(--accent-color);
-        --color-accent-secondary: var(--color-apple-bright-blue);
     }
 
     [data-theme="dark"] {
-        --bg-primary: var(--color-apple-black);
-        --bg-secondary: var(--color-surface-dark-1);
-        --text-primary: #ffffff;
-        --text-secondary: rgba(255, 255, 255, 0.8);
-        --accent-color: var(--color-apple-bright-blue);
-        --border-subtle: rgba(255, 255, 255, 0.1);
+        /**
+         * ====================================================================
+         * SEMANTIC ALIASES - DARK MODE
+         * ====================================================================
+         * Dark mode overrides for semantic aliases.
+         * Colors flip: backgrounds become dark, text becomes light.
+         * Brand colors adjust slightly for better visibility on dark.
+         * ====================================================================
+         */
 
-        /* Compatibility Aliases */
-        --color-bg-light: var(--bg-primary);
-        --color-bg-dark: var(--color-apple-black);
-        --color-text-main: var(--text-primary);
-        --color-text-muted: var(--text-secondary);
-        --color-border-subtle: var(--border-subtle);
-        --color-panel-bg: var(--bg-secondary);
-        --color-accent-primary: var(--accent-color);
-        --color-accent-secondary: var(--color-apple-bright-blue);
+        /* Brand Colors - Slightly lighter for dark mode */
+        --color-primary: var(--color-primary-500);
+        --color-primary-hover: var(--color-primary-300);
+        --color-primary-active: var(--color-primary-700);
+        --color-primary-light: var(--color-primary-900);
+
+        --color-secondary: var(--color-secondary-500);
+        --color-secondary-hover: var(--color-secondary-300);
+        --color-secondary-active: var(--color-secondary-700);
+        --color-secondary-light: var(--color-secondary-900);
+
+        /* Backgrounds - Flip to dark */
+        --color-bg-primary: var(--color-dark-900);
+        --color-bg-secondary: var(--color-dark-200);
+        --color-bg-tertiary: var(--color-dark-100);
+        --color-bg-elevated: var(--color-dark-800);
+        --color-bg-overlay: rgba(255, 255, 255, 0.1);
+        --color-bg-glass: rgba(255, 255, 255, 0.05);
+
+        /* Text - Flip to light */
+        --color-text-primary: var(--color-light-50);
+        --color-text-secondary: var(--color-light-300);
+        --color-text-tertiary: var(--color-light-500);
+        --color-text-disabled: var(--color-light-700);
+        --color-text-inverse: var(--color-light-900);
+
+        /* Borders - Adjust for dark */
+        --color-border-subtle: var(--color-dark-300);
+        --color-border-default: var(--color-dark-400);
+        --color-border-strong: var(--color-dark-600);
+
+        /* Semantic States - Stay the same (already vibrant) */
+        --color-success: var(--color-success-500);
+        --color-success-bg: var(--color-success-900);
+        --color-success-hover: var(--color-success-700);
+        --color-success-text: var(--color-success-100);
+
+        --color-warning: var(--color-warning-500);
+        --color-warning-bg: var(--color-warning-900);
+        --color-warning-hover: var(--color-warning-700);
+        --color-warning-text: var(--color-warning-100);
+
+        --color-error: var(--color-error-500);
+        --color-error-bg: var(--color-error-900);
+        --color-error-hover: var(--color-error-700);
+        --color-error-text: var(--color-error-100);
+
+        --color-info: var(--color-info-500);
+        --color-info-bg: var(--color-info-900);
+        --color-info-hover: var(--color-info-700);
+        --color-info-text: var(--color-info-100);
+
+        /* Legacy Compatibility */
+        --bg-primary: var(--color-bg-primary);
+        --bg-secondary: var(--color-bg-secondary);
+        --text-primary: var(--color-text-primary);
+        --text-secondary: var(--color-text-secondary);
+        --accent-color: var(--color-primary);
+        --border-subtle: var(--color-border-subtle);
+
+        --color-bg-light: var(--color-bg-primary);
+        --color-bg-dark: var(--color-dark-900);
+        --color-text-main: var(--color-text-primary);
+        --color-text-muted: var(--color-text-secondary);
+        --color-panel-bg: var(--color-bg-secondary);
+        --color-accent-primary: var(--color-primary);
+        --color-accent-secondary: var(--color-secondary);
     }
 
     html,
