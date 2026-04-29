@@ -101,7 +101,7 @@
 .submitBtn {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #0EA5E9 0%, #06B6D4 100%);
+  background: var(--gradient-sky);
   color: #ffffff;
   border-radius: 980px;
   font-size: 16px;

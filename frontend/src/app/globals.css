@@ -9,6 +9,11 @@
     --font-size-title: 1.25rem;
     --font-size-display: 2rem;
 
+    /* Accent Gradients */
+    --gradient-primary: linear-gradient(135deg, #4f46e5, #0ea5e9);
+    --gradient-sky: linear-gradient(135deg, #0EA5E9, #06B6D4);
+    --gradient-accent: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+
     /* Apple Design System Palette */
     --color-apple-black: #000000;
     --color-apple-light-gray: #f5f5f7;
@@ -282,9 +287,5 @@
 
 /* Global Gradient Text Utility - Standardized across all pages */
 .gradient-text {
-    background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    display: inline-block;
+    color: var(--color-accent-primary);
 }

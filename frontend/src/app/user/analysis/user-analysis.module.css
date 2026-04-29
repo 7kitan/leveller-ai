@@ -174,7 +174,7 @@
 .progressFill {
   height: 100%;
   width: var(--progress, 0%);
-  background: linear-gradient(to right, #4f46e5, #0ea5e9);
+  background: var(--gradient-primary);
   transition: width 0.1s linear;
 }
 
@@ -471,7 +471,7 @@
   align-items: center;
   gap: 0.875rem;
   padding: 1rem 2.5rem;
-  background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+  background: var(--gradient-primary);
   color: white;
   border-radius: var(--radius-md);
   font-size: 11px;
@@ -1226,7 +1226,7 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(to right, #4f46e5, #0ea5e9);
+  background: var(--gradient-primary);
   border-radius: 9999px;
   transition: width 0.4s ease;
 }
@@ -1298,7 +1298,7 @@
 
 .progressBar .progressFill {
   height: 100%;
-  background: linear-gradient(to right, #4f46e5, #0ea5e9);
+  background: var(--gradient-primary);
   border-radius: 9999px;
   transition: width 0.4s ease;
 }

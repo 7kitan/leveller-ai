@@ -1,11 +1,11 @@
 .pageContainer {
   min-height: 100vh;
-  padding: 3rem 4rem;
+  padding: 2rem 4rem;
   max-width: 1600px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 1.5rem;
   animation: pageFadeIn 0.8s var(--ease-premium);
 }
 

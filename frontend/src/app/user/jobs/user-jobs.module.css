@@ -42,10 +42,7 @@
 
 /* Use global gradient-text class from globals.css */
 .gradientText {
-  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--color-accent-primary);
 }
 
 .badge {
@@ -196,7 +193,7 @@ select.input option {
 }
 
 .searchBtn {
-  background: linear-gradient(135deg, #0891b2, #06b6d4);
+  background: var(--gradient-sky);
   color: white;
   padding: 1rem 3rem;
   border-radius: var(--radius-md);
