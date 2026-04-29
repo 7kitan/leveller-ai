@@ -364,27 +364,27 @@ function JobCard({ job, onShowDetails }: { job: Job; onShowDetails: (j: Job) => 
             {job.title_raw}
           </h3>
           <div className={styles.companyName}>
-            <Building2 size={14} style={{ marginRight: '6px', opacity: 0.6 }} />
+            <Building2 />
             <span className="truncate" title={job.company_name}>{job.company_name || t("jobs_company_confidential")}</span>
           </div>
 
           <div className={styles.metaGrid}>
             <div className={styles.cardMeta} title={job.location_raw}>
-                <MapPin size={14} style={{ opacity: 0.6 }} /> 
+                <MapPin /> 
                 <span className="truncate">{job.location_raw || t("jobs_location_nationwide")}</span>
             </div>
             <div className={styles.cardMeta}>
-                <DollarSign size={14} style={{ opacity: 0.6 }} /> 
+                <DollarSign /> 
                 <span style={{ color: 'var(--color-success)', fontWeight: 700 }}>
                     {formatSalary(job.min_salary_vnd, job.max_salary_vnd)}
                 </span>
             </div>
             <div className={styles.cardMeta}>
-                <Clock size={14} style={{ opacity: 0.6 }} /> 
+                <Clock /> 
                 <span>{getRelativeTime(job.created_at)}</span>
             </div>
             <div className={styles.cardMeta}>
-                <Briefcase size={14} style={{ opacity: 0.6 }} /> 
+                <Briefcase /> 
                 <span>{job.employment_type || t("jobs_employment_fulltime")}</span>
             </div>
           </div>
