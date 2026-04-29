@@ -171,7 +171,7 @@ const UserRecommendPage = () => {
 
   /* ── Progressive Polling Logic ───────────────────────────────────────── */
   useEffect(() => {
-    if (!user || !taskIdFromUrl) return;
+    if (!user || !taskIdFromUrl || taskIdFromUrl === "null" || taskIdFromUrl === "undefined") return;
 
     console.log("[RECOMMEND] Polling for progressive updates - Task ID:", taskIdFromUrl);
     setIsProcessing(true);
@@ -186,12 +186,7 @@ const UserRecommendPage = () => {
       }
     } catch (e) {}
 
-    // Skip polling if task_id is invalid (cached result)
-    if (taskIdFromUrl === "null" || taskIdFromUrl === "undefined") {
-      console.log("[RECOMMEND] Invalid task_id, skipping status polling");
-      setIsProcessing(false);
-      return;
-    }
+
 
     // 1. Initial fetch to check if task is already completed
     const fetchInitialStatus = async () => {
