@@ -20,7 +20,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
-import { cn, formatPercent } from "@/lib/utils";
+import { cn, formatPercent, formatNumber } from "@/lib/utils";
 import styles from "./user-dashboard.module.css";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
@@ -314,6 +314,7 @@ const UserDashboard = () => {
                       axisLine={false}
                       tickLine={false}
                       tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 'bold' }}
+                      tickFormatter={(val) => formatNumber(val)}
                     />
                     <Legend 
                       verticalAlign="top" 
@@ -331,6 +332,7 @@ const UserDashboard = () => {
                         boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
                         color: '#fff'
                       }}
+                      formatter={(val: any) => [formatNumber(val), t("demand_score" as any) || "Demand"]}
                     />
                     {(marketData.market_trends.trends || []).slice(0, 5).map((skill: any, idx: number) => {
                       const palettes = [

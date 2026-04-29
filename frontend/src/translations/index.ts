@@ -17,6 +17,7 @@ export const translations = {
     not_available: "K/D",
     rerun_now: "Chạy lại ngay",
     later: "Để sau",
+    demand_score: "Nhu cầu thị trường",
     selected_job: "vị trí đã chọn",
     please_wait: "Vui lòng đợi...",
     update_cv_success: "CV đã được cập nhật thành công",
@@ -1826,6 +1827,7 @@ export const translations = {
     console_job_search_error: "Error searching jobs:",
 
     // Additional missing keys
+    demand_score: "Market Demand",
     current_position: "Current Position",
     ai_searching: "AI is searching for more courses and building roadmap...",
     critical: "Critical",

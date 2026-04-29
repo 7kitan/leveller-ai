@@ -749,7 +749,15 @@ const UserRecommendPage = () => {
                   <ReactECharts
                     key={`impact-chart-${skill_gaps.map(g => g.skill).join('-')}-${skill_gaps.length}`}
                     option={{
-                      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: chartTooltipBg, borderColor: '#4f46e5', borderWidth: 1, textStyle: { color: chartTooltipText } },
+                      tooltip: { 
+                        trigger: 'axis', 
+                        axisPointer: { type: 'shadow' }, 
+                        backgroundColor: chartTooltipBg, 
+                        borderColor: '#4f46e5', 
+                        borderWidth: 1, 
+                        textStyle: { color: chartTooltipText },
+                        valueFormatter: (value: any) => formatNumber(value) + '%'
+                      },
                       legend: { data: [t('match_impact'), t('salary_impact')], textStyle: { color: chartTextColor, fontSize: 10 }, top: 0 },
                       grid: { left: '3%', right: '4%', bottom: '3%', top: '40px', containLabel: true },
                       xAxis: { type: 'value', axisLabel: { color: chartTextColor, fontSize: 10 }, splitLine: { lineStyle: { color: chartSplitLineColor } } },
