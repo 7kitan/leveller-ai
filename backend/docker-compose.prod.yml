@@ -1,5 +1,6 @@
 
 x-service-base: &service-base
+  image: ${GHCR_BACKEND_SERVICE_IMAGE:-advisor-backend-service:latest}
   build:
     context: .
     dockerfile: Dockerfile.service
@@ -25,6 +26,7 @@ x-service-base: &service-base
         memory: 256M
 
 x-worker-base: &worker-base
+  image: ${GHCR_BACKEND_WORKER_IMAGE:-advisor-backend-worker:latest}
   build:
     context: .
     dockerfile: Dockerfile.worker

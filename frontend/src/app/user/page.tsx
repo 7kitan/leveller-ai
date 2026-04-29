@@ -50,6 +50,7 @@ const UserDashboard = () => {
   }, []);
 
   const [period, setPeriod] = useState("month");
+  const [hiddenSkills, setHiddenSkills] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user) return;
@@ -270,22 +271,36 @@ const UserDashboard = () => {
               </div>
             </div>
             <div className={styles.barChartContainer} style={{ height: '400px', width: '100%', marginTop: '2rem' }}>
-              {(marketData?.market_trends?.trends || []).length > 0 ? (
+              {(marketData?.market_trends?.trends || []).length > 0 ? (() => {
+                // Sort trends by latest demand (highest first), then take top 5
+                const sortedTrends = [...(marketData.market_trends.trends || [])]
+                  .map((trend: any) => {
+                    // Calculate latest demand value
+                    let latestDemand = 0;
+                    if (trend.history && Array.isArray(trend.history) && trend.history.length > 0) {
+                      const lastHistory = trend.history[trend.history.length - 1];
+                      latestDemand = Number(lastHistory?.demand) || 0;
+                    }
+                    return { ...trend, _sortValue: latestDemand };
+                  })
+                  .sort((a: any, b: any) => b._sortValue - a._sortValue)
+                  .slice(0, 5);
+                
+                // Pivot data for Recharts: array of { date, skillA, skillB, ... }
+                const dates = Array.from(new Set(sortedTrends.flatMap((t: any) => (t.history || []).map((h: any) => h.date)))).sort();
+                const chartData = dates.map(date => {
+                  const entry: any = { date };
+                  sortedTrends.forEach((t: any) => {
+                    const h = (t.history || []).find((hi: any) => hi.date === date);
+                    if (h) entry[t.name] = h.demand;
+                  });
+                  return entry;
+                });
+
+                return (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart 
-                    data={(() => {
-                      const trends = marketData.market_trends.trends.slice(0, 5);
-                      // Pivot data for Recharts: array of { date, skillA, skillB, ... }
-                      const dates = Array.from(new Set(trends.flatMap((t: any) => (t.history || []).map((h: any) => h.date)))).sort();
-                      return dates.map(date => {
-                        const entry: any = { date };
-                        trends.forEach((t: any) => {
-                          const h = (t.history || []).find((hi: any) => hi.date === date);
-                          if (h) entry[t.name] = h.demand;
-                        });
-                        return entry;
-                      });
-                    })()} 
+                    data={chartData} 
                     margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
                   >
                     <defs>
@@ -321,7 +336,56 @@ const UserDashboard = () => {
                       align="right" 
                       height={36} 
                       iconType="circle"
-                      wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.8 }}
+                      wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.8, cursor: 'pointer' }}
+                      content={(props: any) => {
+                        const palettes = [
+                          { id: 'Emerald', color: '#10b981' },
+                          { id: 'Indigo', color: '#6366f1' },
+                          { id: 'Amber', color: '#f59e0b' },
+                          { id: 'Sky', color: '#0ea5e9' },
+                          { id: 'Pink', color: '#ec4899' }
+                        ];
+                        return (
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                            {sortedTrends.map((skill: any, idx: number) => {
+                              const p = palettes[idx % palettes.length];
+                              const isHidden = hiddenSkills.has(skill.name);
+                              return (
+                                <div 
+                                  key={skill.name}
+                                  onClick={() => {
+                                    setHiddenSkills(prev => {
+                                      const newSet = new Set(prev);
+                                      if (newSet.has(skill.name)) {
+                                        newSet.delete(skill.name);
+                                      } else {
+                                        newSet.add(skill.name);
+                                      }
+                                      return newSet;
+                                    });
+                                  }}
+                                  style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '6px',
+                                    cursor: 'pointer',
+                                    opacity: isHidden ? 0.4 : 1,
+                                    textDecoration: isHidden ? 'line-through' : 'none'
+                                  }}
+                                >
+                                  <div style={{ 
+                                    width: '10px', 
+                                    height: '10px', 
+                                    borderRadius: '50%', 
+                                    backgroundColor: p.color 
+                                  }} />
+                                  <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{skill.name}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      }}
                     />
                     <RechartsTooltip 
                       contentStyle={{ 
@@ -330,11 +394,62 @@ const UserDashboard = () => {
                         border: 'none',
                         backdropFilter: 'blur(10px)',
                         boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
-                        color: '#fff'
+                        color: '#fff',
+                        padding: '12px'
+                      }}
+                      content={(props: any) => {
+                        if (!props.active || !props.payload || props.payload.length === 0) return null;
+                        
+                        const palettes = [
+                          { id: 'Emerald', color: '#10b981' },
+                          { id: 'Indigo', color: '#6366f1' },
+                          { id: 'Amber', color: '#f59e0b' },
+                          { id: 'Sky', color: '#0ea5e9' },
+                          { id: 'Pink', color: '#ec4899' }
+                        ];
+                        
+                        return (
+                          <div style={{ 
+                            backgroundColor: 'rgba(0,0,0,0.85)', 
+                            borderRadius: '16px', 
+                            border: 'none',
+                            backdropFilter: 'blur(10px)',
+                            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+                            color: '#fff',
+                            padding: '16px 20px',
+                            minWidth: '200px'
+                          }}>
+                            <p style={{ marginBottom: '12px', fontWeight: 'bold', fontSize: '13px', opacity: 0.7 }}>
+                              {props.label}
+                            </p>
+                            {sortedTrends.map((skill: any, idx: number) => {
+                              const p = palettes[idx % palettes.length];
+                              const dataPoint = props.payload.find((p: any) => p.dataKey === skill.name);
+                              if (!dataPoint) return null;
+                              
+                              return (
+                                <div key={skill.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ 
+                                      width: '10px', 
+                                      height: '10px', 
+                                      borderRadius: '50%', 
+                                      backgroundColor: p.color 
+                                    }} />
+                                    <span style={{ fontSize: '14px' }}>{skill.name}</span>
+                                  </div>
+                                  <span style={{ fontSize: '14px', fontWeight: 'bold', marginLeft: '16px' }}>
+                                    {formatNumber(dataPoint.value)}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
                       }}
                       formatter={(val: any) => [formatNumber(val), t("demand_score" as any) || "Demand"]}
                     />
-                    {(marketData.market_trends.trends || []).slice(0, 5).map((skill: any, idx: number) => {
+                    {sortedTrends.map((skill: any, idx: number) => {
                       const palettes = [
                         { id: 'Emerald', color: '#10b981' },
                         { id: 'Indigo', color: '#6366f1' },
@@ -343,6 +458,7 @@ const UserDashboard = () => {
                         { id: 'Pink', color: '#ec4899' }
                       ];
                       const p = palettes[idx % palettes.length];
+                      const isHidden = hiddenSkills.has(skill.name);
                       return (
                         <Area 
                           key={skill.name}
@@ -353,12 +469,14 @@ const UserDashboard = () => {
                           fillOpacity={1} 
                           fill={`url(#color${p.id})`} 
                           animationDuration={1500}
+                          hide={isHidden}
                         />
                       );
                     })}
                   </AreaChart>
                 </ResponsiveContainer>
-              ) : (
+                );
+              })() : (
                 <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: 0.5 }}>
                   <p>{t("loading")}...</p>
                 </div>

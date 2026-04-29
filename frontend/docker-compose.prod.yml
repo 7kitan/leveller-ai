@@ -2,13 +2,16 @@ version: '3.8'
 
 services:
   frontend:
+    image: ${GHCR_FRONTEND_IMAGE:-advisor-frontend:latest}
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
-        NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${NEXT_PUBLIC_RECAPTCHA_SITE_KEY:-6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://your-api-url}
+        NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${NEXT_PUBLIC_RECAPTCHA_SITE_KEY:-your-recaptcha-key}
         NEXT_PUBLIC_ENVIRONMENT: ${NEXT_PUBLIC_ENVIRONMENT:-production}
+    env_file:
+      - .env
     container_name: advisor_frontend_prod
     restart: always
     ports:
