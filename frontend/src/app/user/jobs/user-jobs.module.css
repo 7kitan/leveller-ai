@@ -260,9 +260,7 @@ select.input option {
 }
 
 .cardTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  display: none;
 }
 
 .iconBox {
@@ -315,7 +313,7 @@ select.input option {
   color: var(--color-text-main);
   line-height: 1.4;
   letter-spacing: -0.02em;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .companyName {
