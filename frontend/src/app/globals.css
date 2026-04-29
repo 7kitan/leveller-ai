@@ -47,6 +47,12 @@
     --radius-xl: 18px;
     --radius-2xl: 24px;
     --radius-full: 9999px;
+
+    /* Icon Sizes */
+    --icon-size-xs: 14px;
+    --icon-size-sm: 16px;
+    --icon-size-md: 20px;
+    --icon-size-lg: 24px;
 }
 
 @layer base {

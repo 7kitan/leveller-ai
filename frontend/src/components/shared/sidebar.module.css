@@ -91,6 +91,10 @@
   @apply px-4 py-3;
 }
 
+.collapsed .icon {
+  margin-left: calc(var(--icon-size-sm) * -0.375);
+}
+
 .label {
   white-space: nowrap;
   overflow: hidden;
