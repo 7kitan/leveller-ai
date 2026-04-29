@@ -71,7 +71,6 @@ interface SidebarProps {
   /** Pass admin nav items when rendering from admin layout (overrides role-based lookup) */
   adminItems?: NavItem[];
   toggleSidebar?: () => void;
-  style?: React.CSSProperties;
 }
 
 export default function Sidebar({
@@ -80,7 +79,6 @@ export default function Sidebar({
   setIsMobileOpen,
   adminItems,
   toggleSidebar,
-  style,
 }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuth();
@@ -98,7 +96,6 @@ export default function Sidebar({
     <aside 
       className={`${styles.sidebar} ${isMini ? styles.collapsed : ""} ${isMobileOpen ? styles.mobileOpen : ""}`}
       onClick={() => isMini && toggleSidebar?.()}
-      style={style}
     >
       <button className={styles.collapseToggle} onClick={(e) => { e.stopPropagation(); toggleSidebar?.(); }} title={isMini ? "Open sidebar" : "Close sidebar"}>
         {isMini ? <PanelRight size={20} /> : <PanelLeft size={20} />}

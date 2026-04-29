@@ -61,7 +61,6 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           isMobileOpen={isMobileOpen} 
           setIsMobileOpen={setIsMobileOpen} 
           toggleSidebar={toggleSidebar}
-          style={{ "--sidebar-width": isCollapsed ? "56px" : "288px" } as React.CSSProperties}
         />
       )}
 
