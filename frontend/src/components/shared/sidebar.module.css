@@ -82,13 +82,17 @@
 }
 
 .item {
-  @apply flex items-center gap-3.5 px-4 py-3 font-medium transition-colors relative;
+  @apply flex items-center gap-3.5 px-4 py-2 font-medium transition-colors relative;
   color: var(--color-text-muted);
   font-size: 0.9rem;
 }
 
 .collapsed .item {
-  @apply px-4 py-3;
+  @apply px-4 py-2;
+}
+
+.collapsed .active {
+  border-radius: 0;
 }
 
 .icon {
@@ -128,10 +132,13 @@
 
 .active {
   color: var(--color-text-main) !important;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
 }
 
 [data-theme="dark"] .active {
   color: #fff !important;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .icon {
