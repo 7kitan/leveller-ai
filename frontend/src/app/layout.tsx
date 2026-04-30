@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Open_Sans } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import "../light-mode.css";
 import { AuthProvider } from "@/context/AuthContext";
@@ -8,9 +9,40 @@ import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { AlertProvider } from "@/context/AlertContext";
 
-const openSans = Open_Sans({ 
-  subsets: ["latin", "vietnamese"], 
-  variable: "--font-sans" 
+const tasaOrbiter = localFont({
+  src: [
+    {
+      path: "../fonts/tasa-orbiter-400.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../fonts/tasa-orbiter-500.ttf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../fonts/tasa-orbiter-600.ttf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../fonts/tasa-orbiter-700.ttf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../fonts/tasa-orbiter-800.ttf",
+      weight: "800",
+      style: "normal",
+    },
+  ],
+  variable: "--font-tasa-orbiter",
+});
+
+const spaceGrotesk = Space_Grotesk({ 
+  subsets: ["latin"], 
+  variable: "--font-space-grotesk" 
 });
 
 export const metadata: Metadata = {
@@ -25,7 +57,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${openSans.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${tasaOrbiter.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <LanguageProvider>
           <ThemeProvider>
