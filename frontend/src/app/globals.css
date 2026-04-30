@@ -95,6 +95,18 @@
     --color-info-dark: oklch(0.45 0.10 240);      /* Info hover/text */
 
     /* ========================================================================
+     * CHART COLORS - DISTINCT PALETTE FOR DATA VISUALIZATION
+     * 5 distinct colors for charts, graphs, and data visualization
+     * ======================================================================== */
+    --color-chart-emerald: oklch(0.60 0.12 150);   /* Green - Success/Growth */
+    --color-chart-indigo: oklch(0.65 0.08 240);    /* Blue - Primary data */
+    --color-chart-amber: oklch(0.70 0.14 80);      /* Amber - Warning/Caution */
+    --color-chart-sky: oklch(0.65 0.10 220);       /* Sky Blue - Info/Secondary */
+    --color-chart-pink: oklch(0.65 0.12 340);      /* Pink/Magenta - Accent */
+    --color-chart-purple: oklch(0.60 0.12 280);    /* Purple - Alternative */
+    --color-chart-teal: oklch(0.60 0.10 180);      /* Teal - Alternative */
+
+    /* ========================================================================
      * TYPOGRAPHY SCALE
      * Font sizes with semantic naming
      * ======================================================================== */

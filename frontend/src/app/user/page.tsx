@@ -357,13 +357,13 @@ const UserDashboard = () => {
           <div className={styles.trendHeader}>
             <h3 className="text-subheading">{t("dash_market_trends")}</h3>
             <div className={styles.periodSelector}>
-              {['day', 'week', 'month'].map((p) => (
+              {['week', 'month'].map((p) => (
                 <button 
                   key={p} 
                   className={cn(styles.periodBtn, period === p && styles.active)}
                   onClick={() => setPeriod(p)}
                 >
-                  {t(`period_${p === 'day' ? '24h' : p === 'week' ? '7d' : '30d'}` as any)}
+                  {t(`period_${p === 'week' ? '7d' : '30d'}` as any)}
                 </button>
               ))}
             </div>
