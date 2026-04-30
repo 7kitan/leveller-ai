@@ -133,7 +133,7 @@ export default function AdminFeedbackPage() {
             {loading ? (
               <tr><td colSpan={5} className={styles.loading}>{t("loading")}</td></tr>
             ) : feedback.length === 0 ? (
-              <tr><td colSpan={5} className={styles.empty}>No feedback found</td></tr>
+              <tr><td colSpan={5} className={styles.empty}>{t("admin_feedback_no_feedback")}</td></tr>
             ) : (
               feedback.map((item) => (
                 <tr key={item.id}>

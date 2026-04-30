@@ -205,11 +205,11 @@ const UserDashboard = () => {
                           borderColor: severityBorderColor(gap.severity),
                         }}
                       >
-                        ΓùÅ {severityLabel(gap.severity)}
+                        {severityLabel(gap.severity)}
                       </span>
                     </div>
                     <span className={styles.gapMiniMeta}>
-                      {gap.required_level || "Intermediate"} ┬╖ {gap.estimated_months || 3} months
+                      {gap.required_level || "Intermediate"} • {gap.estimated_months || 3} months
                     </span>
                   </div>
                 ))
@@ -241,11 +241,11 @@ const UserDashboard = () => {
                             borderColor: severityBorderColor(selectedGap.severity),
                           }}
                         >
-                          ΓùÅ {severityLabel(selectedGap.severity)}
+                          {severityLabel(selectedGap.severity)}
                         </span>
                       </div>
                       <p className={styles.slideOverMeta}>
-                        Target: {selectedGap.required_level || "Intermediate"} ┬╖ {selectedGap.estimated_months || 3} months
+                        Target: {selectedGap.required_level || "Intermediate"} • {selectedGap.estimated_months || 3} months
                       </p>
                     </div>
                     <button 
@@ -253,21 +253,21 @@ const UserDashboard = () => {
                       onClick={() => setSelectedGap(null)}
                       aria-label="Close"
                     >
-                      Γ£ò
+                      ✕
                     </button>
                   </div>
                   
                   <div className={styles.slideOverContent}>
                     {selectedGap.reasoning && (
                       <div className={styles.slideOverSection}>
-                        <h4 className={styles.slideOverSectionTitle}>≡ƒÆí Why This Matters</h4>
+                        <h4 className={styles.slideOverSectionTitle}>Why This Matters</h4>
                         <p className={styles.slideOverText}>{selectedGap.reasoning}</p>
                       </div>
                     )}
                     
                     {selectedGap.learning_path && (
                       <div className={styles.slideOverSection}>
-                        <h4 className={styles.slideOverSectionTitle}>≡ƒôÜ Learning Path</h4>
+                        <h4 className={styles.slideOverSectionTitle}>Learning Path</h4>
                         <p className={styles.slideOverText}>{selectedGap.learning_path}</p>
                       </div>
                     )}
