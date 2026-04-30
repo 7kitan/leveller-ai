@@ -304,7 +304,7 @@ export default function JobsPage() {
                     className={styles.modalAnalyzeBtn}
                     onClick={() => setShowDetailsModal(false)}
                 >
-                    {t("jobs_run_analysis")} <Sparkles size={16} />
+                    {t("jobs_run_analysis")}
                 </Link>
                 {selectedJob.source_url && (
                     <a 
