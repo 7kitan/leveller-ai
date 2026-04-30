@@ -121,7 +121,7 @@
   background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  padding: 0.875rem 1.25rem 0.875rem 3rem;
+  padding: 0.625rem 1.25rem 0.625rem 3rem;
   color: var(--color-text-primary);
   font-weight: 600;
   font-size: var(--font-size-base);
@@ -191,7 +191,7 @@ select.input option {
 .searchBtn {
   /* gradient removed */ background: var(--color-primary);
   color: white;
-  padding: 1rem 3rem;
+  padding: 0.625rem 2rem;
   border-radius: var(--radius-md);
   font-weight: 900;
   font-size: var(--font-size-small);
