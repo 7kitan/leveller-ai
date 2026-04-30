@@ -250,7 +250,7 @@ select.input option {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(to right, transparent, var(--color-primary), transparent);
+  background: linear-gradient(to right, transparent, var(--color-accent-primary), transparent);
   opacity: 0;
   transition: opacity 0.4s ease;
 }
@@ -377,7 +377,7 @@ select.input option {
   background-color: var(--color-accent-primary);
   border: 1px solid var(--color-accent-primary);
   border-radius: var(--radius-md);
-  color: white;
+  color: white !important;
   font-weight: 900;
   font-size: var(--font-size-small);
   text-align: center;
@@ -387,6 +387,12 @@ select.input option {
   justify-content: center;
   gap: 0.5rem;
   cursor: pointer;
+}
+
+.actionBtn:visited {
+  color: white !important;
+  background-color: var(--color-accent-primary);
+  border-color: var(--color-accent-primary);
 }
 
 .actionBtn:hover {

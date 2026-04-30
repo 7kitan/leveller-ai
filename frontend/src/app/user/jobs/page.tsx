@@ -419,7 +419,7 @@ function JobCard({ job, onShowDetails }: { job: Job; onShowDetails: (j: Job) => 
           href={`/user/analysis?job_id=${job.id}`}
           className={styles.actionBtn}
         >
-          {t("jobs_run_analysis")} <Sparkles size={14} />
+          {t("jobs_run_analysis")}
         </Link>
       </div>
     </motion.div>
