@@ -587,7 +587,7 @@ function AnalysisPageContent() {
     return (
       <PageContainer>
         <PageHeader 
-          title="RESULTS"
+          title={t("analysis_title")}
           subtitle={t("analysis_engine_badge")}
         />
 

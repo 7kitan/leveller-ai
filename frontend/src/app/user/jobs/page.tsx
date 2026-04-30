@@ -102,7 +102,7 @@ export default function JobsPage() {
   return (
     <PageContainer>
       <PageHeader 
-        title={language === 'vi' ? <>KHÁM PHÁ CƠ HỘI</> : <>EXPLORE OPPORTUNITIES</>}
+        title={t("jobs_title")}
         subtitle={t("jobs_subtitle")}
       >
         <div className={styles.badge}>
