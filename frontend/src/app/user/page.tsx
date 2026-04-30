@@ -290,11 +290,11 @@ const UserDashboard = () => {
                   >
                     <defs>
                       {[
-                        { id: 'Emerald', color: '#10b981' },
-                        { id: 'Indigo', color: '#6366f1' },
-                        { id: 'Amber', color: '#f59e0b' },
-                        { id: 'Sky', color: '#0ea5e9' },
-                        { id: 'Pink', color: '#ec4899' }
+                        { id: 'Emerald', color: 'var(--color-success)' },
+                        { id: 'Indigo', color: 'var(--color-primary)' },
+                        { id: 'Amber', color: 'var(--color-warning)' },
+                        { id: 'Sky', color: 'var(--color-info)' },
+                        { id: 'Pink', color: 'var(--color-secondary)' }
                       ].map(g => (
                         <linearGradient key={g.id} id={`color${g.id}`} x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor={g.color} stopOpacity={0.2}/>
@@ -334,11 +334,11 @@ const UserDashboard = () => {
                     />
                     {(marketData.market_trends.trends || []).slice(0, 5).map((skill: any, idx: number) => {
                       const palettes = [
-                        { id: 'Emerald', color: '#10b981' },
-                        { id: 'Indigo', color: '#6366f1' },
-                        { id: 'Amber', color: '#f59e0b' },
-                        { id: 'Sky', color: '#0ea5e9' },
-                        { id: 'Pink', color: '#ec4899' }
+                        { id: 'Emerald', color: 'var(--color-success)' },
+                        { id: 'Indigo', color: 'var(--color-primary)' },
+                        { id: 'Amber', color: 'var(--color-warning)' },
+                        { id: 'Sky', color: 'var(--color-info)' },
+                        { id: 'Pink', color: 'var(--color-secondary)' }
                       ];
                       const p = palettes[idx % palettes.length];
                       return (
@@ -430,11 +430,11 @@ const UserDashboard = () => {
 /* -- Helpers ------------------------------------------------------------- */
 function severityColor(sev: string) {
   const map: Record<string, string> = {
-    HIGH: "#f43f5e",
-    MEDIUM: "#f59e0b",
-    LOW: "#10b981",
+    HIGH: "var(--color-error)",
+    MEDIUM: "var(--color-warning)",
+    LOW: "var(--color-success)",
   };
-  return map[sev?.toUpperCase()] || "#9ca3af";
+  return map[sev?.toUpperCase()] || "var(--color-text-tertiary)";
 }
 
 export default UserDashboard;

@@ -20,12 +20,12 @@
 }
 
 [data-theme="light"] .card {
-  background: #fdfdfd;
+  background: var(--color-bg-elevated);
   box-shadow: 0 4px 20px rgba(0,0,0,0.02);
 }
 
 .card:hover {
-  border-color: rgba(79, 70, 229, 0.2);
+  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
   box-shadow: var(--shadow-premium);
 }
 
@@ -36,7 +36,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(79, 70, 229, 0.05));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-success) 5%, transparent), color-mix(in srgb, var(--color-primary) 5%, transparent));
 }
 
 @media (min-width: 1024px) {
@@ -47,7 +47,7 @@
   width: 4rem;
   height: 4rem;
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-bg-elevated);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -55,13 +55,13 @@
   box-shadow: 0 10px 30px rgba(0,0,0,0.05);
 }
 
-[data-theme="dark"] .uploadIcon { background: #111; color: #fff; }
+[data-theme="dark"] .uploadIcon { background: var(--color-bg-secondary); color: var(--color-text-inverse); }
 
 .uploadBtn {
   margin-top: 1.5rem;
   padding: 1rem 2rem;
   background: var(--color-accent-primary);
-  color: #fff;
+  color: var(--color-text-inverse);
   border-radius: 9999px;
   font-weight: 700;
   font-size: var(--font-size-base);
@@ -88,7 +88,7 @@
 }
 
 .statCard {
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
   border-radius: var(--radius-md);
   padding: 2rem;
   display: flex;
@@ -134,14 +134,14 @@
 
 .gapMiniCard {
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border-subtle);
   transition: all 0.3s ease;
 }
 
 .gapMiniCard:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
   transform: translateY(-2px);
 }
 
@@ -226,7 +226,7 @@
 .growthBadge {
   font-size: var(--font-size-small);
   padding: 0.25rem 0.5rem;
-  background: rgba(16, 185, 129, 0.1);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
   color: var(--color-success);
   border-radius: var(--radius-md);
   font-weight: 700;
@@ -285,14 +285,14 @@
   flex-direction: column;
   gap: 0.5rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: color-mix(in srgb, var(--color-bg-elevated) 2%, transparent);
   border-radius: var(--radius-sm);
   transition: transform 0.3s var(--ease-premium);
 }
 
 .trendItem:hover {
   transform: translateX(4px);
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--color-bg-elevated) 4%, transparent);
 }
 
 .barChartContainer {
@@ -358,14 +358,14 @@
   color: var(--color-success);
   font-size: var(--font-size-small);
   font-weight: 800;
-  background: rgba(16, 185, 129, 0.05);
+  background: color-mix(in srgb, var(--color-success) 5%, transparent);
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-md);
 }
 
 .trendGrowthBadge.negative {
   color: var(--color-danger);
-  background: rgba(239, 68, 68, 0.05);
+  background: color-mix(in srgb, var(--color-error) 5%, transparent);
 }
 
 /* Period Selector */
@@ -415,7 +415,7 @@
 
 .snapshotItem {
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: color-mix(in srgb, var(--color-bg-elevated) 2%, transparent);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-sm);
   display: flex;
@@ -425,7 +425,7 @@
 }
 
 .snapshotItem:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--color-bg-elevated) 4%, transparent);
   transform: translateY(-2px);
 }
 
@@ -483,8 +483,8 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  background: linear-gradient(135deg, #0f172a, #000);
-  color: #fff;
+  background: linear-gradient(135deg, var(--color-dark-900), var(--color-dark-900));
+  color: var(--color-text-inverse);
   padding: 2rem !important;
 }
 
@@ -496,8 +496,8 @@
 }
 
 [data-theme="light"] .ctaCard {
-  background: linear-gradient(135deg, #f8fafc, #fff);
-  color: #000;
+  background: linear-gradient(135deg, var(--color-bg-primary), var(--color-bg-secondary));
+  color: var(--color-text-primary);
 }
 
 @media (min-width: 1024px) {
@@ -517,8 +517,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #fff;
-  color: #000;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
   border-radius: var(--radius-md);
   font-weight: 700;
   font-size: var(--font-size-base);
@@ -526,7 +526,7 @@
   margin-top: 1.5rem;
 }
 
-[data-theme="light"] .ctaMainBtn { background: #000; color: #fff; }
+[data-theme="light"] .ctaMainBtn { background: var(--color-dark-900); color: var(--color-text-inverse); }
 
 .ctaMainBtn:hover { transform: scale(1.05); }
 
