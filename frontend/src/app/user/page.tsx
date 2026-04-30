@@ -95,7 +95,7 @@ const UserDashboard = () => {
       <svg className={styles.sparkline} viewBox="0 0 100 100" preserveAspectRatio="none">
         <polyline
           fill="none"
-          stroke="var(--color-accent-primary)"
+          stroke="var(--color-primary)"
           strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -302,18 +302,18 @@ const UserDashboard = () => {
                         </linearGradient>
                       ))}
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border-subtle)" style={{ opacity: 0.3 }} />
                     <XAxis 
                       dataKey="date" 
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 'bold' }}
+                      tick={{ fill: 'var(--color-text-tertiary)', fontSize: 10, fontWeight: 'bold' }}
                       minTickGap={40}
                     />
                     <YAxis 
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 'bold' }}
+                      tick={{ fill: 'var(--color-text-tertiary)', fontSize: 10, fontWeight: 'bold' }}
                     />
                     <Legend 
                       verticalAlign="top" 
@@ -324,12 +324,12 @@ const UserDashboard = () => {
                     />
                     <RechartsTooltip 
                       contentStyle={{ 
-                        backgroundColor: 'rgba(0,0,0,0.85)', 
+                        backgroundColor: 'var(--color-bg-glass)', 
                         borderRadius: '16px', 
                         border: 'none',
                         backdropFilter: 'blur(10px)',
-                        boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
-                        color: '#fff'
+                        boxShadow: 'var(--shadow-xl)',
+                        color: 'var(--color-text-inverse)'
                       }}
                     />
                     {(marketData.market_trends.trends || []).slice(0, 5).map((skill: any, idx: number) => {

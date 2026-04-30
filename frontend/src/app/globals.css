@@ -53,20 +53,20 @@
     --color-accent-900: oklch(0.32 0.05 240);  /* Darkest - text on light */
 
     /* ========================================================================
-     * NEUTRAL SCALE - WARM TONES
-     * Backgrounds, text, borders - inspired by natural materials
-     * Hue: 60 (warm) for lights, 240 (cool) for darks
+     * NEUTRAL SCALE - PURE NEUTRAL
+     * Backgrounds, text, borders - clean white backgrounds
+     * Minimal chroma for true neutral appearance
      * ======================================================================== */
-    --color-neutral-50: oklch(0.97 0.008 60);   /* Near white - main background */
-    --color-neutral-100: oklch(0.94 0.010 60);  /* Subtle background */
-    --color-neutral-200: oklch(0.88 0.012 60);  /* Secondary background */
-    --color-neutral-300: oklch(0.78 0.015 60);  /* Tertiary background */
-    --color-neutral-400: oklch(0.65 0.018 60);  /* Disabled elements */
-    --color-neutral-500: oklch(0.52 0.020 60);  /* Muted text */
-    --color-neutral-600: oklch(0.42 0.020 240); /* Secondary text */
-    --color-neutral-700: oklch(0.32 0.018 240); /* Strong text */
-    --color-neutral-800: oklch(0.24 0.015 240); /* Emphasis text */
-    --color-neutral-900: oklch(0.18 0.012 240); /* Primary text */
+    --color-neutral-50: oklch(0.99 0 0);         /* Pure white - main background */
+    --color-neutral-100: oklch(0.97 0.002 240);  /* Subtle background */
+    --color-neutral-200: oklch(0.94 0.003 240);  /* Secondary background */
+    --color-neutral-300: oklch(0.88 0.005 240);  /* Tertiary background */
+    --color-neutral-400: oklch(0.75 0.008 240);  /* Disabled elements */
+    --color-neutral-500: oklch(0.60 0.010 240);  /* Muted text */
+    --color-neutral-600: oklch(0.48 0.012 240);  /* Secondary text */
+    --color-neutral-700: oklch(0.38 0.015 240);  /* Strong text */
+    --color-neutral-800: oklch(0.28 0.018 240);  /* Emphasis text */
+    --color-neutral-900: oklch(0.20 0.020 240);  /* Primary text */
 
     /* ========================================================================
      * SEMANTIC COLORS - MUTED & PROFESSIONAL
@@ -212,7 +212,7 @@
     /* ========================================================================
      * FONTS
      * ======================================================================== */
-    --font-sans: var(--font-tasa-orbiter), -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-sans: var(--font-fira-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
     --font-display: var(--font-space-grotesk), -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
@@ -340,7 +340,7 @@
         --shadow-apple-card: var(--shadow-xl);
 
         /* Fonts */
-        --font-sans: var(--font-tasa-orbiter), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-sans: var(--font-fira-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
         --font-display: var(--font-space-grotesk), -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
     }
 

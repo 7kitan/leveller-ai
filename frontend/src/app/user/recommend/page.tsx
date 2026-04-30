@@ -450,8 +450,7 @@ const UserRecommendPage = () => {
       <PageHeader 
         title={
           <>
-            {t("analysis_results_title_1")}{" "}
-            <span className={styles.gradientText}>{t("analysis_results_title_2")}</span>
+            {t("analysis_results_title_1")} {t("analysis_results_title_2")}
           </>
         }
         subtitle={t("analysis_subtitle")}
