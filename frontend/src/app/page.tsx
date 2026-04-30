@@ -497,7 +497,7 @@ export default function LandingPage() {
               >
                 <div className={styles.testimonialRating}>
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} size={16} fill="#06B6D4" color="#06B6D4" />
+                    <Star key={i} size={16} fill="var(--color-secondary)" color="var(--color-secondary)" />
                   ))}
                 </div>
                 <p className={styles.testimonialQuote}>"{testimonial.quote}"</p>
