@@ -81,10 +81,11 @@ jobs:
             docker compose -f docker-compose.prod.yml pull
             
             echo "Restarting container..."
-            docker compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
             
-            echo "Cleaning up old images..."
-            docker image prune -f
+            echo "Cleaning up unused resources..."
+            docker builder prune -f
+            docker image prune -f --filter "until=24h"
         env:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
