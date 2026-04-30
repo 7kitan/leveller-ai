@@ -81,3 +81,6 @@ jobs:
             
             echo "Cleaning up old images..."
             docker image prune -f
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
