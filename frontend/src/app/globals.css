@@ -95,109 +95,6 @@
     --color-info-dark: oklch(0.45 0.10 240);      /* Info hover/text */
 
     /* ========================================================================
-     * LEGACY COMPATIBILITY MAPPINGS
-     * Maps old color names to new OKLCH system for backward compatibility
-     * ======================================================================== */
-    --color-primary-50: var(--color-accent-50);
-    --color-primary-100: var(--color-accent-100);
-    --color-primary-200: var(--color-accent-200);
-    --color-primary-300: var(--color-accent-300);
-    --color-primary-400: var(--color-accent-400);
-    --color-primary-500: var(--color-accent-500);
-    --color-primary-600: var(--color-accent-600);
-    --color-primary-700: var(--color-accent-700);
-    --color-primary-800: var(--color-accent-800);
-    --color-primary-900: var(--color-accent-900);
-
-    --color-secondary-100: var(--color-accent-100);
-    --color-secondary-300: var(--color-accent-300);
-    --color-secondary-500: var(--color-accent-500);
-    --color-secondary-700: var(--color-accent-700);
-    --color-secondary-900: var(--color-accent-900);
-
-    --color-light-50: var(--color-neutral-50);
-    --color-light-100: var(--color-neutral-100);
-    --color-light-200: var(--color-neutral-200);
-    --color-light-300: var(--color-neutral-300);
-    --color-light-500: var(--color-neutral-500);
-    --color-light-700: var(--color-neutral-700);
-    --color-light-800: var(--color-neutral-800);
-    --color-light-900: var(--color-neutral-900);
-
-    --color-dark-100: oklch(0.28 0.018 240);
-    --color-dark-200: oklch(0.22 0.015 240);
-    --color-dark-300: oklch(0.25 0.012 240);
-    --color-dark-400: oklch(0.20 0.015 240);
-    --color-dark-600: oklch(0.18 0.012 240);
-    --color-dark-700: oklch(0.12 0.010 240);
-    --color-dark-800: oklch(0.08 0.008 240);
-    --color-dark-900: oklch(0.05 0.005 240);
-
-    --color-success-100: var(--color-success-light);
-    --color-success-500: var(--color-success);
-    --color-success-700: var(--color-success-dark);
-    --color-success-900: var(--color-success-dark);
-
-    --color-warning-100: var(--color-warning-light);
-    --color-warning-500: var(--color-warning);
-    --color-warning-700: var(--color-warning-dark);
-    --color-warning-900: var(--color-warning-dark);
-
-    --color-error-100: var(--color-error-light);
-    --color-error-500: var(--color-error);
-    --color-error-700: var(--color-error-dark);
-    --color-error-900: var(--color-error-dark);
-
-    --color-info-100: var(--color-info-light);
-    --color-info-500: var(--color-info);
-    --color-info-700: var(--color-info-dark);
-    --color-info-900: var(--color-info-dark);
-
-    /* ========================================================================
-     * GRADIENTS - REUSABLE GRADIENT PATTERNS
-     * Composed from OKLCH accent and neutral colors
-     * ======================================================================== */
-    --gradient-primary: linear-gradient(135deg, var(--color-accent-600), var(--color-accent-900));
-    --gradient-secondary: linear-gradient(135deg, var(--color-accent-500), var(--color-accent-800));
-    --gradient-brand: linear-gradient(135deg, var(--color-accent-500), var(--color-info));
-    --gradient-sky: linear-gradient(135deg, var(--color-accent-400), var(--color-accent-600));
-    --gradient-text: linear-gradient(180deg, var(--color-neutral-900), var(--color-neutral-700));
-    --gradient-hero: linear-gradient(135deg, var(--color-neutral-50), var(--color-neutral-100));
-
-    /* ========================================================================
-     * SHADOWS - ELEVATION SYSTEM
-     * Using OKLCH color-mix() for dark mode compatibility
-     * Pure black shadows work on any background
-     * ======================================================================== */
-    --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.02);
-    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.05);
-    --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.05);
-    --shadow-xl: 0 30px 60px rgba(0, 0, 0, 0.08);
-    --shadow-primary: 0 4px 20px color-mix(in oklch, var(--color-accent-500) 30%, transparent);
-    --shadow-secondary: 0 4px 20px color-mix(in oklch, var(--color-accent-600) 30%, transparent);
-
-    /* ========================================================================
-     * OPACITY UTILITIES
-     * For composing transparent overlays and effects
-     * ======================================================================== */
-    --opacity-subtle: 0.05;
-    --opacity-light: 0.1;
-    --opacity-medium: 0.3;
-    --opacity-strong: 0.5;
-    --opacity-heavy: 0.8;
-
-    /* ========================================================================
-     * LEGACY COMPATIBILITY
-     * Artemis/Arrow brand colors mapped to legacy names
-     * ======================================================================== */
-    --color-apple-black: oklch(0.05 0.005 240);
-    --color-apple-light-gray: var(--color-neutral-200);
-    --color-apple-near-black: var(--color-neutral-900);
-    --color-apple-blue: var(--color-accent-500);
-    --color-apple-link-blue: var(--color-accent-600);
-    --color-apple-bright-blue: var(--color-accent-400);
-
-    /* ========================================================================
      * TYPOGRAPHY SCALE
      * Font sizes with semantic naming
      * ======================================================================== */
@@ -241,12 +138,6 @@
     --icon-size-sm: 16px;
     --icon-size-md: 20px;
     --icon-size-lg: 24px;
-
-    /* ========================================================================
-     * EFFECTS
-     * ======================================================================== */
-    --glass-blur: blur(20px);
-    --glass-saturate: saturate(180%);
 }
 
 @layer base {
@@ -261,95 +152,56 @@
          */
 
         /* Brand Colors */
-        --color-primary: var(--color-primary-500);
-        --color-primary-hover: var(--color-primary-600);
-        --color-primary-active: var(--color-primary-700);
-        --color-primary-light: var(--color-primary-100);
+        --color-primary: var(--color-accent-500);
+        --color-primary-hover: var(--color-accent-600);
+        --color-primary-active: var(--color-accent-700);
+        --color-primary-light: var(--color-accent-100);
 
-        --color-secondary: var(--color-secondary-500);
-        --color-secondary-hover: var(--color-secondary-700);
-        --color-secondary-active: var(--color-secondary-900);
-        --color-secondary-light: var(--color-secondary-100);
+        --color-secondary: var(--color-accent-500);
+        --color-secondary-hover: var(--color-accent-700);
+        --color-secondary-active: var(--color-accent-900);
+        --color-secondary-light: var(--color-accent-100);
 
         /* Backgrounds */
-        --color-bg-primary: var(--color-light-50);
-        --color-bg-secondary: var(--color-light-100);
-        --color-bg-tertiary: var(--color-light-200);
-        --color-bg-elevated: var(--color-light-50);
+        --color-bg-primary: var(--color-neutral-50);
+        --color-bg-secondary: var(--color-neutral-100);
+        --color-bg-tertiary: var(--color-neutral-200);
+        --color-bg-elevated: var(--color-neutral-50);
         --color-bg-overlay: rgba(0, 0, 0, 0.5);
         --color-bg-glass: rgba(0, 0, 0, 0.8);
 
         /* Text */
-        --color-text-primary: var(--color-light-900);
-        --color-text-secondary: var(--color-light-700);
-        --color-text-tertiary: var(--color-light-500);
-        --color-text-disabled: var(--color-light-300);
-        --color-text-inverse: var(--color-light-50);
+        --color-text-primary: var(--color-neutral-900);
+        --color-text-secondary: var(--color-neutral-700);
+        --color-text-tertiary: var(--color-neutral-500);
+        --color-text-disabled: var(--color-neutral-300);
+        --color-text-inverse: var(--color-neutral-50);
 
         /* Borders */
-        --color-border-subtle: var(--color-light-300);
-        --color-border-default: var(--color-light-500);
-        --color-border-strong: var(--color-light-700);
+        --color-border-subtle: var(--color-neutral-300);
+        --color-border-default: var(--color-neutral-500);
+        --color-border-strong: var(--color-neutral-700);
 
         /* Semantic States */
-        --color-success: var(--color-success-500);
-        --color-success-bg: var(--color-success-100);
-        --color-success-hover: var(--color-success-700);
-        --color-success-text: var(--color-success-900);
+        --color-success: var(--color-success);
+        --color-success-bg: var(--color-success-light);
+        --color-success-hover: var(--color-success-dark);
+        --color-success-text: var(--color-success-dark);
 
-        --color-warning: var(--color-warning-500);
-        --color-warning-bg: var(--color-warning-100);
-        --color-warning-hover: var(--color-warning-700);
-        --color-warning-text: var(--color-warning-900);
+        --color-warning: var(--color-warning);
+        --color-warning-bg: var(--color-warning-light);
+        --color-warning-hover: var(--color-warning-dark);
+        --color-warning-text: var(--color-warning-dark);
 
-        --color-error: var(--color-error-500);
-        --color-error-bg: var(--color-error-100);
-        --color-error-hover: var(--color-error-700);
-        --color-error-text: var(--color-error-900);
+        --color-error: var(--color-error);
+        --color-error-bg: var(--color-error-light);
+        --color-error-hover: var(--color-error-dark);
+        --color-error-text: var(--color-error-dark);
 
-        --color-info: var(--color-info-500);
-        --color-info-bg: var(--color-info-100);
-        --color-info-hover: var(--color-info-700);
-        --color-info-text: var(--color-info-900);
-
-        /* ====================================================================
-         * LEGACY COMPATIBILITY ALIASES
-         * For backward compatibility with existing code
-         * ==================================================================== */
-        --bg-primary: var(--color-bg-primary);
-        --bg-secondary: var(--color-bg-secondary);
-        --text-primary: var(--color-text-primary);
-        --text-secondary: var(--color-text-secondary);
-        --accent-color: var(--color-primary);
-        --border-subtle: var(--color-border-subtle);
-
-        --color-bg-light: var(--color-bg-primary);
-        --color-bg-dark: var(--color-dark-900);
-        --color-text-main: var(--color-text-primary);
-        --color-text-muted: var(--color-text-secondary);
-        --color-panel-bg: var(--color-bg-secondary);
-        --color-accent-primary: var(--color-primary);
-        --color-accent-secondary: var(--color-secondary);
-
-        /* Legacy text colors */
-        --color-text-primary-light: var(--color-light-900);
-        --color-text-secondary-light: var(--color-light-700);
-        --color-text-tertiary-light: var(--color-light-500);
-
-        /* Legacy surface colors */
-        --color-surface-dark-1: var(--color-dark-200);
-        --color-surface-dark-2: var(--color-dark-300);
-        --color-surface-dark-3: var(--color-dark-100);
-
-        /* Legacy gradients */
-        --gradient-accent: var(--gradient-brand);
-
-        /* Legacy shadow */
-        --shadow-apple-card: var(--shadow-xl);
-
-        /* Fonts */
-        --font-sans: var(--font-fira-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
-        --font-display: var(--font-space-grotesk), -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --color-info: var(--color-info);
+        --color-info-bg: var(--color-info-light);
+        --color-info-hover: var(--color-info-dark);
+        --color-info-text: var(--color-info-dark);
     }
 
     [data-theme="dark"] {
@@ -364,72 +216,56 @@
          */
 
         /* Brand Colors - Slightly lighter for dark mode */
-        --color-primary: var(--color-primary-500);
-        --color-primary-hover: var(--color-primary-300);
-        --color-primary-active: var(--color-primary-700);
-        --color-primary-light: var(--color-primary-900);
+        --color-primary: var(--color-accent-400);
+        --color-primary-hover: var(--color-accent-300);
+        --color-primary-active: var(--color-accent-500);
+        --color-primary-light: var(--color-accent-800);
 
-        --color-secondary: var(--color-secondary-500);
-        --color-secondary-hover: var(--color-secondary-300);
-        --color-secondary-active: var(--color-secondary-700);
-        --color-secondary-light: var(--color-secondary-900);
+        --color-secondary: var(--color-accent-400);
+        --color-secondary-hover: var(--color-accent-300);
+        --color-secondary-active: var(--color-accent-500);
+        --color-secondary-light: var(--color-accent-800);
 
         /* Backgrounds - Flip to dark */
-        --color-bg-primary: var(--color-dark-900);
-        --color-bg-secondary: var(--color-dark-200);
-        --color-bg-tertiary: var(--color-dark-100);
-        --color-bg-elevated: var(--color-dark-800);
+        --color-bg-primary: var(--color-neutral-900);
+        --color-bg-secondary: var(--color-neutral-800);
+        --color-bg-tertiary: var(--color-neutral-700);
+        --color-bg-elevated: var(--color-neutral-800);
         --color-bg-overlay: rgba(255, 255, 255, 0.1);
         --color-bg-glass: rgba(255, 255, 255, 0.05);
 
         /* Text - Flip to light */
-        --color-text-primary: var(--color-light-50);
-        --color-text-secondary: var(--color-light-300);
-        --color-text-tertiary: var(--color-light-500);
-        --color-text-disabled: var(--color-light-700);
-        --color-text-inverse: var(--color-light-900);
+        --color-text-primary: var(--color-neutral-50);
+        --color-text-secondary: var(--color-neutral-200);
+        --color-text-tertiary: var(--color-neutral-400);
+        --color-text-disabled: var(--color-neutral-600);
+        --color-text-inverse: var(--color-neutral-900);
 
         /* Borders - Adjust for dark */
-        --color-border-subtle: var(--color-dark-300);
-        --color-border-default: var(--color-dark-400);
-        --color-border-strong: var(--color-dark-600);
+        --color-border-subtle: var(--color-neutral-700);
+        --color-border-default: var(--color-neutral-600);
+        --color-border-strong: var(--color-neutral-400);
 
-        /* Semantic States - Stay the same (already vibrant) */
-        --color-success: var(--color-success-500);
-        --color-success-bg: var(--color-success-900);
-        --color-success-hover: var(--color-success-700);
-        --color-success-text: var(--color-success-100);
+        /* Semantic States - Adjust for dark backgrounds */
+        --color-success: var(--color-success);
+        --color-success-bg: var(--color-success-dark);
+        --color-success-hover: var(--color-success-light);
+        --color-success-text: var(--color-success-light);
 
-        --color-warning: var(--color-warning-500);
-        --color-warning-bg: var(--color-warning-900);
-        --color-warning-hover: var(--color-warning-700);
-        --color-warning-text: var(--color-warning-100);
+        --color-warning: var(--color-warning);
+        --color-warning-bg: var(--color-warning-dark);
+        --color-warning-hover: var(--color-warning-light);
+        --color-warning-text: var(--color-warning-light);
 
-        --color-error: var(--color-error-500);
-        --color-error-bg: var(--color-error-900);
-        --color-error-hover: var(--color-error-700);
-        --color-error-text: var(--color-error-100);
+        --color-error: var(--color-error);
+        --color-error-bg: var(--color-error-dark);
+        --color-error-hover: var(--color-error-light);
+        --color-error-text: var(--color-error-light);
 
-        --color-info: var(--color-info-500);
-        --color-info-bg: var(--color-info-900);
-        --color-info-hover: var(--color-info-700);
-        --color-info-text: var(--color-info-100);
-
-        /* Legacy Compatibility */
-        --bg-primary: var(--color-bg-primary);
-        --bg-secondary: var(--color-bg-secondary);
-        --text-primary: var(--color-text-primary);
-        --text-secondary: var(--color-text-secondary);
-        --accent-color: var(--color-primary);
-        --border-subtle: var(--color-border-subtle);
-
-        --color-bg-light: var(--color-bg-primary);
-        --color-bg-dark: var(--color-dark-900);
-        --color-text-main: var(--color-text-primary);
-        --color-text-muted: var(--color-text-secondary);
-        --color-panel-bg: var(--color-bg-secondary);
-        --color-accent-primary: var(--color-primary);
-        --color-accent-secondary: var(--color-secondary);
+        --color-info: var(--color-info);
+        --color-info-bg: var(--color-info-dark);
+        --color-info-hover: var(--color-info-light);
+        --color-info-text: var(--color-info-light);
     }
 
     /* Dark mode typography spacing - matches light mode */
@@ -452,8 +288,8 @@
         margin: 0;
         padding: 0;
         scroll-behavior: smooth;
-        background-color: var(--bg-primary);
-        color: var(--text-primary);
+        background-color: var(--color-bg-primary);
+        color: var(--color-text-primary);
         font-family: var(--font-sans);
     }
 
@@ -479,121 +315,6 @@
 
     a:visited {
         color: inherit;
-    }
-}
-
-/* Apple Pro Typography Utilities */
-@layer utilities {
-    .text-display-hero {
-        font-size: var(--font-size-display);
-        font-weight: var(--font-weight-semibold);
-        line-height: 1.07;
-        letter-spacing: -0.015em;
-    }
-
-    .text-section-heading {
-        font-size: var(--font-size-xlarge);
-        font-weight: var(--font-weight-semibold);
-        line-height: 1.10;
-    }
-
-    /* UI Element Font Scale */
-    .font-micro {
-        font-size: var(--font-size-small);
-        font-weight: var(--font-weight-semibold);
-    }
-
-    .font-meta {
-        font-size: var(--font-size-small);
-        font-weight: var(--font-weight-medium);
-        opacity: 0.6;
-    }
-
-    .font-label {
-        font-size: var(--font-size-base);
-        font-weight: var(--font-weight-semibold);
-    }
-
-    .font-stat {
-        font-size: var(--font-size-display);
-        font-weight: var(--font-weight-semibold);
-        letter-spacing: -0.05em;
-    }
-
-    .font-stat-label {
-        font-size: var(--font-size-small);
-        font-weight: var(--font-weight-medium);
-        opacity: 0.5;
-    }
-
-    /* Semantic Text Classes */
-    .text-body {
-        font-size: var(--font-size-medium);
-        line-height: 1.5;
-    }
-
-    .text-subheading {
-        font-size: var(--font-size-xlarge);
-        font-weight: var(--font-weight-semibold);
-    }
-
-    .text-card-title {
-        font-size: var(--font-size-large);
-        font-weight: var(--font-weight-semibold);
-        letter-spacing: -0.02em;
-    }
-
-    .text-page-title {
-        font-size: var(--font-size-display);
-        font-weight: var(--font-weight-semibold);
-        letter-spacing: -0.04em;
-    }
-
-    .apple-glass {
-        background-color: rgba(0, 0, 0, 0.8);
-        backdrop-filter: saturate(180%) blur(20px);
-        -webkit-backdrop-filter: saturate(180%) blur(20px);
-    }
-
-    .pill-button {
-        border-radius: var(--radius-full);
-        padding: 8px 15px;
-        transition: all 0.3s ease;
-    }
-
-    /* Legacy Compatibility Utilities */
-    .admin-control-bar {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        padding: 1.5rem 2rem;
-        background-color: var(--bg-secondary);
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-xl);
-    }
-
-    .premium-panel {
-        background-color: var(--bg-secondary);
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-lg);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-
-    .animate-fade-in {
-        animation: fadeIn 0.5s ease-out forwards;
-    }
-
-    .text-premium-gradient {
-        background: linear-gradient(180deg, var(--text-primary) 0%, rgba(255, 255, 255, 0.4) 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    .luminous-bg {
-        background: radial-gradient(circle at 10% 20%, rgba(0, 113, 227, 0.03) 0%, transparent 50%),
-            radial-gradient(circle at 90% 80%, rgba(41, 151, 255, 0.03) 0%, transparent 50%),
-            #ffffff;
     }
 }
 
@@ -626,21 +347,4 @@
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Global Gradient Text Utility - Standardized across all pages */
-.gradient-text {
-    color: var(--color-accent-primary);
 }
