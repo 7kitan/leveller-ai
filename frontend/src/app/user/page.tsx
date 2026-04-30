@@ -139,6 +139,18 @@ const UserDashboard = () => {
   ];
 
   const topGaps = (latestAnalysis?.skill_gaps || []).slice(0, 4);
+  
+  // Debug: Log severity values from backend
+  if (topGaps.length > 0) {
+    console.log("🔍 Gap severity debug:", topGaps.map((g: any) => ({
+      skill: g.skill,
+      severity: g.severity,
+      severityType: typeof g.severity,
+      upperCase: g.severity?.toUpperCase(),
+      color: severityColor(g.severity),
+      bgColor: severityBgColor(g.severity),
+    })));
+  }
 
   return (
     <AuthGuard requireRole={UserRole.USER}>
