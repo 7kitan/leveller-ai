@@ -14,7 +14,7 @@ import {
   RefreshCw,
   Zap
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatNumber, formatPercent } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
 import PageHeader from "@/components/common/PageHeader";
 import styles from "../admin-dashboard.module.css";
@@ -112,7 +112,7 @@ const AIUsagePage = () => {
           />
           <StatCard 
             label={t("admin_ai_est_cost")} 
-            value={`$${stats?.total_cost_usd?.toFixed(4)}`} 
+            value={`$${formatNumber(stats?.total_cost_usd || 0, 4)}`} 
             icon={BarChart3} 
             color="#ec4899" 
           />
@@ -190,7 +190,7 @@ const AIUsagePage = () => {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 'bold' }}
-                  tickFormatter={(val) => val >= 1000 ? `${(val/1000).toFixed(1)}k` : val}
+                  tickFormatter={(val) => val >= 1000 ? `${formatNumber(val/1000, 1)}k` : val}
                 />
                 <Tooltip 
                   contentStyle={{ 
