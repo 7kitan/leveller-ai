@@ -142,10 +142,20 @@ const UserRecommendPage = () => {
   const { t } = useLanguage();
 
   const isDark = theme === "dark";
-  const chartTextColor = isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(15, 23, 42, 0.8)";
-  const chartAxisColor = isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(15, 23, 42, 0.15)";
-  const chartSplitLineColor = isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(15, 23, 42, 0.05)";
-  const chartTooltipBg = isDark ? "rgba(0, 0, 0, 0.85)" : "rgba(255, 255, 255, 0.95)";
+ const chartTextColor = isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(15, 23, 42, 0.8)";
+ const chartAxisColor = isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(15, 23, 42, 0.15)";
+ const chartSplitLineColor = isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(15, 23, 42, 0.05)";
+ const chartTooltipBg = isDark ? "rgba(0, 0, 0, 0.85)" : "rgba(255, 255, 255, 0.95)";
+ 
+ // Primary color (Lunar Silver-Blue) - OKLCH system
+ const primaryColor = isDark ? "#8b9dc7" : "#7b8fc7"; // oklch(0.65 0.08 240) equivalent
+ const primaryColor01 = isDark ? "rgba(139, 157, 199, 0.01)" : "rgba(123, 143, 199, 0.01)";
+ const primaryColor03 = isDark ? "rgba(139, 157, 199, 0.03)" : "rgba(123, 143, 199, 0.03)";
+ const primaryColor05 = isDark ? "rgba(139, 157, 199, 0.05)" : "rgba(123, 143, 199, 0.05)";
+ const primaryColor10 = isDark ? "rgba(139, 157, 199, 0.1)" : "rgba(123, 143, 199, 0.1)";
+ const primaryColor30 = isDark ? "rgba(139, 157, 199, 0.3)" : "rgba(123, 143, 199, 0.3)";
+ const primaryColor40 = isDark ? "rgba(139, 157, 199, 0.4)" : "rgba(123, 143, 199, 0.4)";
+ const secondaryColor = "#0ea5e9"; // Cyan for gradients
   const chartTooltipText = isDark ? "#fff" : "#0f172a";
 
   const translateRadarCategory = (name: string) => {
@@ -525,7 +535,7 @@ const UserRecommendPage = () => {
                   splitArea: {
                     show: true,
                     areaStyle: {
-                      color: isDark ? ['rgba(79, 70, 229, 0.03)', 'rgba(79, 70, 229, 0.01)'] : ['rgba(79, 70, 229, 0.05)', 'rgba(79, 70, 229, 0.02)'],
+                      color: isDark ? [primaryColor03, primaryColor01] : [primaryColor05, 'rgba(123, 143, 199, 0.02)'],
                     },
                   },
                   axisLine: { lineStyle: { color: chartAxisColor } },
@@ -539,14 +549,14 @@ const UserRecommendPage = () => {
                       color: {
                         type: 'radial', x: 0.5, y: 0.5, r: 0.5,
                         colorStops: [
-                          { offset: 0, color: 'rgba(79, 70, 229, 0.4)' },
+                          { offset: 0, color: primaryColor40 },
                           { offset: 0.5, color: 'rgba(14, 165, 233, 0.3)' },
                           { offset: 1, color: 'rgba(16, 185, 129, 0.2)' },
                         ],
                       },
-                      shadowColor: 'rgba(79, 70, 229, 0.3)', shadowBlur: 20,
+                      shadowColor: primaryColor30, shadowBlur: 20,
                     },
-                    lineStyle: { color: '#4f46e5', width: 2 },
+                    lineStyle: { color: primaryColor, width: 2 },
                     label: {
                       show: true, 
                       formatter: (params: any) => {
@@ -556,13 +566,13 @@ const UserRecommendPage = () => {
                         return ''; 
                       },
                     },
-                    itemStyle: { color: '#4f46e5', borderColor: '#fff', borderWidth: 2 },
+                    itemStyle: { color: primaryColor, borderColor: '#fff', borderWidth: 2 },
                   }],
                 }],
                 tooltip: {
                   trigger: 'item',
                   backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                  borderColor: '#4f46e5',
+                  borderColor: primaryColor,
                   borderWidth: 1,
                   textStyle: { color: '#fff', fontSize: 12 },
                   formatter: (params: any) => {
@@ -742,13 +752,13 @@ const UserRecommendPage = () => {
                   <ReactECharts
                     key={`impact-chart-${skill_gaps.map(g => g.skill).join('-')}-${skill_gaps.length}`}
                     option={{
-                      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: chartTooltipBg, borderColor: '#4f46e5', borderWidth: 1, textStyle: { color: chartTooltipText } },
+                      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: chartTooltipBg, borderColor: primaryColor, borderWidth: 1, textStyle: { color: chartTooltipText } },
                       legend: { data: [t('match_impact'), t('salary_impact')], textStyle: { color: chartTextColor, fontSize: 10 }, top: 0 },
                       grid: { left: '3%', right: '4%', bottom: '3%', top: '40px', containLabel: true },
                       xAxis: { type: 'value', axisLabel: { color: chartTextColor, fontSize: 10 }, splitLine: { lineStyle: { color: chartSplitLineColor } } },
                       yAxis: { type: 'category', data: skill_gaps.map(g => g.skill).reverse(), axisLabel: { color: chartTextColor, fontSize: 11, width: 100, overflow: 'truncate' }, axisLine: { lineStyle: { color: chartAxisColor } } },
                       series: [
-                        { name: t('match_impact'), type: 'bar', data: skill_gaps.map(g => Number((g.match_impact || 0).toFixed(1))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#4f46e5' }, { offset: 1, color: '#0ea5e9' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' },
+                        { name: t('match_impact'), type: 'bar', data: skill_gaps.map(g => Number((g.match_impact || 0).toFixed(1))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: primaryColor }, { offset: 1, color: secondaryColor }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' },
                         { name: t('salary_impact'), type: 'bar', data: skill_gaps.map(g => Number((g.salary_impact || 0).toFixed(1))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#34d399' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' }
                       ]
                     }}
@@ -783,7 +793,7 @@ const UserRecommendPage = () => {
                 </div>
                 {(!!gap.match_impact || !!gap.salary_impact) && (
                   <div className={styles.gapImpact}>
-                    {!!gap.match_impact && <span className={styles.impactBadge} style={{ background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}><Target size={12} /> +{gap.match_impact.toFixed(1)}% {t('match')}</span>}
+                    {!!gap.match_impact && <span className={styles.impactBadge} style={{ background: primaryColor10, color: primaryColor }}><Target size={12} /> +{gap.match_impact.toFixed(1)}% {t('match')}</span>}
                     {!!gap.salary_impact && <span className={styles.impactBadge} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}><TrendingUp size={12} /> +{gap.salary_impact.toFixed(1)}% {t('salary_text')}</span>}
                   </div>
                 )}
