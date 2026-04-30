@@ -139,18 +139,6 @@ const UserDashboard = () => {
   ];
 
   const topGaps = (latestAnalysis?.skill_gaps || []).slice(0, 4);
-  
-  // Debug: Log severity values from backend
-  if (topGaps.length > 0) {
-    console.log("🔍 Gap severity debug:", topGaps.map((g: any) => ({
-      skill: g.skill,
-      severity: g.severity,
-      severityType: typeof g.severity,
-      upperCase: g.severity?.toUpperCase(),
-      color: severityColor(g.severity),
-      bgColor: severityBgColor(g.severity),
-    })));
-  }
 
   return (
     <AuthGuard requireRole={UserRole.USER}>
@@ -194,17 +182,19 @@ const UserDashboard = () => {
                     className={styles.gapMiniCard}
                     onClick={() => setSelectedGap(gap)}
                   >
-                    <span 
-                      className={styles.miniSeverity}
-                      style={{
-                        color: severityColor(gap.severity),
-                        backgroundColor: severityBgColor(gap.severity),
-                        borderColor: severityBorderColor(gap.severity),
-                      }}
-                    >
-                      ● {severityLabel(gap.severity)}
-                    </span>
-                    <div className={styles.gapMiniTitle}>{gap.skill}</div>
+                    <div className={styles.gapCardTop}>
+                      <div className={styles.gapMiniTitle}>{gap.skill}</div>
+                      <span 
+                        className={styles.miniSeverity}
+                        style={{
+                          color: severityColor(gap.severity),
+                          backgroundColor: severityBgColor(gap.severity),
+                          borderColor: severityBorderColor(gap.severity),
+                        }}
+                      >
+                        ● {severityLabel(gap.severity)}
+                      </span>
+                    </div>
                     <span className={styles.gapMiniMeta}>
                       {gap.required_level || "Intermediate"} · {gap.estimated_months || 3} months
                     </span>
@@ -228,17 +218,19 @@ const UserDashboard = () => {
                 <div className={styles.slideOverPanel}>
                   <div className={styles.slideOverHeader}>
                     <div>
-                      <span 
-                        className={styles.slideOverSeverity}
-                        style={{
-                          color: severityColor(selectedGap.severity),
-                          backgroundColor: severityBgColor(selectedGap.severity),
-                          borderColor: severityBorderColor(selectedGap.severity),
-                        }}
-                      >
-                        ● {severityLabel(selectedGap.severity)}
-                      </span>
-                      <h3 className={styles.slideOverTitle}>{selectedGap.skill}</h3>
+                      <div className={styles.slideOverTitleRow}>
+                        <h3 className={styles.slideOverTitle}>{selectedGap.skill}</h3>
+                        <span 
+                          className={styles.slideOverSeverity}
+                          style={{
+                            color: severityColor(selectedGap.severity),
+                            backgroundColor: severityBgColor(selectedGap.severity),
+                            borderColor: severityBorderColor(selectedGap.severity),
+                          }}
+                        >
+                          ● {severityLabel(selectedGap.severity)}
+                        </span>
+                      </div>
                       <p className={styles.slideOverMeta}>
                         Target: {selectedGap.required_level || "Intermediate"} · {selectedGap.estimated_months || 3} months
                       </p>
