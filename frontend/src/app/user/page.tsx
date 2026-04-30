@@ -183,8 +183,8 @@ const UserDashboard = () => {
                         className={styles.miniSeverity}
                         style={{
                           color: severityColor(gap.severity),
-                          backgroundColor: `${severityColor(gap.severity)}15`,
-                          borderColor: `${severityColor(gap.severity)}30`,
+                          backgroundColor: `color-mix(in oklch, ${severityColor(gap.severity)} 15%, transparent)`,
+                          borderColor: `color-mix(in oklch, ${severityColor(gap.severity)} 30%, transparent)`,
                         }}
                       >
                         ● {t(`severity_${gap.severity?.toLowerCase()}` as any)}
