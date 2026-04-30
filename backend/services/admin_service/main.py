@@ -1,7 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from shared.database import get_db, SessionLocal
-from shared.models import SystemSetting, User, LLMLog, SystemLog, YouTubeCourse
+from shared.models import SystemSetting, User, LLMLog, SystemLog, YouTubeCourse, Skill
 from shared.config_utils import config_manager
 from shared.ai_service import AI_REGISTRY
 from shared.admin_auth import get_current_admin_user, require_admin
@@ -149,6 +150,66 @@ class YouTubeCourseResponse(BaseModel):
     expires_at: Optional[datetime] = None
     last_verified_at: Optional[datetime] = None
     created_at: datetime
+    
+    # Curation fields
+    language: Optional[str] = None
+    skill_level: Optional[str] = None
+    is_curated: Optional[bool] = False
+    quality_score: Optional[float] = None
+    skills: Optional[List[str]] = []
+
+class VideoMetadataRequest(BaseModel):
+    video_id: str
+
+class AddCuratedVideoRequest(BaseModel):
+    video_id: str
+    skills: List[str]
+    skill_level: str
+    language: str
+
+# --- Skill Management Schemas ---
+
+class SkillResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: Any
+    name: str
+    category: Optional[str] = None
+    parent_skill_id: Optional[Any] = None
+
+class SkillCreateRequest(BaseModel):
+    name: str
+    category: Optional[str] = None
+    parent_skill_id: Optional[str] = None
+
+class SkillUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    parent_skill_id: Optional[str] = None
+
+class PendingSkillResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: Any
+    skill_name: str
+    source: str
+    suggested_by: Optional[Any] = None
+    suggested_at: datetime
+    status: str
+    reviewed_by: Optional[Any] = None
+    reviewed_at: Optional[datetime] = None
+    merged_into: Optional[Any] = None
+    notes: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+    created_at: datetime
+    updated_at: datetime
+
+class PendingSkillActionRequest(BaseModel):
+    notes: Optional[str] = None
+
+class PendingSkillMergeRequest(BaseModel):
+    target_skill_id: str
+    notes: Optional[str] = None
 
 
 
@@ -511,26 +572,73 @@ def admin_cleanup_logs(
 @app.get("/admin/youtube", response_model=List[YouTubeCourseResponse])
 def admin_list_youtube_cache(
     search: Optional[str] = None,
+    language: Optional[str] = None,
+    level: Optional[str] = None,
+    skill: Optional[str] = None,
     limit: int = 100,
     offset: int = 0,
     db: Session = Depends(get_db),
     admin_user: User = Depends(get_current_admin_user)
 ):
-    """Admin only: Danh sách các video YouTube được lưu trong cache."""
+    """Admin only: Danh sách các video YouTube được lưu trong cache với filters."""
     query = db.query(YouTubeCourse)
+    
+    # Search filter
     if search:
         query = query.filter(
             (YouTubeCourse.title.ilike(f"%{search}%")) | 
             (YouTubeCourse.channel_name.ilike(f"%{search}%"))
         )
     
+    # Language filter
+    if language and language != "all":
+        query = query.filter(YouTubeCourse.language == language)
+    
+    # Level filter
+    if level and level != "all":
+        query = query.filter(YouTubeCourse.skill_level == level)
+    
+    # Skill filter - need to join with youtube_video_skills
+    if skill and skill != "all":
+        query = query.join(
+            text("youtube_video_skills"),
+            text("youtube_courses.video_id = youtube_video_skills.video_id")
+        ).filter(text("youtube_video_skills.skill_name = :skill")).params(skill=skill)
+    
     courses = query.order_by(YouTubeCourse.created_at.desc()).offset(offset).limit(limit).all()
     
-    # Stringify UUIDs
+    # Fetch skills for each course
+    result = []
     for c in courses:
-        if hasattr(c, 'id'): c.id = str(c.id)
+        # Get skills from junction table
+        skills_result = db.execute(
+            text("SELECT skill_name FROM youtube_video_skills WHERE video_id = :vid"),
+            {"vid": c.video_id}
+        ).fetchall()
         
-    return courses
+        course_dict = {
+            "id": str(c.id),
+            "video_id": c.video_id,
+            "title": c.title,
+            "description": c.description,
+            "channel_name": c.channel_name,
+            "thumbnail": c.thumbnail,
+            "url": c.url,
+            "embedding_context": c.embedding_context,
+            "duration_raw": c.duration_raw,
+            "published_at": c.published_at,
+            "expires_at": c.expires_at,
+            "last_verified_at": c.last_verified_at,
+            "created_at": c.created_at,
+            "language": c.language,
+            "skill_level": c.skill_level,
+            "is_curated": c.is_curated,
+            "quality_score": c.quality_score,
+            "skills": [row[0] for row in skills_result]
+        }
+        result.append(course_dict)
+        
+    return result
 
 @app.delete("/admin/youtube/{video_id}")
 def admin_delete_youtube_cache(
@@ -556,6 +664,216 @@ def admin_verify_all_youtube_videos(request: Request):
         status_code=501, 
         detail="YouTube verification task not implemented yet. Task module 'worker.tasks.youtube_tasks' does not exist."
     )
+
+@app.get("/admin/youtube/skills")
+def admin_get_available_skills(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Get list of all skills used in curated videos."""
+    result = db.execute(
+        text("""
+            SELECT DISTINCT skill_name 
+            FROM youtube_video_skills 
+            ORDER BY skill_name ASC
+        """)
+    ).fetchall()
+    
+    skills = [row[0] for row in result]
+    return skills
+
+@app.post("/admin/youtube/fetch-metadata")
+async def admin_fetch_video_metadata(
+    data: VideoMetadataRequest,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Fetch video metadata from YouTube API."""
+    import httpx
+    import os
+    
+    api_key = os.getenv("YOUTUBE_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="YouTube API key not configured")
+    
+    video_id = data.video_id
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            # Fetch video details
+            response = await client.get(
+                "https://www.googleapis.com/youtube/v3/videos",
+                params={
+                    "part": "snippet,contentDetails",
+                    "id": video_id,
+                    "key": api_key
+                }
+            )
+            response.raise_for_status()
+            video_data = response.json()
+        
+        items = video_data.get("items", [])
+        if not items:
+            raise HTTPException(status_code=404, detail="Video not found")
+        
+        item = items[0]
+        snippet = item.get("snippet", {})
+        content_details = item.get("contentDetails", {})
+        
+        # Parse duration (ISO 8601 format: PT1H2M10S)
+        duration_raw = content_details.get("duration", "")
+        
+        return {
+            "video_id": video_id,
+            "title": snippet.get("title"),
+            "description": snippet.get("description"),
+            "channel_name": snippet.get("channelTitle"),
+            "thumbnail": snippet.get("thumbnails", {}).get("high", {}).get("url"),
+            "published_at": snippet.get("publishedAt"),
+            "duration_raw": duration_raw
+        }
+        
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail="Failed to fetch video metadata")
+    except Exception as e:
+        logger.error(f"Error fetching video metadata: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/admin/youtube/curated")
+async def admin_add_curated_video(
+    data: AddCuratedVideoRequest,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Add a curated video with skills, level, and language."""
+    from shared.llm_utils import get_embedding
+    from datetime import timedelta, timezone
+    
+    video_id = data.video_id
+    
+    # Check if video already exists
+    existing = db.query(YouTubeCourse).filter(YouTubeCourse.video_id == video_id).first()
+    if existing:
+        # Update existing video with curation data
+        existing.language = data.language
+        existing.skill_level = data.skill_level
+        existing.is_curated = True
+        existing.created_by = admin_user.id
+        
+        # Delete old skills
+        db.execute(
+            text("DELETE FROM youtube_video_skills WHERE video_id = :vid"),
+            {"vid": video_id}
+        )
+        
+        # Add new skills
+        for skill in data.skills:
+            db.execute(
+                text("""
+                    INSERT INTO youtube_video_skills (video_id, skill_name)
+                    VALUES (:vid, :skill)
+                    ON CONFLICT (video_id, skill_name) DO NOTHING
+                """),
+                {"vid": video_id, "skill": skill}
+            )
+        
+        db.commit()
+        return {"message": "Video updated successfully", "video_id": video_id}
+    
+    # Fetch video metadata from YouTube API
+    import httpx
+    import os
+    
+    api_key = os.getenv("YOUTUBE_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="YouTube API key not configured")
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://www.googleapis.com/youtube/v3/videos",
+                params={
+                    "part": "snippet,contentDetails",
+                    "id": video_id,
+                    "key": api_key
+                }
+            )
+            response.raise_for_status()
+            video_data = response.json()
+        
+        items = video_data.get("items", [])
+        if not items:
+            raise HTTPException(status_code=404, detail="Video not found on YouTube")
+        
+        item = items[0]
+        snippet = item.get("snippet", {})
+        content_details = item.get("contentDetails", {})
+        
+        title = snippet.get("title")
+        description = snippet.get("description")
+        channel_name = snippet.get("channelTitle")
+        thumbnail = snippet.get("thumbnails", {}).get("high", {}).get("url")
+        published_at_str = snippet.get("publishedAt")
+        duration_raw = content_details.get("duration", "")
+        
+        # Parse published_at
+        published_at = None
+        if published_at_str:
+            published_at = datetime.fromisoformat(published_at_str.replace("Z", "+00:00"))
+        
+        # Create embedding context
+        context = f"Title: {title}. Channel: {channel_name}. Description: {description}"
+        vector = get_embedding(context)
+        
+        now = datetime.now(timezone.utc)
+        
+        # Create new video
+        new_video = YouTubeCourse(
+            video_id=video_id,
+            title=title,
+            description=description,
+            thumbnail=thumbnail,
+            channel_name=channel_name,
+            url=f"https://www.youtube.com/watch?v={video_id}",
+            embedding_context=context,
+            vector=vector,
+            published_at=published_at,
+            duration_raw=duration_raw,
+            expires_at=now + timedelta(days=365),  # Curated videos cached for 1 year
+            last_verified_at=now,
+            language=data.language,
+            skill_level=data.skill_level,
+            is_curated=True,
+            created_by=admin_user.id
+        )
+        
+        db.add(new_video)
+        db.flush()
+        
+        # Add skills
+        for skill in data.skills:
+            db.execute(
+                text("""
+                    INSERT INTO youtube_video_skills (video_id, skill_name)
+                    VALUES (:vid, :skill)
+                """),
+                {"vid": video_id, "skill": skill}
+            )
+        
+        db.commit()
+        
+        return {
+            "message": "Curated video added successfully",
+            "video_id": video_id,
+            "title": title
+        }
+        
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail="Failed to fetch video from YouTube")
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error adding curated video: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ============================================================================
@@ -813,6 +1131,368 @@ def trigger_market_stats_refresh(
     except Exception as e:
         logger.error(f"[ADMIN] Failed to trigger market stats refresh: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to trigger refresh: {str(e)}")
+
+
+# ============================================================================
+# Skill Management Endpoints
+# ============================================================================
+
+@app.get("/admin/skills")
+def admin_list_skills(
+    search: Optional[str] = None,
+    category: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: List all skills with search and filter."""
+    try:
+        query = db.query(Skill)
+        
+        # Search filter
+        if search:
+            query = query.filter(Skill.name.ilike(f"%{search}%"))
+        
+        # Category filter
+        if category and category != "all":
+            query = query.filter(Skill.category == category)
+        
+        # Get total count
+        total = query.count()
+        
+        # Get paginated results
+        skills = query.order_by(Skill.name).offset(offset).limit(limit).all()
+        
+        # Format response
+        result = []
+        for skill in skills:
+            # Count usage in youtube_video_skills
+            usage_count = db.execute(
+                text("SELECT COUNT(*) FROM youtube_video_skills WHERE skill_id = :sid"),
+                {"sid": skill.id}
+            ).scalar()
+            
+            result.append({
+                "id": str(skill.id),
+                "name": skill.name,
+                "category": skill.category,
+                "parent_skill_id": str(skill.parent_skill_id) if skill.parent_skill_id else None,
+                "usage_count": usage_count
+            })
+        
+        return {
+            "total": total,
+            "skills": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Error listing skills: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/admin/skills")
+def admin_create_skill(
+    data: SkillCreateRequest,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Create new skill."""
+    try:
+        # Check if skill already exists
+        existing = db.query(Skill).filter(Skill.name == data.name).first()
+        if existing:
+            raise HTTPException(status_code=400, detail=f"Skill '{data.name}' already exists")
+        
+        # Create new skill
+        new_skill = Skill(
+            name=data.name,
+            category=data.category,
+            parent_skill_id=data.parent_skill_id if data.parent_skill_id else None
+        )
+        
+        db.add(new_skill)
+        db.commit()
+        db.refresh(new_skill)
+        
+        logger.info(f"[ADMIN] Created skill: {data.name} by {admin_user.email}")
+        
+        return {
+            "message": "Skill created successfully",
+            "skill": {
+                "id": str(new_skill.id),
+                "name": new_skill.name,
+                "category": new_skill.category
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error creating skill: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/admin/skills/categories")
+def admin_list_skill_categories(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: List all skill categories."""
+    try:
+        result = db.execute(
+            text("""
+                SELECT DISTINCT category, COUNT(*) as count
+                FROM skills
+                WHERE category IS NOT NULL
+                GROUP BY category
+                ORDER BY category
+            """)
+        ).fetchall()
+        
+        categories = [{"name": row[0], "count": row[1]} for row in result]
+        
+        return {"categories": categories}
+        
+    except Exception as e:
+        logger.error(f"Error listing categories: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/admin/skills/pending")
+def admin_list_pending_skills(
+    status: Optional[str] = "pending",
+    limit: int = 50,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: List pending skills for review."""
+    try:
+        query = text("""
+            SELECT 
+                ps.id, ps.skill_name, ps.source, ps.suggested_by,
+                ps.suggested_at, ps.status, ps.reviewed_by, ps.reviewed_at,
+                ps.merged_into, ps.notes, ps.metadata, ps.created_at, ps.updated_at,
+                u.full_name as suggested_by_name
+            FROM pending_skills ps
+            LEFT JOIN users u ON ps.suggested_by = u.id
+            WHERE ps.status = :status
+            ORDER BY ps.suggested_at DESC
+            LIMIT :limit OFFSET :offset
+        """)
+        
+        result = db.execute(query, {"status": status, "limit": limit, "offset": offset}).fetchall()
+        
+        # Get total count
+        count_query = text("SELECT COUNT(*) FROM pending_skills WHERE status = :status")
+        total = db.execute(count_query, {"status": status}).scalar()
+        
+        pending_skills = []
+        for row in result:
+            pending_skills.append({
+                "id": str(row[0]),
+                "skill_name": row[1],
+                "source": row[2],
+                "suggested_by": str(row[3]) if row[3] else None,
+                "suggested_at": row[4].isoformat() if row[4] else None,
+                "status": row[5],
+                "reviewed_by": str(row[6]) if row[6] else None,
+                "reviewed_at": row[7].isoformat() if row[7] else None,
+                "merged_into": str(row[8]) if row[8] else None,
+                "notes": row[9],
+                "metadata": row[10],
+                "created_at": row[11].isoformat() if row[11] else None,
+                "updated_at": row[12].isoformat() if row[12] else None,
+                "suggested_by_name": row[13]
+            })
+        
+        return {
+            "total": total,
+            "pending_skills": pending_skills
+        }
+        
+    except Exception as e:
+        logger.error(f"Error listing pending skills: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/admin/skills/pending/{pending_id}/approve")
+def admin_approve_pending_skill(
+    pending_id: str,
+    data: PendingSkillActionRequest,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Approve pending skill and add to master skills table."""
+    try:
+        # Get pending skill
+        pending = db.execute(
+            text("SELECT * FROM pending_skills WHERE id = :id AND status = 'pending'"),
+            {"id": pending_id}
+        ).fetchone()
+        
+        if not pending:
+            raise HTTPException(status_code=404, detail="Pending skill not found or already processed")
+        
+        skill_name = pending[1]  # skill_name column
+        
+        # Check if skill already exists
+        existing = db.query(Skill).filter(Skill.name == skill_name).first()
+        if existing:
+            raise HTTPException(status_code=400, detail=f"Skill '{skill_name}' already exists in master table")
+        
+        # Create new skill in master table
+        new_skill = Skill(name=skill_name, category="Technology")  # Default category
+        db.add(new_skill)
+        db.flush()
+        
+        # Update youtube_video_skills with skill_id
+        db.execute(
+            text("""
+                UPDATE youtube_video_skills
+                SET skill_id = :skill_id
+                WHERE skill_name = :skill_name AND skill_id IS NULL
+            """),
+            {"skill_id": new_skill.id, "skill_name": skill_name}
+        )
+        
+        # Update pending skill status
+        db.execute(
+            text("""
+                UPDATE pending_skills
+                SET status = 'approved',
+                    reviewed_by = :reviewer,
+                    reviewed_at = NOW(),
+                    notes = :notes
+                WHERE id = :id
+            """),
+            {"reviewer": admin_user.id, "notes": data.notes, "id": pending_id}
+        )
+        
+        db.commit()
+        
+        logger.info(f"[ADMIN] Approved skill: {skill_name} by {admin_user.email}")
+        
+        return {
+            "message": "Skill approved and added to master table",
+            "skill_id": str(new_skill.id),
+            "skill_name": skill_name
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error approving skill: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/admin/skills/pending/{pending_id}/reject")
+def admin_reject_pending_skill(
+    pending_id: str,
+    data: PendingSkillActionRequest,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Reject pending skill."""
+    try:
+        # Update pending skill status
+        result = db.execute(
+            text("""
+                UPDATE pending_skills
+                SET status = 'rejected',
+                    reviewed_by = :reviewer,
+                    reviewed_at = NOW(),
+                    notes = :notes
+                WHERE id = :id AND status = 'pending'
+            """),
+            {"reviewer": admin_user.id, "notes": data.notes, "id": pending_id}
+        )
+        
+        if result.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Pending skill not found or already processed")
+        
+        db.commit()
+        
+        logger.info(f"[ADMIN] Rejected pending skill: {pending_id} by {admin_user.email}")
+        
+        return {"message": "Skill rejected"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error rejecting skill: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/admin/skills/pending/{pending_id}/merge")
+def admin_merge_pending_skill(
+    pending_id: str,
+    data: PendingSkillMergeRequest,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Merge pending skill into existing skill."""
+    try:
+        # Get pending skill
+        pending = db.execute(
+            text("SELECT skill_name FROM pending_skills WHERE id = :id AND status = 'pending'"),
+            {"id": pending_id}
+        ).fetchone()
+        
+        if not pending:
+            raise HTTPException(status_code=404, detail="Pending skill not found or already processed")
+        
+        skill_name = pending[0]
+        
+        # Verify target skill exists
+        target_skill = db.query(Skill).filter(Skill.id == data.target_skill_id).first()
+        if not target_skill:
+            raise HTTPException(status_code=404, detail="Target skill not found")
+        
+        # Update youtube_video_skills to use target skill_id
+        db.execute(
+            text("""
+                UPDATE youtube_video_skills
+                SET skill_id = :target_id
+                WHERE skill_name = :skill_name AND skill_id IS NULL
+            """),
+            {"target_id": target_skill.id, "skill_name": skill_name}
+        )
+        
+        # Update pending skill status
+        db.execute(
+            text("""
+                UPDATE pending_skills
+                SET status = 'merged',
+                    reviewed_by = :reviewer,
+                    reviewed_at = NOW(),
+                    merged_into = :target_id,
+                    notes = :notes
+                WHERE id = :id
+            """),
+            {"reviewer": admin_user.id, "target_id": target_skill.id, "notes": data.notes, "id": pending_id}
+        )
+        
+        db.commit()
+        
+        logger.info(f"[ADMIN] Merged skill '{skill_name}' into '{target_skill.name}' by {admin_user.email}")
+        
+        return {
+            "message": f"Skill merged into '{target_skill.name}'",
+            "target_skill_id": str(target_skill.id),
+            "target_skill_name": target_skill.name
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error merging skill: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/admin/health")

@@ -11,12 +11,14 @@ import {
   CheckCircle2,
   Calendar,
   Clock,
+  Edit,
   Video as YoutubeIcon
 } from "lucide-react";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
 import Pagination from "@/components/shared/Pagination";
 import Modal from "@/components/shared/Modal";
+import TagInput from "@/components/shared/TagInput";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -40,6 +42,22 @@ interface YouTubeCourse {
   expires_at: string | null;
   last_verified_at: string | null;
   created_at: string;
+  // New fields
+  language?: string;
+  skill_level?: string;
+  is_curated?: boolean;
+  quality_score?: number;
+  skills?: string[];
+}
+
+interface VideoPreview {
+  video_id: string;
+  title: string;
+  description: string;
+  channel_name: string;
+  thumbnail: string;
+  published_at: string;
+  duration_raw: string;
 }
 
 const AdminYouTubePage = () => {
@@ -49,16 +67,32 @@ const AdminYouTubePage = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   
+  // Filters
+  const [filterLanguage, setFilterLanguage] = useState<string>("all");
+  const [filterLevel, setFilterLevel] = useState<string>("all");
+  const [filterSkill, setFilterSkill] = useState<string>("all");
+  const [availableSkills, setAvailableSkills] = useState<string[]>([]);
+  
   // Modals
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showAddVideoModal, setShowAddVideoModal] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<YouTubeCourse | null>(null);
   const [videoToDelete, setVideoToDelete] = useState<YouTubeCourse | null>(null);
   const [submitting, setSubmitting] = useState(false);
   
+  // Add Video Form
+  const [videoInput, setVideoInput] = useState("");
+  const [fetchingMetadata, setFetchingMetadata] = useState(false);
+  const [videoPreview, setVideoPreview] = useState<VideoPreview | null>(null);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [selectedLevel, setSelectedLevel] = useState<string>("");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("");
+  const [editingVideo, setEditingVideo] = useState<YouTubeCourse | null>(null);
+  
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0); // Optional: if backend provides total pages
+  const [totalPages, setTotalPages] = useState(0);
   const [pageSize] = useState(10);
 
   const fetchYouTubeCache = async (page = 1) => {
@@ -66,14 +100,20 @@ const AdminYouTubePage = () => {
     try {
       setLoading(true);
       const offset = (page - 1) * pageSize;
-      const url = `/admin/youtube?limit=${pageSize}&offset=${offset}${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ""}`;
       
-      const res = await api.get(url);
+      const params = new URLSearchParams({
+        limit: pageSize.toString(),
+        offset: offset.toString(),
+      });
+      
+      if (searchTerm) params.append("search", searchTerm);
+      if (filterLanguage !== "all") params.append("language", filterLanguage);
+      if (filterLevel !== "all") params.append("level", filterLevel);
+      if (filterSkill !== "all") params.append("skill", filterSkill);
+      
+      const res = await api.get(`/admin/youtube?${params.toString()}`);
       
       setCourses(res.data || []);
-      // Logic for total pages might need total count from backend, 
-      // for now let's assume we can calculate it if backend returns total_count
-      // setTotalPages(Math.ceil((res.data.total_count || 0) / pageSize));
       setCurrentPage(page);
     } catch (err) {
       console.error(err);
@@ -83,17 +123,30 @@ const AdminYouTubePage = () => {
     }
   };
 
+  const fetchAvailableSkills = async () => {
+    if (!token) return;
+    try {
+      const res = await api.get("/admin/youtube/skills");
+      setAvailableSkills(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch skills", err);
+    }
+  };
+
   useEffect(() => {
-    if (token) fetchYouTubeCache(1);
+    if (token) {
+      fetchYouTubeCache(1);
+      fetchAvailableSkills();
+    }
   }, [token]);
 
-  // Handle search resets pagination
+  // Handle search and filters reset pagination
   useEffect(() => {
     const timer = setTimeout(() => {
       if (token) fetchYouTubeCache(1);
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, filterLanguage, filterLevel, filterSkill]);
 
   const handleOpenDetails = (course: YouTubeCourse) => {
     setSelectedCourse(course);
@@ -137,6 +190,94 @@ const AdminYouTubePage = () => {
     }
   };
 
+  const extractVideoId = (input: string): string | null => {
+    // Extract video ID from various YouTube URL formats
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+      /^([a-zA-Z0-9_-]{11})$/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = input.match(pattern);
+      if (match) return match[1];
+    }
+    
+    return null;
+  };
+
+  const handleFetchMetadata = async () => {
+    const videoId = extractVideoId(videoInput);
+    if (!videoId) {
+      toast.error("Invalid YouTube URL or ID");
+      return;
+    }
+
+    setFetchingMetadata(true);
+    try {
+      const res = await api.post("/admin/youtube/fetch-metadata", { video_id: videoId });
+      setVideoPreview(res.data);
+      toast.success("Video metadata fetched successfully");
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Failed to fetch video metadata");
+      setVideoPreview(null);
+    } finally {
+      setFetchingMetadata(false);
+    }
+  };
+
+  const handleSaveVideo = async () => {
+    if (!videoPreview || selectedSkills.length === 0 || !selectedLevel || !selectedLanguage) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await api.post("/admin/youtube/curated", {
+        video_id: videoPreview.video_id,
+        skills: selectedSkills,
+        skill_level: selectedLevel,
+        language: selectedLanguage,
+      });
+      
+      toast.success("Video added successfully");
+      setShowAddVideoModal(false);
+      resetAddVideoForm();
+      fetchYouTubeCache(currentPage);
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Failed to save video");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const resetAddVideoForm = () => {
+    setVideoInput("");
+    setVideoPreview(null);
+    setSelectedSkills([]);
+    setSelectedLevel("");
+    setSelectedLanguage("");
+    setEditingVideo(null);
+  };
+
+  const handleOpenEdit = (course: YouTubeCourse) => {
+    setEditingVideo(course);
+    setVideoInput(course.video_id);
+    setVideoPreview({
+      video_id: course.video_id,
+      title: course.title,
+      description: course.description || "",
+      channel_name: course.channel_name || "",
+      thumbnail: course.thumbnail || "",
+      published_at: course.published_at || "",
+      duration_raw: course.duration_raw || ""
+    });
+    setSelectedSkills(course.skills || []);
+    setSelectedLevel(course.skill_level || "");
+    setSelectedLanguage(course.language || "");
+    setShowAddVideoModal(true);
+  };
+
   const getStatusBadge = (course: YouTubeCourse) => {
     const now = new Date();
     const expiresAt = course.expires_at ? new Date(course.expires_at) : null;
@@ -164,14 +305,23 @@ const AdminYouTubePage = () => {
           title={t("admin_youtube_title")}
           subtitle={t("admin_youtube_sub")}
         >
-          <button 
-            onClick={handleVerifyAll}
-            disabled={submitting}
-            className={styles.addBtn}
-          >
-            <RefreshCcw size={18} className={cn(submitting && "animate-spin")} /> 
-            <span>{t("admin_youtube_verify_all")}</span>
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setShowAddVideoModal(true)}
+              className={styles.addBtn}
+            >
+              <Video size={18} /> 
+              <span>{t("admin_youtube_add_video")}</span>
+            </button>
+            <button 
+              onClick={handleVerifyAll}
+              disabled={submitting}
+              className={styles.verifyBtn}
+            >
+              <RefreshCcw size={18} className={cn(submitting && "animate-spin")} /> 
+              <span>{t("admin_youtube_verify_all")}</span>
+            </button>
+          </div>
         </PageHeader>
 
         {/* Control Bar */}
@@ -187,6 +337,43 @@ const AdminYouTubePage = () => {
               maxLength={200}
             />
           </div>
+          
+          {/* Filters */}
+          <div className={styles.filterGroup}>
+            <select 
+              value={filterLanguage} 
+              onChange={(e) => setFilterLanguage(e.target.value)}
+              className={styles.filterSelect}
+            >
+              <option value="all">{t("admin_youtube_filter_language")}: {t("admin_youtube_filter_all")}</option>
+              <option value="en">English</option>
+              <option value="vi">Tiếng Việt</option>
+            </select>
+
+            <select 
+              value={filterLevel} 
+              onChange={(e) => setFilterLevel(e.target.value)}
+              className={styles.filterSelect}
+            >
+              <option value="all">{t("admin_youtube_filter_level")}: {t("admin_youtube_filter_all")}</option>
+              <option value="Junior">Junior</option>
+              <option value="Mid-level">Mid-level</option>
+              <option value="Senior">Senior</option>
+              <option value="Expert">Expert</option>
+            </select>
+
+            <select 
+              value={filterSkill} 
+              onChange={(e) => setFilterSkill(e.target.value)}
+              className={styles.filterSelect}
+            >
+              <option value="all">{t("admin_youtube_filter_skill")}: {t("admin_youtube_filter_all")}</option>
+              {availableSkills.map(skill => (
+                <option key={skill} value={skill}>{skill}</option>
+              ))}
+            </select>
+          </div>
+
           <button onClick={() => fetchYouTubeCache(currentPage)} className={styles.refreshBtn}>
             <RefreshCcw size={20} className={cn(loading && "animate-spin")} />
           </button>
@@ -198,9 +385,10 @@ const AdminYouTubePage = () => {
             <thead>
               <tr className={styles.tableHeader}>
                 <th className={styles.th}>{t("admin_youtube_table_video")}</th>
+                <th className={styles.th}>{t("admin_youtube_table_skills")}</th>
+                <th className={styles.th}>{t("admin_youtube_table_level")}</th>
+                <th className={styles.th}>{t("admin_youtube_table_language")}</th>
                 <th className={styles.th}>{t("admin_youtube_table_published")}</th>
-                <th className={styles.th}>{t("admin_youtube_table_expires")}</th>
-                <th className={styles.th}>{t("admin_youtube_table_verified")}</th>
                 <th className={styles.th}>Status</th>
                 <th className={cn(styles.th, styles.thRight)}>{t("admin_users_table_actions")}</th>
               </tr>
@@ -208,7 +396,7 @@ const AdminYouTubePage = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={7}>
                     <div className={styles.skeletonRow}>
                       <div className={styles.spinner}></div>
                       <span className={styles.skeletonText}>{t("syncing_dots")}</span>
@@ -217,7 +405,7 @@ const AdminYouTubePage = () => {
                 </tr>
               ) : courses.length === 0 ? (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={7}>
                      <div className={styles.emptyState}>
                         <YoutubeIcon size={48} className={styles.emptyStateIcon} />
                         <p className={styles.emptyStateText}>{t("jobs_no_results")}</p>
@@ -239,16 +427,24 @@ const AdminYouTubePage = () => {
                           )}
                         </a>
                         <div className={styles.videoInfo}>
-                          <a 
-                            href={course.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className={styles.videoTitle} 
-                            title={course.title}
-                          >
-                            {course.title}
-                            <ExternalLink size={12} className="inline ml-1 opacity-50" />
-                          </a>
+                          <div className="flex items-center gap-2">
+                            <a 
+                              href={course.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className={styles.videoTitle} 
+                              title={course.title}
+                            >
+                              {course.title}
+                              <ExternalLink size={12} className="inline ml-1 opacity-50" />
+                            </a>
+                            {course.is_curated && (
+                              <span className={styles.curatedBadge}>
+                                <CheckCircle2 size={12} />
+                                {t("admin_youtube_curated_badge")}
+                              </span>
+                            )}
+                          </div>
                           <div className={styles.videoMeta}>
                              <span className={styles.videoId}>ID: {course.video_id}</span>
                              {course.duration_raw && <span className={styles.duration}> • {course.duration_raw}</span>}
@@ -260,26 +456,42 @@ const AdminYouTubePage = () => {
                       </div>
                     </td>
                     <td className={styles.td}>
+                      <div className={styles.skillsCell}>
+                        {course.skills && course.skills.length > 0 ? (
+                          <div className={styles.skillTags}>
+                            {course.skills.slice(0, 3).map((skill, idx) => (
+                              <span key={idx} className={styles.skillTag}>{skill}</span>
+                            ))}
+                            {course.skills.length > 3 && (
+                              <span className={styles.skillTag}>+{course.skills.length - 3}</span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className={styles.notAvailable}>—</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className={styles.td}>
+                      {course.skill_level ? (
+                        <span className={styles.levelBadge}>{course.skill_level}</span>
+                      ) : (
+                        <span className={styles.notAvailable}>—</span>
+                      )}
+                    </td>
+                    <td className={styles.td}>
+                      {course.language ? (
+                        <span className={styles.languageBadge}>
+                          {course.language === "en" ? "🇬🇧 EN" : "🇻🇳 VI"}
+                        </span>
+                      ) : (
+                        <span className={styles.notAvailable}>—</span>
+                      )}
+                    </td>
+                    <td className={styles.td}>
                       <div className={styles.dateCell}>
                         <div className="flex items-center gap-1">
                            <Calendar size={12} />
                            {course.published_at ? format(new Date(course.published_at), "dd/MM/yyyy") : t("not_available")}
-                        </div>
-                      </div>
-                    </td>
-                    <td className={styles.td}>
-                      <div className={styles.dateCell}>
-                        <div className="flex items-center gap-1">
-                           <Clock size={12} />
-                           {course.expires_at ? format(new Date(course.expires_at), "dd/MM HH:mm") : t("not_available")}
-                        </div>
-                      </div>
-                    </td>
-                    <td className={styles.td}>
-                      <div className={styles.dateCell}>
-                        <div className="flex items-center gap-1">
-                           <RefreshCcw size={12} />
-                           {course.last_verified_at ? format(new Date(course.last_verified_at), "dd/MM HH:mm") : t("not_available")}
                         </div>
                       </div>
                     </td>
@@ -294,6 +506,13 @@ const AdminYouTubePage = () => {
                             title="View All Details"
                           >
                              <Search size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleOpenEdit(course)}
+                            className={styles.actionBtn}
+                            title={t("edit")}
+                          >
+                             <Edit size={16} />
                           </button>
                           <a 
                             href={course.url} 
@@ -394,6 +613,24 @@ const AdminYouTubePage = () => {
                    <div className={styles.detailValue}>{selectedCourse.duration_raw}</div>
                 </div>
                 <div className={styles.detailItem}>
+                   <label>Skills</label>
+                   <div className={styles.detailValue}>
+                     {selectedCourse.skills?.join(", ") || "—"}
+                   </div>
+                </div>
+                <div className={styles.detailItem}>
+                   <label>Level</label>
+                   <div className={styles.detailValue}>{selectedCourse.skill_level || "—"}</div>
+                </div>
+                <div className={styles.detailItem}>
+                   <label>Language</label>
+                   <div className={styles.detailValue}>{selectedCourse.language || "—"}</div>
+                </div>
+                <div className={styles.detailItem}>
+                   <label>Curated</label>
+                   <div className={styles.detailValue}>{selectedCourse.is_curated ? "Yes" : "No"}</div>
+                </div>
+                <div className={styles.detailItem}>
                    <label>Published At</label>
                    <div className={styles.detailValue}>{selectedCourse.published_at}</div>
                 </div>
@@ -438,6 +675,129 @@ const AdminYouTubePage = () => {
               </div>
             </div>
           )}
+        </Modal>
+
+        {/* Add/Edit Video Modal */}
+        <Modal
+          isOpen={showAddVideoModal}
+          onClose={() => {
+            setShowAddVideoModal(false);
+            resetAddVideoForm();
+          }}
+          title={editingVideo ? t("admin_youtube_edit_modal_title") : t("admin_youtube_add_modal_title")}
+          maxWidth="45rem"
+        >
+          <div className={styles.addVideoContent}>
+            {/* Step 1: Input YouTube URL */}
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>{t("admin_youtube_video_input")}</label>
+              <div className={styles.inputWithButton}>
+                <input
+                  type="text"
+                  placeholder={t("admin_youtube_video_input_placeholder")}
+                  value={videoInput}
+                  onChange={(e) => setVideoInput(e.target.value)}
+                  className={styles.formInput}
+                  disabled={fetchingMetadata || !!editingVideo}
+                />
+                {!editingVideo && (
+                  <button
+                    onClick={handleFetchMetadata}
+                    disabled={!videoInput || fetchingMetadata}
+                    className={styles.fetchBtn}
+                  >
+                    {fetchingMetadata ? t("admin_youtube_fetching") : t("admin_youtube_fetch_info")}
+                  </button>
+                )}
+              </div>
+              {editingVideo && (
+                <p className={styles.formHint}>
+                  {t("admin_youtube_editing_hint")}
+                </p>
+              )}
+            </div>
+
+            {/* Step 2: Video Preview */}
+            {videoPreview && (
+              <>
+                <div className={styles.videoPreview}>
+                  <img 
+                    src={videoPreview.thumbnail} 
+                    alt={videoPreview.title}
+                    className={styles.previewThumbnail}
+                  />
+                  <div className={styles.previewInfo}>
+                    <h4 className={styles.previewTitle}>{videoPreview.title}</h4>
+                    <p className={styles.previewChannel}>{videoPreview.channel_name}</p>
+                    <p className={styles.previewMeta}>
+                      {videoPreview.duration_raw} • {videoPreview.published_at && format(new Date(videoPreview.published_at), "dd/MM/yyyy")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3: Tag with Skills, Level, Language */}
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>{t("admin_youtube_select_skills")}</label>
+                  <TagInput
+                    value={selectedSkills}
+                    onChange={setSelectedSkills}
+                    placeholder="Type to search skills or add new ones..."
+                    maxTags={20}
+                    disabled={submitting}
+                  />
+                </div>
+
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>{t("admin_youtube_select_level")}</label>
+                    <select
+                      value={selectedLevel}
+                      onChange={(e) => setSelectedLevel(e.target.value)}
+                      className={styles.formSelect}
+                    >
+                      <option value="">Select level...</option>
+                      <option value="Junior">Junior</option>
+                      <option value="Mid-level">Mid-level</option>
+                      <option value="Senior">Senior</option>
+                      <option value="Expert">Expert</option>
+                    </select>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>{t("admin_youtube_select_language")}</label>
+                    <select
+                      value={selectedLanguage}
+                      onChange={(e) => setSelectedLanguage(e.target.value)}
+                      className={styles.formSelect}
+                    >
+                      <option value="">Select language...</option>
+                      <option value="en">English</option>
+                      <option value="vi">Tiếng Việt</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className={styles.formActions}>
+                  <button
+                    onClick={() => {
+                      setShowAddVideoModal(false);
+                      resetAddVideoForm();
+                    }}
+                    className={styles.cancelBtn}
+                  >
+                    {t("cancel")}
+                  </button>
+                  <button
+                    onClick={handleSaveVideo}
+                    disabled={submitting || selectedSkills.length === 0 || !selectedLevel || !selectedLanguage}
+                    className={styles.saveBtn}
+                  >
+                    {submitting ? t("processing") : (editingVideo ? t("admin_youtube_update_video") : t("admin_youtube_save_video"))}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </Modal>
       </PageContainer>
     </AuthGuard>

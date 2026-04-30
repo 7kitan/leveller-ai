@@ -348,6 +348,13 @@ class YouTubeCourse(Base):
     expires_at = Column(DateTime(timezone=True), index=True) # Thời điểm hết hạn cache
     last_verified_at = Column(DateTime(timezone=True), index=True) # Thời điểm kiểm tra tính khả dụng gần nhất
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Curation fields
+    language = Column(String(10), index=True)  # 'en', 'vi'
+    skill_level = Column(String(50), index=True)  # 'Junior', 'Mid-level', 'Senior', 'Expert'
+    is_curated = Column(Boolean, default=False, index=True)  # Manually added by admin
+    quality_score = Column(Float)  # 0-100 quality metric
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
 
 class LLMLog(Base):

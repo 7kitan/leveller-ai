@@ -1102,6 +1102,205 @@
   margin-right: 1rem;
 }
 
+/* Table Styles */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 2rem;
+}
+
+.skillsTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.skillsTable thead {
+  background: var(--color-bg-secondary);
+}
+
+.tableHeader {
+  padding: 1.25rem 1.5rem;
+  text-align: left;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--color-border-subtle);
+}
+
+.tableHeader:first-child {
+  border-top-left-radius: var(--radius-lg);
+}
+
+.tableHeader:last-child {
+  border-top-right-radius: var(--radius-lg);
+}
+
+.skillRow {
+  transition: all 0.2s ease;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.skillRow:hover {
+  background: var(--color-bg-hover);
+}
+
+.skillRow:last-child {
+  border-bottom: none;
+}
+
+.tableCell {
+  padding: 1.25rem 1.5rem;
+  vertical-align: middle;
+}
+
+.tableCell:first-child {
+  width: 40%;
+}
+
+.tableCell:nth-child(2) {
+  width: 25%;
+}
+
+.tableCell:nth-child(3) {
+  width: 25%;
+}
+
+.tableCell:last-child {
+  width: 10%;
+  text-align: center;
+}
+
+/* Table Input Styles */
+.skillsTable .skillNameInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  transition: all 0.2s ease;
+}
+
+.skillsTable .skillNameInput:hover {
+  border-color: var(--color-border-default);
+}
+
+.skillsTable .skillNameInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.skillsTable .skillExpGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-secondary);
+}
+
+.skillsTable .editInput {
+  width: 4rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-small);
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.skillsTable .editInput:hover {
+  border-color: var(--color-border-default);
+}
+
+.skillsTable .editInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+/* Unified Delete Button Style */
+.skillsTable .deleteSkillBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  background: color-mix(in srgb, var(--color-error) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error) 20%, transparent);
+  border-radius: var(--radius-sm);
+  color: var(--color-error);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+
+.skillsTable .deleteSkillBtn:hover {
+  background: var(--color-error);
+  border-color: var(--color-error);
+  color: white;
+  opacity: 1;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-error) 25%, transparent);
+}
+
+/* Add Skill Button - Updated for table layout */
+.addSkillBtn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: var(--color-bg-secondary);
+  border: 2px dashed var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--color-text-secondary);
+}
+
+.addSkillBtn:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+.addSkillIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  transition: all 0.3s ease;
+}
+
+.addSkillBtn:hover .addSkillIcon {
+  background: var(--color-primary);
+  color: white;
+  transform: rotate(90deg);
+}
+
+.addSkillText {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
 .skillName {
   margin-right: 0.75rem;
 }
@@ -1113,8 +1312,29 @@
 }
 
 .deleteSkillBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  background: color-mix(in srgb, var(--color-error) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error) 20%, transparent);
+  border-radius: var(--radius-sm);
+  color: var(--color-error);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.8;
   margin-left: 1rem;
-  color: color-mix(in srgb, var(--color-error) 40%, transparent);
+}
+
+.deleteSkillBtn:hover {
+  background: var(--color-error);
+  border-color: var(--color-error);
+  color: white;
+  opacity: 1;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-error) 25%, transparent);
 }
 
 
@@ -1822,12 +2042,23 @@
   height: 2.25rem;
   padding: 0;
   background: color-mix(in srgb, var(--color-error) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error) 20%, transparent);
+  border-radius: var(--radius-sm);
   color: var(--color-error);
-  border-radius: 0.75rem;
-  border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  opacity: 0.6;
+  transition: all 0.2s ease;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.itemDeleteBtn:hover,
+.certDeleteBtn:hover {
+  background: var(--color-error);
+  border-color: var(--color-error);
+  color: white;
+  opacity: 1;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-error) 25%, transparent);
 }
 
 .itemDeleteBtn:hover,
@@ -2461,6 +2692,54 @@
   .matrixTitle {
     font-size: var(--font-size-medium);
     margin-bottom: 2rem;
+  }
+
+  /* Mobile Table Styles */
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .skillsTable {
+    min-width: 600px;
+  }
+
+  .tableHeader {
+    padding: 1rem;
+    font-size: var(--font-size-caption);
+  }
+
+  .tableCell {
+    padding: 1rem;
+  }
+
+  .skillsTable .skillNameInput {
+    padding: 0.5rem 0.75rem;
+    font-size: var(--font-size-small);
+  }
+
+  .skillsTable .editInput {
+    width: 3.5rem;
+    padding: 0.4rem;
+  }
+
+  .skillsTable .deleteSkillBtn {
+    padding: 0.4rem;
+  }
+
+  .addSkillBtn {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .addSkillIcon {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .addSkillText {
+    font-size: var(--font-size-small);
   }
 
   .matrixGrid {

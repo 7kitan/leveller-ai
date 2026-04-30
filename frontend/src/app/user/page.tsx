@@ -376,7 +376,9 @@ const UserDashboard = () => {
             </div>
             <div className={styles.snapshotItem}>
               <div className={styles.snapshotLabel}>{t("dash_hot_trend")}</div>
-              <div className={cn(styles.snapshotValue, "text-success")}>{loading ? "..." : (marketData?.market_trends?.summary?.top_gainer || t("not_available"))}</div>
+              <div className={cn(styles.snapshotValue, "text-success")}>
+                {loading ? "..." : (sortedTrends[0]?.name || marketData?.market_trends?.summary?.top_gainer || t("not_available"))}
+              </div>
             </div>
           </div>
           <div className={styles.barChartContainer} style={{ height: '400px', width: '100%', marginTop: '2rem' }}>
@@ -388,11 +390,16 @@ const UserDashboard = () => {
                 >
                   <defs>
                     {[
-                      { id: 'Emerald', color: 'var(--color-success)' },
-                      { id: 'Indigo', color: 'var(--color-primary)' },
-                      { id: 'Amber', color: 'var(--color-warning)' },
-                      { id: 'Sky', color: 'var(--color-info)' },
-                      { id: 'Pink', color: 'var(--color-secondary)' }
+                      { id: 'Emerald', color: 'var(--color-chart-emerald)' },
+                      { id: 'Indigo', color: 'var(--color-chart-indigo)' },
+                      { id: 'Amber', color: 'var(--color-chart-amber)' },
+                      { id: 'Sky', color: 'var(--color-chart-sky)' },
+                      { id: 'Pink', color: 'var(--color-chart-pink)' },
+                      { id: 'Purple', color: 'var(--color-chart-purple)' },
+                      { id: 'Teal', color: 'var(--color-chart-teal)' },
+                      { id: 'Orange', color: 'var(--color-chart-orange)' },
+                      { id: 'Cyan', color: 'var(--color-chart-cyan)' },
+                      { id: 'Lime', color: 'var(--color-chart-lime)' }
                     ].map(g => (
                       <linearGradient key={g.id} id={`color${g.id}`} x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor={g.color} stopOpacity={0.2}/>
@@ -421,11 +428,16 @@ const UserDashboard = () => {
                     wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.8, cursor: 'pointer' }}
                     content={(props: any) => {
                       const palettes = [
-                        { id: 'Emerald', color: 'var(--color-success)' },
-                        { id: 'Indigo', color: 'var(--color-primary)' },
-                        { id: 'Amber', color: 'var(--color-warning)' },
-                        { id: 'Sky', color: 'var(--color-info)' },
-                        { id: 'Pink', color: 'var(--color-secondary)' }
+                        { id: 'Emerald', color: 'var(--color-chart-emerald)' },
+                        { id: 'Indigo', color: 'var(--color-chart-indigo)' },
+                        { id: 'Amber', color: 'var(--color-chart-amber)' },
+                        { id: 'Sky', color: 'var(--color-chart-sky)' },
+                        { id: 'Pink', color: 'var(--color-chart-pink)' },
+                        { id: 'Purple', color: 'var(--color-chart-purple)' },
+                        { id: 'Teal', color: 'var(--color-chart-teal)' },
+                        { id: 'Orange', color: 'var(--color-chart-orange)' },
+                        { id: 'Cyan', color: 'var(--color-chart-cyan)' },
+                        { id: 'Lime', color: 'var(--color-chart-lime)' }
                       ];
                       return (
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', flexWrap: 'wrap', marginBottom: '8px' }}>
@@ -472,11 +484,11 @@ const UserDashboard = () => {
                   />
                   <RechartsTooltip 
                     contentStyle={{ 
-                      backgroundColor: 'var(--color-bg-glass)', 
+                      backgroundColor: 'var(--color-bg-elevated)', 
                       borderRadius: '16px', 
-                      border: 'none',
+                      border: '1px solid var(--color-border-subtle)',
                       backdropFilter: 'blur(10px)',
-                      boxShadow: 'var(--shadow-xl)',
+                      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
                       color: 'var(--color-text-primary)',
                       padding: '12px'
                     }}
@@ -484,20 +496,25 @@ const UserDashboard = () => {
                       if (!props.active || !props.payload || props.payload.length === 0) return null;
                       
                       const palettes = [
-                        { id: 'Emerald', color: 'var(--color-success)' },
-                        { id: 'Indigo', color: 'var(--color-primary)' },
-                        { id: 'Amber', color: 'var(--color-warning)' },
-                        { id: 'Sky', color: 'var(--color-info)' },
-                        { id: 'Pink', color: 'var(--color-secondary)' }
+                        { id: 'Emerald', color: 'var(--color-chart-emerald)' },
+                        { id: 'Indigo', color: 'var(--color-chart-indigo)' },
+                        { id: 'Amber', color: 'var(--color-chart-amber)' },
+                        { id: 'Sky', color: 'var(--color-chart-sky)' },
+                        { id: 'Pink', color: 'var(--color-chart-pink)' },
+                        { id: 'Purple', color: 'var(--color-chart-purple)' },
+                        { id: 'Teal', color: 'var(--color-chart-teal)' },
+                        { id: 'Orange', color: 'var(--color-chart-orange)' },
+                        { id: 'Cyan', color: 'var(--color-chart-cyan)' },
+                        { id: 'Lime', color: 'var(--color-chart-lime)' }
                       ];
                       
                       return (
                         <div style={{ 
-                          backgroundColor: 'var(--color-bg-glass)', 
+                          backgroundColor: 'var(--color-bg-elevated)', 
                           borderRadius: '16px', 
                           border: '1px solid var(--color-border-subtle)',
                           backdropFilter: 'blur(10px)',
-                          boxShadow: 'var(--shadow-xl)',
+                          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
                           color: 'var(--color-text-primary)',
                           padding: '16px 20px',
                           minWidth: '200px'
@@ -533,11 +550,16 @@ const UserDashboard = () => {
                   />
                   {sortedTrends.map((skill: any, idx: number) => {
                     const palettes = [
-                      { id: 'Emerald', color: 'var(--color-success)' },
-                      { id: 'Indigo', color: 'var(--color-primary)' },
-                      { id: 'Amber', color: 'var(--color-warning)' },
-                      { id: 'Sky', color: 'var(--color-info)' },
-                      { id: 'Pink', color: 'var(--color-secondary)' }
+                      { id: 'Emerald', color: 'var(--color-chart-emerald)' },
+                      { id: 'Indigo', color: 'var(--color-chart-indigo)' },
+                      { id: 'Amber', color: 'var(--color-chart-amber)' },
+                      { id: 'Sky', color: 'var(--color-chart-sky)' },
+                      { id: 'Pink', color: 'var(--color-chart-pink)' },
+                      { id: 'Purple', color: 'var(--color-chart-purple)' },
+                      { id: 'Teal', color: 'var(--color-chart-teal)' },
+                      { id: 'Orange', color: 'var(--color-chart-orange)' },
+                      { id: 'Cyan', color: 'var(--color-chart-cyan)' },
+                      { id: 'Lime', color: 'var(--color-chart-lime)' }
                     ];
                     const p = palettes[idx % palettes.length];
                     const isHidden = hiddenSkills.has(skill.name);

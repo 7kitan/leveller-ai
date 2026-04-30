@@ -1,23 +1,3 @@
-.addBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.addBtn:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
-}
-
 .controlBar {
   display: flex;
   align-items: center;
@@ -58,42 +38,19 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.filterGroup {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text-secondary);
-}
-
-.filterSelect {
-  padding: 0.625rem 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.filterSelect:focus {
-  outline: none;
-  border-color: var(--primary-color);
-}
-
 .stats {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1rem;
-  background: var(--bg-secondary);
+  background: #fef3c7;
   border-radius: 0.375rem;
+  color: #92400e;
 }
 
 .statsText {
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--text-secondary);
 }
 
 .tableContainer {
@@ -155,7 +112,7 @@
 }
 
 .skillIcon {
-  color: var(--primary-color);
+  color: #f59e0b;
   flex-shrink: 0;
 }
 
@@ -174,7 +131,26 @@
   font-style: italic;
 }
 
-.usageCount {
+.videoLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-size: 0.8125rem;
+  transition: all 0.2s;
+}
+
+.videoLink:hover {
+  text-decoration: underline;
+}
+
+.noSource {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.dateText {
   color: var(--text-secondary);
   font-size: 0.8125rem;
 }
@@ -202,8 +178,6 @@
 
 .actionBtn:hover:not(:disabled) {
   background: var(--bg-secondary);
-  border-color: var(--primary-color);
-  color: var(--primary-color);
 }
 
 .actionBtn:disabled {
@@ -211,7 +185,17 @@
   cursor: not-allowed;
 }
 
-.actionBtnDelete:hover:not(:disabled) {
+.actionBtnApprove:hover:not(:disabled) {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.actionBtnMerge:hover:not(:disabled) {
+  border-color: #8b5cf6;
+  color: #8b5cf6;
+}
+
+.actionBtnReject:hover:not(:disabled) {
   border-color: #ef4444;
   color: #ef4444;
 }
@@ -248,15 +232,21 @@
   align-items: center;
   justify-content: center;
   padding: 4rem 2rem;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .emptyStateIcon {
-  color: var(--text-secondary);
+  color: #10b981;
   opacity: 0.3;
 }
 
 .emptyStateText {
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.emptyStateSubtext {
   color: var(--text-secondary);
   font-size: 0.875rem;
 }
@@ -264,6 +254,32 @@
 /* Modal Styles */
 .modalContent {
   padding: 1.5rem;
+}
+
+.approveInfo {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f0fdf4;
+  border-radius: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.approveIcon {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.approveText {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.skillHighlight {
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .formGroup {
@@ -318,11 +334,11 @@
   background: var(--bg-secondary);
 }
 
-.saveBtn {
+.approveBtn {
   padding: 0.625rem 1rem;
   border: none;
   border-radius: 0.375rem;
-  background: var(--primary-color);
+  background: #10b981;
   color: white;
   font-size: 0.875rem;
   font-weight: 500;
@@ -330,24 +346,24 @@
   transition: all 0.2s;
 }
 
-.saveBtn:hover:not(:disabled) {
-  background: var(--primary-hover);
+.approveBtn:hover:not(:disabled) {
+  background: #059669;
 }
 
-.saveBtn:disabled {
+.approveBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Delete Modal */
-.deleteModalContent {
+/* Reject Modal */
+.rejectModalContent {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.deleteIconBox {
+.rejectIconBox {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -358,11 +374,11 @@
   margin: 0 auto;
 }
 
-.deleteIcon {
+.rejectIcon {
   color: #ef4444;
 }
 
-.deleteConfirmTitle {
+.rejectTitle {
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -370,31 +386,21 @@
   margin-bottom: 0.5rem;
 }
 
-.deleteConfirmDesc {
+.rejectDesc {
   font-size: 0.875rem;
   color: var(--text-secondary);
   text-align: center;
   line-height: 1.5;
 }
 
-.deleteConfirmTarget {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.deleteWarning {
-  color: #f59e0b;
-  font-weight: 500;
-}
-
-.deleteActions {
+.rejectActions {
   display: flex;
   justify-content: center;
   gap: 0.75rem;
   margin-top: 1rem;
 }
 
-.cancelDeleteBtn {
+.cancelRejectBtn {
   padding: 0.625rem 1.25rem;
   border: 1px solid var(--border-color);
   border-radius: 0.375rem;
@@ -406,11 +412,11 @@
   transition: all 0.2s;
 }
 
-.cancelDeleteBtn:hover {
+.cancelRejectBtn:hover {
   background: var(--bg-secondary);
 }
 
-.confirmDeleteBtn {
+.confirmRejectBtn {
   padding: 0.625rem 1.25rem;
   border: none;
   border-radius: 0.375rem;
@@ -422,11 +428,115 @@
   transition: all 0.2s;
 }
 
-.confirmDeleteBtn:hover:not(:disabled) {
+.confirmRejectBtn:hover:not(:disabled) {
   background: #dc2626;
 }
 
-.confirmDeleteBtn:disabled {
+.confirmRejectBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Merge Modal */
+.mergeInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f5f3ff;
+  border-radius: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.mergeIcon {
+  color: #8b5cf6;
+  flex-shrink: 0;
+}
+
+.mergeText {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.skillList {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.skillOption {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.skillOption:last-child {
+  border-bottom: none;
+}
+
+.skillOption:hover {
+  background: var(--bg-secondary);
+}
+
+.radio {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.skillOptionContent {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.skillOptionName {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.skillOptionCategory {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 0.125rem 0.5rem;
+  background: var(--bg-secondary);
+  border-radius: 0.25rem;
+}
+
+.noResults {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.mergeBtn {
+  padding: 0.625rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: #8b5cf6;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mergeBtn:hover:not(:disabled) {
+  background: #7c3aed;
+}
+
+.mergeBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -442,10 +552,9 @@
     min-width: 100%;
   }
 
-  .filterGroup,
   .stats {
     width: 100%;
-    justify-content: space-between;
+    justify-content: center;
   }
 
   .tableContainer {
@@ -453,6 +562,6 @@
   }
 
   .table {
-    min-width: 600px;
+    min-width: 700px;
   }
 }

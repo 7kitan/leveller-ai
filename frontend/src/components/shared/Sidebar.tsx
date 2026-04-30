@@ -24,7 +24,10 @@ import {
   Layers,
   MessageSquare,
   Activity,
-  Video
+  Video,
+  Shield,
+  Tag,
+  Clock
 } from "lucide-react";
 
 import styles from "./sidebar.module.css";
@@ -36,12 +39,16 @@ const MENU_ITEMS = {
     { key: "nav_cv",        icon: FileText,        path: "/admin/cvs" },
     { key: "nav_courses",   icon: BookOpen,        path: "/admin/courses" },
     { key: "nav_jobs",      icon: Layers,          path: "/admin/jobs" },
+    { key: "nav_market",    icon: TrendingUp,      path: "/admin/market" },
     {key: "nav_monitor",   icon: LineChart,       path: "/admin/ai-usage" },
     {key: "nav_feedback",  icon: MessageSquare,   path: "/admin/feedback" },
+    {key: "nav_blocked_ips", icon: Shield,        path: "/admin/blocked-ips" },
     {key: "nav_profile",   icon: UserCircle,      path: "/admin/profile" },
     { key: "nav_settings",  icon: Settings,        path: "/admin/settings" },
     { key: "nav_system_logs", icon: Activity,      path: "/admin/system-logs" },
     { key: "nav_youtube",   icon: Video,         path: "/admin/youtube" },
+    { key: "nav_taxonomy",  icon: Tag,           path: "/admin/taxonomy" },
+    { key: "nav_pending_skills", icon: Clock,    path: "/admin/taxonomy/pending" },
   ],
   user: [
     { key: "nav_dashboard",   icon: LayoutDashboard, path: "/user" },
