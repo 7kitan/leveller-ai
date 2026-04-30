@@ -208,6 +208,14 @@
     --font-size-xlarge: 2rem;       /* 32px */
     --font-size-display: 2.5rem;    /* 40px */
 
+    /* ========================================================================
+     * FONT WEIGHT SCALE - ELEGANT & REFINED
+     * Semantic font weights for consistent, sophisticated typography
+     * ======================================================================== */
+    --font-weight-normal: 400;      /* Body text, descriptions, paragraphs */
+    --font-weight-medium: 500;      /* Emphasized text, secondary labels */
+    --font-weight-semibold: 600;    /* Headings, important labels, primary text */
+    --font-weight-bold: 700;        /* Hero titles, primary CTAs only (use sparingly) */
 
     /* ========================================================================
      * FONTS
@@ -460,7 +468,7 @@
     h5,
     h6 {
         font-family: var(--font-display);
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
         letter-spacing: -0.015em;
     }
 }
@@ -469,43 +477,43 @@
 @layer utilities {
     .text-display-hero {
         font-size: var(--font-size-display);
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
         line-height: 1.07;
         letter-spacing: -0.015em;
     }
 
     .text-section-heading {
         font-size: var(--font-size-xlarge);
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
         line-height: 1.10;
     }
 
     /* UI Element Font Scale */
     .font-micro {
         font-size: var(--font-size-small);
-        font-weight: 700;
+        font-weight: var(--font-weight-semibold);
     }
 
     .font-meta {
         font-size: var(--font-size-small);
-        font-weight: 600;
+        font-weight: var(--font-weight-medium);
         opacity: 0.6;
     }
 
     .font-label {
         font-size: var(--font-size-base);
-        font-weight: 700;
+        font-weight: var(--font-weight-semibold);
     }
 
     .font-stat {
         font-size: var(--font-size-display);
-        font-weight: 800;
+        font-weight: var(--font-weight-semibold);
         letter-spacing: -0.05em;
     }
 
     .font-stat-label {
         font-size: var(--font-size-small);
-        font-weight: 700;
+        font-weight: var(--font-weight-medium);
         opacity: 0.5;
     }
 
@@ -517,18 +525,18 @@
 
     .text-subheading {
         font-size: var(--font-size-xlarge);
-        font-weight: 700;
+        font-weight: var(--font-weight-semibold);
     }
 
     .text-card-title {
         font-size: var(--font-size-large);
-        font-weight: 700;
+        font-weight: var(--font-weight-semibold);
         letter-spacing: -0.02em;
     }
 
     .text-page-title {
         font-size: var(--font-size-display);
-        font-weight: 800;
+        font-weight: var(--font-weight-semibold);
         letter-spacing: -0.04em;
     }
 
