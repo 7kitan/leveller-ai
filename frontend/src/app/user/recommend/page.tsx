@@ -176,6 +176,13 @@ const UserRecommendPage = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [processMessage, setProcessMessage] = useState("");
 
+  const skill_gaps = gapResult?.skill_gaps || [];
+  const youtube_videos = gapResult?.youtube_videos || [];
+  
+  const sortedGapsForChart = useMemo(() => {
+    return [...skill_gaps].sort((a, b) => (b.market_demand || 0) - (a.market_demand || 0));
+  }, [skill_gaps]);
+
   const searchParams = useSearchParams();
   const taskIdFromUrl = searchParams.get("task_id");
 
@@ -387,8 +394,6 @@ const UserRecommendPage = () => {
     }
   };
 
-  const youtube_videos = gapResult?.youtube_videos || [];
-
   if (loading) {
     return (
       <div className={styles.loadingWrapper}>
@@ -425,17 +430,12 @@ const UserRecommendPage = () => {
   const { 
     overall_match_pct, 
     overall_assessment, 
-    skill_gaps = [], 
     course_recommendations = [], 
     career_roadmap,
     strengths = [],
     weaknesses = [],
     match_breakdown = {}
   } = gapResult;
-
-  const sortedGapsForChart = useMemo(() => {
-    return [...skill_gaps].sort((a, b) => (b.market_demand || 0) - (a.market_demand || 0));
-  }, [skill_gaps]);
 
   const highGaps = skill_gaps.filter((g) => g.severity?.toUpperCase() === "HIGH");
   const mediumGaps = skill_gaps.filter((g) => g.severity?.toUpperCase() === "MEDIUM");
