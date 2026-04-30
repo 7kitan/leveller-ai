@@ -5,6 +5,7 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types/roles";
+import {
   UploadCloud,
   TrendingUp,
   ArrowRight,
