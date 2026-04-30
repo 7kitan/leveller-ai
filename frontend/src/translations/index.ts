@@ -230,6 +230,9 @@ export const translations = {
     cat_tools: "Công cụ & Framework",
     cat_domain: "Kiến thức Domain",
     cat_cert: "Chứng chỉ",
+    demand_score: "Nhu cầu thị trường",
+    match_impact: "Tăng tỷ lệ khớp",
+    salary_impact: "Tăng mức lương",
 
     // Feedback
     feedback_title: "Phản hồi về kết quả",
@@ -1322,6 +1325,9 @@ export const translations = {
     cat_tools: "Tools & Frameworks",
     cat_domain: "Domain Knowledge",
     cat_cert: "Certifications",
+    demand_score: "Market Demand",
+    match_impact: "Match Impact",
+    salary_impact: "Salary Impact",
 
     // Feedback
     feedback_title: "Result Feedback",

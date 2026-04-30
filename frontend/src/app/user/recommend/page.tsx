@@ -761,14 +761,58 @@ const UserRecommendPage = () => {
                   <ReactECharts
                     key={`impact-chart-${skill_gaps.map(g => g.skill).join('-')}-${skill_gaps.length}`}
                     option={{
-                      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: chartTooltipBg, borderColor: primaryColor, borderWidth: 1, textStyle: { color: chartTooltipText } },
-                      legend: { data: [t('match_impact'), t('salary_impact')], textStyle: { color: chartTextColor, fontSize: 10 }, top: 0 },
+                      tooltip: { 
+                        trigger: 'axis', 
+                        axisPointer: { type: 'shadow' }, 
+                        backgroundColor: chartTooltipBg, 
+                        borderColor: primaryColor, 
+                        borderWidth: 1, 
+                        textStyle: { color: chartTooltipText } 
+                      },
+                      legend: { 
+                        data: [t('demand_score'), t('match_impact'), t('salary_impact')], 
+                        textStyle: { color: chartTextColor, fontSize: 10 }, 
+                        top: 0 
+                      },
                       grid: { left: '3%', right: '4%', bottom: '3%', top: '40px', containLabel: true },
-                      xAxis: { type: 'value', axisLabel: { color: chartTextColor, fontSize: 10 }, splitLine: { lineStyle: { color: chartSplitLineColor } } },
-                      yAxis: { type: 'category', data: sortedGapsForChart.map(g => g.skill).reverse(), axisLabel: { color: chartTextColor, fontSize: 11, width: 100, overflow: 'truncate' }, axisLine: { lineStyle: { color: chartAxisColor } } },
+                      xAxis: { type: 'value', max: 100, axisLabel: { color: chartTextColor, fontSize: 10 }, splitLine: { lineStyle: { color: chartSplitLineColor } } },
+                      yAxis: { 
+                        type: 'category', 
+                        data: sortedGapsForChart.map(g => g.skill).reverse(), 
+                        axisLabel: { color: chartTextColor, fontSize: 11, width: 100, overflow: 'truncate' }, 
+                        axisLine: { lineStyle: { color: chartAxisColor } } 
+                      },
                       series: [
-                        { name: t('match_impact'), type: 'bar', data: sortedGapsForChart.map(g => parseFloat(formatNumber(g.match_impact || 0))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: primaryColor }, { offset: 1, color: secondaryColor }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' },
-                        { name: t('salary_impact'), type: 'bar', data: sortedGapsForChart.map(g => parseFloat(formatNumber(g.salary_impact || 0))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#34d399' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' }
+                        { 
+                          name: t('demand_score'), 
+                          type: 'bar', 
+                          data: sortedGapsForChart.map(g => g.market_demand || 0).reverse(), 
+                          itemStyle: { 
+                            color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#f59e0b' }, { offset: 1, color: '#fbbf24' }] }, 
+                            borderRadius: [0, 4, 4, 0] 
+                          }, 
+                          barWidth: '20%' 
+                        },
+                        { 
+                          name: t('match_impact'), 
+                          type: 'bar', 
+                          data: sortedGapsForChart.map(g => parseFloat(formatNumber(g.match_impact || 0))).reverse(), 
+                          itemStyle: { 
+                            color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: primaryColor }, { offset: 1, color: secondaryColor }] }, 
+                            borderRadius: [0, 4, 4, 0] 
+                          }, 
+                          barWidth: '20%' 
+                        },
+                        { 
+                          name: t('salary_impact'), 
+                          type: 'bar', 
+                          data: sortedGapsForChart.map(g => parseFloat(formatNumber(g.salary_impact || 0))).reverse(), 
+                          itemStyle: { 
+                            color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#34d399' }] }, 
+                            borderRadius: [0, 4, 4, 0] 
+                          }, 
+                          barWidth: '20%' 
+                        }
                       ]
                     }}
                     style={{ height: '100%', width: '100%' }}
