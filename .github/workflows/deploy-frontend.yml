@@ -13,7 +13,8 @@ env:
 
 jobs:
   build-and-push:
-    runs-on: phoenix-runner-02
+  
+    runs-on: [self-hosted, phoenix-runner]
     permissions:
       contents: read
       packages: write
@@ -54,7 +55,7 @@ jobs:
 
   deploy:
     needs: build-and-push
-    runs-on: phoenix-runner-02
+    runs-on: [self-hosted, phoenix-runner]
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
