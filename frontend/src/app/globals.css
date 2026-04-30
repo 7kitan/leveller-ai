@@ -3,29 +3,31 @@
 @theme {
     /**
      * ============================================================================
-     * LUMIX AI - GLOBAL COLOR SYSTEM
+     * ARTEMIS/ARROW - OKLCH COLOR SYSTEM
      * ============================================================================
      * 
-     * NASA-INSPIRED PALETTE: Space exploration theme with modern approachability
+     * LUNAR SILVER-BLUE: Precision, clarity, and aspiration
+     * Inspired by Artemis (moon goddess) and the arrow (focused direction)
      * 
      * This is the SINGLE SOURCE OF TRUTH for all colors in the application.
      * 
      * USAGE RULES:
      * ✅ DO: Use semantic aliases (--color-bg-primary, --color-text-primary)
-     * ✅ DO: Use scale values for specific needs (--color-primary-300)
-     * ✅ DO: Compose gradients from global colors
+     * ✅ DO: Use scale values for specific needs (--color-accent-300)
+     * ✅ DO: Use color-mix() for transparency (works in dark mode)
      * ❌ DON'T: Create local color variables in component CSS
      * ❌ DON'T: Use hardcoded hex, rgb, or named colors
      * 
-     * COLOR SCALES (40 values):
-     * - Primary (Space Blue): Brand identity, primary actions - 5 shades
-     * - Secondary (Mars Red): Accents, CTAs, highlights - 5 shades
-     * - Light/Gray: Neutral colors for light mode - 7 shades
-     * - Dark: Neutral colors for dark mode - 7 shades
-     * - Success (Green): Success states, positive actions - 4 shades
-     * - Warning (Amber): Warnings, caution states - 4 shades
-     * - Error (Red/Pink): Errors, destructive actions - 4 shades
-     * - Info (Blue): Information, neutral highlights - 4 shades
+     * OKLCH BENEFITS:
+     * - Perceptually uniform (consistent brightness across hues)
+     * - Perfect dark mode (invert lightness, maintain chroma/hue)
+     * - Better accessibility (predictable contrast ratios)
+     * - Smaller palette (fewer colors needed)
+     * 
+     * COLOR SCALES:
+     * - Accent (Lunar Silver-Blue): Brand identity, primary actions - 10 shades
+     * - Neutral (Warm): Backgrounds, text, borders - 10 shades
+     * - Semantic: Success, Warning, Error, Info - 3 shades each
      * 
      * SEMANTIC ALIASES:
      * Use these 90% of the time for consistency. They automatically adjust
@@ -35,103 +37,144 @@
      */
 
     /* ========================================================================
-     * PRIMARY COLOR SCALE - SPACE BLUE (NASA-Inspired)
-     * Brand identity, primary actions, main UI elements
+     * ACCENT SCALE - LUNAR SILVER-BLUE
+     * Brand identity, primary actions, interactive elements
+     * Hue: 240 (blue) | Chroma: 0.02-0.08 (very muted, sophisticated)
      * ======================================================================== */
-    --color-primary-100: #e6eef9;    /* Light backgrounds, subtle highlights */
-    --color-primary-300: #7a9dd9;    /* Borders, light accents */
-    --color-primary-500: #2563eb;    /* Main brand color (brighter than NASA) */
-    --color-primary-600: #1e4db7;    /* Closer to official NASA blue */
-    --color-primary-700: #0B3D91;    /* Official NASA blue */
-    --color-primary-800: #082e6f;    /* Darker states */
-    --color-primary-900: #082a5e;    /* Darkest, text on light backgrounds */
+    --color-accent-50: oklch(0.95 0.02 240);   /* Lightest - subtle backgrounds */
+    --color-accent-100: oklch(0.90 0.04 240);  /* Light backgrounds */
+    --color-accent-200: oklch(0.85 0.05 240);  /* Hover backgrounds */
+    --color-accent-300: oklch(0.78 0.06 240);  /* Borders, dividers */
+    --color-accent-400: oklch(0.72 0.08 240);  /* Muted accents */
+    --color-accent-500: oklch(0.65 0.08 240);  /* PRIMARY - main brand color */
+    --color-accent-600: oklch(0.58 0.08 240);  /* Hover state */
+    --color-accent-700: oklch(0.50 0.07 240);  /* Active state */
+    --color-accent-800: oklch(0.42 0.06 240);  /* Pressed state */
+    --color-accent-900: oklch(0.32 0.05 240);  /* Darkest - text on light */
 
     /* ========================================================================
-     * SECONDARY COLOR SCALE - MARS RED (NASA-Inspired)
-     * CTAs, accents, highlights, important actions
+     * NEUTRAL SCALE - WARM TONES
+     * Backgrounds, text, borders - inspired by natural materials
+     * Hue: 60 (warm) for lights, 240 (cool) for darks
      * ======================================================================== */
-    --color-secondary-100: #fee5e0;  /* Light backgrounds */
-    --color-secondary-300: #fca89a;  /* Borders, light accents */
-    --color-secondary-500: #FC3D21;  /* Official NASA red - main accent */
-    --color-secondary-700: #d42f15;  /* Hover states */
-    --color-secondary-900: #8a1f0e;  /* Dark text, gradients */
+    --color-neutral-50: oklch(0.97 0.008 60);   /* Near white - main background */
+    --color-neutral-100: oklch(0.94 0.010 60);  /* Subtle background */
+    --color-neutral-200: oklch(0.88 0.012 60);  /* Secondary background */
+    --color-neutral-300: oklch(0.78 0.015 60);  /* Tertiary background */
+    --color-neutral-400: oklch(0.65 0.018 60);  /* Disabled elements */
+    --color-neutral-500: oklch(0.52 0.020 60);  /* Muted text */
+    --color-neutral-600: oklch(0.42 0.020 240); /* Secondary text */
+    --color-neutral-700: oklch(0.32 0.018 240); /* Strong text */
+    --color-neutral-800: oklch(0.24 0.015 240); /* Emphasis text */
+    --color-neutral-900: oklch(0.18 0.012 240); /* Primary text */
 
     /* ========================================================================
-     * LIGHT/GRAY SCALE - NEUTRALS (Light Mode)
-     * Backgrounds, text, borders for light theme
-     * ======================================================================== */
-    --color-light-50: #ffffff;       /* Pure white, cards, elevated surfaces */
-    --color-light-100: #f9fafb;      /* Subtle backgrounds */
-    --color-light-200: #f5f5f7;      /* Apple light gray, secondary backgrounds */
-    --color-light-300: #e5e7eb;      /* Subtle borders */
-    --color-light-500: #9ca3af;      /* Muted text, placeholders */
-    --color-light-700: #4b5563;      /* Secondary text */
-    --color-light-800: #374151;      /* Strong text */
-    --color-light-900: #1d1d1f;      /* Primary text (Apple near-black) */
-
-    /* ========================================================================
-     * DARK SCALE - NEUTRALS (Dark Mode)
-     * Backgrounds, surfaces for dark theme
-     * ======================================================================== */
-    --color-dark-100: #28282a;       /* Elevated surfaces */
-    --color-dark-200: #272729;       /* Secondary backgrounds */
-    --color-dark-300: #262628;       /* Tertiary backgrounds */
-    --color-dark-400: #1e1e20;       /* Deep backgrounds */
-    --color-dark-600: #0f172a;       /* Deeper backgrounds */
-    --color-dark-700: #0a0a0b;       /* Very deep */
-    --color-dark-800: #050505;       /* Near black */
-    --color-dark-900: #000000;       /* Pure black */
-
-    /* ========================================================================
-     * SEMANTIC COLOR SCALES - LIMITED SHADES
-     * Success, Warning, Error, Info - 4 key shades each
+     * SEMANTIC COLORS - MUTED & PROFESSIONAL
+     * Success, Warning, Error, Info - 3 key shades each
+     * Lower chroma for sophisticated, minimalist aesthetic
      * ======================================================================== */
     
-    /* Success (Green) - Success states, positive actions */
-    --color-success-100: #d1fae5;    /* Success backgrounds */
-    --color-success-500: #10b981;    /* Success default */
-    --color-success-700: #047857;    /* Success hover */
-    --color-success-900: #064e3b;    /* Success text */
+    /* Success (Muted Green) - Success states, positive actions */
+    --color-success-light: oklch(0.85 0.08 150);  /* Success backgrounds */
+    --color-success: oklch(0.60 0.12 150);        /* Success default */
+    --color-success-dark: oklch(0.45 0.10 150);   /* Success hover/text */
 
-    /* Warning (Amber) - Warnings, caution states */
-    --color-warning-100: #fef3c7;    /* Warning backgrounds */
-    --color-warning-500: #f59e0b;    /* Warning default */
-    --color-warning-700: #b45309;    /* Warning hover */
-    --color-warning-900: #78350f;    /* Warning text */
+    /* Warning (Muted Amber) - Warnings, caution states */
+    --color-warning-light: oklch(0.88 0.10 80);   /* Warning backgrounds */
+    --color-warning: oklch(0.70 0.14 80);         /* Warning default */
+    --color-warning-dark: oklch(0.55 0.12 80);    /* Warning hover/text */
 
-    /* Error (Red/Pink) - Errors, destructive actions */
-    --color-error-100: #ffe4e6;      /* Error backgrounds */
-    --color-error-500: #f43f5e;      /* Error default */
-    --color-error-700: #be123c;      /* Error hover */
-    --color-error-900: #881337;      /* Error text */
+    /* Error (Muted Red) - Errors, destructive actions */
+    --color-error-light: oklch(0.85 0.10 25);     /* Error backgrounds */
+    --color-error: oklch(0.60 0.15 25);           /* Error default */
+    --color-error-dark: oklch(0.45 0.12 25);      /* Error hover/text */
 
-    /* Info (Blue) - Information, neutral highlights */
-    --color-info-100: #dbeafe;       /* Info backgrounds */
-    --color-info-500: #3b82f6;       /* Info default */
-    --color-info-700: #0284c7;       /* Info hover */
-    --color-info-900: #075985;       /* Info text */
+    /* Info (Muted Blue) - Information, neutral highlights */
+    --color-info-light: oklch(0.85 0.08 240);     /* Info backgrounds */
+    --color-info: oklch(0.60 0.12 240);           /* Info default */
+    --color-info-dark: oklch(0.45 0.10 240);      /* Info hover/text */
+
+    /* ========================================================================
+     * LEGACY COMPATIBILITY MAPPINGS
+     * Maps old color names to new OKLCH system for backward compatibility
+     * ======================================================================== */
+    --color-primary-50: var(--color-accent-50);
+    --color-primary-100: var(--color-accent-100);
+    --color-primary-200: var(--color-accent-200);
+    --color-primary-300: var(--color-accent-300);
+    --color-primary-400: var(--color-accent-400);
+    --color-primary-500: var(--color-accent-500);
+    --color-primary-600: var(--color-accent-600);
+    --color-primary-700: var(--color-accent-700);
+    --color-primary-800: var(--color-accent-800);
+    --color-primary-900: var(--color-accent-900);
+
+    --color-secondary-100: var(--color-accent-100);
+    --color-secondary-300: var(--color-accent-300);
+    --color-secondary-500: var(--color-accent-500);
+    --color-secondary-700: var(--color-accent-700);
+    --color-secondary-900: var(--color-accent-900);
+
+    --color-light-50: var(--color-neutral-50);
+    --color-light-100: var(--color-neutral-100);
+    --color-light-200: var(--color-neutral-200);
+    --color-light-300: var(--color-neutral-300);
+    --color-light-500: var(--color-neutral-500);
+    --color-light-700: var(--color-neutral-700);
+    --color-light-800: var(--color-neutral-800);
+    --color-light-900: var(--color-neutral-900);
+
+    --color-dark-100: oklch(0.28 0.018 240);
+    --color-dark-200: oklch(0.22 0.015 240);
+    --color-dark-300: oklch(0.25 0.012 240);
+    --color-dark-400: oklch(0.20 0.015 240);
+    --color-dark-600: oklch(0.18 0.012 240);
+    --color-dark-700: oklch(0.12 0.010 240);
+    --color-dark-800: oklch(0.08 0.008 240);
+    --color-dark-900: oklch(0.05 0.005 240);
+
+    --color-success-100: var(--color-success-light);
+    --color-success-500: var(--color-success);
+    --color-success-700: var(--color-success-dark);
+    --color-success-900: var(--color-success-dark);
+
+    --color-warning-100: var(--color-warning-light);
+    --color-warning-500: var(--color-warning);
+    --color-warning-700: var(--color-warning-dark);
+    --color-warning-900: var(--color-warning-dark);
+
+    --color-error-100: var(--color-error-light);
+    --color-error-500: var(--color-error);
+    --color-error-700: var(--color-error-dark);
+    --color-error-900: var(--color-error-dark);
+
+    --color-info-100: var(--color-info-light);
+    --color-info-500: var(--color-info);
+    --color-info-700: var(--color-info-dark);
+    --color-info-900: var(--color-info-dark);
 
     /* ========================================================================
      * GRADIENTS - REUSABLE GRADIENT PATTERNS
-     * Common gradient combinations for backgrounds, text, etc.
+     * Composed from OKLCH accent and neutral colors
      * ======================================================================== */
-    --gradient-primary: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-900));
-    --gradient-secondary: linear-gradient(135deg, var(--color-secondary-500), var(--color-secondary-900));
-    --gradient-brand: linear-gradient(135deg, var(--color-primary-600), var(--color-info-500));
-    --gradient-sky: linear-gradient(135deg, var(--color-info-500), var(--color-primary-500));
-    --gradient-text: linear-gradient(180deg, var(--color-light-900), var(--color-light-700));
-    --gradient-hero: linear-gradient(135deg, var(--color-light-100), var(--color-light-200));
+    --gradient-primary: linear-gradient(135deg, var(--color-accent-600), var(--color-accent-900));
+    --gradient-secondary: linear-gradient(135deg, var(--color-accent-500), var(--color-accent-800));
+    --gradient-brand: linear-gradient(135deg, var(--color-accent-500), var(--color-info));
+    --gradient-sky: linear-gradient(135deg, var(--color-accent-400), var(--color-accent-600));
+    --gradient-text: linear-gradient(180deg, var(--color-neutral-900), var(--color-neutral-700));
+    --gradient-hero: linear-gradient(135deg, var(--color-neutral-50), var(--color-neutral-100));
 
     /* ========================================================================
      * SHADOWS - ELEVATION SYSTEM
-     * Standardized shadow tokens with color references
+     * Using OKLCH color-mix() for dark mode compatibility
+     * Pure black shadows work on any background
      * ======================================================================== */
     --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.02);
     --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.05);
     --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.05);
     --shadow-xl: 0 30px 60px rgba(0, 0, 0, 0.08);
-    --shadow-primary: 0 4px 20px rgba(37, 99, 235, 0.3);
-    --shadow-secondary: 0 4px 20px rgba(252, 61, 33, 0.3);
+    --shadow-primary: 0 4px 20px color-mix(in oklch, var(--color-accent-500) 30%, transparent);
+    --shadow-secondary: 0 4px 20px color-mix(in oklch, var(--color-accent-600) 30%, transparent);
 
     /* ========================================================================
      * OPACITY UTILITIES
@@ -145,14 +188,14 @@
 
     /* ========================================================================
      * LEGACY COMPATIBILITY
-     * Apple Design System references (kept for backward compatibility)
+     * Artemis/Arrow brand colors mapped to legacy names
      * ======================================================================== */
-    --color-apple-black: #000000;
-    --color-apple-light-gray: #f5f5f7;
-    --color-apple-near-black: #1d1d1f;
-    --color-apple-blue: #0071e3;
-    --color-apple-link-blue: #0066cc;
-    --color-apple-bright-blue: #2997ff;
+    --color-apple-black: oklch(0.05 0.005 240);
+    --color-apple-light-gray: var(--color-neutral-200);
+    --color-apple-near-black: var(--color-neutral-900);
+    --color-apple-blue: var(--color-accent-500);
+    --color-apple-link-blue: var(--color-accent-600);
+    --color-apple-bright-blue: var(--color-accent-400);
 
     /* ========================================================================
      * TYPOGRAPHY SCALE
