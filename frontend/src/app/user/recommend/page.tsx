@@ -36,7 +36,7 @@ import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 import { useLanguage } from "@/context/LanguageContext";
 
-/* ── Types ─────────────────────────────────────────────────────────────── */
+/* --- Types --------------------------------------------------------------- */
 interface CourseRec {
   course_id: string;
   gap_skill?: string;
@@ -114,7 +114,7 @@ interface GapResult {
   is_cached?: boolean;
 }
 
-/* ── Helpers ────────────────────────────────────────────────────────────── */
+/* --- Helpers ------------------------------------------------------------- */
 function severityColor(sev: string) {
   const map: Record<string, string> = {
     HIGH: "#f43f5e",
@@ -186,7 +186,7 @@ const UserRecommendPage = () => {
   const searchParams = useSearchParams();
   const taskIdFromUrl = searchParams.get("task_id");
 
-  /* ── Progressive Polling Logic ───────────────────────────────────────── */
+  /* --- Progressive Polling Logic ----------------------------------------- */
   useEffect(() => {
     if (!token || !taskIdFromUrl) return;
 
@@ -346,7 +346,7 @@ const UserRecommendPage = () => {
     return () => {};
   }, [token, taskIdFromUrl]);
 
-  /* ── Load initial gap result (if no task_id) ─────────────────────────── */
+  /* --- Load initial gap result (if no task_id) --------------------------- */
   useEffect(() => {
     if (!token || taskIdFromUrl) return;
 
