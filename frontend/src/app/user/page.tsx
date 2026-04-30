@@ -405,13 +405,13 @@ const UserDashboard = () => {
                     dataKey="date" 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: 'var(--color-text-tertiary)', fontSize: 10, fontWeight: 'bold' }}
+                    tick={{ fill: 'var(--color-text-secondary)', fontSize: 11, fontWeight: 500 }}
                     minTickGap={40}
                   />
                   <YAxis 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: 'var(--color-text-tertiary)', fontSize: 10, fontWeight: 'bold' }}
+                    tick={{ fill: 'var(--color-text-secondary)', fontSize: 11, fontWeight: 500 }}
                   />
                   <Legend 
                     verticalAlign="top" 
@@ -462,7 +462,7 @@ const UserDashboard = () => {
                                   borderRadius: '50%', 
                                   backgroundColor: p.color 
                                 }} />
-                                <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{skill.name}</span>
+                                <span style={{ fontSize: '13px', fontWeight: 600 }}>{skill.name}</span>
                               </div>
                             );
                           })}
@@ -477,7 +477,7 @@ const UserDashboard = () => {
                       border: 'none',
                       backdropFilter: 'blur(10px)',
                       boxShadow: 'var(--shadow-xl)',
-                      color: 'var(--color-text-inverse)',
+                      color: 'var(--color-text-primary)',
                       padding: '12px'
                     }}
                     content={(props: any) => {
