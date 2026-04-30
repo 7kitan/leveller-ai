@@ -6,7 +6,7 @@
   flex-direction: column;
   gap: 3.5rem;
   padding: 2rem 0;
-  animation: fadeIn 1s var(--ease-premium);
+  animation: fadeIn 1s cubic-bezier(0.4, 0, 0.2, 1);
   padding-bottom: 8rem; /* Space for the fixed save bar */
   width: 100%;
 }
@@ -22,7 +22,7 @@
   font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: 800;
   letter-spacing: -0.04em;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   line-height: 1;
   display: flex;
   align-items: center;
@@ -59,7 +59,7 @@
   display: flex;
   gap: 0.5rem;
   padding: 0.5rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: 9999px;
   width: fit-content;
@@ -82,7 +82,7 @@
 }
 
 .tabItem:hover {
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   background-color: color-mix(in srgb, var(--color-text-primary) 3%, transparent);
 }
 
@@ -91,7 +91,7 @@
 }
 
 .tabItemActive {
-  background-color: var(--tab-accent, var(--color-accent-primary)) !important;
+  background-color: var(--tab-accent, var(--color-primary)) !important;
   color: white !important;
   box-shadow: 0 4px 12px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
 }
@@ -107,7 +107,7 @@
 
 
 .settingCard {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   backdrop-filter: blur(20px);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
@@ -115,20 +115,20 @@
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
-  transition: all 0.4s var(--ease-premium);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
 .settingCard:hover {
   transform: translateY(-5px);
-  box-shadow: var(--shadow-premium);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   border-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .settingCardModified {
-  border-color: var(--color-accent-primary);
-  box-shadow: 0 0 0 1px var(--color-accent-primary), 0 10px 30px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary), 0 10px 30px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 .cardHeader {
@@ -146,14 +146,14 @@
 }
 
 .cardIcon {
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
   opacity: 0.8;
 }
 
 .cardTitle {
   font-size: var(--font-size-medium);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .sectionSaveBtn {
@@ -161,7 +161,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   border-radius: 1rem;
   font-size: var(--font-size-small);
@@ -171,7 +171,7 @@
 }
 
 .sectionSaveBtn:hover {
-  background-color: var(--color-primary-700);
+  background-color: var(--color-accent-700);
   transform: translateY(-2px);
 }
 
@@ -188,7 +188,7 @@
   padding: 0.625rem 1rem;
   background-color: transparent;
   border: 1px solid var(--color-border-subtle);
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   border-radius: 1rem;
   font-size: var(--font-size-small);
   font-weight: 700;
@@ -222,7 +222,7 @@
 .fieldModifiedDot {
   width: 6px;
   height: 6px;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   border-radius: 50%;
   display: inline-block;
   margin-left: 0.5rem;
@@ -236,7 +236,7 @@
 .label {
   font-size: var(--font-size-base);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .desc {
@@ -257,7 +257,7 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: 1.25rem;
   padding: 1.125rem 1.5rem;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   font-weight: 700;
   outline: none;
   transition: all 0.3s ease;
@@ -268,7 +268,7 @@
 }
 
 .input:focus {
-  border-color: var(--color-accent-primary);
+  border-color: var(--color-primary);
   background-color: white;
 }
 
@@ -322,7 +322,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1.125rem 2.5rem;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   border-radius: 1.25rem;
   font-size: var(--font-size-small);
@@ -332,7 +332,7 @@
 }
 
 .saveBtn:hover {
-  background-color: var(--color-primary-700);
+  background-color: var(--color-accent-700);
   transform: translateY(-2px);
 }
 
@@ -350,7 +350,7 @@
   transform: translateX(-50%);
   width: fit-content;
   max-width: 90%;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   padding: 1rem 2.5rem;
   border-radius: 2rem;
@@ -365,7 +365,7 @@
 .saveBarText {
   font-size: var(--font-size-base);
   font-weight: 700;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .saveBarActions {
@@ -384,11 +384,11 @@
 
 .discardBtn:hover {
   background-color: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .mainSaveBtn {
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   padding: 0.75rem 2rem;
   border-radius: 1rem;
@@ -399,7 +399,7 @@
 }
 
 .mainSaveBtn:hover {
-  background-color: var(--color-primary-700);
+  background-color: var(--color-accent-700);
   transform: translateY(-2px);
 }
 
@@ -411,13 +411,13 @@
   align-items: center;
   gap: 1rem;
   padding: 1.25rem 2rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1.5rem;
   box-shadow: 0 20px 50px color-mix(in srgb, var(--color-text-primary) 20%, transparent);
   z-index: 1000;
   backdrop-filter: blur(10px);
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   font-weight: 700;
 }
 

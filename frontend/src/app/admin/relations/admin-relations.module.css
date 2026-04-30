@@ -28,7 +28,7 @@
   gap: 1rem;
   font-size: var(--font-size-xlarge);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   letter-spacing: -0.05em;
 }
 
@@ -55,10 +55,10 @@
 }
 
 .addBtn:hover {
-  background-color: var(--color-warning-700);
+  background-color: var(--color-warning-dark);
   color: white;
   transform: translateY(-3px);
-  box-shadow: 0 25px 50px color-mix(in srgb, var(--color-warning-700) 30%, transparent);
+  box-shadow: 0 25px 50px color-mix(in srgb, var(--color-warning-dark) 30%, transparent);
 }
 
 .contentStack {
@@ -72,7 +72,7 @@
   flex-direction: column;
   gap: 2rem;
   padding: 2.5rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   box-shadow: 0 4px 12px color-mix(in srgb, var(--color-text-primary) 2%, transparent);
@@ -123,14 +123,14 @@
 
 .toggleBtnInactive:hover {
   opacity: 1;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   background-color: white;
   box-shadow: 0 4px 12px color-mix(in srgb, var(--color-text-primary) 5%, transparent);
 }
 
 .refreshBtn {
   padding: 1.125rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1rem;
   color: var(--color-text-muted);
@@ -140,7 +140,7 @@
 
 .refreshBtn:hover {
   background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   opacity: 1;
 }
 
@@ -151,7 +151,7 @@
 }
 
 .groupCard {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -215,7 +215,7 @@
 .groupTitle {
   font-size: var(--font-size-medium);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   letter-spacing: -0.01em;
 }
 
@@ -237,7 +237,7 @@
 /* Badge Logic */
 .badgePosition { background-color: color-mix(in srgb, var(--color-warning) 10%, transparent); color: var(--color-warning-800); border-color: color-mix(in srgb, var(--color-warning) 20%, transparent); }
 .badgeDomain { background-color: color-mix(in srgb, var(--color-secondary) 10%, transparent); color: var(--color-secondary); border-color: color-mix(in srgb, var(--color-secondary) 20%, transparent); }
-.badgeTech { background-color: color-mix(in srgb, var(--color-primary-600) 10%, transparent); color: var(--color-primary-600); border-color: color-mix(in srgb, var(--color-primary-600) 20%, transparent); }
+.badgeTech { background-color: color-mix(in srgb, var(--color-accent-600) 10%, transparent); color: var(--color-accent-600); border-color: color-mix(in srgb, var(--color-accent-600) 20%, transparent); }
 .badgeDefault { background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent); color: var(--color-text-muted); border-color: var(--color-border-subtle); }
 
 .childrenWrapper {
@@ -283,7 +283,7 @@
 .childCard:hover {
   background-color: color-mix(in srgb, var(--color-text-primary) 1%, transparent);
   transform: translateY(-2px);
-  border-color: var(--color-accent-primary);
+  border-color: var(--color-primary);
   box-shadow: 0 8px 16px color-mix(in srgb, var(--color-text-primary) 5%, transparent);
 }
 
@@ -297,7 +297,7 @@
 .childName {
   font-size: var(--font-size-base);
   font-weight: 700;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .childType {
@@ -337,8 +337,8 @@
 
 .addChildBtn:hover {
   background-color: white;
-  color: var(--color-accent-primary);
-  border-color: var(--color-accent-primary);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
   border-style: solid;
   opacity: 1;
 }
@@ -378,7 +378,7 @@
   backdrop-filter: blur(20px);
   box-shadow: 0 25px 50px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
   z-index: 1000;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .notifSuccess {
@@ -456,7 +456,7 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: 1.25rem;
   padding: 1.25rem 1.5rem;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   font-weight: 700;
   outline: none;
   transition: all 0.3s ease;
@@ -481,7 +481,7 @@
     opacity: 0.5;
 }
 
-.cancelBtn:hover { color: var(--color-text-main); opacity: 1; }
+.cancelBtn:hover { color: var(--color-text-primary); opacity: 1; }
 
 .submitBtn {
     background: var(--color-warning);
@@ -495,10 +495,10 @@
 }
 
 .submitBtn:hover {
-    background: var(--color-warning-700);
+    background: var(--color-warning-dark);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 15px 30px color-mix(in srgb, var(--color-warning-700) 30%, transparent);
+    box-shadow: 0 15px 30px color-mix(in srgb, var(--color-warning-dark) 30%, transparent);
 }
 
 @keyframes spin {

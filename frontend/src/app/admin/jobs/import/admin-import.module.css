@@ -10,7 +10,7 @@
 }
 
 .header {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 2.5rem;
@@ -26,7 +26,7 @@
   gap: 1.5rem;
   font-size: var(--font-size-xlarge);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   letter-spacing: -0.05em;
 }
 
@@ -49,7 +49,7 @@
 }
 
 .backBtn:hover {
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
   transform: translateX(-2px);
 }
 
@@ -65,7 +65,7 @@
   align-items: center;
   gap: 1.5rem;
   padding: 1.5rem 2rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
 }
@@ -82,7 +82,7 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 0.75rem 1.5rem;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   border-radius: var(--radius-md);
   font-weight: 700;
@@ -93,7 +93,7 @@
 }
 
 .uploadBtn:hover {
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   box-shadow: 0 4px 12px color-mix(in srgb, var(--color-info) 30%, transparent);
   transform: translateY(-1px);
   filter: brightness(1.1);
@@ -107,8 +107,8 @@
 
 .uploadBtnSecondary {
   background-color: color-mix(in srgb, var(--color-info) 8%, transparent);
-  color: var(--color-accent-primary);
-  border: 1px solid var(--color-accent-primary);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
 }
 
 .uploadBtnSecondary:hover {
@@ -146,7 +146,7 @@
 }
 
 .inputSection {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 2rem;
@@ -172,7 +172,7 @@
   background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1.25rem;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   font-family: inherit;
   font-size: var(--font-size-base);
   font-weight: 600;
@@ -182,7 +182,7 @@
 }
 
 .urlTextarea:focus {
-  border-color: var(--color-accent-primary);
+  border-color: var(--color-primary);
   background-color: transparent;
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 5%, transparent);
 }
@@ -193,7 +193,7 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 1rem;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   border-radius: var(--radius-md);
   font-weight: 700;
@@ -221,7 +221,7 @@
 }
 
 .resultCard {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1.5rem;
   overflow: hidden;
@@ -303,7 +303,7 @@
   background-color: color-mix(in srgb, var(--color-text-primary) 10%, transparent);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1rem;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   font-weight: 700;
   outline: none;
   font-size: var(--font-size-base);
@@ -327,7 +327,7 @@
 }
 
 .discardBtn:hover {
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   background-color: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
   border-color: var(--color-border-subtle);
 }
@@ -337,7 +337,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 2rem;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   border-radius: var(--radius-md);
   font-weight: 700;
@@ -365,7 +365,7 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 40;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   padding: 0.75rem 0.75rem 0.75rem 2rem;
@@ -383,7 +383,7 @@
 }
 
 .countBadge {
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   width: 1.75rem;
   height: 1.75rem;
@@ -406,7 +406,7 @@
   position: fixed;
   top: 2rem;
   right: 2rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   padding: 1.25rem 2rem;

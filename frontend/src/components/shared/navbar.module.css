@@ -78,7 +78,7 @@
 
 [data-theme="light"] .mobileHamburger {
   background: rgba(0, 0, 0, 0.05);
-  color: var(--color-apple-near-black);
+  color: var(--color-neutral-900);
 }
 
 .brandLink {
@@ -100,7 +100,7 @@
 }
 
 [data-theme="light"] .brandIcon {
-  background: var(--color-apple-black);
+  background: var(--color-neutral-900);
   color: #ffffff;
 }
 
@@ -112,7 +112,7 @@
 }
 
 [data-theme="light"] .brandText {
-  color: var(--color-apple-near-black);
+  color: var(--color-neutral-900);
 }
 
 .right {
@@ -186,7 +186,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-apple-blue), #0071e3);
+  background: linear-gradient(135deg, var(--color-primary), #0071e3);
   color: #ffffff;
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
@@ -199,13 +199,13 @@
 
 .dropdownEmail {
   @apply text-sm truncate mb-0.5;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   font-weight: var(--font-weight-medium);
 }
 
 .dropdownRole {
   @apply text-[10px] uppercase tracking-widest;
-  color: var(--color-apple-blue);
+  color: var(--color-primary);
   font-weight: var(--font-weight-semibold);
 }
 
@@ -225,7 +225,7 @@
 
 .dropdownItem {
   @apply flex items-center gap-3 px-4 py-3 cursor-pointer no-underline;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-normal);
 }
@@ -274,14 +274,14 @@
 }
 
 [data-theme="light"] .userName {
-  color: var(--color-apple-near-black);
+  color: var(--color-neutral-900);
 }
 
 .avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: var(--color-apple-blue);
+  background-color: var(--color-primary);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -373,7 +373,7 @@
 [data-theme="light"] .input {
   border-color: rgba(0, 0, 0, 0.08);
   background: rgba(0, 0, 0, 0.04);
-  color: var(--color-apple-near-black);
+  color: var(--color-neutral-900);
 }
 
 [data-theme="light"] .input::placeholder {
@@ -413,7 +413,7 @@
 }
 
 [data-theme="light"] .iconBtn {
-  color: var(--color-apple-near-black);
+  color: var(--color-neutral-900);
 }
 
 [data-theme="light"] .iconBtn:hover {
@@ -475,7 +475,7 @@
 }
 
 [data-theme="light"] .langToggle {
-  color: var(--color-apple-near-black);
+  color: var(--color-neutral-900);
 }
 
 [data-theme="light"] .langToggle:hover {
@@ -590,12 +590,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-apple-blue);
+  background: var(--color-primary);
   color: #ffffff;
 }
 
 [data-theme="light"] .mobileBrandIcon {
-  background: var(--color-apple-black);
+  background: var(--color-neutral-900);
   color: #ffffff;
 }
 
@@ -608,7 +608,7 @@
   border-radius: 10px;
   border: none;
   background: rgba(0, 0, 0, 0.05);
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease;
 }
@@ -656,7 +656,7 @@
 
 .mobileNavItemActive {
   background: rgba(0, 113, 227, 0.08);
-  color: var(--color-apple-blue) !important;
+  color: var(--color-primary) !important;
   font-weight: var(--font-weight-semibold);
 }
 

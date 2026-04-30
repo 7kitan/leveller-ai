@@ -98,10 +98,12 @@
      * TYPOGRAPHY SCALE
      * Font sizes with semantic naming
      * ======================================================================== */
+    --font-size-caption: 0.75rem;   /* 12px */
     --font-size-small: 0.875rem;    /* 14px */
     --font-size-base: 1rem;         /* 16px */
     --font-size-medium: 1.25rem;    /* 20px */
     --font-size-large: 1.5625rem;   /* 25px */
+    --font-size-title: 1.875rem;    /* 30px */
     --font-size-xlarge: 2rem;       /* 32px */
     --font-size-display: 2.5rem;    /* 40px */
 
@@ -167,6 +169,7 @@
         --color-bg-secondary: var(--color-neutral-100);
         --color-bg-tertiary: var(--color-neutral-200);
         --color-bg-elevated: var(--color-neutral-50);
+        --color-bg-hover: var(--color-neutral-200);
         --color-bg-overlay: rgba(0, 0, 0, 0.5);
         --color-bg-glass: rgba(0, 0, 0, 0.8);
 
@@ -231,6 +234,7 @@
         --color-bg-secondary: var(--color-neutral-800);
         --color-bg-tertiary: var(--color-neutral-700);
         --color-bg-elevated: var(--color-neutral-800);
+        --color-bg-hover: var(--color-neutral-700);
         --color-bg-overlay: rgba(255, 255, 255, 0.1);
         --color-bg-glass: rgba(255, 255, 255, 0.05);
 

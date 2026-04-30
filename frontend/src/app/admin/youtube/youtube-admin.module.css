@@ -3,7 +3,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.625rem 1.25rem;
-    background: linear-gradient(135deg, var(--color-error) 0%, var(--color-error-700) 100%);
+    background: linear-gradient(135deg, var(--color-error) 0%, var(--color-error-dark) 100%);
     color: white;
     border-radius: 0.75rem;
     font-weight: 600;
@@ -37,17 +37,17 @@
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     opacity: 0.5;
 }
 
 .searchInput {
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 2.75rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
     border-radius: 0.75rem;
-    color: var(--text-primary);
+    color: var(--color-text-primary);
     font-size: var(--font-size-base);
     transition: all 0.2s ease;
 }
@@ -56,7 +56,7 @@
     outline: none;
     border-color: var(--color-error);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error) 10%, transparent);
-    background: var(--bg-primary);
+    background: var(--color-bg-primary);
 }
 
 .refreshBtn {
@@ -65,22 +65,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
     border-radius: 0.75rem;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     transition: all 0.2s ease;
 }
 
 .refreshBtn:hover {
-    background: var(--bg-hover);
+    background: var(--color-bg-hover);
     color: var(--color-error);
     border-color: var(--color-error);
 }
 
 .tableContainer {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
     border-radius: 1rem;
     overflow-x: auto;
     box-shadow: 0 4px 6px -1px color-mix(in srgb, var(--color-text-primary) 10%, transparent), 0 2px 4px -1px color-mix(in srgb, var(--color-text-primary) 6%, transparent);
@@ -92,8 +92,8 @@
 }
 
 .tableHeader {
-    background: var(--bg-tertiary);
-    border-bottom: 1px solid var(--border-color);
+    background: var(--color-bg-tertiary);
+    border-bottom: 1px solid var(--color-border-default);
 }
 
 .th {
@@ -101,7 +101,7 @@
     text-align: left;
     font-size: var(--font-size-base);
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
 }
 
 .thRight {
@@ -109,7 +109,7 @@
 }
 
 .tr {
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--color-border-default);
     transition: background 0.2s ease;
 }
 
@@ -118,7 +118,7 @@
 }
 
 .tr:hover {
-    background: var(--bg-hover);
+    background: var(--color-bg-hover);
 }
 
 .td {
@@ -162,7 +162,7 @@
 .videoTitle {
     display: block;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--color-text-primary);
     font-size: var(--font-size-base);
     line-height: 1.25rem;
     margin-bottom: 0.125rem;
@@ -188,8 +188,8 @@
 .videoId {
     font-family: monospace;
     font-size: var(--font-size-base);
-    color: var(--text-secondary);
-    background: var(--bg-tertiary);
+    color: var(--color-text-secondary);
+    background: var(--color-bg-tertiary);
     padding: 0.125rem 0.375rem;
     border-radius: 0.25rem;
     opacity: 0.8;
@@ -203,7 +203,7 @@
 
 .channelName {
     font-size: var(--font-size-base);
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     display: flex;
     align-items: center;
     gap: 0.25rem;
@@ -211,7 +211,7 @@
 
 .dateCell {
     font-size: var(--font-size-base);
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
 }
 
 .statusBadge {
@@ -251,15 +251,15 @@
     align-items: center;
     justify-content: center;
     border-radius: 0.5rem;
-    background: var(--bg-tertiary);
-    color: var(--text-secondary);
-    border: 1px solid var(--border-color);
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-default);
     transition: all 0.2s ease;
 }
 
 .actionBtn:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
+    background: var(--color-bg-hover);
+    color: var(--color-text-primary);
 }
 
 .actionBtnDelete:hover {
@@ -275,7 +275,7 @@
     align-items: center;
     justify-content: center;
     gap: 1rem;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
 }
 
 .spinner {
@@ -297,7 +297,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     gap: 1rem;
 }
 
@@ -326,7 +326,7 @@
     display: block;
     font-size: var(--font-size-base);
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     margin-bottom: 0.375rem;
 }
 
@@ -338,27 +338,27 @@
     display: block;
     font-size: var(--font-size-base);
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     margin-bottom: 0.375rem;
 }
 
 .detailValue {
     font-size: var(--font-size-base);
-    color: var(--text-primary);
-    background: var(--bg-tertiary);
+    color: var(--color-text-primary);
+    background: var(--color-bg-tertiary);
     padding: 0.75rem;
     border-radius: 0.5rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--color-border-default);
     word-break: break-all;
 }
 
 .detailValueLong {
     font-size: var(--font-size-base);
-    color: var(--text-primary);
-    background: var(--bg-tertiary);
+    color: var(--color-text-primary);
+    background: var(--color-bg-tertiary);
     padding: 0.75rem;
     border-radius: 0.5rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--color-border-default);
     line-height: 1.5;
     max-height: 200px;
     overflow-y: auto;
@@ -370,16 +370,16 @@
     justify-content: flex-end;
     gap: 1rem;
     padding-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--color-border-default);
 }
 
 .closeBtn {
     padding: 0.625rem 1.5rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-default);
     border-radius: 0.75rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     transition: all 0.2s ease;
 }
 
@@ -396,7 +396,7 @@
 }
 
 .deleteDetailsBtn:hover {
-    background: var(--color-error-700);
+    background: var(--color-error-dark);
 }
 
 /* Modal Delete Confirm */
@@ -423,19 +423,19 @@
 .deleteConfirmTitle {
     font-size: var(--font-size-medium);
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--color-text-primary);
     margin-bottom: 0.5rem;
 }
 
 .deleteConfirmDesc {
     font-size: var(--font-size-base);
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     line-height: 1.5;
 }
 
 .deleteConfirmTarget {
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--color-text-primary);
 }
 
 .deleteActions {
@@ -448,11 +448,11 @@
 .cancelDeleteBtn {
     flex: 1;
     padding: 0.75rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-default);
     border-radius: 0.75rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     transition: all 0.2s ease;
 }
 
@@ -467,5 +467,5 @@
 }
 
 .confirmDeleteBtn:hover {
-    background: var(--color-error-700);
+    background: var(--color-error-dark);
 }

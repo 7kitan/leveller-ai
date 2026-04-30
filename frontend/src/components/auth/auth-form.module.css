@@ -101,7 +101,7 @@
 .submitBtn {
   width: 100%;
   padding: 16px;
-  background: var(--gradient-sky);
+  /* gradient removed */ background: var(--color-primary);
   color: #ffffff;
   border-radius: 980px;
   font-size: var(--font-size-base);
@@ -232,11 +232,11 @@
 }
 
 [data-theme="dark"] .formWrapper {
-  background-color: var(--color-apple-black);
+  background-color: var(--color-neutral-900);
 }
 
 [data-theme="dark"] .panel {
-  background: var(--color-surface-dark-1);
+  background: var(--color-bg-secondary);
   border-color: rgba(255, 255, 255, 0.08);
   box-shadow: 0 20px 80px rgba(0, 0, 0, 0.4);
 }

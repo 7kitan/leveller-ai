@@ -45,7 +45,7 @@
 }
 
 .backBtn:hover {
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
   transform: translateX(-2px);
 }
 
@@ -91,7 +91,7 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 0.75rem 2rem;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   border-radius: var(--radius-md);
   font-weight: 700;
@@ -261,7 +261,7 @@
 }
 
 .saveBtn {
-  background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-700) 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-dark) 100%);
   color: #fff;
   border: none;
   padding: 1rem 3rem;
@@ -520,7 +520,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 2rem;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   border-radius: var(--radius-md);
   font-weight: 700;
@@ -554,7 +554,7 @@
 }
 
 .discardBtn:hover {
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
   border-color: var(--color-border-subtle);
 }
@@ -610,7 +610,7 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 0.75rem 1.5rem;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   border-radius: var(--radius-md);
   font-weight: 700;
@@ -621,7 +621,7 @@
 }
 
 .uploadBtn:hover {
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   box-shadow: 0 4px 12px color-mix(in srgb, var(--color-info) 30%, transparent);
   transform: translateY(-1px);
   filter: brightness(1.1);
@@ -629,8 +629,8 @@
 
 .uploadBtnSecondary {
   background-color: color-mix(in srgb, var(--color-info) 8%, transparent);
-  color: var(--color-accent-primary);
-  border: 1px solid var(--color-accent-primary);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
 }
 
 .uploadBtnSecondary:hover {
@@ -763,7 +763,7 @@
 
 .dialogBtnCancel:hover {
   background: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .dialogBtnConfirm {
@@ -771,7 +771,7 @@
   padding: 0.75rem 1.5rem;
   border-radius: var(--radius-md);
   font-weight: 700;
-  background: var(--color-accent-primary);
+  background: var(--color-primary);
   border: none;
   color: #fff;
   cursor: pointer;

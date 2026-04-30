@@ -15,7 +15,7 @@
 }
 
 .skeleton {
-  background: var(--color-panel-bg);
+  background: var(--color-bg-elevated);
   border-radius: var(--radius-md);
   animation: pulse 1.5s infinite ease-in-out;
   position: relative;
@@ -36,7 +36,7 @@
 }
 
 .welcomeSection {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   padding: 5rem;
@@ -86,7 +86,7 @@
   font-weight: 900;
   line-height: 0.9;
   letter-spacing: -0.05em;
-  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -94,7 +94,7 @@
 
 /* Use standardized gradient for consistency across all pages */
 .nexusText {
-  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -112,7 +112,7 @@
 .quickStats {
   display: flex;
   gap: 4rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   padding: 3rem 4rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border-subtle);
@@ -129,7 +129,7 @@
 .statValue {
   font-size: var(--font-size-display);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   line-height: 1;
   letter-spacing: -0.05em;
 }
@@ -185,7 +185,7 @@
 .sectionTitle {
   font-size: var(--font-size-xlarge);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   letter-spacing: -0.02em;
   display: flex;
   align-items: center;
@@ -227,7 +227,7 @@
 }
 
 .skillCard {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 3rem;
@@ -295,7 +295,7 @@
 .skillTitle {
   font-size: var(--font-size-xlarge);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   letter-spacing: -0.02em;
 }
 
@@ -598,7 +598,7 @@
 }
 
 .courseCardSmall {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 2.5rem;
@@ -634,7 +634,7 @@
 .courseTitleSmall {
   font-size: var(--font-size-large);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   line-height: 1.2;
 }
 
@@ -797,7 +797,7 @@
 .categoryTitle {
   font-size: var(--font-size-small);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 /* AI Suggester Styles */
@@ -823,7 +823,7 @@
 .aiSuggesterText {
   font-size: var(--font-size-base);
   line-height: 1.5;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   opacity: 0.8;
 }
 
@@ -858,7 +858,7 @@
 }
 
 .roadmapPanel {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 4rem;
@@ -930,7 +930,7 @@
 }
 
 .emptyStateContent {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   padding: 6rem 4rem;
@@ -982,7 +982,7 @@
 .emptyStateTitle {
   font-size: var(--font-size-display);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   line-height: 1.1;
   letter-spacing: -0.04em;
 }

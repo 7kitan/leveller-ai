@@ -124,15 +124,15 @@
 }
 
 .item:hover {
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 [data-theme="dark"] .item:hover {
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .active {
-  color: var(--color-text-main) !important;
+  color: var(--color-text-primary) !important;
   background: rgba(0, 0, 0, 0.06);
   border-radius: 8px;
 }

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Fira_Sans } from "next/font/google";
 import "./globals.css";
-import "../light-mode.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";

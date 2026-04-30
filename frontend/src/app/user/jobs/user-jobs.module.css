@@ -28,7 +28,7 @@
   font-size: var(--font-size-display);
   font-weight: 900;
   letter-spacing: -0.05em;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .subtitle {
@@ -41,7 +41,7 @@
 
 /* Use global gradient-text class from globals.css */
 .gradientText {
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
 }
 
 .badge {
@@ -71,7 +71,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   padding: 1.25rem;
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-subtle);
@@ -111,7 +111,7 @@
 }
 
 .inputWrapper:focus-within .inputIcon {
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
   opacity: 1;
   transform: translateY(-50%) scale(1.1);
 }
@@ -122,7 +122,7 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 0.875rem 1.25rem 0.875rem 3rem;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   font-weight: 600;
   font-size: var(--font-size-base);
   outline: none;
@@ -135,8 +135,8 @@
 }
 
 .input:focus {
-  background-color: var(--color-panel-bg);
-  border-color: var(--color-accent-primary);
+  background-color: var(--color-bg-elevated);
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-secondary) 10%, transparent), 0 10px 30px color-mix(in srgb, var(--color-text-primary) 5%, transparent);
   transform: translateY(-1px);
 }
@@ -171,25 +171,25 @@ select.input {
 }
 
 select.input:focus {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232997ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 select.input option {
-  background-color: var(--color-panel-bg);
-  color: var(--color-text-main);
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text-primary);
   padding: 10px;
   font-weight: 500;
   font-size: var(--font-size-base);
 }
 
 [data-theme="dark"] select.input option {
-  background-color: var(--color-surface-dark-1);
+  background-color: var(--color-bg-secondary);
   color: var(--color-bg-elevated);
 }
 
 .searchBtn {
-  background: var(--gradient-sky);
+  /* gradient removed */ background: var(--color-primary);
   color: white;
   padding: 1rem 3rem;
   border-radius: var(--radius-md);
@@ -225,7 +225,7 @@ select.input option {
 }
 
 .card {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 2rem;
@@ -240,7 +240,7 @@ select.input option {
 .card:hover {
   transform: translateY(-0.5rem);
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
-  border-color: var(--color-accent-primary);
+  border-color: var(--color-primary);
 }
 
 .card::before {
@@ -250,7 +250,7 @@ select.input option {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(to right, transparent, var(--color-accent-primary), transparent);
+  background: linear-gradient(to right, transparent, var(--color-primary), transparent);
   opacity: 0;
   transition: opacity 0.4s ease;
 }
@@ -310,7 +310,7 @@ select.input option {
 .cardTitle {
   font-size: var(--font-size-medium);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   line-height: 1.4;
   letter-spacing: -0.02em;
   margin-bottom: 0.75rem;
@@ -374,8 +374,8 @@ select.input option {
 .actionBtn {
   flex: 2;
   padding: 0.875rem;
-  background-color: var(--color-accent-primary);
-  border: 1px solid var(--color-accent-primary);
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
   border-radius: var(--radius-md);
   color: white !important;
   font-weight: 900;
@@ -391,8 +391,8 @@ select.input option {
 
 .actionBtn:visited {
   color: white !important;
-  background-color: var(--color-accent-primary) !important;
-  border-color: var(--color-accent-primary) !important;
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
 }
 
 .actionBtn:hover {
@@ -420,7 +420,7 @@ select.input option {
 
 .detailsBtn:hover {
   background-color: var(--color-bg-tertiary);
-  border-color: var(--color-accent-primary);
+  border-color: var(--color-primary);
 }
 
 /* ── Modal Content ── */
@@ -440,14 +440,14 @@ select.input option {
 .modalSectionLabel {
   font-size: var(--font-size-small);
   font-weight: 900;
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
   opacity: 0.8;
 }
 
 .modalTitle {
   font-size: var(--font-size-large);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   letter-spacing: -0.02rem;
   line-height: 1.3;
 }
@@ -483,12 +483,12 @@ select.input option {
 .modalMetaIcon {
   width: 3rem;
   height: 3rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
   border: 1px solid var(--color-border-subtle);
   font-size: 1.25rem;
 }
@@ -508,15 +508,15 @@ select.input option {
 .modalMetaValue {
   font-size: var(--font-size-base);
   font-weight: 700;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .modalDescription {
   font-size: var(--font-size-base);
   line-height: 1.8;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   padding: 1.5rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
 }
@@ -555,7 +555,7 @@ select.input option {
 .modalAnalyzeBtn {
   flex: 2;
   padding: 1rem;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   border-radius: 12px;
   color: white;
   font-weight: 900;
@@ -620,7 +620,7 @@ select.input option {
   align-items: center;
   justify-content: center;
   text-align: center;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px dashed var(--color-border-subtle);
   border-radius: var(--radius-lg);
   gap: 1rem;
@@ -635,7 +635,7 @@ select.input option {
 .emptyTitle {
   font-size: var(--font-size-large);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   letter-spacing: -0.05em;
 }
 

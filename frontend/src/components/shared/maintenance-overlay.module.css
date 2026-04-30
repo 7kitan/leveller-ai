@@ -139,7 +139,7 @@
 
 .refreshBtn {
   width: 100%;
-  background: var(--gradient-sky);
+  /* gradient removed */ background: var(--color-primary);
   color: white;
   padding: 1rem 2rem;
   border-radius: 980px;

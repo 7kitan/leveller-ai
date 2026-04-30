@@ -20,7 +20,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .chartControls {
@@ -67,7 +67,7 @@
 }
 
 .toggleBtnInactive:hover {
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .divider {
@@ -194,7 +194,7 @@
   width: 8rem;
   font-size: var(--font-size-base);
   font-weight: 700;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 @media (min-width: 768px) {
@@ -206,7 +206,7 @@
 .userTokens {
   font-size: var(--font-size-base);
   font-weight: 800;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .userCalls {
@@ -250,7 +250,7 @@
 
 .modelId {
   font-weight: 800;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .callType {

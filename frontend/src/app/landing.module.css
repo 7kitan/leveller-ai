@@ -167,7 +167,7 @@
 
 /* --- Buttons --- */
 .primaryBtn {
-  background: var(--gradient-sky);
+  /* gradient removed */ background: var(--color-primary);
   color: var(--color-text-inverse);
   padding: 16px 40px;
   border-radius: 980px;
@@ -297,7 +297,7 @@
   line-height: 1.1;
   letter-spacing: -0.02em;
   margin-bottom: 24px;
-  background: var(--gradient-sky);
+  /* gradient removed */ background: var(--color-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -305,7 +305,7 @@
 .visionDivider {
   width: 60px;
   height: 4px;
-  background: var(--gradient-sky);
+  /* gradient removed */ background: var(--color-primary);
   border-radius: 2px;
   margin-bottom: 24px;
 }
@@ -418,7 +418,7 @@
   width: 80px;
   height: 80px;
   margin: 0 auto 24px;
-  background: var(--gradient-sky);
+  /* gradient removed */ background: var(--color-primary);
   border-radius: 20px;
   display: flex;
   align-items: center;
@@ -533,7 +533,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--gradient-sky);
+  /* gradient removed */ background: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -645,7 +645,7 @@
   padding: 12px 16px;
   border-radius: 12px;
   border: none;
-  background: var(--gradient-sky);
+  /* gradient removed */ background: var(--color-primary);
   color: var(--color-text-inverse);
   cursor: pointer;
   transition: all 0.2s ease;

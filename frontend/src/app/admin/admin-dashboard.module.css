@@ -18,7 +18,7 @@
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1;
-  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -56,7 +56,7 @@
 }
 
 .indicatorSuccess { background: var(--color-success); }
-.indicatorPrimary { background: var(--color-accent-primary); }
+.indicatorPrimary { background: var(--color-primary); }
 
 /* Stats Bento Grid */
 .statsGrid {
@@ -69,26 +69,26 @@
 @media (max-width: 640px) { .statsGrid { grid-template-columns: 1fr; } }
 
 .statCard {
-  background: var(--color-panel-bg);
+  background: var(--color-bg-elevated);
   backdrop-filter: blur(20px);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 2.5rem;
-  transition: all 0.4s var(--ease-premium);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
 .statCard:hover {
   transform: translateY(-5px);
-  box-shadow: var(--shadow-premium);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   border-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .statIcon {
   width: 1.5rem;
   height: 1.5rem;
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
   margin-bottom: 1.25rem;
 }
 
@@ -106,7 +106,7 @@
 .statValue {
   font-size: var(--font-size-xlarge);
   font-weight: 800;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   letter-spacing: -0.05em;
   margin-bottom: 0.5rem;
 }
@@ -126,12 +126,12 @@
 
 .moduleCard {
   grid-column: span 12;
-  background: var(--color-panel-bg);
+  background: var(--color-bg-elevated);
   backdrop-filter: blur(20px);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 2.5rem;
-  transition: all 0.4s var(--ease-premium);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -145,15 +145,15 @@
 
 .moduleCard:hover {
   transform: translateY(-5px);
-  box-shadow: var(--shadow-premium);
-  border-color: var(--accent-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-color: var(--color-primary);
 }
 
 .cardDecoration {
     position: absolute;
     right: -2rem;
     top: -2rem;
-    color: var(--accent-color);
+    color: var(--color-primary);
     opacity: 0.03;
     transform: rotate(15deg);
 }
@@ -166,7 +166,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--accent-color, var(--color-text-main));
+  color: var(--accent-color, var(--color-text-primary));
 }
 
 [data-theme="dark"] .moduleIconBox { background: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent); }
@@ -181,7 +181,7 @@
   font-size: var(--font-size-large);
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .moduleDesc {
@@ -201,7 +201,7 @@
 .linkText {
   font-size: var(--font-size-base);
   font-weight: 800;
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -219,11 +219,11 @@
 }
 
 .iconWithAccent {
-    color: var(--accent-color);
+    color: var(--color-primary);
 }
 
 .moduleCard:hover .hoverIcon {
-    background: var(--accent-color);
+    background: var(--color-primary);
     color: white;
 }
 
@@ -245,27 +245,27 @@
 .progressFill {
     height: 100%;
     width: 30%;
-    background: var(--accent-color);
+    background: var(--color-primary);
     border-radius: 0 2px 2px 0;
 }
 
 /* Insight Widget */
 .insightSection {
   grid-column: span 12;
-  background: var(--color-panel-bg);
+  background: var(--color-bg-elevated);
   border-radius: var(--radius-md);
   padding: 4rem;
   border: 1px solid var(--color-border-subtle);
   position: relative;
   overflow: hidden;
-  box-shadow: var(--shadow-premium);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .bgDecoration {
     position: absolute;
     right: -10rem;
     bottom: -10rem;
-    color: var(--color-accent-primary);
+    color: var(--color-primary);
     opacity: 0.03;
     pointer-events: none;
 }
@@ -282,12 +282,12 @@
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   letter-spacing: -0.03em;
 }
 
 .insightIcon {
-    color: var(--color-accent-primary);
+    color: var(--color-primary);
 }
 
 .insightText {
@@ -320,7 +320,7 @@
 .badgeLabel {
     font-size: var(--font-size-small);
     font-weight: 800;
-    color: var(--color-text-main);
+    color: var(--color-text-primary);
 }
 
 @keyframes fadeIn {

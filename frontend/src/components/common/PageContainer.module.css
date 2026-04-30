@@ -6,7 +6,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  animation: pageFadeIn 0.8s var(--ease-premium);
+  animation: pageFadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes pageFadeIn {

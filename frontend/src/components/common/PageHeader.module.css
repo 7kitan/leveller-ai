@@ -34,14 +34,14 @@
   display: block;
   width: 3rem;
   height: 4px;
-  background: var(--color-accent-primary);
+  background: var(--color-primary);
   border-radius: 2px;
   margin-bottom: 1rem;
 }
 
 /* Standard accent text for header highlights */
 .gradientText {
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
 }
 
 /* Variant for Admin pages or secondary pages */
