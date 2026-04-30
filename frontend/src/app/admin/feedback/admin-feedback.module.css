@@ -47,7 +47,7 @@
 }
 
 .tableCard {
-  background: rgba(var(--card-bg-rgb), 0.5);
+  background: color-mix(in oklch, var(--color-bg-elevated) 50%, transparent);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(var(--color-text-primary), 0.08);
   border-radius: 1rem;
@@ -148,8 +148,8 @@
 }
 
 .skillPill {
-  background: var(--accent-light);
-  color: var(--accent);
+  background: color-mix(in oklch, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
   padding: 0.2rem 0.5rem;
   border-radius: 0.4rem;
   font-size: var(--font-size-small);

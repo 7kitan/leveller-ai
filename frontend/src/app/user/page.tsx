@@ -50,6 +50,7 @@ const UserDashboard = () => {
   }, []);
 
   const [period, setPeriod] = useState("month");
+  const [selectedGap, setSelectedGap] = useState<any>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -176,23 +177,25 @@ const UserDashboard = () => {
             <div className={styles.gapGrid}>
               {topGaps.length > 0 ? (
                 topGaps.map((gap: any) => (
-                  <div key={gap.skill} className={styles.gapMiniCard}>
+                  <div 
+                    key={gap.skill} 
+                    className={styles.gapMiniCard}
+                    onClick={() => setSelectedGap(gap)}
+                  >
+                    <span 
+                      className={styles.miniSeverity}
+                      style={{
+                        color: severityColor(gap.severity),
+                        backgroundColor: `color-mix(in oklch, ${severityColor(gap.severity)} 15%, transparent)`,
+                        borderColor: `color-mix(in oklch, ${severityColor(gap.severity)} 30%, transparent)`,
+                      }}
+                    >
+                      ● {gap.severity || "MEDIUM"}
+                    </span>
                     <div className={styles.gapMiniTitle}>{gap.skill}</div>
-                    <div className={styles.gapMiniMeta}>
-                      <span 
-                        className={styles.miniSeverity}
-                        style={{
-                          color: severityColor(gap.severity),
-                          backgroundColor: `color-mix(in oklch, ${severityColor(gap.severity)} 15%, transparent)`,
-                          borderColor: `color-mix(in oklch, ${severityColor(gap.severity)} 30%, transparent)`,
-                        }}
-                      >
-                        ● {t(`severity_${gap.severity?.toLowerCase()}` as any)}
-                      </span>
-                      <span className={styles.learningEffort}>
-                        · {gap.learning_effort} {t("learning_effort")}
-                      </span>
-                    </div>
+                    <span className={styles.gapMiniMeta}>
+                      {gap.required_level || "Intermediate"} · {gap.estimated_months || 3} months
+                    </span>
                   </div>
                 ))
               ) : (
@@ -202,6 +205,59 @@ const UserDashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* Slide-over Panel */}
+            {selectedGap && (
+              <>
+                <div 
+                  className={styles.slideOverOverlay}
+                  onClick={() => setSelectedGap(null)}
+                />
+                <div className={styles.slideOverPanel}>
+                  <div className={styles.slideOverHeader}>
+                    <div>
+                      <span 
+                        className={styles.slideOverSeverity}
+                        style={{
+                          color: severityColor(selectedGap.severity),
+                          backgroundColor: `color-mix(in oklch, ${severityColor(selectedGap.severity)} 15%, transparent)`,
+                          borderColor: `color-mix(in oklch, ${severityColor(selectedGap.severity)} 30%, transparent)`,
+                        }}
+                      >
+                        ● {selectedGap.severity || "MEDIUM"}
+                      </span>
+                      <h3 className={styles.slideOverTitle}>{selectedGap.skill}</h3>
+                      <p className={styles.slideOverMeta}>
+                        Target: {selectedGap.required_level || "Intermediate"} · {selectedGap.estimated_months || 3} months
+                      </p>
+                    </div>
+                    <button 
+                      className={styles.slideOverClose}
+                      onClick={() => setSelectedGap(null)}
+                      aria-label="Close"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  
+                  <div className={styles.slideOverContent}>
+                    {selectedGap.reasoning && (
+                      <div className={styles.slideOverSection}>
+                        <h4 className={styles.slideOverSectionTitle}>💡 Why This Matters</h4>
+                        <p className={styles.slideOverText}>{selectedGap.reasoning}</p>
+                      </div>
+                    )}
+                    
+                    {selectedGap.learning_path && (
+                      <div className={styles.slideOverSection}>
+                        <h4 className={styles.slideOverSectionTitle}>📚 Learning Path</h4>
+                        <p className={styles.slideOverText}>{selectedGap.learning_path}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Growth Forecast Section */}
             {(marketData?.potential_match_pct > 0 || marketData?.salary_growth_pct > 0) && (
