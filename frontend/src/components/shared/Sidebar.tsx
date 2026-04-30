@@ -24,8 +24,7 @@ import {
   Layers,
   MessageSquare,
   Activity,
-  Video,
-  Shield
+  Video
 } from "lucide-react";
 
 import styles from "./sidebar.module.css";
@@ -37,10 +36,8 @@ const MENU_ITEMS = {
     { key: "nav_cv",        icon: FileText,        path: "/admin/cvs" },
     { key: "nav_courses",   icon: BookOpen,        path: "/admin/courses" },
     { key: "nav_jobs",      icon: Layers,          path: "/admin/jobs" },
-    { key: "nav_market",    icon: TrendingUp,      path: "/admin/market" },
     {key: "nav_monitor",   icon: LineChart,       path: "/admin/ai-usage" },
     {key: "nav_feedback",  icon: MessageSquare,   path: "/admin/feedback" },
-    {key: "nav_blocked_ips", icon: Shield,        path: "/admin/blocked-ips" },
     {key: "nav_profile",   icon: UserCircle,      path: "/admin/profile" },
     { key: "nav_settings",  icon: Settings,        path: "/admin/settings" },
     { key: "nav_system_logs", icon: Activity,      path: "/admin/system-logs" },
@@ -100,26 +97,17 @@ export default function Sidebar({
       className={`${styles.sidebar} ${isMini ? styles.collapsed : ""} ${isMobileOpen ? styles.mobileOpen : ""}`}
       onClick={() => isMini && toggleSidebar?.()}
     >
-      {/* Brand */}
-      <div className={styles.brand}>
-        <div className={styles.brandIcon}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <button className={styles.collapseToggle} onClick={(e) => { e.stopPropagation(); toggleSidebar?.(); }} title={isMini ? "Open sidebar" : "Close sidebar"}>
+        {isMini ? <PanelRight size={20} /> : <PanelLeft size={20} />}
+      </button>
+
+      {isMobileOpen && (
+        <button className={styles.mobileClose} onClick={() => setIsMobileOpen?.(false)}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
-        </div>
-
-        <button className={styles.collapseToggle} onClick={(e) => { e.stopPropagation(); toggleSidebar?.(); }} title={isMini ? "Open sidebar" : "Close sidebar"}>
-          {isMini ? <PanelRight size={18} /> : <PanelLeft size={18} />}
         </button>
-
-        {isMobileOpen && (
-          <button className={styles.mobileClose} onClick={() => setIsMobileOpen?.(false)}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        )}
-      </div>
+      )}
 
       {/* Nav */}
       <nav className={styles.nav}>
@@ -138,7 +126,6 @@ export default function Sidebar({
               <div className={`${styles.item} ${isActive ? styles.active : ""}`}>
                 <item.icon className={styles.icon} width={20} height={20} title={isMini ? translatedName : ""} />
                 <span className={styles.label}>{translatedName}</span>
-                {isActive && <div className={styles.dot} />}
               </div>
             </Link>
           );

@@ -9,14 +9,14 @@
 }
 
 .header {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 3rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--color-text-primary) 3%, transparent);
 }
 
 @media (min-width: 1024px) {
@@ -31,19 +31,18 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  font-size: 2.5rem;
+  font-size: var(--font-size-xlarge);
   font-weight: 900;
-  color: var(--color-text-main);
-  font-style: italic;
+  color: var(--color-text-primary);
   letter-spacing: -0.05em;
 }
 
 .headerIcon {
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
 }
 
 .subtitle {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-text-muted);
   margin-top: 0.5rem;
@@ -55,14 +54,12 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1.25rem 2.5rem;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   border-radius: 1.25rem;
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .contentStack {
@@ -76,7 +73,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem 2rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
 }
@@ -99,17 +96,17 @@
 .searchInput {
   width: 100%;
   padding: 1rem 1.5rem 1rem 3.5rem;
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1.25rem;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   font-weight: 700;
   outline: none;
 }
 
 .refreshBtn {
   padding: 0.75rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1rem;
   color: var(--color-text-muted);
@@ -117,13 +114,13 @@
 }
 
 .tableContainer {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   overflow-x: auto;
   overflow-y: auto;
   max-height: 60vh;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--color-text-primary) 3%, transparent);
   position: relative;
 }
 
@@ -133,7 +130,7 @@
 }
 
 .tableHeader {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -143,10 +140,8 @@
 .th {
   padding: 1.5rem 2rem;
   text-align: left;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   color: var(--color-text-muted);
   border-bottom: 1px solid var(--color-border-subtle);
   opacity: 0.6;
@@ -160,7 +155,7 @@
 }
 
 .tr:hover {
-  background-color: rgba(0, 0, 0, 0.01);
+  background-color: color-mix(in srgb, var(--color-text-primary) 1%, transparent);
 }
 
 .td {
@@ -176,23 +171,22 @@
 .courseIconBox {
   width: 2.5rem;
   height: 2.5rem;
-  background-color: rgba(14, 165, 233, 0.05);
-  border: 1px solid rgba(14, 165, 233, 0.1);
+  background-color: color-mix(in srgb, var(--color-info) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info) 10%, transparent);
   border-radius: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #0ea5e9;
+  color: var(--color-info);
 }
 
 .courseTitleText {
   font-weight: 900;
-  color: var(--color-text-main);
-  font-style: italic;
+  color: var(--color-text-primary);
 }
 
 .platformName {
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   color: var(--color-text-muted);
   font-weight: 600;
   display: flex;
@@ -202,12 +196,11 @@
 .levelBadge {
   padding: 0.25rem 0.75rem;
   border-radius: 0.75rem;
-  background-color: rgba(6, 182, 212, 0.05);
-  border: 1px solid rgba(6, 182, 212, 0.1);
-  color: #0891b2;
-  font-size: 10px;
+  background-color: color-mix(in srgb, var(--color-secondary) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-secondary) 10%, transparent);
+  color: var(--color-secondary);
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
 }
 
 .statusDot {
@@ -218,13 +211,13 @@
   margin-right: 0.75rem;
 }
 
-.statusActive { background-color: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
-.statusInactive { background-color: #f43f5e; box-shadow: 0 0 10px rgba(244, 63, 94, 0.4); }
+.statusActive { background-color: var(--color-success); box-shadow: 0 0 10px color-mix(in srgb, var(--color-success) 40%, transparent); }
+.statusInactive { background-color: var(--color-error); box-shadow: 0 0 10px color-mix(in srgb, var(--color-error) 40%, transparent); }
 
 .statusText {
-  font-size: 0.75rem;
+  font-size: var(--font-size-base);
   font-weight: 700;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .tagGroup {
@@ -234,7 +227,7 @@
 }
 
 .tagBadge {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 700;
   color: var(--color-text-muted);
   opacity: 0.6;
@@ -253,18 +246,18 @@
 }
 
 .actionBtn:hover {
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   opacity: 1;
 }
 
 .actionBtnDelete:hover {
-  color: #f43f5e;
+  color: var(--color-error);
 }
 
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.4);
+  background-color: color-mix(in srgb, var(--color-text-primary) 40%, transparent);
   backdrop-filter: blur(12px);
   z-index: 2000;
   display: flex;
@@ -279,20 +272,19 @@
   max-width: 50rem;
   max-height: 90vh;
   overflow-y: auto;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 3rem;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 30px 60px color-mix(in srgb, var(--color-text-primary) 20%, transparent);
   margin-bottom: 2rem;
   position: relative;
 }
 
 .modalTitle {
-  font-size: 1.5rem;
+  font-size: var(--font-size-large);
   font-weight: 900;
-  color: var(--color-text-main);
-  font-style: italic;
+  color: var(--color-text-primary);
   margin-bottom: 2rem;
 }
 
@@ -310,11 +302,9 @@
 
 .sectionTitle {
   grid-column: 1 / -1;
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  color: var(--color-accent-primary);
-  letter-spacing: 0.1em;
+  color: var(--color-primary);
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--color-border-subtle);
   margin-top: 1rem;
@@ -327,19 +317,18 @@
 }
 
 .formField label {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
   color: var(--color-text-muted);
   opacity: 0.6;
 }
 
 .formField input, .formField select, .formField textarea {
   padding: 1rem;
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1rem;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   font-weight: 700;
   outline: none;
   font-family: inherit;
@@ -364,7 +353,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   color: var(--color-text-muted);
   font-weight: 500;
 }
@@ -378,12 +367,11 @@
 
 .submitBtn {
   padding: 1rem 2rem;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   border-radius: 1rem;
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
 }
 
 .notification {
@@ -394,22 +382,22 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1.5rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
   z-index: 100;
 }
 
-.notifSuccess { border-left: 4px solid #10b981; }
-.notifError { border-left: 4px solid #f43f5e; }
+.notifSuccess { border-left: 4px solid var(--color-success); }
+.notifError { border-left: 4px solid var(--color-error); }
 
 .tagInputWrapper {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1rem;
   min-height: 3.5rem;
@@ -417,7 +405,7 @@
 }
 
 .tagInputWrapper:focus-within {
-  border-color: var(--color-accent-primary);
+  border-color: var(--color-primary);
   background-color: transparent;
 }
 
@@ -426,13 +414,13 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.35rem 0.75rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: 0.75rem;
-  font-size: 0.8rem;
+  font-size: var(--font-size-small);
   font-weight: 700;
-  color: var(--color-text-main);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  color: var(--color-text-primary);
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--color-text-primary) 5%, transparent);
 }
 
 .tagDelete {
@@ -443,14 +431,14 @@
   height: 1.2rem;
   border-radius: 50%;
   color: var(--color-text-muted);
-  font-size: 0.7rem;
+  font-size: var(--font-size-base);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .tagDelete:hover {
-  background-color: rgba(244, 63, 94, 0.1);
-  color: #f43f5e;
+  background-color: color-mix(in srgb, var(--color-error) 10%, transparent);
+  color: var(--color-error);
 }
 
 .tagInnerInput {
@@ -460,9 +448,9 @@
   background: transparent !important;
   padding: 0.25rem !important;
   outline: none;
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 @keyframes fadeIn {

@@ -253,7 +253,7 @@ function FilterBar({
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function StudentCoursesPage() {
-  const { user } = useAuth();
+  const { token } = useAuth();
   const { t } = useLanguage();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -268,7 +268,7 @@ export default function StudentCoursesPage() {
   });
 
   useEffect(() => {
-    if (!user) return;
+    if (!token) return;
     const fetchCourses = async () => {
       setLoading(true);
       try {
@@ -283,7 +283,7 @@ export default function StudentCoursesPage() {
       }
     };
     fetchCourses();
-  }, [user]);
+  }, [token]);
 
   // Filter + sort
   const filtered = courses

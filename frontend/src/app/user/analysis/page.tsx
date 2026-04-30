@@ -68,7 +68,7 @@ function detectStep(pct: number): number {
 function AnalysisPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { token } = useAuth();
   const { language, t } = useLanguage();
   
   const initialJobId = searchParams.get("job_id");
@@ -151,7 +151,7 @@ function AnalysisPageContent() {
 
   /* -- Load CVs ------------------------------------------------------- */
   useEffect(() => {
-    if (!user) return;
+    if (!token) return;
     api
       .get("/cv/list")
       .then((r) => {
@@ -160,17 +160,17 @@ function AnalysisPageContent() {
         if (done.length > 0) setSelectedCvId(done[0].id);
       })
       .catch((e) => console.error("[ANALYSIS] load CVs:", e));
-  }, [user]);
+  }, [token]);
 
   /* -- Search jobs when switching to select mode --------------------- */
   useEffect(() => {
-    if (jdMode !== "select" || !user) return;
+    if (jdMode !== "select" || !token) return;
     const t = setTimeout(() => searchJobs(jobSearch), 400);
     return () => clearTimeout(t);
-  }, [jobSearch, jdMode]);
+  }, [jobSearch, jdMode, token]);
 
   const searchJobs = (q: string) => {
-    if (!user) return;
+    if (!token) return;
     setSearchingJobs(true);
     api
       .get("/jd/search", {
@@ -234,20 +234,6 @@ function AnalysisPageContent() {
 
       const resp = await api.post("analysis/gap", payload);
 
-      // Check if result is cached (no task_id needed)
-      if (resp.data.status === "cached" && resp.data.result) {
-        console.log(`[ANALYSIS] ✅ Cache hit — using cached result`);
-        setProgress(100);
-        setCurrentStep(3);
-        try {
-          sessionStorage.setItem("gap_analysis_result", JSON.stringify(resp.data.result));
-        } catch {}
-        setPhase("completed");
-        setTimeout(() => router.push("/user/recommend"), 1200);
-        return;
-      }
-
-      // Normal flow: poll task status
       const tid = resp.data.task_id as string;
       setTaskId(tid);
       console.log(`[ANALYSIS] Task dispatched — task_id=${tid}`);
@@ -354,7 +340,7 @@ function AnalysisPageContent() {
 
   /* -- Point 4: Graceful Cancellation ----------------------------- */
   const handleCancel = async () => {
-    if (!taskId || !user) return;
+    if (!taskId || !token) return;
     try {
       await api.delete(`analysis/status/${taskId}`);
       console.log(`[ANALYSIS] Revoke request sent — task_id=${taskId}`);
@@ -368,9 +354,9 @@ function AnalysisPageContent() {
   /* -- Point 2: Leave & Return (Notification) --------------------- */
   const [notified, setNotified] = useState(false);
   const handleNotify = async () => {
-    if (!taskId || !user) return;
+    if (!taskId || !token) return;
     try {
-      await api.post(`analysis/notify/${taskId}`);
+      await api.post(`analysis/notify/${taskId}`, {});
       setNotified(true);
     } catch (err) {
       console.error("[ANALYSIS] Notify failed:", err);
@@ -601,7 +587,7 @@ function AnalysisPageContent() {
     return (
       <PageContainer>
         <PageHeader 
-          title="CAREER GENOME."
+          title={t("analysis_title")}
           subtitle={t("analysis_engine_badge")}
         />
 

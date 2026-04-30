@@ -15,7 +15,7 @@
 }
 
 .skeleton {
-  background: var(--color-panel-bg);
+  background: var(--color-bg-elevated);
   border-radius: var(--radius-md);
   animation: pulse 1.5s infinite ease-in-out;
   position: relative;
@@ -36,7 +36,7 @@
 }
 
 .welcomeSection {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   padding: 5rem;
@@ -68,29 +68,25 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1.5rem;
-  background-color: rgba(245, 158, 11, 0.05);
-  border: 1px solid rgba(245, 158, 11, 0.1);
+  background-color: color-mix(in oklch, var(--color-warning) 5%, transparent);
+  border: 1px solid color-mix(in oklch, var(--color-warning) 10%, transparent);
   border-radius: 1.25rem;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: #d97706;
+  color: var(--color-warning-dark);
   width: fit-content;
 }
 
 [data-theme="dark"] .careerBadge {
-    color: #fbbf24;
+    color: var(--color-warning);
 }
 
 .headerTitle {
-  font-size: 5rem;
+  font-size: var(--font-size-display);
   font-weight: 900;
   line-height: 0.9;
   letter-spacing: -0.05em;
-  font-style: italic;
-  text-transform: uppercase;
-  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -98,14 +94,14 @@
 
 /* Use standardized gradient for consistency across all pages */
 .nexusText {
-  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .headerSubtitle {
-  font-size: 1.25rem;
+  font-size: var(--font-size-medium);
   font-weight: 500;
   color: var(--color-text-muted);
   max-width: 32rem;
@@ -116,7 +112,7 @@
 .quickStats {
   display: flex;
   gap: 4rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   padding: 3rem 4rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border-subtle);
@@ -131,29 +127,25 @@
 }
 
 .statValue {
-  font-size: 3.5rem;
+  font-size: var(--font-size-display);
   font-weight: 900;
-  color: var(--color-text-main);
-  font-style: italic;
+  color: var(--color-text-primary);
   line-height: 1;
   letter-spacing: -0.05em;
 }
 
 .statValueAmber {
-  font-size: 3.5rem;
+  font-size: var(--font-size-display);
   font-weight: 900;
-  color: #f59e0b;
-  font-style: italic;
+  color: var(--color-warning);
   line-height: 1;
   letter-spacing: -0.05em;
-  text-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+  text-shadow: 0 10px 30px color-mix(in oklch, var(--color-warning) 20%, transparent);
 }
 
 .statLabel {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   color: var(--color-text-muted);
   opacity: 0.6;
 }
@@ -191,11 +183,9 @@
 }
 
 .sectionTitle {
-  font-size: 2rem;
+  font-size: var(--font-size-xlarge);
   font-weight: 900;
-  color: var(--color-text-main);
-  text-transform: uppercase;
-  font-style: italic;
+  color: var(--color-text-primary);
   letter-spacing: -0.02em;
   display: flex;
   align-items: center;
@@ -211,14 +201,12 @@
 }
 
 .titleIconCyan {
-  color: #22d3ee;
+  color: var(--color-info);
 }
 
 .sectionSubtitle {
-  font-size: 10px;
+  font-size: var(--font-size-base);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   color: var(--color-text-muted);
   display: flex;
   align-items: center;
@@ -239,7 +227,7 @@
 }
 
 .skillCard {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 3rem;
@@ -255,9 +243,9 @@
 
 .skillCardActive {
   background-color: white;
-  border-color: #f59e0b;
+  border-color: var(--color-warning);
   transform: scale(1.02);
-  box-shadow: 0 20px 50px rgba(245, 158, 11, 0.1);
+  box-shadow: 0 20px 50px color-mix(in oklch, var(--color-warning) 10%, transparent);
 }
 
 .cardIconWrapper {
@@ -279,7 +267,7 @@
 }
 
 .iconAmber {
-  color: #fbbf24;
+  color: var(--color-warning);
 }
 
 [data-theme="dark"] .iconBox {
@@ -287,15 +275,13 @@
 }
 
 .skillCardActive .iconBox {
-    background-color: #f59e0b;
+    background-color: var(--color-warning);
     color: white;
 }
 
 .levelBadge {
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   color: var(--color-text-muted);
   background-color: rgba(0, 0, 0, 0.03);
   padding: 0.5rem 1rem;
@@ -307,10 +293,9 @@
 }
 
 .skillTitle {
-  font-size: 2.25rem;
+  font-size: var(--font-size-xlarge);
   font-weight: 900;
-  color: var(--color-text-main);
-  font-style: italic;
+  color: var(--color-text-primary);
   letter-spacing: -0.02em;
 }
 
@@ -323,10 +308,8 @@
 .progressLabel {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   color: var(--color-text-muted);
   opacity: 0.5;
 }
@@ -344,7 +327,7 @@
 
 .progressBarFill {
   height: 100%;
-  background: linear-gradient(to right, #fbbf24, #f59e0b);
+  background: linear-gradient(to right, var(--color-warning), var(--color-warning));
   border-radius: 9999px;
   transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -371,10 +354,8 @@
 }
 
 .drillDownTitle {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   color: var(--color-text-muted);
   margin-bottom: 1.25rem;
   opacity: 0.6;
@@ -388,19 +369,18 @@
 
 .roleBadge {
   padding: 0.5rem 1.25rem;
-  background-color: rgba(245, 158, 11, 0.05);
-  color: #b45309;
+  background-color: color-mix(in oklch, var(--color-warning) 5%, transparent);
+  color: var(--color-warning-dark);
   border-radius: 1rem;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 [data-theme="dark"] .roleBadge {
-    color: #fbbf24;
+    color: var(--color-warning);
     background-color: rgba(251, 191, 36, 0.1);
 }
 
@@ -421,21 +401,21 @@
 
 .courseItem:hover {
   background-color: white;
-  border-color: #f59e0b;
+  border-color: var(--color-warning);
 }
 
 .nodeOptimizeLink {
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   color: white;
 }
 
 [data-theme="light"] .nodeOptimizeLink {
-  color: #0f172a;
+  color: var(--color-neutral-900);
 }
 
 .iconAmberSmall {
-  color: #fbbf24;
+  color: var(--color-warning);
 }
 
 .coursesWrapper {
@@ -445,7 +425,7 @@
 }
 
 .coursePlatform {
-  font-size: 9px;
+  font-size: var(--font-size-small);
   color: rgba(255,255,255,0.2);
   font-weight: 900;
 }
@@ -461,7 +441,7 @@
 }
 
 .badgeDotCyan {
-  background-color: #22d3ee;
+  background-color: var(--color-info);
 }
 
 .sidebarStack {
@@ -471,7 +451,7 @@
 }
 
 .zapIconCore {
-  color: #8b5cf6;
+  color: var(--color-primary);
 }
 
 .graphPoint {
@@ -484,15 +464,15 @@
 .graphPointFrontend {
   top: 10%;
   left: 20%;
-  background: #fbbf24;
-  box-shadow: 0 0 10px #fbbf24;
+  background: var(--color-warning);
+  box-shadow: 0 0 10px var(--color-warning);
 }
 
 .graphPointAI {
   bottom: 20%;
   right: 15%;
-  background: #8b5cf6;
-  box-shadow: 0 0 10px #8b5cf6;
+  background: var(--color-primary);
+  box-shadow: 0 0 10px var(--color-primary);
 }
 
 .contextLabelTop {
@@ -504,19 +484,18 @@
 }
 
 .graphSyncTitle {
-  font-size: 1.25rem;
+  font-size: var(--font-size-medium);
   font-weight: 900;
   color: white;
-  font-style: italic;
   margin-bottom: 1rem;
 }
 
 [data-theme="light"] .graphSyncTitle {
-  color: #0f172a;
+  color: var(--color-neutral-900);
 }
 
 .graphSyncDesc {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   color: rgba(255,255,255,0.3);
   line-height: 1.6;
 }
@@ -526,12 +505,12 @@
 }
 
 .roadmapTitle {
-  font-size: 1.25rem;
+  font-size: var(--font-size-medium);
   margin-bottom: 3rem;
 }
 
 .compassIcon {
-  color: #8b5cf6;
+  color: var(--color-primary);
 }
 
 .roadmapSteps {
@@ -541,7 +520,7 @@
 }
 
 .stepIconProgress {
-  background: #8b5cf6;
+  background: var(--color-primary);
   color: white;
 }
 
@@ -560,15 +539,13 @@
 }
 
 .stepStatus {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   margin-bottom: 0.5rem;
 }
 
 .stepStatusProgress {
-  color: #a78bfa;
+  color: var(--color-primary);
 }
 
 .stepStatusUpcoming {
@@ -580,13 +557,13 @@
 }
 
 .stepTitle {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   font-weight: 900;
   color: white;
 }
 
 [data-theme="light"] .stepTitle {
-  color: #0f172a;
+  color: var(--color-neutral-900);
 }
 
 .milestoneHeader {
@@ -597,25 +574,23 @@
 }
 
 .layersIcon {
-  color: #8b5cf6;
+  color: var(--color-primary);
 }
 
 .milestoneLabel {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
   color: white;
 }
 
 [data-theme="light"] .milestoneLabel {
-  color: #0f172a;
+  color: var(--color-neutral-900);
 }
 
 .milestoneText {
-  font-size: 0.75rem;
+  font-size: var(--font-size-base);
   color: rgba(255,255,255,0.4);
   font-weight: 500;
-  font-style: italic;
 }
 
 [data-theme="light"] .milestoneText {
@@ -623,7 +598,7 @@
 }
 
 .courseCardSmall {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 2.5rem;
@@ -638,7 +613,7 @@
 
 .courseCardSmall:hover {
   transform: translateY(-8px);
-  border-color: #06b6d4;
+  border-color: var(--color-info);
   box-shadow: 0 20px 40px rgba(6, 182, 212, 0.1);
 }
 
@@ -649,30 +624,27 @@
 }
 
 .complexityBadge {
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: #0891b2;
+  color: var(--color-info-dark);
   background-color: rgba(6, 182, 212, 0.05);
   padding: 0.4rem 0.8rem; border-radius: 0.75rem;
 }
 
 .courseTitleSmall {
-  font-size: 1.5rem;
+  font-size: var(--font-size-large);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   line-height: 1.2;
 }
 
 .enrollBtn {
   padding: 0.75rem 1.5rem;
   background-color: rgba(6, 182, 212, 0.05);
-  color: #0891b2;
+  color: var(--color-info-dark);
   border-radius: 1.25rem;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -680,7 +652,7 @@
 }
 
 .enrollBtn:hover {
-  background-color: #06b6d4;
+  background-color: var(--color-info);
   color: white;
 }
 
@@ -700,10 +672,8 @@
 .categoryHeader {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   color: var(--color-text-muted);
 }
 
@@ -713,8 +683,8 @@
 
 /* Stat Boost */
 .statBoost {
-  font-size: 1.5rem;
-  color: #10b981;
+  font-size: var(--font-size-large);
+  color: var(--color-success);
   margin-left: 0.5rem;
   font-weight: 700;
   vertical-align: middle;
@@ -736,18 +706,17 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-size: 10px;
+  font-size: var(--font-size-base);
   font-weight: 900;
-  color: #06b6d4;
-  letter-spacing: 0.2em;
+  color: var(--color-info);
 }
 
 .sparkleIcon {
-  color: #06b6d4;
+  color: var(--color-info);
 }
 
 .aiReasoningText {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   line-height: 1.6;
   color: var(--color-text-muted);
   font-weight: 500;
@@ -772,14 +741,14 @@
 
 .radarPolygonCurrent {
   fill: rgba(245, 158, 11, 0.3);
-  stroke: #f59e0b;
+  stroke: var(--color-warning);
   stroke-width: 2;
   transition: all 0.5s ease;
 }
 
 .radarPolygonPotential {
   fill: rgba(6, 182, 212, 0.15);
-  stroke: #06b6d4;
+  stroke: var(--color-info);
   stroke-width: 2;
   stroke-dasharray: 4 4;
   transition: all 0.5s ease;
@@ -799,9 +768,8 @@
 }
 
 .radarLabel {
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
   fill: var(--color-text-muted);
   text-anchor: middle;
 }
@@ -827,11 +795,9 @@
 }
 
 .categoryTitle {
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 /* AI Suggester Styles */
@@ -845,10 +811,9 @@
 }
 
 .aiSuggesterTitle {
-  font-size: 10px;
+  font-size: var(--font-size-base);
   font-weight: 900;
-  text-transform: uppercase;
-  color: #818cf8;
+  color: var(--color-primary);
   margin-bottom: 0.75rem;
   display: flex;
   align-items: center;
@@ -856,19 +821,17 @@
 }
 
 .aiSuggesterText {
-  font-size: 0.8rem;
+  font-size: var(--font-size-base);
   line-height: 1.5;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   opacity: 0.8;
-  font-style: italic;
 }
 
 .copySuggesterBtn {
   margin-top: 1rem;
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  color: #818cf8;
-  text-transform: uppercase;
+  color: var(--color-primary);
   cursor: pointer;
   background: none;
   border: none;
@@ -888,16 +851,14 @@
 }
 
 .badgeLabel {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   color: var(--color-text-muted);
   opacity: 0.5;
 }
 
 .roadmapPanel {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 4rem;
@@ -911,7 +872,7 @@
   bottom: 5rem;
   left: 5.5rem;
   width: 1px;
-  background: linear-gradient(to bottom, #4f46e5, var(--color-border-subtle));
+  background: linear-gradient(to bottom, var(--color-primary), var(--color-border-subtle));
 }
 
 .stepItem {
@@ -969,7 +930,7 @@
 }
 
 .emptyStateContent {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   padding: 6rem 4rem;
@@ -999,12 +960,12 @@
 .emptyStateIconBox {
   width: 8rem;
   height: 8rem;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1));
+  background: linear-gradient(135deg, color-mix(in oklch, var(--color-warning) 10%, transparent), rgba(217, 119, 6, 0.1));
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #f59e0b;
+  color: var(--color-warning);
   margin-bottom: 1rem;
   position: relative;
   z-index: 1;
@@ -1019,16 +980,15 @@
 }
 
 .emptyStateTitle {
-  font-size: 3.5rem;
+  font-size: var(--font-size-display);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   line-height: 1.1;
   letter-spacing: -0.04em;
-  font-style: italic;
 }
 
 .emptyStateSub {
-  font-size: 1.25rem;
+  font-size: var(--font-size-medium);
   color: var(--color-text-muted);
   max-width: 32rem;
   margin: 0 auto;
@@ -1059,7 +1019,7 @@
   align-items: center;
   justify-content: center;
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: var(--font-size-small);
   font-weight: 900;
 }
 
@@ -1068,10 +1028,8 @@
 }
 
 .emptyStepLabel {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--color-text-muted);
   opacity: 0.6;
 }
@@ -1079,13 +1037,11 @@
 .ctaButton {
   margin-top: 2rem;
   padding: 1.5rem 4rem;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, var(--color-warning), var(--color-warning-dark));
   color: white;
   border-radius: var(--radius-md);
-  font-size: 1.125rem;
+  font-size: var(--font-size-medium);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   display: flex;
   align-items: center;
   gap: 1.5rem;

@@ -6,7 +6,6 @@ import { DOCXPreview } from './DOCXPreview';
 import { X, Check, FileText } from 'lucide-react';
 import styles from './CVPreview.module.css';
 import { useLanguage } from '@/context/LanguageContext';
-import { formatNumber } from '@/lib/utils';
 
 interface CVPreviewProps {
   file: File;
@@ -17,8 +16,8 @@ interface CVPreviewProps {
 export function CVPreview({ file, onConfirm, onCancel }: CVPreviewProps) {
   const { t } = useLanguage();
   const fileExtension = file.name.split('.').pop()?.toLowerCase();
-  const fileSizeKB = formatNumber(file.size / 1024, 2);
-  const fileSizeMB = formatNumber(file.size / 1024 / 1024, 2);
+  const fileSizeKB = (file.size / 1024).toFixed(2);
+  const fileSizeMB = (file.size / 1024 / 1024).toFixed(2);
   const displaySize = file.size > 1024 * 1024 ? `${fileSizeMB} MB` : `${fileSizeKB} KB`;
 
   const renderPreview = () => {

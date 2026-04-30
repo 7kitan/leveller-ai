@@ -20,7 +20,7 @@ import {
   Globe,
   Settings
 } from "lucide-react";
-import { cn, formatSalaryVND } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import styles from "./admin-jobs.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
@@ -60,7 +60,7 @@ interface SystemSetting {
 }
 
 const AdminJobsPage = () => {
-  const { user } = useAuth();
+  const { token } = useAuth();
   const { t } = useLanguage();
   const { confirm, showSuccess, showError } = useAlert();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -145,16 +145,16 @@ const AdminJobsPage = () => {
   };
 
   useEffect(() => {
-    if (user) {
+    if (token) {
       fetchJobs(1);
       fetchSettings();
     }
-  }, [user]);
+  }, [token]);
 
   // Handle search resets pagination
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (user) fetchJobs(1);
+      if (token) fetchJobs(1);
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
@@ -275,7 +275,7 @@ const AdminJobsPage = () => {
     
     setIsLoading(true);
     try {
-      await api.post("jd/admin/crawl");
+      await api.post("jd/admin/crawl", {});
       showSuccess(t("admin_jobs_crawl_success"));
       setTimeout(() => fetchJobs(), 3000);
     } catch (err) {
@@ -397,7 +397,7 @@ const AdminJobsPage = () => {
                     <td className={styles.td}>
                         <div className={styles.metaInfo}>
                           <DollarSign size={14} />
-                          {job.max_salary_vnd ? formatSalaryVND(job.max_salary_vnd) : t("jobs_salary_negotiable")}
+                          {job.max_salary_vnd ? `${(job.max_salary_vnd/1000000).toFixed(0)}M` : t("jobs_salary_negotiable")}
                        </div>
                     </td>
                     <td className={styles.td}>

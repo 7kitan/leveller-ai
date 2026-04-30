@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artemis/Arrow - OKLCH Palette</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: oklch(0.97 0.008 60);
+            color: oklch(0.20 0.015 240);
+            padding: 2rem;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body.dark {
+            background: oklch(0.18 0.012 240);
+            color: oklch(0.95 0.008 60);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, oklch(0.50 0.12 140), oklch(0.65 0.08 240));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.125rem;
+            opacity: 0.7;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            font-size: 0.875rem;
+            opacity: 0.6;
+            font-style: italic;
+            margin-bottom: 1.5rem;
+        }
+
+        .theme-toggle {
+            padding: 0.75rem 1.5rem;
+            background: oklch(0.50 0.12 140);
+            color: oklch(0.97 0.008 60);
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: oklch(0.43 0.12 140);
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, 
+                color-mix(in oklch, oklch(0.50 0.12 140) 8%, transparent),
+                color-mix(in oklch, oklch(0.65 0.08 240) 8%, transparent));
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid oklch(0.88 0.012 60);
+        }
+
+        body.dark .hero-section {
+            border-color: oklch(0.28 0.018 240);
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .hero-text h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .hero-text p {
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .symbolism-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .symbolism-item {
+            background: oklch(0.98 0.005 60);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid oklch(0.50 0.12 140);
+        }
+
+        body.dark .symbolism-item {
+            background: oklch(0.22 0.015 240);
+        }
+
+        .symbolism-item h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .symbolism-item p {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .option-card {
+            background: oklch(0.98 0.005 60);
+            border: 2px solid oklch(0.88 0.012 60);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        body.dark .option-card {
+            background: oklch(0.22 0.015 240);
+            border-color: oklch(0.28 0.018 240);
+        }
+
+        .option-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px color-mix(in oklch, oklch(0.20 0.015 240) 15%, transparent);
+        }
+
+        .option-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid oklch(0.88 0.012 60);
+        }
+
+        body.dark .option-header {
+            border-bottom-color: oklch(0.28 0.018 240);
+        }
+
+        .option-name {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .icon {
+            font-size: 1.5rem;
+        }
+
+        .option-description {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .thematic-fit {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .fit-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .color-swatches {
+            display: flex;
+            height: 100px;
+        }
+
+        .swatch {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: flex 0.3s;
+        }
+
+        .swatch:hover {
+            flex: 1.5;
+        }
+
+        .option-content {
+            padding: 1.5rem;
+        }
+
+        .characteristics {
+            margin-bottom: 1.5rem;
+        }
+
+        .characteristic-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .characteristic-item::before {
+            content: "→";
+            margin-right: 0.75rem;
+            font-weight: bold;
+            color: oklch(0.50 0.12 140);
+        }
+
+        .ui-examples {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .example-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .color-value {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.7rem;
+            text-align: center;
+            opacity: 0.6;
+            margin-top: 0.5rem;
+        }
+
+        /* Hunter Green */
+        .option-hunter .swatch:nth-child(1) { background: oklch(0.92 0.04 140); color: oklch(0.20 0.015 240); }
+        .option-hunter .swatch:nth-child(2) { background: oklch(0.78 0.08 140); color: oklch(0.20 0.015 240); }
+        .option-hunter .swatch:nth-child(3) { background: oklch(0.62 0.12 140); color: oklch(0.97 0.008 60); }
+        .option-hunter .swatch:nth-child(4) { background: oklch(0.50 0.12 140); color: oklch(0.97 0.008 60); }
+        .option-hunter .swatch:nth-child(5) { background: oklch(0.38 0.10 140); color: oklch(0.97 0.008 60); }
+        .option-hunter .example-button { background: oklch(0.50 0.12 140); color: oklch(0.97 0.008 60); }
+        .option-hunter .example-button:hover { background: oklch(0.43 0.12 140); }
+        .option-hunter .fit-badge { background: oklch(0.85 0.08 140); color: oklch(0.30 0.12 140); }
+
+        /* Lunar Silver-Blue */
+        .option-lunar .swatch:nth-child(1) { background: oklch(0.95 0.02 240); color: oklch(0.20 0.015 240); }
+        .option-lunar .swatch:nth-child(2) { background: oklch(0.85 0.05 240); color: oklch(0.20 0.015 240); }
+        .option-lunar .swatch:nth-child(3) { background: oklch(0.72 0.08 240); color: oklch(0.97 0.008 60); }
+        .option-lunar .swatch:nth-child(4) { background: oklch(0.65 0.08 240); color: oklch(0.97 0.008 60); }
+        .option-lunar .swatch:nth-child(5) { background: oklch(0.50 0.07 240); color: oklch(0.97 0.008 60); }
+        .option-lunar .example-button { background: oklch(0.65 0.08 240); color: oklch(0.97 0.008 60); }
+        .option-lunar .example-button:hover { background: oklch(0.58 0.08 240); }
+        .option-lunar .fit-badge { background: oklch(0.88 0.05 240); color: oklch(0.40 0.08 240); }
+
+        /* Celestial Purple */
+        .option-celestial .swatch:nth-child(1) { background: oklch(0.92 0.05 280); color: oklch(0.20 0.015 240); }
+        .option-celestial .swatch:nth-child(2) { background: oklch(0.78 0.10 280); color: oklch(0.20 0.015 240); }
+        .option-celestial .swatch:nth-child(3) { background: oklch(0.58 0.15 280); color: oklch(0.97 0.008 60); }
+        .option-celestial .swatch:nth-child(4) { background: oklch(0.45 0.15 280); color: oklch(0.97 0.008 60); }
+        .option-celestial .swatch:nth-child(5) { background: oklch(0.32 0.13 280); color: oklch(0.97 0.008 60); }
+        .option-celestial .example-button { background: oklch(0.45 0.15 280); color: oklch(0.97 0.008 60); }
+        .option-celestial .example-button:hover { background: oklch(0.38 0.15 280); }
+        .option-celestial .fit-badge { background: oklch(0.85 0.10 280); color: oklch(0.30 0.15 280); }
+
+        /* Moonstone White */
+        .option-moonstone .swatch:nth-child(1) { background: oklch(0.98 0.005 240); color: oklch(0.20 0.015 240); }
+        .option-moonstone .swatch:nth-child(2) { background: oklch(0.92 0.01 240); color: oklch(0.20 0.015 240); }
+        .option-moonstone .swatch:nth-child(3) { background: oklch(0.82 0.03 240); color: oklch(0.20 0.015 240); }
+        .option-moonstone .swatch:nth-child(4) { background: oklch(0.70 0.05 240); color: oklch(0.97 0.008 60); }
+        .option-moonstone .swatch:nth-child(5) { background: oklch(0.55 0.06 240); color: oklch(0.97 0.008 60); }
+        .option-moonstone .example-button { background: oklch(0.70 0.05 240); color: oklch(0.97 0.008 60); }
+        .option-moonstone .example-button:hover { background: oklch(0.63 0.05 240); }
+        .option-moonstone .fit-badge { background: oklch(0.90 0.02 240); color: oklch(0.40 0.06 240); }
+
+        .recommendation {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: color-mix(in oklch, oklch(0.50 0.12 140) 8%, transparent);
+            border-left: 4px solid oklch(0.50 0.12 140);
+            border-radius: 12px;
+        }
+
+        .recommendation h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recommendation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .recommendation-item {
+            background: oklch(0.98 0.005 60);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        body.dark .recommendation-item {
+            background: oklch(0.22 0.015 240);
+        }
+
+        .recommendation-item h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .recommendation-item p {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ARTEMIS / ARROW</h1>
+            <p class="subtitle">Precision. Growth. Aspiration.</p>
+            <p class="tagline">"Aim true, learn forward"</p>
+            <button class="theme-toggle" onclick="toggleTheme()">Toggle Dark Mode</button>
+        </header>
+
+        <div class="hero-section">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h2>Brand Identity</h2>
+                    <p>
+                        Named after Artemis, Greek goddess of the hunt and wilderness, and the arrow - 
+                        symbol of precision and forward movement. Your educational platform embodies 
+                        focused learning, natural growth, and hitting your targets.
+                    </p>
+                </div>
+                <div class="symbolism-grid">
+                    <div class="symbolism-item">
+                        <h4>🏹 Artemis</h4>
+                        <p>Hunt, wilderness, moon, precision, independence, growth</p>
+                    </div>
+                    <div class="symbolism-item">
+                        <h4>➜ Arrow</h4>
+                        <p>Direction, progress, focus, hitting targets, speed, purpose</p>
+                    </div>
+                    <div class="symbolism-item">
+                        <h4>🚀 NASA Artemis</h4>
+                        <p>Moon missions, exploration, reaching new heights, innovation</p>
+                    </div>
+                    <div class="symbolism-item">
+                        <h4>🎯 Education</h4>
+                        <p>Learning journey, skill development, achieving goals, mastery</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 style="font-size: 1.75rem; font-weight: 600; margin: 2rem 0 1rem;">Choose Your Accent Color</h2>
+
+        <div class="options-grid">
+            <!-- Hunter Green -->
+            <div class="option-card option-hunter">
+                <div class="option-header">
+                    <div class="option-name">
+                        <span class="icon">🌲</span>
+                        Hunter Green
+                    </div>
+                    <div class="option-description">
+                        Natural and growth-oriented. Embodies Artemis's wilderness domain and the organic journey of learning.
+                    </div>
+                    <div class="thematic-fit">
+                        <span class="fit-badge">ARTEMIS ★★★</span>
+                        <span class="fit-badge">ARROW ★★</span>
+                        <span class="fit-badge">RECOMMENDED</span>
+                    </div>
+                </div>
+                <div class="color-swatches">
+                    <div class="swatch">50</div>
+                    <div class="swatch">200</div>
+                    <div class="swatch">400</div>
+                    <div class="swatch">500</div>
+                    <div class="swatch">700</div>
+                </div>
+                <div class="option-content">
+                    <div class="characteristics">
+                        <div class="characteristic-item">Perfect for educational growth themes</div>
+                        <div class="characteristic-item">Distinctive in tech/education space</div>
+                        <div class="characteristic-item">Natural, approachable, grounded</div>
+                        <div class="characteristic-item">Sophisticated forest green</div>
+                        <div class="characteristic-item">Embodies wilderness & nature</div>
+                    </div>
+                    <div class="ui-examples">
+                        <button class="example-button">Start Learning →</button>
+                        <div class="color-value">oklch(0.50 0.12 140)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lunar Silver-Blue -->
+            <div class="option-card option-lunar">
+                <div class="option-header">
+                    <div class="option-name">
+                        <span class="icon">🌙</span>
+                        Lunar Silver-Blue
+                    </div>
+                    <div class="option-description">
+                        Precise and aspirational. Reflects Artemis's lunar connection and the arrow's sharp focus.
+                    </div>
+                    <div class="thematic-fit">
+                        <span class="fit-badge">ARTEMIS ★★★</span>
+                        <span class="fit-badge">ARROW ★★★</span>
+                        <span class="fit-badge">MINIMAL</span>
+                    </div>
+                </div>
+                <div class="color-swatches">
+                    <div class="swatch">50</div>
+                    <div class="swatch">200</div>
+                    <div class="swatch">400</div>
+                    <div class="swatch">500</div>
+                    <div class="swatch">700</div>
+                </div>
+                <div class="option-content">
+                    <div class="characteristics">
+                        <div class="characteristic-item">Moon goddess aesthetic</div>
+                        <div class="characteristic-item">Precision and clarity</div>
+                        <div class="characteristic-item">Ultra-sophisticated, subtle</div>
+                        <div class="characteristic-item">Almost neutral elegance</div>
+                        <div class="characteristic-item">Celestial, aspirational</div>
+                    </div>
+                    <div class="ui-examples">
+                        <button class="example-button">Start Learning →</button>
+                        <div class="color-value">oklch(0.65 0.08 240)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Celestial Purple -->
+            <div class="option-card option-celestial">
+                <div class="option-header">
+                    <div class="option-name">
+                        <span class="icon">✨</span>
+                        Celestial Purple
+                    </div>
+                    <div class="option-description">
+                        Wise and premium. Captures the divine nature of Artemis and the ambition of reaching high.
+                    </div>
+                    <div class="thematic-fit">
+                        <span class="fit-badge">ARTEMIS ★★</span>
+                        <span class="fit-badge">ARROW ★★</span>
+                        <span class="fit-badge">PREMIUM</span>
+                    </div>
+                </div>
+                <div class="color-swatches">
+                    <div class="swatch">50</div>
+                    <div class="swatch">200</div>
+                    <div class="swatch">400</div>
+                    <div class="swatch">500</div>
+                    <div class="swatch">700</div>
+                </div>
+                <div class="option-content">
+                    <div class="characteristics">
+                        <div class="characteristic-item">Divine, mystical quality</div>
+                        <div class="characteristic-item">Wisdom and knowledge</div>
+                        <div class="characteristic-item">Premium, sophisticated</div>
+                        <div class="characteristic-item">Unique and memorable</div>
+                        <div class="characteristic-item">Night sky, celestial</div>
+                    </div>
+                    <div class="ui-examples">
+                        <button class="example-button">Start Learning →</button>
+                        <div class="color-value">oklch(0.45 0.15 280)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Moonstone White -->
+            <div class="option-card option-moonstone">
+                <div class="option-header">
+                    <div class="option-name">
+                        <span class="icon">◯</span>
+                        Moonstone White
+                    </div>
+                    <div class="option-description">
+                        Pure and focused. Embodies moonlight clarity and the arrow's singular purpose.
+                    </div>
+                    <div class="thematic-fit">
+                        <span class="fit-badge">ARTEMIS ★★</span>
+                        <span class="fit-badge">ARROW ★★★</span>
+                        <span class="fit-badge">ULTRA-MINIMAL</span>
+                    </div>
+                </div>
+                <div class="color-swatches">
+                    <div class="swatch">50</div>
+                    <div class="swatch">200</div>
+                    <div class="swatch">400</div>
+                    <div class="swatch">500</div>
+                    <div class="swatch">700</div>
+                </div>
+                <div class="option-content">
+                    <div class="characteristics">
+                        <div class="characteristic-item">Ultimate minimalism</div>
+                        <div class="characteristic-item">Pure focus and clarity</div>
+                        <div class="characteristic-item">Moonlight aesthetic</div>
+                        <div class="characteristic-item">Most subtle option</div>
+                        <div class="characteristic-item">Precision and purity</div>
+                    </div>
+                    <div class="ui-examples">
+                        <button class="example-button">Start Learning →</button>
+                        <div class="color-value">oklch(0.70 0.05 240)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="recommendation">
+            <h3><span class="icon">🎯</span> Recommendation for Artemis/Arrow</h3>
+            <div class="recommendation-grid">
+                <div class="recommendation-item">
+                    <h4>Best Overall: Hunter Green</h4>
+                    <p>Perfect balance of Artemis (nature/wilderness) and Arrow (growth/progress). Distinctive, professional, and perfectly aligned with educational themes.</p>
+                </div>
+                <div class="recommendation-item">
+                    <h4>Most Thematic: Lunar Silver-Blue</h4>
+                    <p>Captures both Artemis's lunar connection and Arrow's precision. Ultra-sophisticated and aspirational.</p>
+                </div>
+                <div class="recommendation-item">
+                    <h4>Most Premium: Celestial Purple</h4>
+                    <p>Divine wisdom meets high ambition. Unique and memorable in educational space.</p>
+                </div>
+                <div class="recommendation-item">
+                    <h4>Most Minimal: Moonstone White</h4>
+                    <p>Pure focus and clarity. For brands that want ultimate subtlety and precision.</p>
+                </div>
+            </div>
+            <p style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid oklch(0.88 0.012 60); font-size: 0.875rem; line-height: 1.6;">
+                <strong>My top recommendation: Hunter Green 🌲</strong><br>
+                For an educational platform named Artemis/Arrow, Hunter Green is the strongest choice. It perfectly embodies 
+                the wilderness/nature aspect of Artemis while representing organic growth and forward progress (arrow). 
+                It's distinctive in the tech/education space, professional yet approachable, and timeless.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+        }
+    </script>
+</body>
+</html>

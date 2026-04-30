@@ -44,7 +44,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     <div 
       className={styles.pageWrapper}
       style={{
-        "--sidebar-width": showChrome ? (isCollapsed ? "80px" : "288px") : "0px"
+        "--sidebar-width": showChrome ? (isCollapsed ? "56px" : "288px") : "0px"
       } as React.CSSProperties}
     >
       {/* Ambient glow decorations */}

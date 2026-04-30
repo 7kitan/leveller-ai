@@ -24,7 +24,7 @@ interface SystemSetting {
 }
 
 const AdminSettingsPage = () => {
-  const { user } = useAuth();
+  const { token } = useAuth();
   const { t } = useLanguage();
   const [settings, setSettings] = useState<SystemSetting[]>([]);
   const [availableModels, setAvailableModels] = useState<any[]>([]);
@@ -62,8 +62,8 @@ const AdminSettingsPage = () => {
   };
 
   useEffect(() => {
-    if (user) fetchData();
-  }, [user]);
+    if (token) fetchData();
+  }, [token]);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
@@ -123,7 +123,7 @@ const AdminSettingsPage = () => {
   const handleTestEmail = async () => {
     setIsSaving(true);
     try {
-      await api.post("analysis/admin/test-email");
+      await api.post("analysis/admin/test-email", {});
       showNotification(t("admin_settings_test_mail_success"), "success");
     } catch (err) {
       showNotification(t("admin_settings_test_mail_error"), "error");
@@ -135,7 +135,7 @@ const AdminSettingsPage = () => {
   const handleTestLLM = async () => {
     setIsSaving(true);
     try {
-      const resp = await api.post("analysis/admin/test-llm");
+      const resp = await api.post("analysis/admin/test-llm", {});
       showNotification(`${t("admin_settings_test_llm_success")}${resp.data.response}`, "success");
     } catch (err) {
       showNotification(t("admin_settings_test_llm_error"), "error");
@@ -1092,7 +1092,7 @@ const AdminSettingsPage = () => {
                         onClick={async () => {
                             setIsSaving(true);
                             try {
-                              await api.post("admin/cache/clear");
+                              await api.post("admin/cache/clear", {});
                               showNotification(t("admin_settings_clear_redis_success"));
                             } catch (err) {
                               showNotification(t("admin_settings_clear_redis_error"), "error");
@@ -1109,7 +1109,7 @@ const AdminSettingsPage = () => {
                         onClick={async () => {
                             setIsSaving(true);
                             try {
-                              await api.post("admin/vector/sync");
+                              await api.post("admin/vector/sync", {});
                               showNotification(t("admin_settings_sync_vector_success"));
                             } catch (err) {
                               showNotification(t("admin_settings_sync_vector_error"), "error");

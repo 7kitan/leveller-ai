@@ -9,14 +9,14 @@
 }
 
 .header {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 3rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--color-text-primary) 3%, transparent);
   transition: background-color 0.5s ease, border-color 0.5s ease;
 }
 
@@ -32,15 +32,14 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  font-size: 2.5rem;
+  font-size: var(--font-size-xlarge);
   font-weight: 900;
-  color: var(--color-text-main);
-  font-style: italic;
+  color: var(--color-text-primary);
   letter-spacing: -0.05em;
 }
 
 .subtitle {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-text-muted);
   margin-top: 0.5rem;
@@ -52,21 +51,19 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1.25rem 2.5rem;
-  background-color: #4f46e5;
+  background-color: var(--color-primary);
   color: white;
   border-radius: 1.25rem;
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .addBtn:hover {
-  background-color: #4338ca;
+  background-color: var(--color-accent-700);
   transform: translateY(-2px);
-  box-shadow: 0 15px 40px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 15px 40px color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 .controlBar {
@@ -74,10 +71,10 @@
   flex-direction: column;
   gap: 1.5rem;
   padding: 1.5rem 2rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-text-primary) 2%, transparent);
 }
 
 @media (min-width: 1024px) {
@@ -107,32 +104,32 @@
 .searchInput {
   width: 100%;
   padding: 1rem 1.5rem 1rem 3.5rem;
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1.25rem;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   font-weight: 700;
   outline: none;
   transition: all 0.3s ease;
 }
 
 [data-theme="dark"] .searchInput {
-    background-color: rgba(255, 255, 255, 0.03);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
 }
 
 .searchInput:focus {
-  border-color: #4f46e5;
+  border-color: var(--color-primary);
   background-color: white;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.05);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 5%, transparent);
 }
 
 [data-theme="dark"] .searchInput:focus {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .refreshBtn {
   padding: 0.75rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1rem;
   color: var(--color-text-muted);
@@ -144,17 +141,17 @@
 }
 
 .refreshBtn:hover {
-  background-color: rgba(0, 0, 0, 0.02);
-  color: var(--color-text-main);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
+  color: var(--color-text-primary);
   opacity: 1;
 }
 
 .tableContainer {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--color-text-primary) 3%, transparent);
 }
 
 .table {
@@ -163,20 +160,18 @@
 }
 
 .tableHeader {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
 }
 
 [data-theme="dark"] .tableHeader {
-    background-color: rgba(255, 255, 255, 0.03);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
 }
 
 .th {
   padding: 1.5rem 2rem;
   text-align: left;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   color: var(--color-text-muted);
   border-bottom: 1px solid var(--color-border-subtle);
   opacity: 0.6;
@@ -225,11 +220,11 @@
 }
 
 .tr:hover {
-  background-color: rgba(0, 0, 0, 0.01);
+  background-color: color-mix(in srgb, var(--color-text-primary) 1%, transparent);
 }
 
 [data-theme="dark"] .tr:hover {
-    background-color: rgba(255, 255, 255, 0.01);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 1%, transparent);
 }
 
 .td {
@@ -238,8 +233,7 @@
 
 .entityName {
   font-weight: 900;
-  color: var(--color-text-main);
-  font-style: italic;
+  color: var(--color-text-primary);
   letter-spacing: -0.01em;
 }
 
@@ -251,28 +245,24 @@
 
 .aliasBadge {
     padding: 0.375rem 0.75rem;
-    background-color: rgba(0, 0, 0, 0.02);
+    background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
     border: 1px solid var(--color-border-subtle);
     border-radius: 0.75rem;
-    font-size: 9px;
+    font-size: var(--font-size-small);
     font-weight: 900;
     color: var(--color-text-muted);
-    text-transform: uppercase;
     opacity: 0.7;
 }
 
 [data-theme="dark"] .aliasBadge {
-    background-color: rgba(255, 255, 255, 0.03);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
 }
 
 .emptyAlias {
-    font-size: 10px;
+    font-size: var(--font-size-small);
     font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
     color: var(--color-text-muted);
     opacity: 0.2;
-    font-style: italic;
 }
 
 .actionBtn {
@@ -282,21 +272,21 @@
 }
 
 .actionBtn:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  color: var(--color-text-main);
+  background-color: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
+  color: var(--color-text-primary);
   opacity: 1;
 }
 
 [data-theme="dark"] .actionBtn:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .actionBtnDelete {
-    color: rgba(244, 63, 94, 0.4);
+    color: color-mix(in srgb, var(--color-error) 40%, transparent);
 }
 
 .actionBtnDelete:hover {
-    color: #f43f5e;
+    color: var(--color-error);
 }
 
 .separatorDot {
@@ -310,7 +300,7 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.4);
+  background-color: color-mix(in srgb, var(--color-text-primary) 40%, transparent);
   backdrop-filter: blur(8px);
   z-index: 50;
   display: flex;
@@ -320,7 +310,7 @@
 }
 
 [data-theme="dark"] .modalOverlay {
-    background-color: rgba(15, 23, 42, 0.8);
+    background-color: color-mix(in srgb, var(--color-text-primary) 80%, transparent);
 }
 
 .modalContent {
@@ -329,13 +319,13 @@
   background-color: white;
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 25px 50px -12px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
   overflow: hidden;
 }
 
 [data-theme="dark"] .modalContent {
-    background-color: #0f172a;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    background-color: var(--color-text-primary);
+    box-shadow: 0 25px 50px -12px color-mix(in srgb, var(--color-text-primary) 50%, transparent);
 }
 
 .modalHeader {
@@ -343,15 +333,13 @@
 }
 
 .modalTitle {
-  font-size: 1.5rem;
+  font-size: var(--font-size-large);
   font-weight: 900;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   letter-spacing: tight;
   display: flex;
   align-items: center;
   gap: 1rem;
-  text-transform: uppercase;
-  font-style: italic;
 }
 
 .modalBody {
@@ -362,11 +350,9 @@
 }
 
 .inputLabel {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   padding: 0 0.25rem;
   opacity: 0.5;
 }
@@ -374,21 +360,21 @@
 .modalInput {
   width: 100%;
   padding: 1rem 1.5rem;
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1.25rem;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   font-weight: 700;
   outline: none;
   transition: all 0.3s ease;
 }
 
 [data-theme="dark"] .modalInput {
-    background-color: rgba(255, 255, 255, 0.03);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
 }
 
 .modalInput:focus {
-  border-color: #4f46e5;
+  border-color: var(--color-primary);
   background-color: white;
 }
 
@@ -397,39 +383,35 @@
   display: flex;
   justify-content: flex-end;
   gap: 1.5rem;
-  background-color: rgba(0, 0, 0, 0.01);
+  background-color: color-mix(in srgb, var(--color-text-primary) 1%, transparent);
 }
 
 .modalCancelBtn {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: rgba(255, 255, 255, 0.3);
+  color: color-mix(in srgb, var(--color-bg-elevated) 30%, transparent);
 }
 
 [data-theme="light"] .modalCancelBtn {
-  color: rgba(0, 0, 0, 0.4);
+  color: color-mix(in srgb, var(--color-text-primary) 40%, transparent);
 }
 
 [data-theme="dark"] .modalFooter {
-    background-color: rgba(255, 255, 255, 0.01);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 1%, transparent);
 }
 
 .submitBtn {
   padding: 1rem 2.5rem;
-  background-color: #4f46e5;
+  background-color: var(--color-primary);
   color: white;
   border-radius: 1.25rem;
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   transition: all 0.3s ease;
 }
 
 .submitBtn:hover {
-  background-color: #4338ca;
+  background-color: var(--color-accent-700);
   transform: translateY(-2px);
 }
 
@@ -445,11 +427,8 @@
 }
 
 .emptyStateText {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  font-style: italic;
 }
 
 .notification {
@@ -463,14 +442,14 @@
   border-radius: 1.5rem;
   border: 1px solid var(--color-border-subtle);
   backdrop-filter: blur(24px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
   z-index: 100;
-  color: var(--color-text-main);
-  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
 }
 
-.notifSuccess { background-color: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2); }
-.notifError { background-color: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.2); }
+.notifSuccess { background-color: color-mix(in srgb, var(--color-success) 5%, transparent); border-color: color-mix(in srgb, var(--color-success) 20%, transparent); }
+.notifError { background-color: color-mix(in srgb, var(--color-error) 5%, transparent); border-color: color-mix(in srgb, var(--color-error) 20%, transparent); }
 
 .notifIconContainer {
   padding: 0.5rem;
@@ -478,13 +457,13 @@
 }
 
 .notifIconSuccess {
-  background-color: rgba(16, 185, 129, 0.2);
-  color: #10b981;
+  background-color: color-mix(in srgb, var(--color-success) 20%, transparent);
+  color: var(--color-success);
 }
 
 .notifIconError {
-  background-color: rgba(244, 63, 94, 0.2);
-  color: #f43f5e;
+  background-color: color-mix(in srgb, var(--color-error) 20%, transparent);
+  color: var(--color-error);
 }
 
 .notifText {
@@ -497,14 +476,13 @@
 }
 
 .modalHelpText {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.2);
-  font-style: italic;
+  font-size: var(--font-size-base);
+  color: color-mix(in srgb, var(--color-bg-elevated) 20%, transparent);
   padding: 0.5rem;
 }
 
 [data-theme="light"] .modalHelpText {
-  color: rgba(0, 0, 0, 0.4);
+  color: color-mix(in srgb, var(--color-text-primary) 40%, transparent);
 }
 
 @keyframes fadeIn {

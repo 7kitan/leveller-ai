@@ -42,7 +42,7 @@ interface AdminUser {
 }
 
 const AdminUsersPage = () => {
-  const { user } = useAuth();
+  const { token } = useAuth();
   const { t } = useLanguage();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +65,7 @@ const AdminUsersPage = () => {
   const [pageSize] = useState(10);
 
   const fetchUsers = async (page = 1) => {
-    if (!user) return;
+    if (!token) return;
     try {
       setLoading(true);
       const offset = (page - 1) * pageSize;
@@ -85,13 +85,13 @@ const AdminUsersPage = () => {
   };
 
   useEffect(() => {
-    if (user) fetchUsers(1);
-  }, [user]);
+    if (token) fetchUsers(1);
+  }, [token]);
 
   // Handle search resets pagination
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (user) fetchUsers(1);
+      if (token) fetchUsers(1);
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
@@ -124,7 +124,7 @@ const AdminUsersPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!token) return;
     setSubmitting(true);
 
     try {
@@ -169,7 +169,7 @@ const AdminUsersPage = () => {
   };
 
   const handleDelete = async () => {
-    if (!userToDelete || !user) return;
+    if (!userToDelete || !token) return;
     setSubmitting(true);
 
     try {
@@ -232,7 +232,7 @@ const AdminUsersPage = () => {
               <tr className={styles.tableHeader}>
                 <th className={styles.th}>{t("admin_users_table_user")}</th>
                 <th className={styles.th}>{t("admin_users_table_role")}</th>
-                <th className={styles.th}>{t("admin_users_usage_today")}</th>
+                <th className={styles.th}>Usage (Today)</th>
                 <th className={styles.th}>{t("admin_users_table_status")}</th>
                 <th className={styles.th}>{t("admin_users_table_date")}</th>
                 <th className={cn(styles.th, styles.thRight)}>{t("admin_users_table_actions")}</th>
@@ -268,7 +268,7 @@ const AdminUsersPage = () => {
                         <div>
                           <div className={styles.userName}>
                             {user.full_name || t("fail")}
-                            {user.is_flagged && <span title={t("admin_users_flagged_tooltip")}><AlertTriangle size={14} className="inline ml-2 text-amber-500" /></span>}
+                            {user.is_flagged && <span title="Flagged for review"><AlertTriangle size={14} className="inline ml-2 text-amber-500" /></span>}
                           </div>
                           <div className={styles.userEmail}>{user.email}</div>
                         </div>
@@ -287,7 +287,7 @@ const AdminUsersPage = () => {
                     <td className={styles.td}>
                        <div className={styles.usageContainer}>
                           <div className={styles.usageText}>
-                            {user.today_usage.toLocaleString()} / {user.daily_token_limit > 0 ? user.daily_token_limit.toLocaleString() : t("admin_users_global_limit")}
+                            {user.today_usage.toLocaleString()} / {user.daily_token_limit > 0 ? user.daily_token_limit.toLocaleString() : "Global"}
                           </div>
                           <div className={styles.usageBar}>
                              <div 
@@ -317,9 +317,16 @@ const AdminUsersPage = () => {
                        <div className={styles.actionBtnGroup}>
                           <button 
                             onClick={async () => {
-                              if (!user) return;
-                              const res = await api.patch(`/auth/admin/users/${user.id}`, { is_active: !user.is_active });
-                              if (res.status === 200 || res.status === 204) {
+                              if (!token) return;
+                              const res = await fetch(`/auth/admin/users/${user.id}`, {
+                                method: "PATCH",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                  "Authorization": `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ is_active: !user.is_active })
+                              });
+                              if (res.ok) {
                                 toast.success(user.is_active ? t("admin_users_status_banned") : t("admin_users_status_active"));
                                 fetchUsers(currentPage);
                               } else {

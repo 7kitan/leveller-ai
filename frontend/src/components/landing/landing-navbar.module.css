@@ -50,11 +50,10 @@
 
 .navLogo {
   font-weight: 800;
-  font-size: 19px;
+  font-size: var(--font-size-medium);
   color: #1d1d1f;
   text-decoration: none;
   letter-spacing: -0.04em;
-  text-transform: uppercase;
   flex-shrink: 0;
 }
 
@@ -83,7 +82,7 @@
 
 .navLinks a {
   color: rgba(0, 0, 0, 0.6);
-  font-size: 14px;
+  font-size: var(--font-size-base);
   text-decoration: none;
   transition: all 0.2s;
   font-weight: 600;
@@ -96,7 +95,7 @@
 
 .navCta {
   color: rgba(0, 0, 0, 0.6);
-  font-size: 14px;
+  font-size: var(--font-size-base);
   text-decoration: none;
   transition: all 0.2s;
   font-weight: 600;
@@ -161,7 +160,7 @@
 }
 
 .mobileLinks a {
-  font-size: 18px;
+  font-size: var(--font-size-medium);
   font-weight: 600;
   color: #1d1d1f;
   text-decoration: none;
@@ -185,12 +184,10 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
   background: rgba(0, 0, 0, 0.05);
   color: #1d1d1f;
-  font-size: 12px;
+  font-size: var(--font-size-base);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .langToggle:hover {
@@ -205,12 +202,10 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
   background: rgba(0, 0, 0, 0.05);
   color: #1d1d1f;
-  font-size: 11px;
+  font-size: var(--font-size-base);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   margin-right: 8px;
 }
 
