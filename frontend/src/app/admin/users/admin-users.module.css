@@ -45,19 +45,19 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1.125rem 2rem;
-  background-color: #4f46e5;
+  background-color: var(--color-primary);
   color: white;
   border-radius: 1.25rem;
   font-size: var(--font-size-small);
   font-weight: 900;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 15px 30px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 15px 30px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .addBtn:hover {
-  background-color: #4338ca;
+  background-color: var(--color-primary-700);
   transform: translateY(-3px);
-  box-shadow: 0 25px 50px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 25px 50px color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 .controlBar {
@@ -68,7 +68,7 @@
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-text-primary) 2%, transparent);
 }
 
 @media (min-width: 1024px) {
@@ -86,7 +86,7 @@
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   padding: 0 1.5rem;
   border-radius: 1.5rem;
   border: 1px solid var(--color-border-subtle);
@@ -94,17 +94,17 @@
 }
 
 [data-theme="dark"] .searchContainer {
-    background-color: rgba(255, 255, 255, 0.03);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
 }
 
 .searchContainer:focus-within {
   border-color: var(--color-accent-primary);
   background-color: white;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.05);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 5%, transparent);
 }
 
 [data-theme="dark"] .searchContainer:focus-within {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .searchIcon {
@@ -134,7 +134,7 @@
 }
 
 .refreshBtn:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   color: var(--color-text-main);
   opacity: 1;
 }
@@ -146,7 +146,7 @@
   overflow-x: auto; /* Horizontal scroll if needed */
   overflow-y: auto; /* Vertical scroll for data */
   max-height: 60vh; /* Limit height */
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--color-text-primary) 3%, transparent);
   position: relative;
 }
 
@@ -156,7 +156,7 @@
 }
 
 .tableHeader {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -164,7 +164,7 @@
 }
 
 [data-theme="dark"] .tableHeader {
-    background-color: rgba(255, 255, 255, 0.02);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 2%, transparent);
 }
 
 .th {
@@ -187,7 +187,7 @@
 }
 
 .tr:hover {
-  background-color: rgba(0, 0, 0, 0.01);
+  background-color: color-mix(in srgb, var(--color-text-primary) 1%, transparent);
 }
 
 .td {
@@ -203,7 +203,7 @@
 .avatar {
   width: 3.5rem;
   height: 3.5rem;
-  background-color: rgba(79, 70, 229, 0.05);
+  background-color: color-mix(in srgb, var(--color-primary) 5%, transparent);
   color: var(--color-accent-primary);
   border-radius: 1.25rem;
   display: flex;
@@ -229,22 +229,22 @@
 .userId {
   font-family: inherit;
   font-size: var(--font-size-small);
-  color: rgba(255, 255, 255, 0.1);
+  color: color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
   letter-spacing: -0.02em;
 }
 
 [data-theme="light"] .userId {
-  color: rgba(0, 0, 0, 0.2);
+  color: color-mix(in srgb, var(--color-text-primary) 20%, transparent);
 }
 
 .userDate {
   font-size: var(--font-size-small);
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.2);
+  color: color-mix(in srgb, var(--color-bg-elevated) 20%, transparent);
 }
 
 [data-theme="light"] .userDate {
-  color: rgba(0, 0, 0, 0.4);
+  color: color-mix(in srgb, var(--color-text-primary) 40%, transparent);
 }
 
 .usageContainer {
@@ -265,13 +265,13 @@
 .usageBar {
   width: 100%;
   height: 6px;
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
   border-radius: 3px;
   overflow: hidden;
 }
 
 [data-theme="dark"] .usageBar {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .usageFill {
@@ -288,19 +288,19 @@
 }
 
 .roleAdmin {
-  background-color: rgba(16, 185, 129, 0.1);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background-color: color-mix(in srgb, var(--color-success) 10%, transparent);
+  color: var(--color-success-700);
+  border: 1px solid color-mix(in srgb, var(--color-success) 20%, transparent);
 }
 
 .roleUser {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   color: var(--color-text-muted);
   border: 1px solid var(--color-border-subtle);
 }
 
 [data-theme="dark"] .roleUser {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .actionBtnGroup {
@@ -319,26 +319,26 @@
 }
 
 .actionBtn:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
   color: var(--color-text-main);
   opacity: 1;
 }
 
 [data-theme="dark"] .actionBtn:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .actionBtnEdit {
 }
 
 .actionBtnDelete {
-  color: #f43f5e;
-  background-color: rgba(244, 63, 94, 0.05);
+  color: var(--color-error);
+  background-color: color-mix(in srgb, var(--color-error) 5%, transparent);
 }
 
 .actionBtnDelete:hover {
-  background-color: rgba(244, 63, 94, 0.1);
-  color: #e11d48;
+  background-color: color-mix(in srgb, var(--color-error) 10%, transparent);
+  color: var(--color-error-700);
 }
 
 .skeletonRow {
@@ -353,8 +353,8 @@
 .spinner {
   width: 2.5rem;
   height: 2.5rem;
-  border: 3px solid rgba(79, 70, 229, 0.1);
-  border-top-color: #4f46e5;
+  border: 3px solid color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-top-color: var(--color-primary);
   border-radius: 9999px;
   animation: spin 1s linear infinite;
 }
@@ -362,11 +362,11 @@
 .skeletonText {
   font-size: var(--font-size-base);
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.2);
+  color: color-mix(in srgb, var(--color-bg-elevated) 20%, transparent);
 }
 
 [data-theme="light"] .skeletonText {
-  color: rgba(0, 0, 0, 0.2);
+  color: color-mix(in srgb, var(--color-text-primary) 20%, transparent);
 }
 
 .emptyState {
@@ -381,28 +381,28 @@
 }
 
 .emptyStateIcon {
-  color: rgba(255, 255, 255, 0.2);
+  color: color-mix(in srgb, var(--color-bg-elevated) 20%, transparent);
   opacity: 0.5;
 }
 
 [data-theme="light"] .emptyStateIcon {
-  color: rgba(0, 0, 0, 0.1);
+  color: color-mix(in srgb, var(--color-text-primary) 10%, transparent);
 }
 
 .emptyStateText {
   font-size: var(--font-size-base);
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.2);
+  color: color-mix(in srgb, var(--color-bg-elevated) 20%, transparent);
 }
 
 [data-theme="light"] .emptyStateText {
-  color: rgba(0, 0, 0, 0.2);
+  color: color-mix(in srgb, var(--color-text-primary) 20%, transparent);
 }
 
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.4);
+  background-color: color-mix(in srgb, var(--color-text-primary) 40%, transparent);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: flex-start; /* Spacing from top instead of centered */
@@ -413,7 +413,7 @@
 }
 
 [data-theme="dark"] .modalOverlay {
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: color-mix(in srgb, var(--color-text-primary) 80%, transparent);
 }
 
 .modalContent {
@@ -423,14 +423,14 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: 2.5rem; /* Slightly smaller radius for better balance */
   overflow: hidden;
-  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 40px 80px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
   margin-bottom: 2rem; /* Spacing at bottom */
   position: relative;
 }
 
 [data-theme="dark"] .modalContent {
-    background-color: #0f172a;
-    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+    background-color: var(--color-text-primary);
+    box-shadow: 0 40px 80px color-mix(in srgb, var(--color-text-primary) 60%, transparent);
 }
 
 .modalHeader {
@@ -472,7 +472,7 @@
 
 .modalInput {
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1.25rem;
   padding: 1.25rem 1.75rem;
@@ -483,7 +483,7 @@
 }
 
 [data-theme="dark"] .modalInput {
-    background-color: rgba(255, 255, 255, 0.03);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
 }
 
 .modalInput:focus {
@@ -497,7 +497,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 2rem;
-  background-color: rgba(0, 0, 0, 0.01);
+  background-color: color-mix(in srgb, var(--color-text-primary) 1%, transparent);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
 }
@@ -550,7 +550,7 @@
 
 .submitBtn {
   padding: 1rem 2.5rem;
-  background-color: #4f46e5;
+  background-color: var(--color-primary);
   color: white;
   border-radius: 1rem;
   font-size: var(--font-size-small);
@@ -559,7 +559,7 @@
 }
 
 .submitBtn:hover {
-  background-color: #4338ca;
+  background-color: var(--color-primary-700);
 }
 
 /* Delete Confirm Modal Specifics */
@@ -574,27 +574,27 @@
     display: flex;
     flex-direction: column;
     gap: 2.5rem;
-    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 40px 80px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
 }
 
 [data-theme="dark"] .deleteModalContent {
-    background-color: #0c111d;
+    background-color: var(--color-text-primary);
 }
 
 .deleteIconBox {
     width: 6rem;
     height: 6rem;
     margin: 0 auto;
-    background-color: rgba(244, 63, 94, 0.05);
+    background-color: color-mix(in srgb, var(--color-error) 5%, transparent);
     border-radius: 1.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(244, 63, 94, 0.1);
+    border: 1px solid color-mix(in srgb, var(--color-error) 10%, transparent);
 }
 
 .deleteIcon {
-  color: #f43f5e;
+  color: var(--color-error);
 }
 
 .deleteConfirmTitle {
@@ -618,7 +618,7 @@
 }
 
 [data-theme="light"] .deleteConfirmTarget {
-  color: #0f172a;
+  color: var(--color-text-primary);
 }
 
 .deleteActions {
@@ -630,7 +630,7 @@
     flex: 1;
     padding: 1.25rem;
     border-radius: 1.25rem;
-    background-color: rgba(0, 0, 0, 0.02);
+    background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
     color: var(--color-text-muted);
     font-weight: 900;
     font-size: var(--font-size-small);
@@ -639,7 +639,7 @@
 }
 
 .cancelDeleteBtn:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
     color: var(--color-text-main);
 }
 
@@ -647,7 +647,7 @@
     flex: 1;
     padding: 1.25rem;
     border-radius: 1.25rem;
-    background-color: #f43f5e;
+    background-color: var(--color-error);
     color: white;
     font-weight: 900;
     font-size: var(--font-size-small);
@@ -655,7 +655,7 @@
 }
 
 .confirmDeleteBtn:hover {
-    background-color: #e11d48;
+    background-color: var(--color-error-700);
 }
 
 @keyframes spin {

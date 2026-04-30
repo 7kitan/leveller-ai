@@ -9,15 +9,15 @@
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
-  background-color: rgba(244, 63, 94, 0.1);
-  color: #f43f5e;
+  background-color: color-mix(in srgb, var(--color-error) 10%, transparent);
+  color: var(--color-error);
   transition: all 0.2s;
   font-weight: 700;
   font-size: var(--font-size-base);
 }
 
 .cleanupBtn:hover {
-  background-color: rgba(244, 63, 94, 0.2);
+  background-color: color-mix(in srgb, var(--color-error) 20%, transparent);
 }
 
 .refreshBtn {
@@ -31,7 +31,7 @@
 }
 
 .refreshBtn:hover {
-  background-color: rgba(244, 63, 94, 0.1);
+  background-color: color-mix(in srgb, var(--color-error) 10%, transparent);
 }
 
 .filtersBar {
@@ -52,12 +52,12 @@
 .filterLabel {
   font-size: var(--font-size-base);
   font-weight: 900;
-  color: #64748b;
+  color: var(--color-text-secondary);
 }
 
 .select {
   background-color: rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
   border-radius: 0.75rem;
   padding: 0.5rem 1rem;
   font-size: var(--font-size-base);
@@ -67,16 +67,16 @@
 }
 
 :global(.dark) .select {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .select:focus {
-  ring: 2px solid #f43f5e;
+  ring: 2px solid var(--color-error);
 }
 
 .input {
   background-color: rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
   border-radius: 0.75rem;
   padding: 0.5rem 1rem;
   font-size: var(--font-size-base);
@@ -87,11 +87,11 @@
 }
 
 :global(.dark) .input {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .input:focus {
-  ring: 2px solid #f43f5e;
+  ring: 2px solid var(--color-error);
 }
 
 .tableContainer {
@@ -119,11 +119,11 @@
 }
 
 .tr:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
 }
 
 :global(.dark) .tr:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .td {
@@ -152,7 +152,7 @@
 .module {
   font-size: var(--font-size-small);
   font-weight: 900;
-  color: #f43f5e;
+  color: var(--color-error);
   letter-spacing: -0.025em;
   width: 10rem;
 }
@@ -183,7 +183,7 @@
 }
 
 .detailsBtn {
-  color: #94a3b8;
+  color: var(--color-text-tertiary);
   transition: color 0.2s;
   font-size: var(--font-size-base);
 }
@@ -202,7 +202,7 @@
 .paginationText {
   font-size: var(--font-size-base);
   font-weight: 700;
-  color: #64748b;
+  color: var(--color-text-secondary);
 }
 
 .paginationButtons {
@@ -213,12 +213,12 @@
 .pageBtn {
   padding: 0.5rem;
   border-radius: 0.75rem;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
   transition: all 0.2s;
 }
 
 .pageBtn:hover:not(:disabled) {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
 }
 
 .pageBtn:disabled {

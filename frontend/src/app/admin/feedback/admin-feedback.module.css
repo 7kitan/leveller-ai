@@ -52,7 +52,7 @@
   border: 1px solid rgba(var(--text-rgb), 0.08);
   border-radius: 1rem;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--color-text-primary) 3%, transparent);
 }
 
 .table {
@@ -90,7 +90,7 @@
 }
 
 .starActive {
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .starInactive {
@@ -101,8 +101,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
   padding: 0.3rem 0.6rem;
   border-radius: 0.5rem;
   font-size: var(--font-size-small);
@@ -113,8 +113,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
   padding: 0.3rem 0.6rem;
   border-radius: 0.5rem;
   font-size: var(--font-size-small);

@@ -28,24 +28,24 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 1rem;
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
   padding: 0.5rem;
   border-radius: 1rem;
 }
 
 :global(.dark) .chartControls {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .periodToggle {
   display: flex;
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: color-mix(in srgb, var(--color-text-primary) 10%, transparent);
   padding: 0.25rem;
   border-radius: 0.75rem;
 }
 
 :global(.dark) .periodToggle {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
 }
 
 .toggleBtn {
@@ -57,9 +57,9 @@
 }
 
 .toggleBtnActive {
-  background-color: #10b981;
+  background-color: var(--color-success);
   color: white;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
 }
 
 .toggleBtnInactive {
@@ -73,7 +73,7 @@
 .divider {
   height: 1.5rem;
   width: 1px;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
 }
 
 .daysSelector {
@@ -90,8 +90,8 @@
 }
 
 .dayBtnActive {
-  color: #10b981;
-  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+  background-color: color-mix(in srgb, var(--color-success) 10%, transparent);
 }
 
 .dayBtnInactive {
@@ -99,17 +99,17 @@
 }
 
 .dayBtnInactive:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .modelCard {
   padding: 1rem;
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
   border-radius: 1rem;
 }
 
 :global(.dark) .modelCard {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .modelHeader {
@@ -121,7 +121,7 @@
 
 .modelName {
   font-weight: 700;
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .modelCalls {
@@ -132,18 +132,18 @@
 
 .progressBar {
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: color-mix(in srgb, var(--color-text-primary) 10%, transparent);
   height: 0.5rem;
   border-radius: 9999px;
   overflow: hidden;
 }
 
 :global(.dark) .progressBar {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
 }
 
 .progressFill {
-  background-color: #10b981;
+  background-color: var(--color-success);
   height: 100%;
   border-radius: 9999px;
 }
@@ -167,19 +167,19 @@
 }
 
 .userCard:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
 }
 
 :global(.dark) .userCard:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .userRank {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 9999px;
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  background-color: color-mix(in srgb, var(--color-info) 10%, transparent);
+  color: var(--color-info);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -237,11 +237,11 @@
 }
 
 .tr:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
 }
 
 :global(.dark) .tr:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .td {
@@ -267,11 +267,11 @@
 }
 
 .statusSuccess {
-  background-color: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  background-color: color-mix(in srgb, var(--color-success) 10%, transparent);
+  color: var(--color-success);
 }
 
 .statusError {
-  background-color: rgba(244, 63, 94, 0.1);
-  color: #f43f5e;
+  background-color: color-mix(in srgb, var(--color-error) 10%, transparent);
+  color: var(--color-error);
 }

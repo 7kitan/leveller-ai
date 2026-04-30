@@ -83,21 +83,21 @@
 
 .tabItem:hover {
   color: var(--color-text-main);
-  background-color: rgba(0, 0, 0, 0.03);
+  background-color: color-mix(in srgb, var(--color-text-primary) 3%, transparent);
 }
 
 [data-theme="dark"] .tabItem:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .tabItemActive {
   background-color: var(--tab-accent, var(--color-accent-primary)) !important;
   color: white !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
 }
 
 .tabBadge {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 20%, transparent);
   color: white;
   font-size: var(--font-size-small);
   padding: 1px 6px;
@@ -123,12 +123,12 @@
 .settingCard:hover {
   transform: translateY(-5px);
   box-shadow: var(--shadow-premium);
-  border-color: rgba(79, 70, 229, 0.2);
+  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .settingCardModified {
   border-color: var(--color-accent-primary);
-  box-shadow: 0 0 0 1px var(--color-accent-primary), 0 10px 30px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 0 0 1px var(--color-accent-primary), 0 10px 30px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 .cardHeader {
@@ -167,11 +167,11 @@
   font-size: var(--font-size-small);
   font-weight: 900;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .sectionSaveBtn:hover {
-  background-color: #4338ca;
+  background-color: var(--color-primary-700);
   transform: translateY(-2px);
 }
 
@@ -196,7 +196,7 @@
 }
 
 .testBtn:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
   border-color: var(--color-text-muted);
 }
 
@@ -216,7 +216,7 @@
 }
 
 .fieldModified {
-  background-color: rgba(79, 70, 229, 0.05);
+  background-color: color-mix(in srgb, var(--color-primary) 5%, transparent);
 }
 
 .fieldModifiedDot {
@@ -253,7 +253,7 @@
 
 .input {
   flex: 1;
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1.25rem;
   padding: 1.125rem 1.5rem;
@@ -264,7 +264,7 @@
 }
 
 [data-theme="dark"] .input {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
 }
 
 .input:focus {
@@ -282,15 +282,15 @@
 }
 
 .toggleOn {
-  background-color: #10b981;
+  background-color: var(--color-success);
 }
 
 .toggleOff {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: color-mix(in srgb, var(--color-text-primary) 10%, transparent);
 }
 
 [data-theme="dark"] .toggleOff {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
 }
 
 .knob {
@@ -328,11 +328,11 @@
   font-size: var(--font-size-small);
   font-weight: 900;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .saveBtn:hover {
-  background-color: #4338ca;
+  background-color: var(--color-primary-700);
   transform: translateY(-2px);
 }
 
@@ -357,7 +357,7 @@
   display: flex;
   align-items: center;
   gap: 2rem;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 50px color-mix(in srgb, var(--color-text-primary) 20%, transparent);
   z-index: 100;
   backdrop-filter: blur(10px);
 }
@@ -383,7 +383,7 @@
 }
 
 .discardBtn:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
   color: var(--color-text-main);
 }
 
@@ -394,12 +394,12 @@
   border-radius: 1rem;
   font-size: var(--font-size-small);
   font-weight: 900;
-  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--color-primary) 30%, transparent);
   transition: all 0.3s ease;
 }
 
 .mainSaveBtn:hover {
-  background-color: #4338ca;
+  background-color: var(--color-primary-700);
   transform: translateY(-2px);
 }
 
@@ -414,12 +414,12 @@
   background-color: var(--color-panel-bg);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1.5rem;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 50px color-mix(in srgb, var(--color-text-primary) 20%, transparent);
   z-index: 1000;
   backdrop-filter: blur(10px);
   color: var(--color-text-main);
   font-weight: 700;
 }
 
-.notifSuccess { border-left: 4px solid #10b981; }
-.notifError { border-left: 4px solid #f43f5e; }
+.notifSuccess { border-left: 4px solid var(--color-success); }
+.notifError { border-left: 4px solid var(--color-error); }

@@ -3,18 +3,18 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.625rem 1.25rem;
-    background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+    background: linear-gradient(135deg, var(--color-error) 0%, var(--color-error-700) 100%);
     color: white;
     border-radius: 0.75rem;
     font-weight: 600;
     font-size: var(--font-size-base);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--color-error) 25%, transparent);
 }
 
 .addBtn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(225, 29, 72, 0.35);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--color-error) 35%, transparent);
     filter: brightness(1.1);
 }
 
@@ -54,8 +54,8 @@
 
 .searchInput:focus {
     outline: none;
-    border-color: #f43f5e;
-    box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.1);
+    border-color: var(--color-error);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error) 10%, transparent);
     background: var(--bg-primary);
 }
 
@@ -74,8 +74,8 @@
 
 .refreshBtn:hover {
     background: var(--bg-hover);
-    color: #f43f5e;
-    border-color: #f43f5e;
+    color: var(--color-error);
+    border-color: var(--color-error);
 }
 
 .tableContainer {
@@ -83,7 +83,7 @@
     border: 1px solid var(--border-color);
     border-radius: 1rem;
     overflow-x: auto;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 6px -1px color-mix(in srgb, var(--color-text-primary) 10%, transparent), 0 2px 4px -1px color-mix(in srgb, var(--color-text-primary) 6%, transparent);
 }
 
 .table {
@@ -140,7 +140,7 @@
     background: #000;
     flex-shrink: 0;
     position: relative;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px color-mix(in srgb, var(--color-text-primary) 20%, transparent);
 }
 
 .thumbnail {
@@ -174,7 +174,7 @@
 }
 
 .videoTitle:hover {
-    color: #f43f5e;
+    color: var(--color-error);
     text-decoration: underline;
 }
 
@@ -197,7 +197,7 @@
 
 .duration {
     font-size: var(--font-size-base);
-    color: #f43f5e;
+    color: var(--color-error);
     font-weight: 600;
 }
 
@@ -224,18 +224,18 @@
 }
 
 .statusActive {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
+    background: color-mix(in srgb, var(--color-success) 10%, transparent);
+    color: var(--color-success);
 }
 
 .statusExpired {
-    background: rgba(244, 63, 94, 0.1);
-    color: #f43f5e;
+    background: color-mix(in srgb, var(--color-error) 10%, transparent);
+    color: var(--color-error);
 }
 
 .statusStale {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
+    background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+    color: var(--color-warning);
 }
 
 .actionBtnGroup {
@@ -263,9 +263,9 @@
 }
 
 .actionBtnDelete:hover {
-    background: rgba(244, 63, 94, 0.1);
-    color: #f43f5e;
-    border-color: rgba(244, 63, 94, 0.2);
+    background: color-mix(in srgb, var(--color-error) 10%, transparent);
+    color: var(--color-error);
+    border-color: color-mix(in srgb, var(--color-error) 20%, transparent);
 }
 
 .skeletonRow {
@@ -281,8 +281,8 @@
 .spinner {
     width: 2rem;
     height: 2rem;
-    border: 3px solid rgba(244, 63, 94, 0.1);
-    border-top: 3px solid #f43f5e;
+    border: 3px solid color-mix(in srgb, var(--color-error) 10%, transparent);
+    border-top: 3px solid var(--color-error);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -388,7 +388,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.625rem 1.5rem;
-    background: #f43f5e;
+    background: var(--color-error);
     color: white;
     border-radius: 0.75rem;
     font-weight: 600;
@@ -396,7 +396,7 @@
 }
 
 .deleteDetailsBtn:hover {
-    background: #e11d48;
+    background: var(--color-error-700);
 }
 
 /* Modal Delete Confirm */
@@ -412,12 +412,12 @@
 .deleteIconBox {
     width: 4rem;
     height: 4rem;
-    background: rgba(244, 63, 94, 0.1);
+    background: color-mix(in srgb, var(--color-error) 10%, transparent);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #f43f5e;
+    color: var(--color-error);
 }
 
 .deleteConfirmTitle {
@@ -459,7 +459,7 @@
 .confirmDeleteBtn {
     flex: 1;
     padding: 0.75rem;
-    background: #f43f5e;
+    background: var(--color-error);
     color: white;
     border-radius: 0.75rem;
     font-weight: 600;
@@ -467,5 +467,5 @@
 }
 
 .confirmDeleteBtn:hover {
-    background: #e11d48;
+    background: var(--color-error-700);
 }
