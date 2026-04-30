@@ -386,18 +386,19 @@ select.input option {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  cursor: pointer;
 }
 
 .actionBtn:hover {
-  background-color: var(--color-apple-bright-blue);
-  border-color: var(--color-apple-bright-blue);
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
   box-shadow: 0 10px 20px -5px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 .detailsBtn {
   flex: 1;
   padding: 0.875rem;
-  background-color: var(--color-surface-hover);
+  background-color: var(--color-bg-secondary);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   color: var(--color-text-primary);
@@ -412,7 +413,7 @@ select.input option {
 }
 
 .detailsBtn:hover {
-  background-color: var(--color-surface-active);
+  background-color: var(--color-bg-tertiary);
   border-color: var(--color-accent-primary);
 }
 
@@ -456,7 +457,7 @@ select.input option {
   grid-template-columns: repeat(1, 1fr);
   gap: 1.25rem;
   padding: 1.5rem;
-  background-color: var(--color-surface-hover);
+  background-color: var(--color-bg-secondary);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border-subtle);
 }
@@ -530,12 +531,19 @@ select.input option {
 .modalCloseBtn {
   flex: 1;
   padding: 1rem;
-  background-color: var(--color-surface-hover);
+  background-color: var(--color-bg-secondary);
   border: 1px solid var(--color-border-subtle);
   border-radius: 12px;
   font-weight: 900;
   font-size: var(--font-size-small);
   color: var(--color-text-primary);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.modalCloseBtn:hover {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border-default);
 }
 
 .modalAnalyzeBtn {
@@ -550,6 +558,14 @@ select.input option {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+}
+
+.modalAnalyzeBtn:hover {
+  background-color: var(--color-primary-hover);
+  box-shadow: 0 10px 20px -5px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 .modalSourceBtn {
@@ -568,7 +584,7 @@ select.input option {
 }
 
 .modalSourceBtn:hover {
-  background-color: var(--color-success);
+  background-color: var(--color-success-hover);
   box-shadow: 0 10px 20px -5px color-mix(in srgb, var(--color-success) 40%, transparent);
 }
 
