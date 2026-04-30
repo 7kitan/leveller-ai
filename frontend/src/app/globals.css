@@ -119,8 +119,8 @@
     /* ========================================================================
      * FONTS
      * ======================================================================== */
-    --font-sans: var(--font-fira-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    --font-display: var(--font-space-grotesk), -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-sans: var(--font-open-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-display: var(--font-open-sans), -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
     /* ========================================================================
@@ -388,4 +388,126 @@
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
+}
+
+
+/* Apple Pro Typography Utilities */
+@layer utilities {
+    .text-display-hero {
+        font-size: 56px;
+        font-weight: 600;
+        line-height: 1.07;
+        letter-spacing: -0.015em;
+    }
+
+    .text-section-heading {
+        font-size: 40px;
+        font-weight: 600;
+        line-height: 1.10;
+    }
+
+    /* UI Element Font Scale */
+    .font-micro {
+        font-size: var(--font-size-caption);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .font-meta {
+        font-size: var(--font-size-small);
+        font-weight: 600;
+        opacity: 0.6;
+    }
+
+    .font-label {
+        font-size: var(--font-size-base);
+        font-weight: 700;
+    }
+
+    .font-stat {
+        font-size: 2.5rem;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+    }
+
+    .font-stat-label {
+        font-size: var(--font-size-small);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+        opacity: 0.5;
+    }
+
+    /* Semantic Text Classes */
+    .text-body {
+        font-size: var(--font-size-base);
+        line-height: 1.5;
+    }
+
+    .text-subheading {
+        font-size: var(--font-size-medium);
+        font-weight: 700;
+    }
+
+    .text-card-title {
+        font-size: var(--font-size-large);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .text-page-title {
+        font-size: var(--font-size-display);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+    }
+
+    .apple-glass {
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: saturate(180%) blur(20px);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+    }
+
+    .pill-button {
+        border-radius: var(--radius-full);
+        padding: 8px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    .text-premium-gradient {
+        background: linear-gradient(180deg, var(--color-text-primary) 0%, rgba(255, 255, 255, 0.4) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .luminous-bg {
+        background: radial-gradient(circle at 10% 20%, rgba(0, 113, 227, 0.03) 0%, transparent 50%),
+            radial-gradient(circle at 90% 80%, rgba(41, 151, 255, 0.03) 0%, transparent 50%),
+            #ffffff;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Global Gradient Text Utility - Standardized across all pages */
+.gradient-text {
+    background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-block;
 }
