@@ -5,11 +5,13 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types/roles";
-import {
   UploadCloud,
   TrendingUp,
   ArrowRight,
   Target,
+  X,
+  Lightbulb,
+  BookOpen
 } from "lucide-react";
 import Link from "next/link";
 import { cn, formatNumber, formatPercent } from "@/lib/utils";
@@ -253,21 +255,27 @@ const UserDashboard = () => {
                       onClick={() => setSelectedGap(null)}
                       aria-label="Close"
                     >
-                      ✕
+                      <X size={20} />
                     </button>
                   </div>
                   
                   <div className={styles.slideOverContent}>
                     {selectedGap.reasoning && (
                       <div className={styles.slideOverSection}>
-                        <h4 className={styles.slideOverSectionTitle}>Why This Matters</h4>
+                        <h4 className={styles.slideOverSectionTitle}>
+                          <Lightbulb size={18} className="text-warning" />
+                          Why This Matters
+                        </h4>
                         <p className={styles.slideOverText}>{selectedGap.reasoning}</p>
                       </div>
                     )}
                     
                     {selectedGap.learning_path && (
                       <div className={styles.slideOverSection}>
-                        <h4 className={styles.slideOverSectionTitle}>Learning Path</h4>
+                        <h4 className={styles.slideOverSectionTitle}>
+                          <BookOpen size={18} className="text-primary" />
+                          Learning Path
+                        </h4>
                         <p className={styles.slideOverText}>{selectedGap.learning_path}</p>
                       </div>
                     )}
