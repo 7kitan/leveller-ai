@@ -135,12 +135,12 @@ const UserDashboard = () => {
   const stats = [
     {
       label: t("dash_suggested_courses"),
-      value: loading ? "..." : String(marketData?.matched_jobs ?? "0"),
+      value: loading ? "..." : String(rawCourses.length || 0),
       icon: Target,
     },
     {
       label: t("cv_match_score"),
-      value: loading ? "..." : formatPercent(marketData?.market_fit_pct || 0),
+      value: loading ? "..." : formatPercent(latestAnalysis?.overall_match_pct || marketData?.market_fit_pct || 0),
       icon: TrendingUp,
     },
   ];
