@@ -3,18 +3,18 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.625rem 1.25rem;
-    background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent-800) 100%);
     color: white;
     border-radius: 0.75rem;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
 .addBtn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--color-primary) 35%, transparent);
     filter: brightness(1.1);
 }
 
@@ -22,16 +22,16 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background: var(--bg-secondary);
+    background: var(--color-bg-secondary);
     padding: 0.5rem 1rem;
     border-radius: 0.75rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--color-border-default);
 }
 
 .toggleLabel {
-    font-size: 0.8125rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
 }
 
 .toggleBtn {
@@ -45,11 +45,11 @@
 }
 
 .toggleOn {
-    background: #10b981;
+    background: var(--color-success);
 }
 
 .toggleOff {
-    background: var(--bg-tertiary);
+    background: var(--color-bg-tertiary);
 }
 
 .toggleKnob {
@@ -61,7 +61,7 @@
     top: 0.125rem;
     left: 0.125rem;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
 }
 
 .toggleOn .toggleKnob {
@@ -92,25 +92,25 @@
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     opacity: 0.5;
 }
 
 .searchInput {
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 2.75rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
     border-radius: 0.75rem;
-    color: var(--text-primary);
-    font-size: 0.875rem;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
     transition: all 0.2s ease;
 }
 
 .searchInput:focus {
     outline: none;
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 .refreshBtn {
@@ -119,25 +119,25 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
     border-radius: 0.75rem;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     transition: all 0.2s ease;
 }
 
 .refreshBtn:hover {
-    background: var(--bg-hover);
-    color: #4f46e5;
-    border-color: #4f46e5;
+    background: var(--color-bg-hover);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
 }
 
 .tableContainer {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
     border-radius: 1rem;
     overflow: hidden;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px -1px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
 }
 
 .table {
@@ -146,18 +146,16 @@
 }
 
 .tableHeader {
-    background: var(--bg-tertiary);
-    border-bottom: 1px solid var(--border-color);
+    background: var(--color-bg-tertiary);
+    border-bottom: 1px solid var(--color-border-default);
 }
 
 .th {
     padding: 1rem 1.5rem;
     text-align: left;
-    font-size: 0.75rem;
+    font-size: var(--font-size-base);
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
 }
 
 .thRight {
@@ -165,7 +163,7 @@
 }
 
 .tr {
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--color-border-default);
     transition: background 0.2s ease;
 }
 
@@ -174,7 +172,7 @@
 }
 
 .tr:hover {
-    background: var(--bg-hover);
+    background: var(--color-bg-hover);
 }
 
 .td {
@@ -184,8 +182,8 @@
 .jobIconBox {
     width: 3rem;
     height: 3rem;
-    background: rgba(79, 70, 229, 0.1);
-    color: #4f46e5;
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    color: var(--color-primary);
     border-radius: 0.875rem;
     display: flex;
     align-items: center;
@@ -194,57 +192,57 @@
 
 .jobTitleText {
     font-weight: 700;
-    color: var(--text-primary);
-    font-size: 1rem;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
     margin-bottom: 0.25rem;
 }
 
 .companyName {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
 }
 
 .sourceLabel {
     padding: 0.25rem 0.625rem;
     border-radius: 0.5rem;
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
     text-transform: capitalize;
 }
 
 .sourceTopcv {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
+    background: color-mix(in srgb, var(--color-success) 10%, transparent);
+    color: var(--color-success);
 }
 
 .sourceManual {
-    background: rgba(79, 70, 229, 0.1);
-    color: #4f46e5;
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    color: var(--color-primary);
 }
 
 .metaInfo {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
 }
 
 .statusBadge {
     padding: 0.25rem 0.625rem;
     border-radius: 9999px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
 }
 
 .statusActive {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
+    background: color-mix(in srgb, var(--color-success) 10%, transparent);
+    color: var(--color-success);
 }
 
 .statusInactive {
-    background: rgba(244, 63, 94, 0.1);
-    color: #f43f5e;
+    background: color-mix(in srgb, var(--color-error) 10%, transparent);
+    color: var(--color-error);
 }
 
 .actionGroup {
@@ -259,30 +257,30 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-default);
     border-radius: 0.5rem;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     transition: all 0.2s ease;
 }
 
 .actionBtn:hover {
-    color: #4f46e5;
-    border-color: #4f46e5;
-    background: rgba(79, 70, 229, 0.05);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 5%, transparent);
 }
 
 .actionBtnDelete:hover {
-    color: #f43f5e;
-    border-color: #f43f5e;
-    background: rgba(244, 63, 94, 0.05);
+    color: var(--color-error);
+    border-color: var(--color-error);
+    background: color-mix(in srgb, var(--color-error) 5%, transparent);
 }
 
 /* Modal Styling */
 .modalTitle {
-    font-size: 1.25rem;
+    font-size: var(--font-size-medium);
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--color-text-primary);
 }
 
 .modalBodyContent {
@@ -297,30 +295,28 @@
 
 .formField label {
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--font-size-base);
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     margin-bottom: 0.5rem;
 }
 
 .formField input, .formField select {
     width: 100%;
     padding: 0.75rem 1rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-default);
     border-radius: 0.75rem;
-    color: var(--text-primary);
-    font-size: 0.875rem;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
     transition: all 0.2s ease;
 }
 
 .formField input:focus, .formField select:focus {
     outline: none;
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-    background: var(--bg-secondary);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent);
+    background: var(--color-bg-secondary);
 }
 
 .formFieldFull {
@@ -329,22 +325,20 @@
 
 .formFieldFull label {
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--font-size-base);
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     margin-bottom: 0.5rem;
 }
 
 .formFieldFull input, .formFieldFull textarea {
     width: 100%;
     padding: 0.75rem 1rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-default);
     border-radius: 0.75rem;
-    color: var(--text-primary);
-    font-size: 0.875rem;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
     transition: all 0.2s ease;
 }
 
@@ -360,14 +354,14 @@
     flex-wrap: wrap;
     gap: 1.5rem;
     padding: 0.5rem 1rem;
-    background: var(--bg-tertiary);
+    background: var(--color-bg-tertiary);
     border-radius: 0.75rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--color-border-default);
 }
 
 .modalFooter {
     padding: 1.25rem 1.5rem;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--color-border-default);
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
@@ -375,28 +369,28 @@
 
 .cancelBtn {
     padding: 0.625rem 1.5rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-default);
     border-radius: 0.75rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     transition: all 0.2s ease;
 }
 
 .submitBtn {
     padding: 0.625rem 1.5rem;
-    background: #4f46e5;
+    background: var(--color-primary);
     color: white;
     border-radius: 0.75rem;
     font-weight: 600;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .submitBtn:hover {
-    background: #3730a3;
+    background: var(--color-accent-800);
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 .notification {
@@ -408,18 +402,18 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 25px -5px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
     z-index: 9999;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
 }
 
 .notifSuccess {
-    background: #10b981;
+    background: var(--color-success);
     color: white;
 }
 
 .notifError {
-    background: #f43f5e;
+    background: var(--color-error);
     color: white;
 }

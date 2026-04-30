@@ -27,7 +27,7 @@ import {
   Play,
 } from "lucide-react";
 import CourseCard from "@/components/user/CourseCard";
-import { cn, formatPercent, formatNumber, formatHours } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactECharts from 'echarts-for-react';
 import FeedbackSection from "@/components/user/FeedbackSection";
@@ -136,16 +136,26 @@ function levelColor(level: string) {
 }
 
 const UserRecommendPage = () => {
-  const { user } = useAuth();
+  const { token } = useAuth();
   const { theme } = useTheme();
   const router = useRouter();
   const { t } = useLanguage();
 
   const isDark = theme === "dark";
-  const chartTextColor = isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(15, 23, 42, 0.8)";
-  const chartAxisColor = isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(15, 23, 42, 0.15)";
-  const chartSplitLineColor = isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(15, 23, 42, 0.05)";
-  const chartTooltipBg = isDark ? "rgba(0, 0, 0, 0.85)" : "rgba(255, 255, 255, 0.95)";
+ const chartTextColor = isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(15, 23, 42, 0.8)";
+ const chartAxisColor = isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(15, 23, 42, 0.15)";
+ const chartSplitLineColor = isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(15, 23, 42, 0.05)";
+ const chartTooltipBg = isDark ? "rgba(0, 0, 0, 0.85)" : "rgba(255, 255, 255, 0.95)";
+ 
+ // Primary color (Lunar Silver-Blue) - OKLCH system
+ const primaryColor = isDark ? "#8b9dc7" : "#7b8fc7"; // oklch(0.65 0.08 240) equivalent
+ const primaryColor01 = isDark ? "rgba(139, 157, 199, 0.01)" : "rgba(123, 143, 199, 0.01)";
+ const primaryColor03 = isDark ? "rgba(139, 157, 199, 0.03)" : "rgba(123, 143, 199, 0.03)";
+ const primaryColor05 = isDark ? "rgba(139, 157, 199, 0.05)" : "rgba(123, 143, 199, 0.05)";
+ const primaryColor10 = isDark ? "rgba(139, 157, 199, 0.1)" : "rgba(123, 143, 199, 0.1)";
+ const primaryColor30 = isDark ? "rgba(139, 157, 199, 0.3)" : "rgba(123, 143, 199, 0.3)";
+ const primaryColor40 = isDark ? "rgba(139, 157, 199, 0.4)" : "rgba(123, 143, 199, 0.4)";
+ const secondaryColor = "#0ea5e9"; // Cyan for gradients
   const chartTooltipText = isDark ? "#fff" : "#0f172a";
 
   const translateRadarCategory = (name: string) => {
@@ -171,7 +181,7 @@ const UserRecommendPage = () => {
 
   /* ── Progressive Polling Logic ───────────────────────────────────────── */
   useEffect(() => {
-    if (!user || !taskIdFromUrl || taskIdFromUrl === "null" || taskIdFromUrl === "undefined") return;
+    if (!token || !taskIdFromUrl) return;
 
     console.log("[RECOMMEND] Polling for progressive updates - Task ID:", taskIdFromUrl);
     setIsProcessing(true);
@@ -185,13 +195,6 @@ const UserRecommendPage = () => {
         sessionStorage.removeItem("gap_analysis_partial");
       }
     } catch (e) {}
-
-    // Skip polling if task_id is invalid (cached result)
-    if (taskIdFromUrl === "null" || taskIdFromUrl === "undefined") {
-      console.log("[RECOMMEND] Invalid task_id, skipping status polling");
-      setIsProcessing(false);
-      return;
-    }
 
     // 1. Initial fetch to check if task is already completed
     const fetchInitialStatus = async () => {
@@ -328,11 +331,11 @@ const UserRecommendPage = () => {
     });
 
     return () => {};
-  }, [ taskIdFromUrl]);
+  }, [token, taskIdFromUrl]);
 
   /* ── Load initial gap result (if no task_id) ─────────────────────────── */
   useEffect(() => {
-    if (!user || taskIdFromUrl) return;
+    if (!token || taskIdFromUrl) return;
 
     try {
       const stored = sessionStorage.getItem("gap_analysis_result");
@@ -360,10 +363,10 @@ const UserRecommendPage = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, [user]);
+  }, [token]);
 
   const handleRefresh = async () => {
-    if (!user) return;
+    if (!token) return;
     setRefreshing(true);
     try {
       const resp = await api.get("analysis/user/latest");
@@ -433,7 +436,7 @@ const UserRecommendPage = () => {
   );
 
   const totalHours = course_recommendations.reduce((s, c) => s + (c.duration_hours || 0), 0);
-  const displayTotalHours = totalHours > 0 ? formatHours(totalHours) : t("not_available");
+  const displayTotalHours = totalHours > 0 ? `${totalHours.toFixed(1)}h` : t("not_available");
 
   const tabs = [
     { key: "gaps", label: t("skill_gaps"), icon: Layers, count: skill_gaps.length },
@@ -447,8 +450,7 @@ const UserRecommendPage = () => {
       <PageHeader 
         title={
           <>
-            {t("analysis_results_title_1")}{" "}
-            <span className={styles.gradientText}>{t("analysis_results_title_2")}</span>
+            {t("analysis_results_title_1")} {t("analysis_results_title_2")}
           </>
         }
         subtitle={t("analysis_subtitle")}
@@ -500,7 +502,7 @@ const UserRecommendPage = () => {
 
       <div className={styles.matchBanner}>
         <div className={styles.matchScoreBlock}>
-          <span className={styles.matchScore}>{formatPercent(overall_match_pct ?? 0)}</span>
+          <span className={styles.matchScore}>{(overall_match_pct ?? 0).toFixed(1)}%</span>
           <span className={styles.matchLabel}>{t("current_match")}</span>
         </div>
         
@@ -532,7 +534,7 @@ const UserRecommendPage = () => {
                   splitArea: {
                     show: true,
                     areaStyle: {
-                      color: isDark ? ['rgba(79, 70, 229, 0.03)', 'rgba(79, 70, 229, 0.01)'] : ['rgba(79, 70, 229, 0.05)', 'rgba(79, 70, 229, 0.02)'],
+                      color: isDark ? [primaryColor03, primaryColor01] : [primaryColor05, 'rgba(123, 143, 199, 0.02)'],
                     },
                   },
                   axisLine: { lineStyle: { color: chartAxisColor } },
@@ -546,14 +548,14 @@ const UserRecommendPage = () => {
                       color: {
                         type: 'radial', x: 0.5, y: 0.5, r: 0.5,
                         colorStops: [
-                          { offset: 0, color: 'rgba(79, 70, 229, 0.4)' },
+                          { offset: 0, color: primaryColor40 },
                           { offset: 0.5, color: 'rgba(14, 165, 233, 0.3)' },
                           { offset: 1, color: 'rgba(16, 185, 129, 0.2)' },
                         ],
                       },
-                      shadowColor: 'rgba(79, 70, 229, 0.3)', shadowBlur: 20,
+                      shadowColor: primaryColor30, shadowBlur: 20,
                     },
-                    lineStyle: { color: '#4f46e5', width: 2 },
+                    lineStyle: { color: primaryColor, width: 2 },
                     label: {
                       show: true, 
                       formatter: (params: any) => {
@@ -563,13 +565,13 @@ const UserRecommendPage = () => {
                         return ''; 
                       },
                     },
-                    itemStyle: { color: '#4f46e5', borderColor: '#fff', borderWidth: 2 },
+                    itemStyle: { color: primaryColor, borderColor: '#fff', borderWidth: 2 },
                   }],
                 }],
                 tooltip: {
                   trigger: 'item',
                   backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                  borderColor: '#4f46e5',
+                  borderColor: primaryColor,
                   borderWidth: 1,
                   textStyle: { color: '#fff', fontSize: 12 },
                   formatter: (params: any) => {
@@ -581,7 +583,7 @@ const UserRecommendPage = () => {
                       const val = params.value[i];
                       res += `<div style="display: flex; justify-content: space-between; gap: 20px; margin-bottom: 4px;">
                         <span style="color: rgba(255,255,255,0.7);">${translateRadarCategory(name)}</span>
-                        <strong style="color: #fff;">${formatNumber(Number(val))}%</strong>
+                        <strong style="color: #fff;">${Number(val).toFixed(1)}%</strong>
                       </div>`;
                     });
                     res += `</div>`;
@@ -622,9 +624,9 @@ const UserRecommendPage = () => {
                   {t("dash_potential_match")}
                 </div>
                 <div className={styles.growthValue}>
-                  {formatPercent(gapResult.potential_match_pct || 0)}
+                  {(gapResult.potential_match_pct || 0).toFixed(1)}%
                   <span className={styles.growthDiff}>
-                    +{formatPercent((gapResult.potential_match_pct || 0) - (overall_match_pct || 0))}
+                    +{((gapResult.potential_match_pct || 0) - (overall_match_pct || 0)).toFixed(1)}%
                   </span>
                 </div>
               </div>
@@ -634,7 +636,7 @@ const UserRecommendPage = () => {
                   {t("dash_salary_boost")}
                 </div>
                 <div className={styles.growthValue}>
-                  +{formatPercent(gapResult.salary_growth_pct || 0)}
+                  +{(gapResult.salary_growth_pct || 0).toFixed(1)}%
                 </div>
               </div>
               {gapResult.market_sentiment && (
@@ -749,22 +751,14 @@ const UserRecommendPage = () => {
                   <ReactECharts
                     key={`impact-chart-${skill_gaps.map(g => g.skill).join('-')}-${skill_gaps.length}`}
                     option={{
-                      tooltip: { 
-                        trigger: 'axis', 
-                        axisPointer: { type: 'shadow' }, 
-                        backgroundColor: chartTooltipBg, 
-                        borderColor: '#4f46e5', 
-                        borderWidth: 1, 
-                        textStyle: { color: chartTooltipText },
-                        valueFormatter: (value: any) => formatNumber(value) + '%'
-                      },
+                      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: chartTooltipBg, borderColor: primaryColor, borderWidth: 1, textStyle: { color: chartTooltipText } },
                       legend: { data: [t('match_impact'), t('salary_impact')], textStyle: { color: chartTextColor, fontSize: 10 }, top: 0 },
                       grid: { left: '3%', right: '4%', bottom: '3%', top: '40px', containLabel: true },
                       xAxis: { type: 'value', axisLabel: { color: chartTextColor, fontSize: 10 }, splitLine: { lineStyle: { color: chartSplitLineColor } } },
                       yAxis: { type: 'category', data: skill_gaps.map(g => g.skill).reverse(), axisLabel: { color: chartTextColor, fontSize: 11, width: 100, overflow: 'truncate' }, axisLine: { lineStyle: { color: chartAxisColor } } },
                       series: [
-                        { name: t('match_impact'), type: 'bar', data: skill_gaps.map(g => parseFloat(formatNumber(g.match_impact || 0))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#4f46e5' }, { offset: 1, color: '#0ea5e9' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' },
-                        { name: t('salary_impact'), type: 'bar', data: skill_gaps.map(g => parseFloat(formatNumber(g.salary_impact || 0))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#34d399' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' }
+                        { name: t('match_impact'), type: 'bar', data: skill_gaps.map(g => Number((g.match_impact || 0).toFixed(1))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: primaryColor }, { offset: 1, color: secondaryColor }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' },
+                        { name: t('salary_impact'), type: 'bar', data: skill_gaps.map(g => Number((g.salary_impact || 0).toFixed(1))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#34d399' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' }
                       ]
                     }}
                     style={{ height: '100%', width: '100%' }}
@@ -798,8 +792,8 @@ const UserRecommendPage = () => {
                 </div>
                 {(!!gap.match_impact || !!gap.salary_impact) && (
                   <div className={styles.gapImpact}>
-                    {!!gap.match_impact && <span className={styles.impactBadge} style={{ background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}><Target size={12} /> +{formatNumber(gap.match_impact)}% {t('match')}</span>}
-                    {!!gap.salary_impact && <span className={styles.impactBadge} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}><TrendingUp size={12} /> +{formatNumber(gap.salary_impact)}% {t('salary_text')}</span>}
+                    {!!gap.match_impact && <span className={styles.impactBadge} style={{ background: primaryColor10, color: primaryColor }}><Target size={12} /> +{gap.match_impact.toFixed(1)}% {t('match')}</span>}
+                    {!!gap.salary_impact && <span className={styles.impactBadge} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}><TrendingUp size={12} /> +{gap.salary_impact.toFixed(1)}% {t('salary_text')}</span>}
                   </div>
                 )}
                 {gap.learning_path && <div className={styles.gapLearningPath}><Sparkles size={12} className={styles.pathIcon} /><p>{gap.learning_path}</p></div>}

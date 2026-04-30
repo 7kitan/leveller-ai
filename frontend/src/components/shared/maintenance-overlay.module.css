@@ -56,15 +56,13 @@
   color: #0EA5E9;
   padding: 0.4rem 1rem;
   border-radius: 99px;
-  font-size: 0.75rem;
+  font-size: var(--font-size-base);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   border: 1px solid rgba(14, 165, 233, 0.1);
 }
 
 .title {
-  font-size: 1.875rem;
+  font-size: var(--font-size-large);
   font-weight: 800;
   color: #1d1d1f;
   margin-bottom: 1rem;
@@ -75,7 +73,7 @@
 .subtitle {
   color: rgba(0, 0, 0, 0.6);
   line-height: 1.6;
-  font-size: 1.05rem;
+  font-size: var(--font-size-base);
   max-width: 400px;
   margin: 0 auto;
 }
@@ -111,16 +109,14 @@
 
 .infoLabel {
   display: block;
-  font-size: 0.75rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: rgba(0, 0, 0, 0.4);
   margin-bottom: 0.15rem;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
 }
 
 .infoValue {
-  font-size: 0.9rem;
+  font-size: var(--font-size-base);
   color: #1d1d1f;
   font-weight: 600;
 }
@@ -137,18 +133,18 @@
   align-items: center;
   gap: 0.6rem;
   color: rgba(0, 0, 0, 0.5);
-  font-size: 0.9rem;
+  font-size: var(--font-size-base);
   font-weight: 500;
 }
 
 .refreshBtn {
   width: 100%;
-  background: linear-gradient(135deg, #0EA5E9 0%, #06B6D4 100%);
+  /* gradient removed */ background: var(--color-primary);
   color: white;
   padding: 1rem 2rem;
   border-radius: 980px;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
   border: none;

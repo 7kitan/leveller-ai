@@ -12,12 +12,12 @@
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 2.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
   padding-bottom: 1.5rem;
 }
 
 .title {
-  font-size: 2.5rem;
+  font-size: var(--font-size-xlarge);
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -30,14 +30,14 @@
 
 .subtitle {
   color: #888;
-  font-size: 1.1rem;
+  font-size: var(--font-size-medium);
 }
 
 .backBtn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--color-text-muted);
   transition: all 0.2s ease;
@@ -45,178 +45,8 @@
 }
 
 .backBtn:hover {
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
   transform: translateX(-2px);
-}
-
-/* Export Modal Styles */
-.exportModalContent {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.exportInfoBox {
-  background-color: rgba(31, 41, 55, 0.8);
-  border: 1px solid rgba(75, 85, 99, 0.5);
-  border-radius: var(--radius-md);
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.exportInfoRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.875rem;
-}
-
-.exportInfoLabel {
-  color: rgb(209, 213, 219);
-}
-
-.exportInfoValue {
-  color: white;
-  font-weight: 600;
-}
-
-.exportInfoValueHighlight {
-  color: rgb(52, 211, 153);
-  font-weight: 600;
-}
-
-.exportInputGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.exportInputLabel {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: rgb(229, 231, 235);
-}
-
-.exportInput {
-  width: 100%;
-  background-color: rgb(31, 41, 55);
-  border: 1px solid rgb(75, 85, 99);
-  border-radius: var(--radius-md);
-  padding: 0.5rem 1rem;
-  color: white;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-}
-
-.exportInput:focus {
-  outline: none;
-  border-color: rgb(16, 185, 129);
-  box-shadow: 0 0 0 1px rgb(16, 185, 129);
-}
-
-.exportInput:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.exportInputHint {
-  font-size: 0.75rem;
-  color: rgb(156, 163, 175);
-  margin-top: 0.5rem;
-}
-
-.exportProgressBox {
-  background-color: rgba(31, 41, 55, 0.8);
-  border: 1px solid rgba(75, 85, 99, 0.5);
-  border-radius: var(--radius-md);
-  padding: 1rem;
-}
-
-.exportProgressHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-
-.exportProgressLabel {
-  font-size: 0.875rem;
-  color: rgb(209, 213, 219);
-}
-
-.exportProgressValue {
-  font-size: 0.875rem;
-  color: white;
-  font-weight: 600;
-}
-
-.exportProgressBar {
-  width: 100%;
-  background-color: rgb(55, 65, 81);
-  border-radius: 9999px;
-  height: 0.5rem;
-  overflow: hidden;
-}
-
-.exportProgressFill {
-  background-color: rgb(16, 185, 129);
-  height: 100%;
-  transition: width 0.3s ease;
-}
-
-.exportModalActions {
-  display: flex;
-  gap: 0.75rem;
-  padding-top: 0.5rem;
-}
-
-.exportModalBtnCancel {
-  flex: 1;
-  padding: 0.5rem 1rem;
-  background-color: rgb(55, 65, 81);
-  color: white;
-  border-radius: var(--radius-md);
-  font-weight: 500;
-  transition: all 0.2s ease;
-  border: none;
-  cursor: pointer;
-}
-
-.exportModalBtnCancel:hover:not(:disabled) {
-  background-color: rgb(75, 85, 99);
-}
-
-.exportModalBtnCancel:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.exportModalBtnExport {
-  flex: 1;
-  padding: 0.5rem 1rem;
-  background-color: rgb(16, 185, 129);
-  color: white;
-  border-radius: var(--radius-md);
-  font-weight: 500;
-  transition: all 0.2s ease;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.exportModalBtnExport:hover:not(:disabled) {
-  background-color: rgb(5, 150, 105);
-}
-
-.exportModalBtnExport:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .importContainer {
@@ -226,8 +56,8 @@
 }
 
 .inputSection {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
   border-radius: 20px;
   padding: 2rem;
   backdrop-filter: blur(10px);
@@ -241,18 +71,18 @@
 
 .urlInput {
   flex: 1;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--color-text-primary) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
   padding: 1rem 1.5rem;
   border-radius: 12px;
   color: #fff;
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   outline: none;
   transition: border-color 0.2s;
 }
 
 .urlInput:focus {
-  border-color: #3b82f6;
+  border-color: var(--color-info);
 }
 
 .crawlBtn {
@@ -261,13 +91,11 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 0.75rem 2rem;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   border-radius: var(--radius-md);
   font-weight: 700;
-  font-size: 0.875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: var(--font-size-base);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   border: none;
@@ -276,7 +104,7 @@
 .crawlBtn:hover:not(:disabled) {
   filter: brightness(1.1);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-info) 30%, transparent);
 }
 
 .crawlBtn:disabled {
@@ -294,23 +122,23 @@
 }
 
 .previewCard {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
   border-radius: 24px;
   overflow: hidden;
 }
 
 .previewHeader {
   padding: 2rem;
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--color-bg-elevated) 2%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .previewTitle {
-  font-size: 1.5rem;
+  font-size: var(--font-size-large);
   font-weight: 700;
   margin-bottom: 0.5rem;
 }
@@ -330,14 +158,12 @@
 
 .metaLabel {
   color: #666;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: var(--font-size-small);
   font-weight: 600;
 }
 
 .metaValue {
-  font-size: 1.1rem;
+  font-size: var(--font-size-medium);
   color: #ddd;
 }
 
@@ -349,7 +175,7 @@
   display: flex;
   gap: 1.5rem;
   margin-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .tab {
@@ -366,7 +192,7 @@
 }
 
 .activeTab {
-  color: #3b82f6;
+  color: var(--color-info);
 }
 
 .activeTab::after {
@@ -376,7 +202,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: #3b82f6;
+  background: var(--color-info);
 }
 
 .tabContent {
@@ -390,12 +216,12 @@
 }
 
 .tag {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  background: color-mix(in srgb, var(--color-info) 10%, transparent);
+  color: var(--color-info);
   padding: 0.4rem 1rem;
   border-radius: 100px;
-  font-size: 0.9rem;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  font-size: var(--font-size-base);
+  border: 1px solid color-mix(in srgb, var(--color-info) 20%, transparent);
 }
 
 .moduleList {
@@ -405,10 +231,10 @@
 }
 
 .moduleItem {
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--color-text-primary) 20%, transparent);
   padding: 1.25rem;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -417,7 +243,7 @@
 .moduleIndex {
   width: 32px;
   height: 32px;
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -428,14 +254,14 @@
 
 .saveSection {
   padding: 2rem;
-  background: rgba(0, 0, 0, 0.3);
+  background: color-mix(in srgb, var(--color-text-primary) 30%, transparent);
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
 }
 
 .saveBtn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-dark) 100%);
   color: #fff;
   border: none;
   padding: 1rem 3rem;
@@ -449,7 +275,7 @@
 
 .saveBtn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--color-success) 30%, transparent);
 }
 
 .loadingOverlay {
@@ -463,8 +289,8 @@
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #3b82f6;
+  border: 3px solid color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
+  border-top-color: var(--color-info);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -477,27 +303,27 @@
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  background: #1f2937;
+  background: var(--color-neutral-800);
   padding: 1rem 1.5rem;
   border-radius: 12px;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--color-text-primary) 50%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
   z-index: 1000;
 }
 
-.notifSuccess { border-left: 4px solid #10b981; }
-.notifError { border-left: 4px solid #ef4444; }
+.notifSuccess { border-left: 4px solid var(--color-success); }
+.notifError { border-left: 4px solid var(--color-error); }
 .urlTextarea {
   flex: 1;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--color-text-primary) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
   padding: 1rem 1.5rem;
   border-radius: 12px;
   color: #fff;
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   outline: none;
   transition: border-color 0.2s;
   min-height: 120px;
@@ -506,7 +332,7 @@
 }
 
 .urlTextarea:focus {
-  border-color: #3b82f6;
+  border-color: var(--color-info);
 }
 
 /* Bulk Results List */
@@ -518,15 +344,15 @@
 }
 
 .resultCard {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
   border-radius: 20px;
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
 .resultCardError {
-  border-color: rgba(239, 68, 68, 0.3);
+  border-color: color-mix(in srgb, var(--color-error) 30%, transparent);
 }
 
 .cardHeaderSummary {
@@ -535,11 +361,11 @@
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.01);
+  background: color-mix(in srgb, var(--color-bg-elevated) 1%, transparent);
 }
 
 .cardHeaderSummary:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
 }
 
 .cardStatus {
@@ -554,10 +380,10 @@
   border-radius: 50%;
 }
 
-.statusPending { background: #6b7280; }
-.statusLoading { background: #3b82f6; animation: pulse 1.5s infinite; }
-.statusSuccess { background: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
-.statusError { background: #ef4444; }
+.statusPending { background: var(--color-neutral-500); }
+.statusLoading { background: var(--color-info); animation: pulse 1.5s infinite; }
+.statusSuccess { background: var(--color-success); box-shadow: 0 0 10px color-mix(in srgb, var(--color-success) 50%, transparent); }
+.statusError { background: var(--color-error); }
 
 @keyframes pulse {
   0% { opacity: 1; }
@@ -571,7 +397,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .fullWidth {
@@ -585,15 +411,14 @@
 }
 
 .formLabel {
-  font-size: 0.85rem;
+  font-size: var(--font-size-small);
   font-weight: 600;
   color: #888;
-  text-transform: uppercase;
 }
 
 .formInput, .formTextarea {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--color-text-primary) 30%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
   padding: 0.75rem 1rem;
   border-radius: 8px;
   color: #fff;
@@ -601,8 +426,8 @@
 }
 
 .formInput:focus, .formTextarea:focus {
-  border-color: #3b82f6;
-  background: rgba(0, 0, 0, 0.4);
+  border-color: var(--color-info);
+  background: color-mix(in srgb, var(--color-text-primary) 40%, transparent);
 }
 
 .formTextarea {
@@ -616,22 +441,22 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   padding: 0.5rem;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--color-text-primary) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
   border-radius: 8px;
   min-height: 45px;
 }
 
 .editableTag {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  background: color-mix(in srgb, var(--color-info) 10%, transparent);
+  color: var(--color-info);
   padding: 0.25rem 0.75rem;
   border-radius: 6px;
-  font-size: 0.85rem;
+  font-size: var(--font-size-small);
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid color-mix(in srgb, var(--color-info) 20%, transparent);
 }
 
 .removeTag {
@@ -642,7 +467,7 @@
 
 .removeTag:hover {
   opacity: 1;
-  color: #ef4444;
+  color: var(--color-error);
 }
 
 .addTagInput {
@@ -650,7 +475,7 @@
   border: none;
   outline: none;
   color: #fff;
-  font-size: 0.85rem;
+  font-size: var(--font-size-base);
   padding: 0.25rem;
   flex: 1;
   min-width: 100px;
@@ -662,16 +487,16 @@
   bottom: 2rem;
   left: 0;
   right: 0;
-  background: rgba(17, 24, 39, 0.8);
+  background: color-mix(in srgb, var(--color-text-primary) 80%, transparent);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
   border-radius: 20px;
   padding: 1.25rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 3rem;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 50px color-mix(in srgb, var(--color-text-primary) 50%, transparent);
   z-index: 100;
 }
 
@@ -682,12 +507,12 @@
 }
 
 .countBadge {
-  background: #3b82f6;
+  background: var(--color-info);
   color: #fff;
   padding: 0.25rem 0.75rem;
   border-radius: 99px;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--font-size-base);
 }
 
 .bulkSaveBtn {
@@ -695,13 +520,12 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 2rem;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   border-radius: var(--radius-md);
   font-weight: 700;
-  font-size: 0.8125rem;
-  text-transform: uppercase;
-  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.2);
+  font-size: var(--font-size-small);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-info) 20%, transparent);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
@@ -710,7 +534,7 @@
 .bulkSaveBtn:hover:not(:disabled) {
   filter: brightness(1.1);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0, 113, 227, 0.3);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--color-info) 30%, transparent);
 }
 
 .bulkSaveBtn:disabled {
@@ -722,8 +546,7 @@
   padding: 0.75rem 1.5rem;
   color: var(--color-text-muted);
   font-weight: 700;
-  font-size: 0.8125rem;
-  text-transform: uppercase;
+  font-size: var(--font-size-small);
   cursor: pointer;
   transition: all 0.2s ease;
   border-radius: var(--radius-md);
@@ -731,8 +554,8 @@
 }
 
 .discardBtn:hover {
-  color: var(--color-text-main);
-  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
   border-color: var(--color-border-subtle);
 }
 
@@ -749,16 +572,16 @@
 }
 
 .removeResultBtn:hover {
-  color: #f43f5e;
+  color: var(--color-error);
   opacity: 1;
-  background-color: rgba(244, 63, 94, 0.05);
+  background-color: color-mix(in srgb, var(--color-error) 5%, transparent);
 }
 
 .emptyState {
   padding: 5rem 2rem;
   text-align: center;
   color: #555;
-  border: 2px dashed rgba(255, 255, 255, 0.05);
+  border: 2px dashed color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
   border-radius: 24px;
   margin-top: 2rem;
 }
@@ -770,8 +593,8 @@
   align-items: center;
   gap: 1.5rem;
   padding: 1.5rem 2rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--color-bg-elevated) 2%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
   border-radius: 20px;
   margin-bottom: 2rem;
 }
@@ -787,34 +610,32 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 0.75rem 1.5rem;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   color: white;
   border-radius: var(--radius-md);
   font-weight: 700;
-  font-size: 0.8125rem;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
+  font-size: var(--font-size-small);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
 }
 
 .uploadBtn:hover {
-  background-color: var(--color-accent-primary);
-  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+  background-color: var(--color-primary);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-info) 30%, transparent);
   transform: translateY(-1px);
   filter: brightness(1.1);
 }
 
 .uploadBtnSecondary {
-  background-color: rgba(0, 113, 227, 0.08);
-  color: var(--color-accent-primary);
-  border: 1px solid var(--color-accent-primary);
+  background-color: color-mix(in srgb, var(--color-info) 8%, transparent);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
 }
 
 .uploadBtnSecondary:hover {
-  background-color: rgba(0, 113, 227, 0.15);
-  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.15);
+  background-color: color-mix(in srgb, var(--color-info) 15%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-info) 15%, transparent);
 }
 
 .exportBtn {
@@ -823,22 +644,20 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 0.75rem 1.5rem;
-  background-color: rgba(16, 185, 129, 0.1);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background-color: color-mix(in srgb, var(--color-success) 10%, transparent);
+  color: var(--color-success);
+  border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);
   border-radius: var(--radius-md);
   font-weight: 700;
-  font-size: 0.8125rem;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
+  font-size: var(--font-size-small);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .exportBtn:hover {
-  background-color: rgba(16, 185, 129, 0.15);
-  border-color: #10b981;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  background-color: color-mix(in srgb, var(--color-success) 15%, transparent);
+  border-color: var(--color-success);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-success) 15%, transparent);
   transform: translateY(-1px);
 }
 
@@ -854,7 +673,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: color-mix(in srgb, var(--color-text-primary) 70%, transparent);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -864,12 +683,12 @@
 }
 
 .dialogBox {
-  background: #1f2937;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-neutral-800);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
   border-radius: 24px;
   max-width: 500px;
   width: 100%;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 25px 50px color-mix(in srgb, var(--color-text-primary) 50%, transparent);
   overflow: hidden;
 }
 
@@ -878,12 +697,12 @@
   align-items: center;
   gap: 1rem;
   padding: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-bg-elevated) 10%, transparent);
+  background: color-mix(in srgb, var(--color-bg-elevated) 2%, transparent);
 }
 
 .dialogHeader h3 {
-  font-size: 1.5rem;
+  font-size: var(--font-size-large);
   font-weight: 700;
   color: #fff;
   margin: 0;
@@ -891,7 +710,7 @@
 
 .dialogContent {
   padding: 2rem;
-  color: #d1d5db;
+  color: var(--color-neutral-300);
   line-height: 1.6;
 }
 
@@ -900,7 +719,7 @@
 }
 
 .dialogContent strong {
-  color: #3b82f6;
+  color: var(--color-info);
   font-weight: 700;
 }
 
@@ -910,9 +729,9 @@
   gap: 1rem;
   margin-top: 1.5rem;
   padding: 1.5rem;
-  background: rgba(0, 0, 0, 0.3);
+  background: color-mix(in srgb, var(--color-text-primary) 30%, transparent);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .dialogStats .statItem {
@@ -926,8 +745,8 @@
   display: flex;
   gap: 1rem;
   padding: 1.5rem 2rem;
-  background: rgba(0, 0, 0, 0.2);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--color-text-primary) 20%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
 }
 
 .dialogBtnCancel {
@@ -943,8 +762,8 @@
 }
 
 .dialogBtnCancel:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--color-text-main);
+  background: color-mix(in srgb, var(--color-bg-elevated) 5%, transparent);
+  color: var(--color-text-primary);
 }
 
 .dialogBtnConfirm {
@@ -952,7 +771,7 @@
   padding: 0.75rem 1.5rem;
   border-radius: var(--radius-md);
   font-weight: 700;
-  background: var(--color-accent-primary);
+  background: var(--color-primary);
   border: none;
   color: #fff;
   cursor: pointer;
@@ -965,6 +784,6 @@
 
 .dialogBtnConfirm:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0, 113, 227, 0.3);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--color-info) 30%, transparent);
   filter: brightness(1.1);
 }

@@ -25,8 +25,8 @@
 }
 
 .customDropdownButtonActive {
-  border-color: var(--color-accent-primary);
-  background-color: var(--color-panel-bg);
+  border-color: var(--color-primary);
+  background-color: var(--color-bg-elevated);
   box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
 }
 
@@ -55,7 +55,7 @@
 }
 
 [data-theme="dark"] .customDropdownMenu {
-  background-color: var(--color-surface-dark-1);
+  background-color: var(--color-bg-secondary);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 4px 10px rgba(0, 0, 0, 0.2);
 }
@@ -66,9 +66,9 @@
   justify-content: space-between;
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   background: none;
   border: none;
   border-radius: 0.75rem;
@@ -79,7 +79,7 @@
 
 .customDropdownOption:hover {
   background-color: rgba(79, 70, 229, 0.08);
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
   padding-left: 1.25rem;
 }
 
@@ -89,9 +89,9 @@
 
 .customDropdownOptionActive {
   background-color: rgba(79, 70, 229, 0.1) !important;
-  color: var(--color-accent-primary) !important;
+  color: var(--color-primary) !important;
 }
 
 .optionCheck {
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
 }

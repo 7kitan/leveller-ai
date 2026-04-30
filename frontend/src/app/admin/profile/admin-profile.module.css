@@ -16,24 +16,22 @@
 }
 
 .title {
-  font-size: 3rem;
+  font-size: var(--font-size-display);
   font-weight: 900;
   letter-spacing: -0.05em;
-  color: var(--color-text-main);
-  text-transform: uppercase;
-  font-style: italic;
+  color: var(--color-text-primary);
 }
 
 .subtitle {
   color: var(--color-text-muted);
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   font-weight: 500;
   max-width: 32rem;
   opacity: 0.6;
 }
 
 .profileCard {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 4rem;
@@ -41,7 +39,7 @@
   display: flex;
   flex-direction: column;
   gap: 3rem;
-  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 40px 80px color-mix(in srgb, var(--color-text-primary) 5%, transparent);
   position: relative;
   overflow: hidden;
 }
@@ -53,11 +51,9 @@
 }
 
 .sectionTitle {
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--color-accent-primary);
+  color: var(--color-primary);
   opacity: 0.8;
   display: flex;
   align-items: center;
@@ -71,9 +67,9 @@
 }
 
 .label {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 700;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .inputWrapper {
@@ -92,23 +88,23 @@
 .input {
   width: 100%;
   padding: 1.125rem 1.25rem 1.125rem 3.5rem;
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1.25rem;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   font-weight: 600;
   transition: all 0.3s ease;
 }
 
 [data-theme="dark"] .input {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
 }
 
 .input:focus {
-  background-color: var(--color-panel-bg);
-  border-color: var(--color-accent-primary);
+  background-color: var(--color-bg-elevated);
+  border-color: var(--color-primary);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 .input:disabled {
@@ -128,22 +124,20 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1rem 2.5rem;
-  background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+  /* gradient removed - use solid color instead */ background: var(--color-primary);
   color: white;
   border-radius: 1.5rem;
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 11px;
+  font-size: var(--font-size-small);
   cursor: pointer;
   border: none;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 15px 40px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 15px 40px color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 .submitBtn:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 25px 50px rgba(79, 70, 229, 0.4);
+  box-shadow: 0 25px 50px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 .submitBtn:disabled {
@@ -153,11 +147,11 @@
 
 .errorBox {
   padding: 1.25rem 1.5rem;
-  background-color: rgba(244, 63, 94, 0.05);
-  border: 1px solid rgba(244, 63, 94, 0.1);
+  background-color: color-mix(in srgb, var(--color-error) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error) 10%, transparent);
   border-radius: 1.25rem;
-  color: #f43f5e;
-  font-size: 0.875rem;
+  color: var(--color-error);
+  font-size: var(--font-size-base);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -166,11 +160,11 @@
 
 .successBox {
   padding: 1.25rem 1.5rem;
-  background-color: rgba(16, 185, 129, 0.05);
-  border: 1px solid rgba(16, 185, 129, 0.1);
+  background-color: color-mix(in srgb, var(--color-success) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 10%, transparent);
   border-radius: 1.25rem;
-  color: #10b981;
-  font-size: 0.875rem;
+  color: var(--color-success);
+  font-size: var(--font-size-base);
   font-weight: 600;
   display: flex;
   align-items: center;

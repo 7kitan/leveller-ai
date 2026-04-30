@@ -32,7 +32,7 @@
   border: 1px solid #e5e7eb;
   background: white;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: #374151;
   cursor: pointer;
@@ -50,7 +50,7 @@
 }
 
 .pageInfo {
-  font-size: 14px;
+  font-size: var(--font-size-base);
   color: #6b7280;
   font-weight: 500;
   min-width: 120px;
@@ -102,17 +102,17 @@
 }
 
 .docxPreview h1 {
-  font-size: 24px;
+  font-size: var(--font-size-large);
   color: #111827;
 }
 
 .docxPreview h2 {
-  font-size: 20px;
+  font-size: var(--font-size-medium);
   color: #1f2937;
 }
 
 .docxPreview h3 {
-  font-size: 18px;
+  font-size: var(--font-size-medium);
   color: #374151;
 }
 
@@ -142,7 +142,7 @@
 }
 
 .previewLoading p {
-  font-size: 14px;
+  font-size: var(--font-size-base);
   color: #6b7280;
 }
 
@@ -167,7 +167,7 @@
   justify-content: center;
   padding: 60px 20px;
   color: #ef4444;
-  font-size: 14px;
+  font-size: var(--font-size-base);
 }
 
 /* Preview Container */
@@ -196,12 +196,12 @@
 .fileName {
   font-weight: 500;
   color: #111827;
-  font-size: 14px;
+  font-size: var(--font-size-base);
 }
 
 .fileSize {
   color: #6b7280;
-  font-size: 13px;
+  font-size: var(--font-size-base);
 }
 
 .previewActions {
@@ -217,7 +217,7 @@
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 500;
-  font-size: 15px;
+  font-size: var(--font-size-base);
   cursor: pointer;
   transition: all 0.2s;
   border: none;
@@ -257,6 +257,6 @@
 }
 
 .unsupportedPreview p {
-  font-size: 14px;
+  font-size: var(--font-size-base);
   text-align: center;
 }

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japanese-Inspired OKLCH Palette</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            background: oklch(0.97 0.008 60);
+            color: oklch(0.20 0.015 240);
+            padding: 2rem;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body.dark {
+            background: oklch(0.18 0.012 240);
+            color: oklch(0.95 0.008 60);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.5rem;
+        }
+
+        .japanese-title {
+            font-size: 1.5rem;
+            opacity: 0.6;
+            font-weight: 300;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.7;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .theme-toggle {
+            padding: 0.75rem 1.5rem;
+            background: oklch(0.45 0.12 255);
+            color: oklch(0.97 0.008 60);
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 400;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: oklch(0.38 0.12 255);
+        }
+
+        .philosophy-box {
+            background: color-mix(in oklch, oklch(0.45 0.12 255) 6%, transparent);
+            border-left: 3px solid oklch(0.45 0.12 255);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .philosophy-box h3 {
+            font-size: 1.25rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+        }
+
+        .philosophy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .philosophy-item {
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        .philosophy-item strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .option-card {
+            background: oklch(0.98 0.005 60);
+            border: 1px solid oklch(0.88 0.012 60);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        body.dark .option-card {
+            background: oklch(0.22 0.015 240);
+            border-color: oklch(0.28 0.018 240);
+        }
+
+        .option-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px color-mix(in oklch, oklch(0.20 0.015 240) 12%, transparent);
+        }
+
+        .option-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid oklch(0.88 0.012 60);
+        }
+
+        body.dark .option-header {
+            border-bottom-color: oklch(0.28 0.018 240);
+        }
+
+        .option-name {
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-bottom: 0.25rem;
+        }
+
+        .japanese-name {
+            font-size: 1rem;
+            opacity: 0.6;
+            font-style: italic;
+            margin-bottom: 0.75rem;
+        }
+
+        .option-description {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        .color-swatches {
+            display: flex;
+            height: 100px;
+        }
+
+        .swatch {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: flex 0.3s;
+        }
+
+        .swatch:hover {
+            flex: 1.5;
+        }
+
+        .option-content {
+            padding: 1.5rem;
+        }
+
+        .characteristics {
+            margin-bottom: 1.5rem;
+        }
+
+        .characteristic-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .characteristic-item::before {
+            content: "・";
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+            line-height: 1.2;
+        }
+
+        .ui-examples {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .example-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .color-value {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.7rem;
+            text-align: center;
+            opacity: 0.6;
+            margin-top: 0.5rem;
+        }
+
+        /* Sakura - Cherry Blossom */
+        .option-sakura .swatch:nth-child(1) { background: oklch(0.95 0.03 350); color: oklch(0.20 0.015 240); }
+        .option-sakura .swatch:nth-child(2) { background: oklch(0.85 0.06 350); color: oklch(0.20 0.015 240); }
+        .option-sakura .swatch:nth-child(3) { background: oklch(0.75 0.08 350); color: oklch(0.98 0.005 60); }
+        .option-sakura .swatch:nth-child(4) { background: oklch(0.65 0.10 350); color: oklch(0.98 0.005 60); }
+        .option-sakura .swatch:nth-child(5) { background: oklch(0.50 0.09 350); color: oklch(0.98 0.005 60); }
+        .option-sakura .example-button { background: oklch(0.75 0.08 350); color: oklch(0.98 0.005 60); }
+        .option-sakura .example-button:hover { background: oklch(0.68 0.09 350); }
+
+        /* Matcha - Green Tea */
+        .option-matcha .swatch:nth-child(1) { background: oklch(0.95 0.03 130); color: oklch(0.20 0.015 240); }
+        .option-matcha .swatch:nth-child(2) { background: oklch(0.85 0.06 130); color: oklch(0.20 0.015 240); }
+        .option-matcha .swatch:nth-child(3) { background: oklch(0.70 0.10 130); color: oklch(0.98 0.005 60); }
+        .option-matcha .swatch:nth-child(4) { background: oklch(0.60 0.12 130); color: oklch(0.98 0.005 60); }
+        .option-matcha .swatch:nth-child(5) { background: oklch(0.45 0.10 130); color: oklch(0.98 0.005 60); }
+        .option-matcha .example-button { background: oklch(0.65 0.10 130); color: oklch(0.98 0.005 60); }
+        .option-matcha .example-button:hover { background: oklch(0.58 0.11 130); }
+
+        /* Ai - Indigo */
+        .option-ai .swatch:nth-child(1) { background: oklch(0.95 0.03 255); color: oklch(0.20 0.015 240); }
+        .option-ai .swatch:nth-child(2) { background: oklch(0.82 0.07 255); color: oklch(0.20 0.015 240); }
+        .option-ai .swatch:nth-child(3) { background: oklch(0.60 0.12 255); color: oklch(0.98 0.005 60); }
+        .option-ai .swatch:nth-child(4) { background: oklch(0.45 0.12 255); color: oklch(0.98 0.005 60); }
+        .option-ai .swatch:nth-child(5) { background: oklch(0.32 0.10 255); color: oklch(0.98 0.005 60); }
+        .option-ai .example-button { background: oklch(0.45 0.12 255); color: oklch(0.98 0.005 60); }
+        .option-ai .example-button:hover { background: oklch(0.38 0.12 255); }
+
+        /* Sumi - Ink */
+        .option-sumi .swatch:nth-child(1) { background: oklch(0.92 0.02 240); color: oklch(0.20 0.015 240); }
+        .option-sumi .swatch:nth-child(2) { background: oklch(0.75 0.04 240); color: oklch(0.20 0.015 240); }
+        .option-sumi .swatch:nth-child(3) { background: oklch(0.50 0.06 240); color: oklch(0.98 0.005 60); }
+        .option-sumi .swatch:nth-child(4) { background: oklch(0.35 0.06 240); color: oklch(0.98 0.005 60); }
+        .option-sumi .swatch:nth-child(5) { background: oklch(0.22 0.05 240); color: oklch(0.98 0.005 60); }
+        .option-sumi .example-button { background: oklch(0.35 0.06 240); color: oklch(0.98 0.005 60); }
+        .option-sumi .example-button:hover { background: oklch(0.28 0.06 240); }
+
+        .neutral-showcase {
+            margin: 3rem 0;
+            padding: 2rem;
+            background: oklch(0.98 0.005 60);
+            border-radius: 12px;
+            border: 1px solid oklch(0.88 0.012 60);
+        }
+
+        body.dark .neutral-showcase {
+            background: oklch(0.22 0.015 240);
+            border-color: oklch(0.28 0.018 240);
+        }
+
+        .neutral-showcase h3 {
+            font-size: 1.25rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+        }
+
+        .neutral-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .neutral-swatch {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+
+        .neutral-swatch:hover {
+            transform: scale(1.05);
+        }
+
+        .recommendation {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: color-mix(in oklch, oklch(0.75 0.08 350) 8%, transparent);
+            border-left: 3px solid oklch(0.75 0.08 350);
+            border-radius: 8px;
+        }
+
+        .recommendation h3 {
+            font-size: 1.25rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+        }
+
+        .recommendation ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recommendation li {
+            margin-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .recommendation li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            font-weight: 500;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-left: 0.5rem;
+        }
+
+        .badge-recommended {
+            background: oklch(0.85 0.08 130);
+            color: oklch(0.30 0.12 130);
+        }
+
+        .badge-traditional {
+            background: oklch(0.85 0.08 255);
+            color: oklch(0.30 0.12 255);
+        }
+
+        .badge-elegant {
+            background: oklch(0.88 0.06 350);
+            color: oklch(0.40 0.09 350);
+        }
+
+        .badge-minimal {
+            background: oklch(0.85 0.04 240);
+            color: oklch(0.30 0.06 240);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Japanese-Inspired Palette</h1>
+            <div class="japanese-title">和の色 (Wa no Iro)</div>
+            <p class="subtitle">
+                Subtle, sophisticated colors inspired by traditional Japanese aesthetics. 
+                Embodying wabi-sabi (侘寂) - the beauty of imperfection and simplicity.
+            </p>
+            <button class="theme-toggle" onclick="toggleTheme()">Toggle Dark Mode</button>
+        </header>
+
+        <div class="philosophy-box">
+            <h3>Japanese Design Philosophy</h3>
+            <div class="philosophy-grid">
+                <div class="philosophy-item">
+                    <strong>Wabi-sabi (侘寂)</strong>
+                    Beauty in simplicity, imperfection, and transience
+                </div>
+                <div class="philosophy-item">
+                    <strong>Shibui (渋い)</strong>
+                    Subtle, understated elegance without ostentation
+                </div>
+                <div class="philosophy-item">
+                    <strong>Ma (間)</strong>
+                    Negative space, breathing room, minimalism
+                </div>
+                <div class="philosophy-item">
+                    <strong>Iki (粋)</strong>
+                    Sophisticated simplicity, refined taste
+                </div>
+            </div>
+        </div>
+
+        <div class="neutral-showcase">
+            <h3>Warm Neutral Scale</h3>
+            <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 1rem;">
+                Inspired by natural materials: rice paper, bamboo, and stone. Warmer than typical grays with subtle cream/beige tints.
+            </p>
+            <div class="neutral-grid">
+                <div class="neutral-swatch" style="background: oklch(0.97 0.008 60); color: oklch(0.20 0.015 240);">50</div>
+                <div class="neutral-swatch" style="background: oklch(0.94 0.010 60); color: oklch(0.20 0.015 240);">100</div>
+                <div class="neutral-swatch" style="background: oklch(0.88 0.012 60); color: oklch(0.20 0.015 240);">200</div>
+                <div class="neutral-swatch" style="background: oklch(0.78 0.015 60); color: oklch(0.20 0.015 240);">300</div>
+                <div class="neutral-swatch" style="background: oklch(0.65 0.018 60); color: oklch(0.97 0.008 60);">400</div>
+                <div class="neutral-swatch" style="background: oklch(0.52 0.020 60); color: oklch(0.97 0.008 60);">500</div>
+                <div class="neutral-swatch" style="background: oklch(0.42 0.020 240); color: oklch(0.97 0.008 60);">600</div>
+                <div class="neutral-swatch" style="background: oklch(0.32 0.018 240); color: oklch(0.97 0.008 60);">700</div>
+                <div class="neutral-swatch" style="background: oklch(0.24 0.015 240); color: oklch(0.97 0.008 60);">800</div>
+                <div class="neutral-swatch" style="background: oklch(0.18 0.012 240); color: oklch(0.97 0.008 60);">900</div>
+            </div>
+        </div>
+
+        <h2 style="font-size: 1.75rem; font-weight: 400; margin: 2rem 0 1rem;">Choose Your Accent Color</h2>
+
+        <div class="options-grid">
+            <!-- Sakura -->
+            <div class="option-card option-sakura">
+                <div class="option-header">
+                    <div class="option-name">
+                        Sakura
+                        <span class="badge badge-elegant">ELEGANT</span>
+                    </div>
+                    <div class="japanese-name">桜 (Cherry Blossom)</div>
+                    <div class="option-description">
+                        Delicate and refined. The most iconic Japanese color, symbolizing renewal, beauty, and the fleeting nature of life.
+                    </div>
+                </div>
+                <div class="color-swatches">
+                    <div class="swatch">50</div>
+                    <div class="swatch">200</div>
+                    <div class="swatch">400</div>
+                    <div class="swatch">500</div>
+                    <div class="swatch">700</div>
+                </div>
+                <div class="option-content">
+                    <div class="characteristics">
+                        <div class="characteristic-item">Soft, approachable, elegant</div>
+                        <div class="characteristic-item">Perfect for creative/educational platforms</div>
+                        <div class="characteristic-item">Conveys gentleness and sophistication</div>
+                        <div class="characteristic-item">Unique in professional contexts</div>
+                    </div>
+                    <div class="ui-examples">
+                        <button class="example-button">Primary Action</button>
+                        <div class="color-value">oklch(0.75 0.08 350)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Matcha -->
+            <div class="option-card option-matcha">
+                <div class="option-header">
+                    <div class="option-name">
+                        Matcha
+                        <span class="badge badge-recommended">RECOMMENDED</span>
+                    </div>
+                    <div class="japanese-name">抹茶 (Green Tea)</div>
+                    <div class="option-description">
+                        Natural and calming. Inspired by traditional tea ceremony, symbolizing growth, harmony, and mindfulness.
+                    </div>
+                </div>
+                <div class="color-swatches">
+                    <div class="swatch">50</div>
+                    <div class="swatch">200</div>
+                    <div class="swatch">400</div>
+                    <div class="swatch">500</div>
+                    <div class="swatch">700</div>
+                </div>
+                <div class="option-content">
+                    <div class="characteristics">
+                        <div class="characteristic-item">Organic, growth-oriented, calming</div>
+                        <div class="characteristic-item">Perfect for learning platforms</div>
+                        <div class="characteristic-item">Sophisticated and distinctive</div>
+                        <div class="characteristic-item">Conveys balance and wellness</div>
+                    </div>
+                    <div class="ui-examples">
+                        <button class="example-button">Primary Action</button>
+                        <div class="color-value">oklch(0.65 0.10 130)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ai (Indigo) -->
+            <div class="option-card option-ai">
+                <div class="option-header">
+                    <div class="option-name">
+                        Ai
+                        <span class="badge badge-traditional">TRADITIONAL</span>
+                    </div>
+                    <div class="japanese-name">藍 (Indigo)</div>
+                    <div class="option-description">
+                        Deep and timeless. Traditional Japanese textile dye, symbolizing depth, wisdom, and cultural heritage.
+                    </div>
+                </div>
+                <div class="color-swatches">
+                    <div class="swatch">50</div>
+                    <div class="swatch">200</div>
+                    <div class="swatch">400</div>
+                    <div class="swatch">500</div>
+                    <div class="swatch">700</div>
+                </div>
+                <div class="option-content">
+                    <div class="characteristics">
+                        <div class="characteristic-item">Professional yet cultural</div>
+                        <div class="characteristic-item">Deeper than typical corporate blue</div>
+                        <div class="characteristic-item">Timeless and sophisticated</div>
+                        <div class="characteristic-item">Conveys trust and tradition</div>
+                    </div>
+                    <div class="ui-examples">
+                        <button class="example-button">Primary Action</button>
+                        <div class="color-value">oklch(0.45 0.12 255)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sumi -->
+            <div class="option-card option-sumi">
+                <div class="option-header">
+                    <div class="option-name">
+                        Sumi
+                        <span class="badge badge-minimal">MINIMAL</span>
+                    </div>
+                    <div class="japanese-name">墨 (Ink)</div>
+                    <div class="option-description">
+                        Ultra-subtle and refined. Inspired by calligraphy ink, embodying the essence of minimalism and zen aesthetics.
+                    </div>
+                </div>
+                <div class="color-swatches">
+                    <div class="swatch">50</div>
+                    <div class="swatch">200</div>
+                    <div class="swatch">400</div>
+                    <div class="swatch">500</div>
+                    <div class="swatch">700</div>
+                </div>
+                <div class="option-content">
+                    <div class="characteristics">
+                        <div class="characteristic-item">Most minimalist option</div>
+                        <div class="characteristic-item">Almost monochromatic aesthetic</div>
+                        <div class="characteristic-item">Extremely sophisticated</div>
+                        <div class="characteristic-item">Zen-like simplicity</div>
+                    </div>
+                    <div class="ui-examples">
+                        <button class="example-button">Primary Action</button>
+                        <div class="color-value">oklch(0.35 0.06 240)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="recommendation">
+            <h3>🌸 Recommendation for Your Educational Platform</h3>
+            <ul>
+                <li><strong>Best for Learning & Growth:</strong> Matcha (抹茶) - Natural, calming, perfect for educational context</li>
+                <li><strong>Best for Elegance & Creativity:</strong> Sakura (桜) - Unique, sophisticated, memorable</li>
+                <li><strong>Best for Traditional Professional:</strong> Ai (藍) - Cultural depth with professionalism</li>
+                <li><strong>Best for Ultra-Minimal:</strong> Sumi (墨) - Zen-like simplicity, most subtle</li>
+            </ul>
+            <p style="margin-top: 1.5rem; font-size: 0.875rem; opacity: 0.9; line-height: 1.6;">
+                <strong>My top recommendation:</strong> Matcha (抹茶) for its perfect balance of distinctiveness, 
+                professionalism, and alignment with learning/growth themes. The muted green is sophisticated yet 
+                approachable, and less common in tech applications.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+        }
+    </script>
+</body>
+</html>

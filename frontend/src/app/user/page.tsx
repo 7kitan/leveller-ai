@@ -8,21 +8,12 @@ import { UserRole } from "@/types/roles";
 import {
   UploadCloud,
   TrendingUp,
-  Award,
-  BowArrow,
   ArrowRight,
-  AppWindow,
-  Layers,
-  Rocket,
-  Network,
-  ChevronRight as ChevronRightIcon,
   Target,
-  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
-import { cn, formatPercent, formatNumber } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import styles from "./user-dashboard.module.css";
-import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import CourseCard from "@/components/user/CourseCard";
 import PageHeader from "@/components/common/PageHeader";
@@ -32,28 +23,18 @@ import {
   CartesianGrid, Tooltip as RechartsTooltip, Cell, Legend
 } from "recharts";
 
-const icons = [BowArrow, AppWindow, Layers, Rocket, Network];
-
 const UserDashboard = () => {
-  const { user } = useAuth();
+  const { token } = useAuth();
   const { t } = useLanguage();
   const [marketData, setMarketData] = useState<any>(null);
   const [latestAnalysis, setLatestAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [iconIndex, setIconIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIconIndex((prev) => (prev + 1) % icons.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   const [period, setPeriod] = useState("month");
-  const [hiddenSkills, setHiddenSkills] = useState<Set<string>>(new Set());
+  const [selectedGap, setSelectedGap] = useState<any>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!token) return;
     const fetchData = async () => {
       try {
         const [marketFitRes, latestRes] = await Promise.all([
@@ -69,7 +50,7 @@ const UserDashboard = () => {
       }
     };
     fetchData();
-  }, [ period]);
+  }, [token, period]);
 
   interface JobCard {
     id: number;
@@ -96,7 +77,7 @@ const UserDashboard = () => {
       <svg className={styles.sparkline} viewBox="0 0 100 100" preserveAspectRatio="none">
         <polyline
           fill="none"
-          stroke="var(--color-accent-primary)"
+          stroke="var(--color-primary)"
           strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -133,7 +114,7 @@ const UserDashboard = () => {
     },
     {
       label: t("cv_match_score"),
-      value: loading ? "..." : formatPercent(marketData?.market_fit_pct || 0),
+      value: loading ? "..." : `${(marketData?.market_fit_pct || 0).toFixed(1)}%`,
       icon: TrendingUp,
     },
   ];
@@ -155,11 +136,20 @@ const UserDashboard = () => {
             <div className={styles.uploadIcon}>
               <UploadCloud size={32} />
             </div>
-            <p className={styles.headerSubtitle} style={{ textAlign: "center", marginBottom: "1rem" }}>
+            <p className={styles.uploadText}>
               {t("dash_cv_subtitle")}
             </p>
             <Link href="/user/cv" className={styles.uploadBtn}>
               {t("dash_cv_btn")}
+            </Link>
+            
+            <div className={styles.uploadDivider} />
+            
+            <p className={styles.analysisText}>
+              {t("dash_cv_already_have")}
+            </p>
+            <Link href="/user/analysis" className={styles.analysisBtn}>
+              {t("dash_cv_start_analysis")}
             </Link>
           </div>
 
@@ -177,23 +167,27 @@ const UserDashboard = () => {
             <div className={styles.gapGrid}>
               {topGaps.length > 0 ? (
                 topGaps.map((gap: any) => (
-                  <div key={gap.skill} className={styles.gapMiniCard}>
-                    <div className={styles.gapMiniTitle}>{gap.skill}</div>
-                    <div className={styles.gapMiniMeta}>
+                  <div 
+                    key={gap.skill} 
+                    className={styles.gapMiniCard}
+                    onClick={() => setSelectedGap(gap)}
+                  >
+                    <div className={styles.gapCardTop}>
+                      <div className={styles.gapMiniTitle}>{gap.skill}</div>
                       <span 
                         className={styles.miniSeverity}
                         style={{
                           color: severityColor(gap.severity),
-                          backgroundColor: `${severityColor(gap.severity)}15`,
-                          borderColor: `${severityColor(gap.severity)}30`,
+                          backgroundColor: severityBgColor(gap.severity),
+                          borderColor: severityBorderColor(gap.severity),
                         }}
                       >
-                        ● {t(`severity_${gap.severity?.toLowerCase()}` as any)}
-                      </span>
-                      <span className={styles.learningEffort}>
-                        · {gap.learning_effort} {t("learning_effort")}
+                        ● {severityLabel(gap.severity)}
                       </span>
                     </div>
+                    <span className={styles.gapMiniMeta}>
+                      {gap.required_level || "Intermediate"} · {gap.estimated_months || 3} months
+                    </span>
                   </div>
                 ))
               ) : (
@@ -203,6 +197,61 @@ const UserDashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* Slide-over Panel */}
+            {selectedGap && (
+              <>
+                <div 
+                  className={styles.slideOverOverlay}
+                  onClick={() => setSelectedGap(null)}
+                />
+                <div className={styles.slideOverPanel}>
+                  <div className={styles.slideOverHeader}>
+                    <div>
+                      <div className={styles.slideOverTitleRow}>
+                        <h3 className={styles.slideOverTitle}>{selectedGap.skill}</h3>
+                        <span 
+                          className={styles.slideOverSeverity}
+                          style={{
+                            color: severityColor(selectedGap.severity),
+                            backgroundColor: severityBgColor(selectedGap.severity),
+                            borderColor: severityBorderColor(selectedGap.severity),
+                          }}
+                        >
+                          ● {severityLabel(selectedGap.severity)}
+                        </span>
+                      </div>
+                      <p className={styles.slideOverMeta}>
+                        Target: {selectedGap.required_level || "Intermediate"} · {selectedGap.estimated_months || 3} months
+                      </p>
+                    </div>
+                    <button 
+                      className={styles.slideOverClose}
+                      onClick={() => setSelectedGap(null)}
+                      aria-label="Close"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  
+                  <div className={styles.slideOverContent}>
+                    {selectedGap.reasoning && (
+                      <div className={styles.slideOverSection}>
+                        <h4 className={styles.slideOverSectionTitle}>💡 Why This Matters</h4>
+                        <p className={styles.slideOverText}>{selectedGap.reasoning}</p>
+                      </div>
+                    )}
+                    
+                    {selectedGap.learning_path && (
+                      <div className={styles.slideOverSection}>
+                        <h4 className={styles.slideOverSectionTitle}>📚 Learning Path</h4>
+                        <p className={styles.slideOverText}>{selectedGap.learning_path}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Growth Forecast Section */}
             {(marketData?.potential_match_pct > 0 || marketData?.salary_growth_pct > 0) && (
@@ -215,9 +264,9 @@ const UserDashboard = () => {
                       {t("dash_potential_match")}
                     </div>
                     <div className={styles.forecastValue}>
-                      {formatPercent(marketData.potential_match_pct)}
+                      {marketData.potential_match_pct.toFixed(1)}%
                       <span className={styles.growthBadge}>
-                        +{formatPercent(marketData.potential_match_pct - (marketData.market_fit_pct || 0))}
+                        +{(marketData.potential_match_pct - (marketData.market_fit_pct || 0)).toFixed(1)}%
                       </span>
                     </div>
                   </div>
@@ -227,7 +276,7 @@ const UserDashboard = () => {
                       {t("dash_salary_boost")}
                     </div>
                     <div className={styles.forecastValue}>
-                      +{formatPercent(marketData.salary_growth_pct)}
+                      +{marketData.salary_growth_pct.toFixed(1)}%
                     </div>
                   </div>
                 </div>
@@ -241,246 +290,6 @@ const UserDashboard = () => {
                   <div className={styles.bottomStatLabel}>{stat.label}</div>
                 </div>
               ))}
-            </div>
-          </div>
-
-          <div className={cn(styles.card, styles.trendsCard)}>
-            <div className={styles.trendHeader}>
-              <h3 className="text-subheading">{t("dash_market_trends")}</h3>
-              <div className={styles.periodSelector}>
-                {['day', 'week', 'month'].map((p) => (
-                  <button 
-                    key={p} 
-                    className={cn(styles.periodBtn, period === p && styles.active)}
-                    onClick={() => setPeriod(p)}
-                  >
-                    {t(`period_${p === 'day' ? '24h' : p === 'week' ? '7d' : '30d'}` as any)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.marketSnapshot}>
-              <div className={styles.snapshotItem}>
-                <div className={styles.snapshotLabel}>{t("nav_jobs")}</div>
-                <div className={styles.snapshotValue}>{loading ? "..." : (marketData?.total_jobs?.toLocaleString() || "0")}</div>
-              </div>
-              <div className={styles.snapshotItem}>
-                <div className={styles.snapshotLabel}>{t("dash_hot_trend")}</div>
-                <div className={cn(styles.snapshotValue, "text-success")}>{loading ? "..." : (marketData?.market_trends?.summary?.top_gainer || t("not_available"))}</div>
-              </div>
-            </div>
-            <div className={styles.barChartContainer} style={{ height: '400px', width: '100%', marginTop: '2rem' }}>
-              {(marketData?.market_trends?.trends || []).length > 0 ? (() => {
-                // Sort trends by latest demand (highest first), then take top 5
-                const sortedTrends = [...(marketData.market_trends.trends || [])]
-                  .map((trend: any) => {
-                    // Calculate latest demand value
-                    let latestDemand = 0;
-                    if (trend.history && Array.isArray(trend.history) && trend.history.length > 0) {
-                      const lastHistory = trend.history[trend.history.length - 1];
-                      latestDemand = Number(lastHistory?.demand) || 0;
-                    }
-                    return { ...trend, _sortValue: latestDemand };
-                  })
-                  .sort((a: any, b: any) => b._sortValue - a._sortValue)
-                  .slice(0, 5);
-                
-                // Pivot data for Recharts: array of { date, skillA, skillB, ... }
-                const dates = Array.from(new Set(sortedTrends.flatMap((t: any) => (t.history || []).map((h: any) => h.date)))).sort();
-                const chartData = dates.map(date => {
-                  const entry: any = { date };
-                  sortedTrends.forEach((t: any) => {
-                    const h = (t.history || []).find((hi: any) => hi.date === date);
-                    if (h) entry[t.name] = h.demand;
-                  });
-                  return entry;
-                });
-
-                return (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart 
-                    data={chartData} 
-                    margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
-                  >
-                    <defs>
-                      {[
-                        { id: 'Emerald', color: '#10b981' },
-                        { id: 'Indigo', color: '#6366f1' },
-                        { id: 'Amber', color: '#f59e0b' },
-                        { id: 'Sky', color: '#0ea5e9' },
-                        { id: 'Pink', color: '#ec4899' }
-                      ].map(g => (
-                        <linearGradient key={g.id} id={`color${g.id}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={g.color} stopOpacity={0.2}/>
-                          <stop offset="95%" stopColor={g.color} stopOpacity={0}/>
-                        </linearGradient>
-                      ))}
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                    <XAxis 
-                      dataKey="date" 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 'bold' }}
-                      minTickGap={40}
-                    />
-                    <YAxis 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 'bold' }}
-                      tickFormatter={(val) => formatNumber(val)}
-                    />
-                    <Legend 
-                      verticalAlign="top" 
-                      align="right" 
-                      height={36} 
-                      iconType="circle"
-                      wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.8, cursor: 'pointer' }}
-                      content={(props: any) => {
-                        const palettes = [
-                          { id: 'Emerald', color: '#10b981' },
-                          { id: 'Indigo', color: '#6366f1' },
-                          { id: 'Amber', color: '#f59e0b' },
-                          { id: 'Sky', color: '#0ea5e9' },
-                          { id: 'Pink', color: '#ec4899' }
-                        ];
-                        return (
-                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                            {sortedTrends.map((skill: any, idx: number) => {
-                              const p = palettes[idx % palettes.length];
-                              const isHidden = hiddenSkills.has(skill.name);
-                              return (
-                                <div 
-                                  key={skill.name}
-                                  onClick={() => {
-                                    setHiddenSkills(prev => {
-                                      const newSet = new Set(prev);
-                                      if (newSet.has(skill.name)) {
-                                        newSet.delete(skill.name);
-                                      } else {
-                                        newSet.add(skill.name);
-                                      }
-                                      return newSet;
-                                    });
-                                  }}
-                                  style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: '6px',
-                                    cursor: 'pointer',
-                                    opacity: isHidden ? 0.4 : 1,
-                                    textDecoration: isHidden ? 'line-through' : 'none'
-                                  }}
-                                >
-                                  <div style={{ 
-                                    width: '10px', 
-                                    height: '10px', 
-                                    borderRadius: '50%', 
-                                    backgroundColor: p.color 
-                                  }} />
-                                  <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{skill.name}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        );
-                      }}
-                    />
-                    <RechartsTooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'rgba(0,0,0,0.85)', 
-                        borderRadius: '16px', 
-                        border: 'none',
-                        backdropFilter: 'blur(10px)',
-                        boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
-                        color: '#fff',
-                        padding: '12px'
-                      }}
-                      content={(props: any) => {
-                        if (!props.active || !props.payload || props.payload.length === 0) return null;
-                        
-                        const palettes = [
-                          { id: 'Emerald', color: '#10b981' },
-                          { id: 'Indigo', color: '#6366f1' },
-                          { id: 'Amber', color: '#f59e0b' },
-                          { id: 'Sky', color: '#0ea5e9' },
-                          { id: 'Pink', color: '#ec4899' }
-                        ];
-                        
-                        return (
-                          <div style={{ 
-                            backgroundColor: 'rgba(0,0,0,0.85)', 
-                            borderRadius: '16px', 
-                            border: 'none',
-                            backdropFilter: 'blur(10px)',
-                            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
-                            color: '#fff',
-                            padding: '16px 20px',
-                            minWidth: '200px'
-                          }}>
-                            <p style={{ marginBottom: '12px', fontWeight: 'bold', fontSize: '13px', opacity: 0.7 }}>
-                              {props.label}
-                            </p>
-                            {sortedTrends.map((skill: any, idx: number) => {
-                              const p = palettes[idx % palettes.length];
-                              const dataPoint = props.payload.find((p: any) => p.dataKey === skill.name);
-                              if (!dataPoint) return null;
-                              
-                              return (
-                                <div key={skill.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <div style={{ 
-                                      width: '10px', 
-                                      height: '10px', 
-                                      borderRadius: '50%', 
-                                      backgroundColor: p.color 
-                                    }} />
-                                    <span style={{ fontSize: '14px' }}>{skill.name}</span>
-                                  </div>
-                                  <span style={{ fontSize: '14px', fontWeight: 'bold', marginLeft: '16px' }}>
-                                    {formatNumber(dataPoint.value)}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        );
-                      }}
-                      formatter={(val: any) => [formatNumber(val), t("demand_score" as any) || "Demand"]}
-                    />
-                    {sortedTrends.map((skill: any, idx: number) => {
-                      const palettes = [
-                        { id: 'Emerald', color: '#10b981' },
-                        { id: 'Indigo', color: '#6366f1' },
-                        { id: 'Amber', color: '#f59e0b' },
-                        { id: 'Sky', color: '#0ea5e9' },
-                        { id: 'Pink', color: '#ec4899' }
-                      ];
-                      const p = palettes[idx % palettes.length];
-                      const isHidden = hiddenSkills.has(skill.name);
-                      return (
-                        <Area 
-                          key={skill.name}
-                          type="monotone" 
-                          dataKey={skill.name} 
-                          stroke={p.color} 
-                          strokeWidth={3}
-                          fillOpacity={1} 
-                          fill={`url(#color${p.id})`} 
-                          animationDuration={1500}
-                          hide={isHidden}
-                        />
-                      );
-                    })}
-                  </AreaChart>
-                </ResponsiveContainer>
-                );
-              })() : (
-                <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: 0.5 }}>
-                  <p>{t("loading")}...</p>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -511,37 +320,129 @@ const UserDashboard = () => {
           </div>
         </div>
 
-        {/* CTA Section */}
-        <div className={cn(styles.card, styles.ctaCard)}>
-          <div className={styles.ctaContent}>
-            <h2 className={styles.ctaTitle}>
-              {t("dash_cta_title")}
-            </h2>
-            <p className={styles.headerSubtitle} style={{ color: "inherit", opacity: 0.8 }}>
-              {t("dash_cta_sub")}
-            </p>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-              <Link href="/user/analysis" className={styles.ctaMainBtn}>
-                {t("dash_cta_btn")} <ArrowRight size={20} />
-              </Link>
+        {/* Market Trends Chart */}
+        <div className={cn(styles.card, styles.trendsCard)}>
+          <div className={styles.trendHeader}>
+            <h3 className="text-subheading">{t("dash_market_trends")}</h3>
+            <div className={styles.periodSelector}>
+              {['day', 'week', 'month'].map((p) => (
+                <button 
+                  key={p} 
+                  className={cn(styles.periodBtn, period === p && styles.active)}
+                  onClick={() => setPeriod(p)}
+                >
+                  {t(`period_${p === 'day' ? '24h' : p === 'week' ? '7d' : '30d'}` as any)}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className={styles.radarContainer}>
-            <div className={styles.radarScan} />
-            <div className={styles.bowArrowIcon}>
-              <motion.div
-                key={iconIndex}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.5 }}
-              >
-                {React.createElement(icons[iconIndex])}
-              </motion.div>
+          <div className={styles.marketSnapshot}>
+            <div className={styles.snapshotItem}>
+              <div className={styles.snapshotLabel}>{t("nav_jobs")}</div>
+              <div className={styles.snapshotValue}>{loading ? "..." : (marketData?.total_jobs?.toLocaleString() || "0")}</div>
+            </div>
+            <div className={styles.snapshotItem}>
+              <div className={styles.snapshotLabel}>{t("dash_hot_trend")}</div>
+              <div className={cn(styles.snapshotValue, "text-success")}>{loading ? "..." : (marketData?.market_trends?.summary?.top_gainer || t("not_available"))}</div>
             </div>
           </div>
+          <div className={styles.barChartContainer} style={{ height: '400px', width: '100%', marginTop: '2rem' }}>
+            {(marketData?.market_trends?.trends || []).length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart 
+                  data={(() => {
+                    const trends = marketData.market_trends.trends.slice(0, 5);
+                    // Pivot data for Recharts: array of { date, skillA, skillB, ... }
+                    const dates = Array.from(new Set(trends.flatMap((t: any) => (t.history || []).map((h: any) => h.date)))).sort();
+                    return dates.map(date => {
+                      const entry: any = { date };
+                      trends.forEach((t: any) => {
+                        const h = (t.history || []).find((hi: any) => hi.date === date);
+                        if (h) entry[t.name] = h.demand;
+                      });
+                      return entry;
+                    });
+                  })()} 
+                  margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    {[
+                      { id: 'Emerald', color: 'var(--color-success)' },
+                      { id: 'Indigo', color: 'var(--color-primary)' },
+                      { id: 'Amber', color: 'var(--color-warning)' },
+                      { id: 'Sky', color: 'var(--color-info)' },
+                      { id: 'Pink', color: 'var(--color-secondary)' }
+                    ].map(g => (
+                      <linearGradient key={g.id} id={`color${g.id}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={g.color} stopOpacity={0.2}/>
+                        <stop offset="95%" stopColor={g.color} stopOpacity={0}/>
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border-subtle)" style={{ opacity: 0.3 }} />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'var(--color-text-tertiary)', fontSize: 10, fontWeight: 'bold' }}
+                    minTickGap={40}
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'var(--color-text-tertiary)', fontSize: 10, fontWeight: 'bold' }}
+                  />
+                  <Legend 
+                    verticalAlign="top" 
+                    align="right" 
+                    height={36} 
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.8 }}
+                  />
+                  <RechartsTooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'var(--color-bg-glass)', 
+                      borderRadius: '16px', 
+                      border: 'none',
+                      backdropFilter: 'blur(10px)',
+                      boxShadow: 'var(--shadow-xl)',
+                      color: 'var(--color-text-inverse)'
+                    }}
+                  />
+                  {(marketData.market_trends.trends || []).slice(0, 5).map((skill: any, idx: number) => {
+                    const palettes = [
+                      { id: 'Emerald', color: 'var(--color-success)' },
+                      { id: 'Indigo', color: 'var(--color-primary)' },
+                      { id: 'Amber', color: 'var(--color-warning)' },
+                      { id: 'Sky', color: 'var(--color-info)' },
+                      { id: 'Pink', color: 'var(--color-secondary)' }
+                    ];
+                    const p = palettes[idx % palettes.length];
+                    return (
+                      <Area 
+                        key={skill.name}
+                        type="monotone" 
+                        dataKey={skill.name} 
+                        stroke={p.color} 
+                        strokeWidth={3}
+                        fillOpacity={1} 
+                        fill={`url(#color${p.id})`} 
+                        animationDuration={1500}
+                      />
+                    );
+                  })}
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: 0.5 }}>
+                <p>{t("loading")}...</p>
+              </div>
+            )}
+          </div>
         </div>
+
+
       </PageContainer>
     </AuthGuard>
   );
@@ -550,11 +451,38 @@ const UserDashboard = () => {
 /* -- Helpers ------------------------------------------------------------- */
 function severityColor(sev: string) {
   const map: Record<string, string> = {
-    HIGH: "#f43f5e",
-    MEDIUM: "#f59e0b",
-    LOW: "#10b981",
+    HIGH: "var(--color-error)",
+    MEDIUM: "var(--color-warning)",
+    LOW: "var(--color-success)",
   };
-  return map[sev?.toUpperCase()] || "#9ca3af";
+  return map[sev?.toUpperCase()] || "var(--color-text-tertiary)";
+}
+
+function severityLabel(sev: string) {
+  const map: Record<string, string> = {
+    HIGH: "Critical",
+    MEDIUM: "Medium",
+    LOW: "Low",
+  };
+  return map[sev?.toUpperCase()] || sev;
+}
+
+function severityBgColor(sev: string) {
+  const map: Record<string, string> = {
+    HIGH: "var(--color-error-light)",
+    MEDIUM: "var(--color-warning-light)",
+    LOW: "var(--color-success-light)",
+  };
+  return map[sev?.toUpperCase()] || "var(--color-bg-secondary)";
+}
+
+function severityBorderColor(sev: string) {
+  const map: Record<string, string> = {
+    HIGH: "var(--color-error)",
+    MEDIUM: "var(--color-warning)",
+    LOW: "var(--color-success)",
+  };
+  return map[sev?.toUpperCase()] || "var(--color-border-default)";
 }
 
 export default UserDashboard;

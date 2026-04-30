@@ -10,14 +10,14 @@
 }
 
 .title {
-  font-size: 2rem;
+  font-size: var(--font-size-xlarge);
   font-weight: 800;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
   margin-bottom: 0.5rem;
 }
 
 .subtitle {
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .filters {
@@ -29,30 +29,30 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: rgba(var(--text-rgb), 0.05);
+  background: rgba(var(--color-text-primary), 0.05);
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(var(--text-rgb), 0.1);
-  color: var(--text-secondary);
+  border: 1px solid rgba(var(--color-text-primary), 0.1);
+  color: var(--color-text-secondary);
 }
 
 .select {
   background: none;
   border: none;
-  color: var(--text-primary);
-  font-size: 0.9rem;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
   font-weight: 500;
   outline: none;
   cursor: pointer;
 }
 
 .tableCard {
-  background: rgba(var(--card-bg-rgb), 0.5);
+  background: color-mix(in oklch, var(--color-bg-elevated) 50%, transparent);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(var(--text-rgb), 0.08);
+  border: 1px solid rgba(var(--color-text-primary), 0.08);
   border-radius: 1rem;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--color-text-primary) 3%, transparent);
 }
 
 .table {
@@ -63,18 +63,16 @@
 
 .table th {
   padding: 1.25rem 1.5rem;
-  background: rgba(var(--text-rgb), 0.03);
-  font-size: 0.85rem;
+  background: rgba(var(--color-text-primary), 0.03);
+  font-size: var(--font-size-base);
   font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid rgba(var(--text-rgb), 0.05);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid rgba(var(--color-text-primary), 0.05);
 }
 
 .table td {
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid rgba(var(--text-rgb), 0.05);
+  border-bottom: 1px solid rgba(var(--color-text-primary), 0.05);
   vertical-align: middle;
 }
 
@@ -83,7 +81,7 @@
   align-items: center;
   gap: 0.75rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
 }
 
 .stars {
@@ -92,22 +90,22 @@
 }
 
 .starActive {
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .starInactive {
-  color: rgba(var(--text-rgb), 0.1);
+  color: rgba(var(--color-text-primary), 0.1);
 }
 
 .statusY {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
   padding: 0.3rem 0.6rem;
   border-radius: 0.5rem;
-  font-size: 0.8rem;
+  font-size: var(--font-size-small);
   font-weight: 600;
 }
 
@@ -115,16 +113,16 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
   padding: 0.3rem 0.6rem;
   border-radius: 0.5rem;
-  font-size: 0.8rem;
+  font-size: var(--font-size-small);
   font-weight: 600;
 }
 
 .statusN {
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .commentCell {
@@ -132,16 +130,15 @@
 }
 
 .commentText {
-  font-size: 0.95rem;
-  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
   line-height: 1.5;
   margin-bottom: 0.5rem;
 }
 
 .noComment {
-  color: var(--text-secondary);
-  font-style: italic;
-  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
 }
 
 .missingSkills {
@@ -151,11 +148,11 @@
 }
 
 .skillPill {
-  background: var(--accent-light);
-  color: var(--accent);
+  background: color-mix(in oklch, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
   padding: 0.2rem 0.5rem;
   border-radius: 0.4rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 600;
 }
 
@@ -167,14 +164,14 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
 }
 
 .taskId {
   font-family: monospace;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
   margin-top: 0.25rem;
   opacity: 0.6;
 }
@@ -182,12 +179,12 @@
 .loading, .empty {
   text-align: center;
   padding: 4rem !important;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .pagination {
   padding: 1.5rem;
   display: flex;
   justify-content: center;
-  border-top: 1px solid rgba(var(--text-rgb), 0.05);
+  border-top: 1px solid rgba(var(--color-text-primary), 0.05);
 }

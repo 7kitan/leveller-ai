@@ -63,7 +63,7 @@
 
 .subtitle {
   color: rgba(0, 0, 0, 0.5);
-  font-size: 15px;
+  font-size: var(--font-size-base);
   font-weight: 400;
   line-height: 1.5;
 }
@@ -87,7 +87,7 @@
   border-radius: 14px;
   padding: 16px;
   color: #1d1d1f;
-  font-size: 16px;
+  font-size: var(--font-size-base);
   transition: all 0.2s ease;
   outline: none;
 }
@@ -101,10 +101,10 @@
 .submitBtn {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #0EA5E9 0%, #06B6D4 100%);
+  /* gradient removed */ background: var(--color-primary);
   color: #ffffff;
   border-radius: 980px;
-  font-size: 16px;
+  font-size: var(--font-size-base);
   font-weight: 600;
   transition: all 0.2s ease;
   display: flex;
@@ -135,7 +135,7 @@
   margin-top: 28px;
   width: 100%;
   color: #0EA5E9;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 600;
   background: none;
   border: none;
@@ -154,7 +154,7 @@
   background: rgba(255, 59, 48, 0.08);
   border-radius: 12px;
   color: #ff3b30;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -218,7 +218,7 @@
 
 .forgotPassword {
   color: #0ea5e9;
-  font-size: 13px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   transition: all 0.2s ease;
   opacity: 0.8;
@@ -232,11 +232,11 @@
 }
 
 [data-theme="dark"] .formWrapper {
-  background-color: var(--color-apple-black);
+  background-color: var(--color-neutral-900);
 }
 
 [data-theme="dark"] .panel {
-  background: var(--color-surface-dark-1);
+  background: var(--color-bg-secondary);
   border-color: rgba(255, 255, 255, 0.08);
   box-shadow: 0 20px 80px rgba(0, 0, 0, 0.4);
 }

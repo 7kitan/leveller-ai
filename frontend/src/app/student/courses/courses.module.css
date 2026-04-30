@@ -39,32 +39,29 @@
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   color: #818cf8;
 }
 
 .sectionTitle {
-  font-size: 3.5rem;
+  font-size: var(--font-size-display);
   font-weight: 900;
   line-height: 1;
   letter-spacing: -0.05em;
   color: white;
-  font-style: italic;
 }
 
 /* Use standardized gradient for consistency */
 .gradientText {
-  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .sectionSubtitle {
-  font-size: 1.125rem;
+  font-size: var(--font-size-medium);
   font-weight: 500;
   color: rgba(255, 255, 255, 0.4);
   max-width: 36rem;
@@ -89,17 +86,14 @@
 }
 
 .statValue {
-  font-size: 1.875rem;
+  font-size: var(--font-size-large);
   font-weight: 900;
-  font-style: italic;
   letter-spacing: tight;
 }
 
 .statLabel {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   color: rgba(255, 255, 255, 0.2);
 }
 
@@ -153,7 +147,7 @@
   outline: none;
   color: white;
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
 }
 
 .filterControls {
@@ -169,8 +163,7 @@
   border-radius: 1.25rem;
   color: white;
   font-weight: 900;
-  font-size: 11px;
-  text-transform: uppercase;
+  font-size: var(--font-size-small);
   outline: none;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -188,8 +181,7 @@
   border-radius: 1.25rem;
   color: rgba(255, 255, 255, 0.4);
   font-weight: 900;
-  font-size: 11px;
-  text-transform: uppercase;
+  font-size: var(--font-size-small);
   transition: all 0.3s ease;
 }
 
@@ -213,9 +205,8 @@
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
 }
 
 .resetBtn {
@@ -223,9 +214,7 @@
     border: none;
     color: #818cf8;
     font-weight: 900;
-    text-transform: uppercase;
-    font-size: 10px;
-    letter-spacing: 0.1em;
+    font-size: var(--font-size-small);
     cursor: pointer;
     transition: opacity 0.3s ease;
 }
@@ -317,14 +306,14 @@
 }
 
 .summaryTitle {
-    font-size: 1.25rem;
+    font-size: var(--font-size-medium);
     font-weight: 900;
     color: white;
     letter-spacing: -0.01e;
 }
 
 .summaryDesc {
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     color: rgba(255,255,255,0.4);
     line-height: 1.6;
 }
@@ -349,12 +338,9 @@
 }
 
 .resultsCount {
-    font-size: 10px;
+    font-size: var(--font-size-small);
     font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
     color: rgba(255, 255, 255, 0.2);
-    font-style: italic;
 }
 
 .resultsCountHighlight {
@@ -373,19 +359,14 @@
 }
 
 .platformLabel {
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   color: rgba(255, 255, 255, 0.2);
 }
 
-.levelBeginner { color: #34d399; font-size: 9px; font-weight: 900; text-transform: uppercase; border: 1px solid #34d399; padding: 0.25rem 0.75rem; border-radius: 0.5rem; }
-.levelIntermediate { color: #818cf8; font-size: 9px; font-weight: 900; text-transform: uppercase; border: 1px solid #818cf8; padding: 0.25rem 0.75rem; border-radius: 0.5rem; }
-.levelAdvanced { color: #f472b6; font-size: 9px; font-weight: 900; text-transform: uppercase; border: 1px solid #f472b6; padding: 0.25rem 0.75rem; border-radius: 0.5rem; }
 
 .courseTitle {
-  font-size: 1.25rem;
+  font-size: var(--font-size-medium);
   font-weight: 900;
   color: white;
   line-height: 1.25;
@@ -393,7 +374,7 @@
 }
 
 .courseDescription {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   color: rgba(255, 255, 255, 0.4);
   line-height: 1.6;
   display: -webkit-box;
@@ -413,10 +394,9 @@
   background-color: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 0.75rem;
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   color: rgba(255, 255, 255, 0.4);
-  text-transform: uppercase;
   display: flex;
   align-items: center;
   gap: 0.375rem;
@@ -433,17 +413,15 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
   color: rgba(255, 255, 255, 0.2);
-  text-transform: uppercase;
 }
 
 .costBadge {
   margin-left: auto;
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  font-style: italic;
 }
 
 .costFree { color: #34d399; }
@@ -461,9 +439,7 @@
   border-radius: 1.25rem;
   color: white;
   font-weight: 900;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  font-size: var(--font-size-small);
   transition: all 0.3s ease;
 }
 

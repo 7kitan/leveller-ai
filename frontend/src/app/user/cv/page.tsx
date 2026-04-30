@@ -78,7 +78,7 @@ const SENIORITY_LEVELS = ["Junior", "Mid-level", "Senior", "Expert", "Unknown"];
 const SKILL_LEVELS = ["Junior", "Mid-level", "Senior", "Expert"];
 
 const UserCVPage = () => {
-  const { user } = useAuth();
+  const { token } = useAuth();
   const { t, language } = useLanguage();
   const { showSuccess, showError } = useAlert();
   const router = useRouter();
@@ -136,7 +136,7 @@ const UserCVPage = () => {
   }, [t]);
 
   useEffect(() => {
-    if (user) {
+    if (token) {
       fetchHistory();
 
       const storedContext = sessionStorage.getItem("analysis_context");
@@ -155,7 +155,7 @@ const UserCVPage = () => {
         sessionStorage.removeItem("target_cv_id");
       }
     }
-  }, [ handleLoadSpecificCV]);
+  }, [token, handleLoadSpecificCV]);
 
   useEffect(() => {
     if (parsedData?.full_name) {

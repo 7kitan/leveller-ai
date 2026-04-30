@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumix AI - Color Palette Comparison</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f7;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 20px;
+            color: #6b7280;
+            margin-bottom: 60px;
+        }
+
+        .palette-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .palette-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .palette-header {
+            margin-bottom: 32px;
+        }
+
+        .palette-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .palette-description {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+
+        .palette-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .tag.pro {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .tag.con {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .color-scales {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .color-scale {
+            background: #f9fafb;
+            padding: 24px;
+            border-radius: 16px;
+        }
+
+        .scale-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+        }
+
+        .color-swatch-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .color-swatch {
+            flex: 1;
+            height: 60px;
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-4px);
+        }
+
+        .color-swatch.light {
+            color: #1d1d1f;
+            text-shadow: none;
+        }
+
+        .examples {
+            margin-top: 32px;
+        }
+
+        .examples-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #1d1d1f;
+        }
+
+        .example-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-example {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            border: 2px solid #e5e7eb;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .card-text {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .gradient-example {
+            height: 120px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .color-scales {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Lumix AI Color Palette Comparison</h1>
+        <p class="subtitle">Choose the palette that best represents your vision for career exploration and AI-powered guidance</p>
+
+        <div class="palette-grid">
+            <!-- CURRENT PALETTE -->
+            <div class="palette-card">
+                <div class="palette-header">
+                    <h2 class="palette-title" style="color: #4f46e5;">Current Palette</h2>
+                    <p class="palette-description">Indigo + Cyan - Modern tech/SaaS aesthetic</p>
+                    <div class="palette-tags">
+                        <span class="tag pro">✓ Modern & approachable</span>
+                        <span class="tag pro">✓ Popular in tech</span>
+                        <span class="tag con">Less distinctive</span>
+                    </div>
+                </div>
+
+                <div class="color-scales">
+                    <div class="color-scale">
+                        <div class="scale-title">Primary (Indigo)</div>
+                        <div class="color-swatch-row">
+                            <div class="color-swatch light" style="background: #eef2ff;">100</div>
+                            <div class="color-swatch light" style="background: #c7d2fe;">300</div>
+                            <div class="color-swatch" style="background: #4f46e5;">600</div>
+                            <div class="color-swatch" style="background: #4338ca;">700</div>
+                            <div class="color-swatch" style="background: #312e81;">900</div>
+                        </div>
+                    </div>
+                    <div class="color-scale">
+                        <div class="scale-title">Secondary (Cyan)</div>
+                        <div class="color-swatch-row">
+                            <div class="color-swatch light" style="background: #cffafe;">100</div>
+                            <div class="color-swatch light" style="background: #67e8f9;">300</div>
+                            <div class="color-swatch" style="background: #06b6d4;">500</div>
+                            <div class="color-swatch" style="background: #0e7490;">700</div>
+                            <div class="color-swatch" style="background: #164e63;">900</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gradient-example" style="background: linear-gradient(135deg, #4f46e5, #06b6d4);">
+                    Gradient Example
+                </div>
+
+                <div class="examples">
+                    <div class="examples-title">UI Examples</div>
+                    <div class="example-row">
+                        <button class="btn" style="background: #4f46e5; color: white;">Primary Button</button>
+                        <button class="btn" style="background: #06b6d4; color: white;">Secondary Button</button>
+                        <button class="btn" style="background: #eef2ff; color: #4f46e5;">Light Button</button>
+                    </div>
+                    <div class="card-example" style="border-color: #4f46e5;">
+                        <div class="card-title" style="color: #4f46e5;">Feature Card</div>
+                        <div class="card-text">Modern and clean design that feels familiar to tech users.</div>
+                        <span class="badge" style="background: #eef2ff; color: #4f46e5;">Tech</span>
+                        <span class="badge" style="background: #cffafe; color: #0e7490;">Modern</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OPTION 1: NASA-INSPIRED -->
+            <div class="palette-card">
+                <div class="palette-header">
+                    <h2 class="palette-title" style="color: #2563eb;">Option 1: NASA-Inspired ⭐ Recommended</h2>
+                    <p class="palette-description">Space Blue + Mars Red - Modern exploration theme</p>
+                    <div class="palette-tags">
+                        <span class="tag pro">✓ Space exploration theme</span>
+                        <span class="tag pro">✓ Modern & approachable</span>
+                        <span class="tag pro">✓ Distinctive & bold</span>
+                        <span class="tag pro">✓ Balanced authority</span>
+                    </div>
+                </div>
+
+                <div class="color-scales">
+                    <div class="color-scale">
+                        <div class="scale-title">Primary (Space Blue)</div>
+                        <div class="color-swatch-row">
+                            <div class="color-swatch light" style="background: #e6eef9;">100</div>
+                            <div class="color-swatch light" style="background: #7a9dd9;">300</div>
+                            <div class="color-swatch" style="background: #2563eb;">500</div>
+                            <div class="color-swatch" style="background: #1e4db7;">600</div>
+                            <div class="color-swatch" style="background: #0B3D91;">700</div>
+                        </div>
+                        <p style="font-size: 12px; color: #6b7280; margin-top: 8px;">700 = Official NASA Blue</p>
+                    </div>
+                    <div class="color-scale">
+                        <div class="scale-title">Secondary (Mars Red)</div>
+                        <div class="color-swatch-row">
+                            <div class="color-swatch light" style="background: #fee5e0;">100</div>
+                            <div class="color-swatch light" style="background: #fca89a;">300</div>
+                            <div class="color-swatch" style="background: #FC3D21;">500</div>
+                            <div class="color-swatch" style="background: #d42f15;">700</div>
+                            <div class="color-swatch" style="background: #8a1f0e;">900</div>
+                        </div>
+                        <p style="font-size: 12px; color: #6b7280; margin-top: 8px;">500 = Official NASA Red</p>
+                    </div>
+                </div>
+
+                <div class="gradient-example" style="background: linear-gradient(135deg, #2563eb, #FC3D21);">
+                    Gradient Example
+                </div>
+
+                <div class="examples">
+                    <div class="examples-title">UI Examples</div>
+                    <div class="example-row">
+                        <button class="btn" style="background: #FC3D21; color: white;">Primary CTA</button>
+                        <button class="btn" style="background: #2563eb; color: white;">Secondary Action</button>
+                        <button class="btn" style="background: #e6eef9; color: #2563eb;">Light Button</button>
+                    </div>
+                    <div class="card-example" style="border-color: #2563eb;">
+                        <div class="card-title" style="color: #2563eb;">Career Exploration</div>
+                        <div class="card-text">Bold and innovative design that evokes discovery and pushing boundaries.</div>
+                        <span class="badge" style="background: #e6eef9; color: #2563eb;">Space</span>
+                        <span class="badge" style="background: #fee5e0; color: #d42f15;">Innovation</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OPTION 2: DEEP SPACE -->
+            <div class="palette-card">
+                <div class="palette-header">
+                    <h2 class="palette-title" style="color: #0B3D91;">Option 2: Deep Space</h2>
+                    <p class="palette-description">Official NASA Colors - Authentic & authoritative</p>
+                    <div class="palette-tags">
+                        <span class="tag pro">✓ Most authentic NASA</span>
+                        <span class="tag pro">✓ Iconic recognition</span>
+                        <span class="tag pro">✓ Strong authority</span>
+                        <span class="tag con">Darker/more serious</span>
+                        <span class="tag con">Less approachable</span>
+                    </div>
+                </div>
+
+                <div class="color-scales">
+                    <div class="color-scale">
+                        <div class="scale-title">Primary (NASA Blue)</div>
+                        <div class="color-swatch-row">
+                            <div class="color-swatch light" style="background: #e6eef9;">100</div>
+                            <div class="color-swatch" style="background: #4a6bb5;">300</div>
+                            <div class="color-swatch" style="background: #1e4db7;">500</div>
+                            <div class="color-swatch" style="background: #0B3D91;">600</div>
+                            <div class="color-swatch" style="background: #051d47;">900</div>
+                        </div>
+                        <p style="font-size: 12px; color: #6b7280; margin-top: 8px;">600 = Official NASA Blue (main)</p>
+                    </div>
+                    <div class="color-scale">
+                        <div class="scale-title">Secondary (NASA Red)</div>
+                        <div class="color-swatch-row">
+                            <div class="color-swatch light" style="background: #fee5e0;">100</div>
+                            <div class="color-swatch light" style="background: #fca89a;">300</div>
+                            <div class="color-swatch" style="background: #FC3D21;">500</div>
+                            <div class="color-swatch" style="background: #d42f15;">700</div>
+                            <div class="color-swatch" style="background: #8a1f0e;">900</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gradient-example" style="background: linear-gradient(135deg, #0B3D91, #FC3D21);">
+                    Gradient Example
+                </div>
+
+                <div class="examples">
+                    <div class="examples-title">UI Examples</div>
+                    <div class="example-row">
+                        <button class="btn" style="background: #FC3D21; color: white;">Primary CTA</button>
+                        <button class="btn" style="background: #0B3D91; color: white;">Secondary Action</button>
+                        <button class="btn" style="background: #e6eef9; color: #0B3D91;">Light Button</button>
+                    </div>
+                    <div class="card-example" style="border-color: #0B3D91;">
+                        <div class="card-title" style="color: #0B3D91;">Professional Analysis</div>
+                        <div class="card-text">Serious and authoritative design that conveys expertise and credibility.</div>
+                        <span class="badge" style="background: #e6eef9; color: #0B3D91;">Authority</span>
+                        <span class="badge" style="background: #fee5e0; color: #d42f15;">Iconic</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OPTION 3: COSMIC HYBRID -->
+            <div class="palette-card">
+                <div class="palette-header">
+                    <h2 class="palette-title" style="color: #2563eb;">Option 3: Cosmic Hybrid</h2>
+                    <p class="palette-description">Space Blue + Cyan - Space theme with calm secondary</p>
+                    <div class="palette-tags">
+                        <span class="tag pro">✓ Space exploration theme</span>
+                        <span class="tag pro">✓ Calming cyan</span>
+                        <span class="tag pro">✓ Tech-friendly</span>
+                        <span class="tag con">Less iconic (no red)</span>
+                    </div>
+                </div>
+
+                <div class="color-scales">
+                    <div class="color-scale">
+                        <div class="scale-title">Primary (Space Blue)</div>
+                        <div class="color-swatch-row">
+                            <div class="color-swatch light" style="background: #e6eef9;">100</div>
+                            <div class="color-swatch light" style="background: #7a9dd9;">300</div>
+                            <div class="color-swatch" style="background: #2563eb;">500</div>
+                            <div class="color-swatch" style="background: #1e4db7;">600</div>
+                            <div class="color-swatch" style="background: #0B3D91;">700</div>
+                        </div>
+                    </div>
+                    <div class="color-scale">
+                        <div class="scale-title">Secondary (Cosmic Cyan)</div>
+                        <div class="color-swatch-row">
+                            <div class="color-swatch light" style="background: #cffafe;">100</div>
+                            <div class="color-swatch light" style="background: #67e8f9;">300</div>
+                            <div class="color-swatch" style="background: #06b6d4;">500</div>
+                            <div class="color-swatch" style="background: #0e7490;">700</div>
+                            <div class="color-swatch" style="background: #164e63;">900</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gradient-example" style="background: linear-gradient(135deg, #2563eb, #06b6d4);">
+                    Gradient Example
+                </div>
+
+                <div class="examples">
+                    <div class="examples-title">UI Examples</div>
+                    <div class="example-row">
+                        <button class="btn" style="background: #2563eb; color: white;">Primary Button</button>
+                        <button class="btn" style="background: #06b6d4; color: white;">Secondary Button</button>
+                        <button class="btn" style="background: #e6eef9; color: #2563eb;">Light Button</button>
+                    </div>
+                    <div class="card-example" style="border-color: #2563eb;">
+                        <div class="card-title" style="color: #2563eb;">Skill Analysis</div>
+                        <div class="card-text">Space-inspired but calm and professional, perfect for AI guidance.</div>
+                        <span class="badge" style="background: #e6eef9; color: #2563eb;">Space</span>
+                        <span class="badge" style="background: #cffafe; color: #0e7490;">Calm</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OPTION 4: NEBULA -->
+            <div class="palette-card">
+                <div class="palette-header">
+                    <h2 class="palette-title" style="color: #2563eb;">Option 4: Nebula</h2>
+                    <p class="palette-description">Space Blue + Purple - Mystical space theme</p>
+                    <div class="palette-tags">
+                        <span class="tag pro">✓ Unique & mystical</span>
+                        <span class="tag pro">✓ Space theme</span>
+                        <span class="tag pro">✓ Softer than red</span>
+                        <span class="tag con">Less NASA-authentic</span>
+                    </div>
+                </div>
+
+                <div class="color-scales">
+                    <div class="color-scale">
+                        <div class="scale-title">Primary (Space Blue)</div>
+                        <div class="color-swatch-row">
+                            <div class="color-swatch light" style="background: #e6eef9;">100</div>
+                            <div class="color-swatch light" style="background: #7a9dd9;">300</div>
+                            <div class="color-swatch" style="background: #2563eb;">500</div>
+                            <div class="color-swatch" style="background: #1e4db7;">600</div>
+                            <div class="color-swatch" style="background: #0B3D91;">700</div>
+                        </div>
+                    </div>
+                    <div class="color-scale">
+                        <div class="scale-title">Secondary (Nebula Purple)</div>
+                        <div class="color-swatch-row">
+                            <div class="color-swatch light" style="background: #f3e8ff;">100</div>
+                            <div class="color-swatch light" style="background: #d8b4fe;">300</div>
+                            <div class="color-swatch" style="background: #a855f7;">500</div>
+                            <div class="color-swatch" style="background: #9333ea;">700</div>
+                            <div class="color-swatch" style="background: #6b21a8;">900</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gradient-example" style="background: linear-gradient(135deg, #2563eb, #a855f7);">
+                    Gradient Example
+                </div>
+
+                <div class="examples">
+                    <div class="examples-title">UI Examples</div>
+                    <div class="example-row">
+                        <button class="btn" style="background: #a855f7; color: white;">Primary Button</button>
+                        <button class="btn" style="background: #2563eb; color: white;">Secondary Button</button>
+                        <button class="btn" style="background: #f3e8ff; color: #a855f7;">Light Button</button>
+                    </div>
+                    <div class="card-example" style="border-color: #2563eb;">
+                        <div class="card-title" style="color: #2563eb;">AI Insights</div>
+                        <div class="card-text">Mystical and innovative, suggesting AI intelligence and cosmic discovery.</div>
+                        <span class="badge" style="background: #e6eef9; color: #2563eb;">Space</span>
+                        <span class="badge" style="background: #f3e8ff; color: #9333ea;">AI</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; padding: 40px; background: white; border-radius: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+            <h3 style="font-size: 24px; margin-bottom: 16px;">Quick Comparison</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <thead>
+                    <tr style="background: #f9fafb;">
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Palette</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Theme</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Tone</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Best For</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><strong>Current</strong></td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Tech/SaaS</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Modern, familiar</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Safe, proven choice</td>
+                    </tr>
+                    <tr style="background: #f0fdf4;">
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><strong>NASA-Inspired ⭐</strong></td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Space exploration</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Bold, innovative</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Career exploration, discovery</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><strong>Deep Space</strong></td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Official NASA</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Authoritative, serious</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Professional credibility</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><strong>Cosmic Hybrid</strong></td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Space + Tech</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Calm, professional</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">AI guidance, analysis</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px;"><strong>Nebula</strong></td>
+                        <td style="padding: 12px;">Mystical space</td>
+                        <td style="padding: 12px;">Unique, softer</td>
+                        <td style="padding: 12px;">AI intelligence, innovation</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; color: #6b7280;">
+            <p>Click on any color swatch to see its hex code. Hover over buttons to see interaction states.</p>
+            <p style="margin-top: 8px; font-size: 14px;">Created for Lumix AI - Career Intelligence Platform</p>
+        </div>
+    </div>
+
+    <script>
+        // Add click handler to show color codes
+        document.querySelectorAll('.color-swatch').forEach(swatch => {
+            swatch.addEventListener('click', function() {
+                const color = this.style.background;
+                alert(`Color: ${color}\n\nClick OK to copy to clipboard`);
+                navigator.clipboard.writeText(color);
+            });
+        });
+    </script>
+</body>
+</html>

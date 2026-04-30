@@ -14,7 +14,7 @@ import {
   RefreshCw,
   Zap
 } from "lucide-react";
-import { cn, formatCurrency, formatNumber } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
 import PageHeader from "@/components/common/PageHeader";
 import styles from "../admin-dashboard.module.css";
@@ -27,7 +27,7 @@ import {
 import { format } from "date-fns";
 
 const AIUsagePage = () => {
-  const { user } = useAuth();
+  const { token } = useAuth();
   const { t } = useLanguage();
   const [stats, setStats] = useState<any>(null);
   const [logs, setLogs] = useState<any[]>([]);
@@ -57,8 +57,8 @@ const AIUsagePage = () => {
   };
 
   useEffect(() => {
-    if (user) fetchData();
-  }, [ period, days]);
+    if (token) fetchData();
+  }, [token, period, days]);
 
   if (loading) {
     return (
@@ -112,7 +112,7 @@ const AIUsagePage = () => {
           />
           <StatCard 
             label={t("admin_ai_est_cost")} 
-            value={formatCurrency(stats?.total_cost_usd || 0, '$', 4)} 
+            value={`$${stats?.total_cost_usd?.toFixed(4)}`} 
             icon={BarChart3} 
             color="#ec4899" 
           />
@@ -190,7 +190,7 @@ const AIUsagePage = () => {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 'bold' }}
-                  tickFormatter={(val) => val >= 1000 ? `${formatNumber(val/1000)}k` : val}
+                  tickFormatter={(val) => val >= 1000 ? `${(val/1000).toFixed(1)}k` : val}
                 />
                 <Tooltip 
                   contentStyle={{ 

@@ -3,8 +3,8 @@
 .pageWrapper {
   position: relative;
   min-height: 100vh;
-  background-color: var(--color-bg-light);
-  transition: background-color 0.5s var(--ease-premium), color 0.5s var(--ease-premium);
+  background-color: var(--color-bg-primary);
+  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 [data-theme="dark"] .pageWrapper {
@@ -26,7 +26,7 @@
 }
 
 .pageContainer {
-  @apply flex-1 p-4 md:p-8 pt-20 md:pt-24 w-full mx-auto overflow-x-auto;
+  @apply flex-1 p-4 md:p-8 pt-16 md:pt-20 w-full mx-auto overflow-x-auto;
   max-width: 1600px;
   /* Ensure horizontal scroll doesn't break layout */
   display: block; 
@@ -47,10 +47,8 @@
 .footer {
   @apply py-4 px-8 flex items-center justify-center gap-2;
   border-top: 1px solid var(--color-border-subtle);
-  font-size: 10px;
+  font-size: var(--font-size-base);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
   opacity: 0.5;
   transition: all 0.3s ease;
 }
@@ -65,8 +63,7 @@
     background: rgba(0, 0, 0, 0.02);
     backdrop-filter: blur(8px);
     opacity: 0.7;
-    font-size: 8px;
-    letter-spacing: 0.15em;
+    font-size: var(--font-size-base);
   }
 }
 
@@ -79,13 +76,13 @@
 /* Ambient Decoration */
 .ambientGlow1 {
   @apply fixed -top-[20%] -left-[10%] w-[60%] h-[60%] blur-[120px] rounded-full pointer-events-none z-0;
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-primary);
   opacity: 0.02;
 }
 
 .ambientGlow2 {
   @apply fixed -bottom-[20%] -right-[10%] w-[50%] h-[50%] blur-[120px] rounded-full pointer-events-none z-0;
-  background-color: var(--color-accent-secondary);
+  background-color: var(--color-secondary);
   opacity: 0.02;
 }
 

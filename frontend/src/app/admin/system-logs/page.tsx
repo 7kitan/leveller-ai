@@ -25,7 +25,7 @@ import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 
 const SystemLogsPage = () => {
-  const { user } = useAuth();
+  const { token } = useAuth();
   const { t } = useLanguage();
   const { confirm, showInfo } = useAlert();
   const [logs, setLogs] = useState<any[]>([]);
@@ -71,8 +71,8 @@ const SystemLogsPage = () => {
   };
 
   useEffect(() => {
-    if (user) fetchLogs(0);
-  }, [ level, module]);
+    if (token) fetchLogs(0);
+  }, [token, level, module]);
 
   const getLevelColor = (level: string) => {
     switch (level.toUpperCase()) {

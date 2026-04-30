@@ -2,10 +2,11 @@
 @reference "../../app/globals.css";
 
 .sidebar {
-  @apply fixed left-0 top-0 h-screen w-72 flex flex-col z-50 transition-all duration-500 ease-in-out overflow-hidden;
+  @apply fixed left-0 top-0 h-screen w-72 flex flex-col z-50 transition-all duration-500 ease-in-out;
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(25px);
   border-right: 1px solid rgba(0, 0, 0, 0.05);
+  padding-top: 10px;
 }
 
 @media (max-width: 1024px) {
@@ -20,7 +21,7 @@
 }
 
 .collapsed {
-  width: 80px !important;
+  width: 56px !important;
   cursor: pointer;
 }
 
@@ -29,46 +30,24 @@
   border-color: rgba(255, 255, 255, 0.05);
 }
 
-.brand {
-  @apply flex items-center gap-4 relative transition-all duration-500;
-  padding: 0 1rem;
-  height: 48px;
-}
-
-
 .collapseToggle {
-  @apply h-8 w-8 rounded-lg flex items-center justify-center transition-all bg-black/5 text-black/40 hover:bg-black/10 hover:text-black;
-  margin-left: auto;
+  @apply h-8 w-8 rounded-lg flex items-center justify-center text-black hover:bg-black/10;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  transition: right 350ms ease-out;
 }
 
 .collapsed .collapseToggle {
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  margin: 0;
-  z-index: 2;
-  @apply bg-black/10 text-black;
+  right: calc(50% - 16px);
+  transition: right 600ms ease-out;
 }
 
 [data-theme="dark"] .collapsed .collapseToggle {
-  @apply bg-white/10 text-white;
-}
-
-.collapsed .brand:hover .collapseToggle {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.collapsed .brand:hover .brandIcon {
-  opacity: 0;
-  transform: scale(0.8);
 }
 
 [data-theme="dark"] .collapseToggle {
-  @apply bg-white/5 text-white/40 hover:bg-white/10 hover:text-white;
+  @apply text-white hover:bg-white/10;
 }
 
 @media (max-width: 1024px) {
@@ -77,27 +56,8 @@
   }
 }
 
-.collapsed .brand {
-  @apply px-0 justify-center;
-}
-
-.brandIcon {
-  @apply h-8 w-8 rounded-lg flex items-center justify-center border transition-all;
-  background: #fff;
-  color: #000;
-  border-color: rgba(0, 0, 0, 0.1);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  flex-shrink: 0;
-}
-
-[data-theme="dark"] .brandIcon {
-  background: #000;
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
 .mobileClose {
-  @apply h-9 w-9 rounded-lg flex items-center justify-center transition-all bg-black/5 text-black/40 hover:bg-red-500/10 hover:text-red-500;
+  @apply h-9 w-9 rounded-lg flex items-center justify-center transition-colors bg-black/5 text-black/40 hover:bg-red-500/10 hover:text-red-500;
   margin-left: auto;
 }
 
@@ -111,49 +71,52 @@
   }
 }
 
-.brandName {
-  @apply text-lg font-bold tracking-tight;
-  color: var(--color-text-main);
-}
 
-.collapsed .brandName,
-.collapsed .brandSub {
-  display: none;
-}
-
-.brandSub {
-  @apply text-[9px] font-bold uppercase tracking-[0.2em];
-  color: var(--color-accent-primary);
-}
-
-.collapsed .navLabel {
-  @apply opacity-0 pointer-events-none h-0 my-0;
-}
-
-[data-theme="dark"] .navLabel {
-  color: rgba(255, 255, 255, 0.4);
-}
 
 .nav {
-  @apply px-4 space-y-1 flex-1 transition-all mt-2;
+  @apply px-4 space-y-1 flex-1 transition-all mt-2 pt-12 overflow-visible;
 }
 
 .collapsed .nav {
-  @apply px-2;
+  @apply px-2 pt-12;
 }
 
 .item {
-  @apply flex items-center gap-3.5 px-4 py-3 rounded-2xl font-semibold transition-all relative overflow-hidden;
+  @apply flex items-center gap-3.5 px-4 py-2 transition-colors relative;
   color: var(--color-text-muted);
-  font-size: 0.9rem;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
 }
 
 .collapsed .item {
-  @apply justify-center px-0 h-11 w-11 mx-auto;
+  @apply px-4 py-2;
+}
+
+.collapsed .active {
+  border-radius: 0;
+}
+
+.icon {
+  transition: margin-left 500ms ease-in-out;
+}
+
+.collapsed .icon {
+  margin-left: -6px;
+}
+
+.label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  transition: opacity 400ms ease-out;
 }
 
 .collapsed .label {
-  display: none;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+  transition: opacity 700ms ease-out;
 }
 
 [data-theme="dark"] .item {
@@ -161,82 +124,29 @@
 }
 
 .item:hover {
-  background: rgba(0, 0, 0, 0.03);
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 [data-theme="dark"] .item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .active {
-  background: #fff;
-  color: #000 !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  color: var(--color-text-primary) !important;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
 }
 
 [data-theme="dark"] .active {
-  background: rgba(255, 255, 255, 0.1);
   color: #fff !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .icon {
-  @apply transition-transform flex-shrink-0;
+  @apply flex-shrink-0;
   opacity: 0.7;
 }
 
 .active .icon { opacity: 1; }
 
-.dot {
-  @apply absolute right-3 w-1.5 h-1.5 rounded-full bg-blue-500;
-}
 
-.collapsed .dot {
-  @apply right-1.5;
-}
-
-.footer {
-  @apply p-6 border-t mt-auto transition-all;
-  border-color: rgba(0, 0, 0, 0.05);
-}
-
-[data-theme="dark"] .footer {
-  border-color: rgba(255, 255, 255, 0.05);
-}
-
-.collapsed .footer {
-  @apply p-4 flex justify-center;
-}
-
-.langToggle {
-  @apply flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all font-bold w-full;
-  background: rgba(0, 0, 0, 0.03);
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 0.8rem;
-  border: 1px solid transparent;
-}
-
-[data-theme="dark"] .langToggle {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.langToggle:hover {
-  background: #000;
-  color: #fff;
-}
-
-[data-theme="dark"] .langToggle:hover {
-  background: #fff;
-  color: #000;
-}
-
-.collapsed .langToggle {
-  @apply w-10 h-10 p-0 justify-center;
-}
-
-.langLabel {
-  @apply tracking-widest;
-}

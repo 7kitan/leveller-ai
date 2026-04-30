@@ -26,15 +26,14 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-size: 2.25rem;
+  font-size: var(--font-size-xlarge);
   font-weight: 900;
-  color: var(--color-text-main);
-  font-style: italic;
+  color: var(--color-text-primary);
   letter-spacing: -0.05em;
 }
 
 .subtitle {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-text-muted);
   margin-top: 0.5rem;
@@ -46,22 +45,20 @@
   align-items: center;
   gap: 1rem;
   padding: 1.25rem 2.5rem;
-  background-color: #f59e0b;
-  color: #0f172a;
+  background-color: var(--color-warning);
+  color: var(--color-text-primary);
   border-radius: 1.25rem;
-  font-size: 11px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 15px 30px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 15px 30px color-mix(in srgb, var(--color-warning) 20%, transparent);
 }
 
 .addBtn:hover {
-  background-color: #d97706;
+  background-color: var(--color-warning-dark);
   color: white;
   transform: translateY(-3px);
-  box-shadow: 0 25px 50px rgba(217, 119, 6, 0.3);
+  box-shadow: 0 25px 50px color-mix(in srgb, var(--color-warning-dark) 30%, transparent);
 }
 
 .contentStack {
@@ -75,10 +72,10 @@
   flex-direction: column;
   gap: 2rem;
   padding: 2.5rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-text-primary) 2%, transparent);
 }
 
 @media (min-width: 1024px) {
@@ -91,35 +88,33 @@
 
 .toggleContainer {
   display: flex;
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   padding: 0.25rem;
   border-radius: 1rem;
   border: 1px solid var(--color-border-subtle);
 }
 
 [data-theme="dark"] .toggleContainer {
-    background-color: rgba(255, 255, 255, 0.03);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
 }
 
 .toggleBtn {
   padding: 0.75rem 2rem;
   border-radius: 0.75rem;
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   transition: all 0.3s ease;
   color: var(--color-text-muted);
 }
 
 .toggleBtnActive {
-  background-color: #4f46e5;
+  background-color: var(--color-primary);
   color: white;
 }
 
 .toggleBtnAmber {
-  background-color: #f59e0b;
-  color: #0f172a;
+  background-color: var(--color-warning);
+  color: var(--color-text-primary);
 }
 
 .toggleBtnInactive {
@@ -128,14 +123,14 @@
 
 .toggleBtnInactive:hover {
   opacity: 1;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   background-color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-text-primary) 5%, transparent);
 }
 
 .refreshBtn {
   padding: 1.125rem;
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1rem;
   color: var(--color-text-muted);
@@ -144,8 +139,8 @@
 }
 
 .refreshBtn:hover {
-  background-color: rgba(0, 0, 0, 0.02);
-  color: var(--color-text-main);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
+  color: var(--color-text-primary);
   opacity: 1;
 }
 
@@ -156,12 +151,12 @@
 }
 
 .groupCard {
-  background-color: var(--color-panel-bg);
+  background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   overflow: hidden;
   transition: all 0.4s ease;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--color-text-primary) 3%, transparent);
 }
 
 .groupHeader {
@@ -174,7 +169,7 @@
 }
 
 .groupHeader:hover {
-  background-color: rgba(0, 0, 0, 0.01);
+  background-color: color-mix(in srgb, var(--color-text-primary) 1%, transparent);
 }
 
 .groupIconWrapper {
@@ -186,18 +181,18 @@
   justify-content: center;
 }
 
-.iconPosition { background-color: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.1); }
-.iconDefault { background-color: rgba(79, 70, 229, 0.05); border: 1px solid rgba(79, 70, 229, 0.1); }
+.iconPosition { background-color: color-mix(in srgb, var(--color-warning) 5%, transparent); border: 1px solid color-mix(in srgb, var(--color-warning) 10%, transparent); }
+.iconDefault { background-color: color-mix(in srgb, var(--color-primary) 5%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 10%, transparent); }
 
-.iconColorPosition { color: #f59e0b; }
-.iconColorDefault { color: #4f46e5; }
+.iconColorPosition { color: var(--color-warning); }
+.iconColorDefault { color: var(--color-primary); }
 
 .headerIcon {
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .groupIcon {
-  color: #d1d5db;
+  color: var(--color-neutral-300);
 }
 
 .flexCenterGap1_5 {
@@ -218,18 +213,15 @@
 }
 
 .groupTitle {
-  font-size: 1.25rem;
+  font-size: var(--font-size-medium);
   font-weight: 900;
-  color: var(--color-text-main);
-  font-style: italic;
+  color: var(--color-text-primary);
   letter-spacing: -0.01em;
 }
 
 .groupSub {
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--color-text-muted);
   opacity: 0.5;
 }
@@ -237,20 +229,19 @@
 .badge {
   padding: 0.375rem 1rem;
   border-radius: 0.75rem;
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
   border: 1px solid transparent;
 }
 
 /* Badge Logic */
-.badgePosition { background-color: rgba(245, 158, 11, 0.1); color: #b45309; border-color: rgba(245, 158, 11, 0.2); }
-.badgeDomain { background-color: rgba(6, 182, 212, 0.1); color: #0891b2; border-color: rgba(6, 182, 212, 0.2); }
-.badgeTech { background-color: rgba(139, 92, 246, 0.1); color: #6d28d9; border-color: rgba(139, 92, 246, 0.2); }
-.badgeDefault { background-color: rgba(0, 0, 0, 0.02); color: var(--color-text-muted); border-color: var(--color-border-subtle); }
+.badgePosition { background-color: color-mix(in srgb, var(--color-warning) 10%, transparent); color: var(--color-warning-800); border-color: color-mix(in srgb, var(--color-warning) 20%, transparent); }
+.badgeDomain { background-color: color-mix(in srgb, var(--color-secondary) 10%, transparent); color: var(--color-secondary); border-color: color-mix(in srgb, var(--color-secondary) 20%, transparent); }
+.badgeTech { background-color: color-mix(in srgb, var(--color-accent-600) 10%, transparent); color: var(--color-accent-600); border-color: color-mix(in srgb, var(--color-accent-600) 20%, transparent); }
+.badgeDefault { background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent); color: var(--color-text-muted); border-color: var(--color-border-subtle); }
 
 .childrenWrapper {
-  background-color: rgba(0, 0, 0, 0.01);
+  background-color: color-mix(in srgb, var(--color-text-primary) 1%, transparent);
   border-top: 1px solid var(--color-border-subtle);
 }
 
@@ -282,37 +273,36 @@
   align-items: center;
   justify-content: space-between;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-text-primary) 2%, transparent);
 }
 
 [data-theme="dark"] .childCard {
-    background-color: rgba(255, 255, 255, 0.02);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 2%, transparent);
 }
 
 .childCard:hover {
-  background-color: rgba(0, 0, 0, 0.01);
+  background-color: color-mix(in srgb, var(--color-text-primary) 1%, transparent);
   transform: translateY(-2px);
-  border-color: var(--color-accent-primary);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 16px color-mix(in srgb, var(--color-text-primary) 5%, transparent);
 }
 
 .childDot {
   width: 0.375rem;
   height: 0.375rem;
-  background-color: #4f46e5;
+  background-color: var(--color-primary);
   border-radius: 9999px;
 }
 
 .childName {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 700;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .childType {
-  font-size: 9px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
   color: var(--color-text-muted);
   opacity: 0.4;
 }
@@ -325,7 +315,7 @@
 }
 
 .actionBtnDelete:hover {
-    color: #f43f5e;
+    color: var(--color-error);
     opacity: 1;
 }
 
@@ -335,21 +325,20 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 1rem;
-  background-color: rgba(0, 0, 0, 0.01);
+  background-color: color-mix(in srgb, var(--color-text-primary) 1%, transparent);
   border: 1px dashed var(--color-border-subtle);
   border-radius: 1.25rem;
   color: var(--color-text-muted);
-  font-size: 10px;
+  font-size: var(--font-size-small);
   font-weight: 900;
-  text-transform: uppercase;
   transition: all 0.3s ease;
   opacity: 0.5;
 }
 
 .addChildBtn:hover {
   background-color: white;
-  color: var(--color-accent-primary);
-  border-color: var(--color-accent-primary);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
   border-style: solid;
   opacity: 1;
 }
@@ -369,15 +358,12 @@
     opacity: 0.1;
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-md);
-    background: rgba(0, 0, 0, 0.01);
+    background: color-mix(in srgb, var(--color-text-primary) 1%, transparent);
 }
 
 .emptyStateText {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  font-style: italic;
 }
 
 .notification {
@@ -390,14 +376,14 @@
   padding: 1.25rem 2.5rem;
   border-radius: var(--radius-md);
   backdrop-filter: blur(20px);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 25px 50px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
   z-index: 1000;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
 }
 
 .notifSuccess {
-  background-color: rgba(16, 185, 129, 0.05);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background-color: color-mix(in srgb, var(--color-success) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 20%, transparent);
 }
 
 .notifText {
@@ -405,8 +391,8 @@
 }
 
 .notifError {
-  background-color: rgba(244, 63, 94, 0.05);
-  border: 1px solid rgba(244, 63, 94, 0.2);
+  background-color: color-mix(in srgb, var(--color-error) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error) 20%, transparent);
 }
 
 .notifIcon {
@@ -414,13 +400,13 @@
     border-radius: 0.75rem;
 }
 
-.iconSuccess { background-color: rgba(16, 185, 129, 0.1); color: #10b981; }
-.iconError { background-color: rgba(244, 63, 94, 0.1); color: #f43f5e; }
+.iconSuccess { background-color: color-mix(in srgb, var(--color-success) 10%, transparent); color: var(--color-success); }
+.iconError { background-color: color-mix(in srgb, var(--color-error) 10%, transparent); color: var(--color-error); }
 
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: color-mix(in srgb, var(--color-text-primary) 40%, transparent);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -430,7 +416,7 @@
 }
 
 [data-theme="dark"] .modalOverlay {
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: color-mix(in srgb, var(--color-text-primary) 80%, transparent);
 }
 
 .modalContent {
@@ -440,11 +426,11 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 40px 80px color-mix(in srgb, var(--color-text-primary) 10%, transparent);
 }
 
 [data-theme="dark"] .modalContent {
-    background-color: #0f172a;
+    background-color: var(--color-text-primary);
 }
 
 .modalHeader { padding: 3rem 3rem 1rem; }
@@ -458,32 +444,30 @@
 }
 
 .inputLabel {
-    font-size: 10px;
+    font-size: var(--font-size-small);
     font-weight: 900;
     color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
     padding: 0 0.25rem;
     opacity: 0.5;
 }
 
 .inputField {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
   border: 1px solid var(--color-border-subtle);
   border-radius: 1.25rem;
   padding: 1.25rem 1.5rem;
-  color: var(--color-text-main);
+  color: var(--color-text-primary);
   font-weight: 700;
   outline: none;
   transition: all 0.3s ease;
 }
 
 [data-theme="dark"] .inputField {
-    background-color: rgba(255, 255, 255, 0.03);
+    background-color: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
 }
 
 .inputField:focus {
-  border-color: #f59e0b;
+  border-color: var(--color-warning);
   background-color: white;
 }
 
@@ -493,32 +477,28 @@
     color: var(--color-text-muted);
     transition: color 0.3s ease;
     font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    font-size: 10px;
+    font-size: var(--font-size-small);
     opacity: 0.5;
 }
 
-.cancelBtn:hover { color: var(--color-text-main); opacity: 1; }
+.cancelBtn:hover { color: var(--color-text-primary); opacity: 1; }
 
 .submitBtn {
-    background: #f59e0b;
-    color: #0f172a;
+    background: var(--color-warning);
+    color: var(--color-text-primary);
     padding: 1rem 2.5rem;
     border-radius: 0.75rem;
     font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    font-size: 10px;
+    font-size: var(--font-size-small);
     transition: all 0.3s ease;
-    box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2);
+    box-shadow: 0 10px 20px color-mix(in srgb, var(--color-warning) 20%, transparent);
 }
 
 .submitBtn:hover {
-    background: #d97706;
+    background: var(--color-warning-dark);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 15px 30px rgba(217, 119, 6, 0.3);
+    box-shadow: 0 15px 30px color-mix(in srgb, var(--color-warning-dark) 30%, transparent);
 }
 
 @keyframes spin {

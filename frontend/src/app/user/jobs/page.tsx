@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { cn, formatSalaryVND } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import styles from "./user-jobs.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, MapPin, Search, Loader2, Info, Sparkles, Building2, DollarSign, Clock, Layers } from "lucide-react";
@@ -51,7 +51,7 @@ export default function JobsPage() {
   const [location, setLocation] = useState("");
   const [minSalary, setMinSalary] = useState("");
   const [role, setRole] = useState("");
-  const { user } = useAuth();
+  const { token } = useAuth();
 
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -79,7 +79,7 @@ export default function JobsPage() {
       setTotalPages(res.data.pages);
       setCurrentPage(page);
     } catch (err) {
-      console.error("Job search error:", err);
+      console.error("Lỗi tìm kiếm jobs:", err);
     } finally {
       setLoading(false);
     }
@@ -102,7 +102,7 @@ export default function JobsPage() {
   return (
     <PageContainer>
       <PageHeader 
-        title={language === 'vi' ? <>KHÁM PHÁ<span className={styles.gradientText}> CƠ HỘI</span></> : <>EXPLORE<span className={styles.gradientText}> OPPORTUNITIES</span></>}
+        title={t("jobs_title")}
         subtitle={t("jobs_subtitle")}
       >
         <div className={styles.badge}>
@@ -229,9 +229,10 @@ export default function JobsPage() {
                                 const min = selectedJob.min_salary_vnd;
                                 const max = selectedJob.max_salary_vnd;
                                 if (!min && !max) return t("jobs_salary_negotiable");
-                                if (min && !max) return `${t("jobs_salary_from")} ${formatSalaryVND(min)}`;
-                                if (!min && max) return `${t("jobs_salary_up_to")} ${formatSalaryVND(max)}`;
-                                return `${formatSalaryVND(min!)} - ${formatSalaryVND(max!)}`;
+                                const format = (val: number) => `${(val / 1000000).toFixed(0)}M`;
+                                if (min && !max) return `${t("jobs_salary_from")} ${format(min)}`;
+                                if (!min && max) return `${t("jobs_salary_up_to")} ${format(max)}`;
+                                return `${format(min!)} - ${format(max!)}`;
                              })()}
                         </span>
                     </div>
@@ -288,7 +289,7 @@ export default function JobsPage() {
             {/* No structured data available */}
             {!selectedJob.job_description && !selectedJob.requirements && !selectedJob.benefits && (
               <div className={styles.modalSection}>
-                <div className={styles.modalDescription} style={{ opacity: 0.6, fontStyle: 'italic' }}>
+                <div className={styles.modalDescription} style={{ opacity: 0.6 }}>
                   {t("no_description_available")}
                 </div>
               </div>
@@ -303,7 +304,7 @@ export default function JobsPage() {
                     className={styles.modalAnalyzeBtn}
                     onClick={() => setShowDetailsModal(false)}
                 >
-                    {t("jobs_run_analysis")} <Sparkles size={16} />
+                    {t("jobs_run_analysis")}
                 </Link>
                 {selectedJob.source_url && (
                     <a 
@@ -328,9 +329,10 @@ function JobCard({ job, onShowDetails }: { job: Job; onShowDetails: (j: Job) => 
   
   const formatSalary = (min?: number, max?: number) => {
     if (!min && !max) return t("jobs_salary_negotiable");
-    if (min && !max) return `${t("jobs_salary_from")} ${formatSalaryVND(min)}`;
-    if (!min && max) return `${t("jobs_salary_up_to")} ${formatSalaryVND(max)}`;
-    return `${formatSalaryVND(min!)} - ${formatSalaryVND(max!)}`;
+    const format = (val: number) => `${(val / 1000000).toFixed(0)}M`;
+    if (min && !max) return `${t("jobs_salary_from")} ${format(min)}`;
+    if (!min && max) return `${t("jobs_salary_up_to")} ${format(max)}`;
+    return `${format(min!)} - ${format(max!)}`;
   };
 
   const getRelativeTime = (dateString?: string) => {
@@ -355,7 +357,39 @@ function JobCard({ job, onShowDetails }: { job: Job; onShowDetails: (j: Job) => 
         <div className={styles.iconBox}>
           {job.source_label?.toLowerCase() === 'topcv' ? <Layers size={22} /> : <Briefcase size={22} />}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+      </div>
+      
+      <div style={{ flex: 1 }}>
+          <h3 className={styles.cardTitle} title={job.title_raw}>
+            {job.title_raw}
+          </h3>
+          <div className={styles.companyName}>
+            <Building2 />
+            <span className="truncate" title={job.company_name}>{job.company_name || t("jobs_company_confidential")}</span>
+          </div>
+
+          <div className={styles.metaGrid}>
+            <div className={styles.cardMeta} title={job.location_raw}>
+                <MapPin /> 
+                <span className="truncate">{job.location_raw || t("jobs_location_nationwide")}</span>
+            </div>
+            <div className={styles.cardMeta}>
+                <DollarSign /> 
+                <span style={{ color: 'var(--color-success)', fontWeight: 700 }}>
+                    {formatSalary(job.min_salary_vnd, job.max_salary_vnd)}
+                </span>
+            </div>
+            <div className={styles.cardMeta}>
+                <Clock /> 
+                <span>{getRelativeTime(job.created_at)}</span>
+            </div>
+            <div className={styles.cardMeta}>
+                <Briefcase /> 
+                <span>{job.employment_type || t("jobs_employment_fulltime")}</span>
+            </div>
+          </div>
+
+          <div className={styles.badgeContainer}>
             <span className={cn(
               styles.statusBadge,
               job.status?.toLowerCase() === "active" ? styles.statusActive : styles.statusOther
@@ -370,37 +404,6 @@ function JobCard({ job, onShowDetails }: { job: Job; onShowDetails: (j: Job) => 
                     {job.source_label}
                 </span>
             )}
-        </div>
-      </div>
-      
-      <div style={{ flex: 1 }}>
-          <h3 className={styles.cardTitle} title={job.title_raw}>
-            {job.title_raw}
-          </h3>
-          <div className={styles.companyName}>
-            <Building2 size={14} style={{ marginRight: '6px', opacity: 0.6 }} />
-            <span className="truncate" title={job.company_name}>{job.company_name || t("jobs_company_confidential")}</span>
-          </div>
-
-          <div className={styles.metaGrid}>
-            <div className={styles.cardMeta} title={job.location_raw}>
-                <MapPin size={14} style={{ opacity: 0.6 }} /> 
-                <span className="truncate">{job.location_raw || t("jobs_location_nationwide")}</span>
-            </div>
-            <div className={styles.cardMeta}>
-                <DollarSign size={14} style={{ opacity: 0.6 }} /> 
-                <span style={{ color: 'var(--color-success)', fontWeight: 700 }}>
-                    {formatSalary(job.min_salary_vnd, job.max_salary_vnd)}
-                </span>
-            </div>
-            <div className={styles.cardMeta}>
-                <Clock size={14} style={{ opacity: 0.6 }} /> 
-                <span>{getRelativeTime(job.created_at)}</span>
-            </div>
-            <div className={styles.cardMeta}>
-                <Briefcase size={14} style={{ opacity: 0.6 }} /> 
-                <span>{job.employment_type || t("jobs_employment_fulltime")}</span>
-            </div>
           </div>
       </div>
       
@@ -416,7 +419,7 @@ function JobCard({ job, onShowDetails }: { job: Job; onShowDetails: (j: Job) => 
           href={`/user/analysis?job_id=${job.id}`}
           className={styles.actionBtn}
         >
-          {t("jobs_run_analysis")} <Sparkles size={14} />
+          {t("jobs_run_analysis")}
         </Link>
       </div>
     </motion.div>
