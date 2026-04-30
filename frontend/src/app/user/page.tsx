@@ -186,11 +186,11 @@ const UserDashboard = () => {
                       className={styles.miniSeverity}
                       style={{
                         color: severityColor(gap.severity),
-                        backgroundColor: `color-mix(in oklch, ${severityColor(gap.severity)} 15%, transparent)`,
-                        borderColor: `color-mix(in oklch, ${severityColor(gap.severity)} 30%, transparent)`,
+                        backgroundColor: severityBgColor(gap.severity),
+                        borderColor: severityBorderColor(gap.severity),
                       }}
                     >
-                      ● {gap.severity || "MEDIUM"}
+                      ● {severityLabel(gap.severity)}
                     </span>
                     <div className={styles.gapMiniTitle}>{gap.skill}</div>
                     <span className={styles.gapMiniMeta}>
@@ -220,11 +220,11 @@ const UserDashboard = () => {
                         className={styles.slideOverSeverity}
                         style={{
                           color: severityColor(selectedGap.severity),
-                          backgroundColor: `color-mix(in oklch, ${severityColor(selectedGap.severity)} 15%, transparent)`,
-                          borderColor: `color-mix(in oklch, ${severityColor(selectedGap.severity)} 30%, transparent)`,
+                          backgroundColor: severityBgColor(selectedGap.severity),
+                          borderColor: severityBorderColor(selectedGap.severity),
                         }}
                       >
-                        ● {selectedGap.severity || "MEDIUM"}
+                        ● {severityLabel(selectedGap.severity)}
                       </span>
                       <h3 className={styles.slideOverTitle}>{selectedGap.skill}</h3>
                       <p className={styles.slideOverMeta}>
@@ -491,6 +491,33 @@ function severityColor(sev: string) {
     LOW: "var(--color-success)",
   };
   return map[sev?.toUpperCase()] || "var(--color-text-tertiary)";
+}
+
+function severityLabel(sev: string) {
+  const map: Record<string, string> = {
+    HIGH: "Critical",
+    MEDIUM: "Medium",
+    LOW: "Low",
+  };
+  return map[sev?.toUpperCase()] || sev;
+}
+
+function severityBgColor(sev: string) {
+  const map: Record<string, string> = {
+    HIGH: "var(--color-error-light)",
+    MEDIUM: "var(--color-warning-light)",
+    LOW: "var(--color-success-light)",
+  };
+  return map[sev?.toUpperCase()] || "var(--color-bg-secondary)";
+}
+
+function severityBorderColor(sev: string) {
+  const map: Record<string, string> = {
+    HIGH: "var(--color-error)",
+    MEDIUM: "var(--color-warning)",
+    LOW: "var(--color-success)",
+  };
+  return map[sev?.toUpperCase()] || "var(--color-border-default)";
 }
 
 export default UserDashboard;
