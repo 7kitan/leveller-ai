@@ -8,21 +8,12 @@ import { UserRole } from "@/types/roles";
 import {
   UploadCloud,
   TrendingUp,
-  Award,
-  BowArrow,
   ArrowRight,
-  AppWindow,
-  Layers,
-  Rocket,
-  Network,
-  ChevronRight as ChevronRightIcon,
   Target,
-  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import styles from "./user-dashboard.module.css";
-import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import CourseCard from "@/components/user/CourseCard";
 import PageHeader from "@/components/common/PageHeader";
@@ -32,22 +23,12 @@ import {
   CartesianGrid, Tooltip as RechartsTooltip, Cell, Legend
 } from "recharts";
 
-const icons = [BowArrow, AppWindow, Layers, Rocket, Network];
-
 const UserDashboard = () => {
   const { token } = useAuth();
   const { t } = useLanguage();
   const [marketData, setMarketData] = useState<any>(null);
   const [latestAnalysis, setLatestAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [iconIndex, setIconIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIconIndex((prev) => (prev + 1) % icons.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   const [period, setPeriod] = useState("month");
   const [selectedGap, setSelectedGap] = useState<any>(null);
@@ -155,11 +136,20 @@ const UserDashboard = () => {
             <div className={styles.uploadIcon}>
               <UploadCloud size={32} />
             </div>
-            <p className={styles.headerSubtitle} style={{ textAlign: "center", marginBottom: "1rem" }}>
+            <p className={styles.uploadText}>
               {t("dash_cv_subtitle")}
             </p>
             <Link href="/user/cv" className={styles.uploadBtn}>
               {t("dash_cv_btn")}
+            </Link>
+            
+            <div className={styles.uploadDivider} />
+            
+            <p className={styles.analysisText}>
+              {t("dash_cv_already_have")}
+            </p>
+            <Link href="/user/analysis" className={styles.analysisBtn}>
+              {t("dash_cv_start_analysis")}
             </Link>
           </div>
 
@@ -302,127 +292,6 @@ const UserDashboard = () => {
               ))}
             </div>
           </div>
-
-          <div className={cn(styles.card, styles.trendsCard)}>
-            <div className={styles.trendHeader}>
-              <h3 className="text-subheading">{t("dash_market_trends")}</h3>
-              <div className={styles.periodSelector}>
-                {['day', 'week', 'month'].map((p) => (
-                  <button 
-                    key={p} 
-                    className={cn(styles.periodBtn, period === p && styles.active)}
-                    onClick={() => setPeriod(p)}
-                  >
-                    {t(`period_${p === 'day' ? '24h' : p === 'week' ? '7d' : '30d'}` as any)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.marketSnapshot}>
-              <div className={styles.snapshotItem}>
-                <div className={styles.snapshotLabel}>{t("nav_jobs")}</div>
-                <div className={styles.snapshotValue}>{loading ? "..." : (marketData?.total_jobs?.toLocaleString() || "0")}</div>
-              </div>
-              <div className={styles.snapshotItem}>
-                <div className={styles.snapshotLabel}>{t("dash_hot_trend")}</div>
-                <div className={cn(styles.snapshotValue, "text-success")}>{loading ? "..." : (marketData?.market_trends?.summary?.top_gainer || t("not_available"))}</div>
-              </div>
-            </div>
-            <div className={styles.barChartContainer} style={{ height: '400px', width: '100%', marginTop: '2rem' }}>
-              {(marketData?.market_trends?.trends || []).length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart 
-                    data={(() => {
-                      const trends = marketData.market_trends.trends.slice(0, 5);
-                      // Pivot data for Recharts: array of { date, skillA, skillB, ... }
-                      const dates = Array.from(new Set(trends.flatMap((t: any) => (t.history || []).map((h: any) => h.date)))).sort();
-                      return dates.map(date => {
-                        const entry: any = { date };
-                        trends.forEach((t: any) => {
-                          const h = (t.history || []).find((hi: any) => hi.date === date);
-                          if (h) entry[t.name] = h.demand;
-                        });
-                        return entry;
-                      });
-                    })()} 
-                    margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
-                  >
-                    <defs>
-                      {[
-                        { id: 'Emerald', color: 'var(--color-success)' },
-                        { id: 'Indigo', color: 'var(--color-primary)' },
-                        { id: 'Amber', color: 'var(--color-warning)' },
-                        { id: 'Sky', color: 'var(--color-info)' },
-                        { id: 'Pink', color: 'var(--color-secondary)' }
-                      ].map(g => (
-                        <linearGradient key={g.id} id={`color${g.id}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={g.color} stopOpacity={0.2}/>
-                          <stop offset="95%" stopColor={g.color} stopOpacity={0}/>
-                        </linearGradient>
-                      ))}
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border-subtle)" style={{ opacity: 0.3 }} />
-                    <XAxis 
-                      dataKey="date" 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: 'var(--color-text-tertiary)', fontSize: 10, fontWeight: 'bold' }}
-                      minTickGap={40}
-                    />
-                    <YAxis 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: 'var(--color-text-tertiary)', fontSize: 10, fontWeight: 'bold' }}
-                    />
-                    <Legend 
-                      verticalAlign="top" 
-                      align="right" 
-                      height={36} 
-                      iconType="circle"
-                      wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.8 }}
-                    />
-                    <RechartsTooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'var(--color-bg-glass)', 
-                        borderRadius: '16px', 
-                        border: 'none',
-                        backdropFilter: 'blur(10px)',
-                        boxShadow: 'var(--shadow-xl)',
-                        color: 'var(--color-text-inverse)'
-                      }}
-                    />
-                    {(marketData.market_trends.trends || []).slice(0, 5).map((skill: any, idx: number) => {
-                      const palettes = [
-                        { id: 'Emerald', color: 'var(--color-success)' },
-                        { id: 'Indigo', color: 'var(--color-primary)' },
-                        { id: 'Amber', color: 'var(--color-warning)' },
-                        { id: 'Sky', color: 'var(--color-info)' },
-                        { id: 'Pink', color: 'var(--color-secondary)' }
-                      ];
-                      const p = palettes[idx % palettes.length];
-                      return (
-                        <Area 
-                          key={skill.name}
-                          type="monotone" 
-                          dataKey={skill.name} 
-                          stroke={p.color} 
-                          strokeWidth={3}
-                          fillOpacity={1} 
-                          fill={`url(#color${p.id})`} 
-                          animationDuration={1500}
-                        />
-                      );
-                    })}
-                  </AreaChart>
-                </ResponsiveContainer>
-              ) : (
-                <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: 0.5 }}>
-                  <p>{t("loading")}...</p>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Course Grid Layer */}
@@ -451,37 +320,129 @@ const UserDashboard = () => {
           </div>
         </div>
 
-        {/* CTA Section */}
-        <div className={cn(styles.card, styles.ctaCard)}>
-          <div className={styles.ctaContent}>
-            <h2 className={styles.ctaTitle}>
-              {t("dash_cta_title")}
-            </h2>
-            <p className={styles.headerSubtitle} style={{ color: "inherit", opacity: 0.8 }}>
-              {t("dash_cta_sub")}
-            </p>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-              <Link href="/user/analysis" className={styles.ctaMainBtn}>
-                {t("dash_cta_btn")} <ArrowRight size={20} />
-              </Link>
+        {/* Market Trends Chart */}
+        <div className={cn(styles.card, styles.trendsCard)}>
+          <div className={styles.trendHeader}>
+            <h3 className="text-subheading">{t("dash_market_trends")}</h3>
+            <div className={styles.periodSelector}>
+              {['day', 'week', 'month'].map((p) => (
+                <button 
+                  key={p} 
+                  className={cn(styles.periodBtn, period === p && styles.active)}
+                  onClick={() => setPeriod(p)}
+                >
+                  {t(`period_${p === 'day' ? '24h' : p === 'week' ? '7d' : '30d'}` as any)}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className={styles.radarContainer}>
-            <div className={styles.radarScan} />
-            <div className={styles.bowArrowIcon}>
-              <motion.div
-                key={iconIndex}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.5 }}
-              >
-                {React.createElement(icons[iconIndex])}
-              </motion.div>
+          <div className={styles.marketSnapshot}>
+            <div className={styles.snapshotItem}>
+              <div className={styles.snapshotLabel}>{t("nav_jobs")}</div>
+              <div className={styles.snapshotValue}>{loading ? "..." : (marketData?.total_jobs?.toLocaleString() || "0")}</div>
+            </div>
+            <div className={styles.snapshotItem}>
+              <div className={styles.snapshotLabel}>{t("dash_hot_trend")}</div>
+              <div className={cn(styles.snapshotValue, "text-success")}>{loading ? "..." : (marketData?.market_trends?.summary?.top_gainer || t("not_available"))}</div>
             </div>
           </div>
+          <div className={styles.barChartContainer} style={{ height: '400px', width: '100%', marginTop: '2rem' }}>
+            {(marketData?.market_trends?.trends || []).length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart 
+                  data={(() => {
+                    const trends = marketData.market_trends.trends.slice(0, 5);
+                    // Pivot data for Recharts: array of { date, skillA, skillB, ... }
+                    const dates = Array.from(new Set(trends.flatMap((t: any) => (t.history || []).map((h: any) => h.date)))).sort();
+                    return dates.map(date => {
+                      const entry: any = { date };
+                      trends.forEach((t: any) => {
+                        const h = (t.history || []).find((hi: any) => hi.date === date);
+                        if (h) entry[t.name] = h.demand;
+                      });
+                      return entry;
+                    });
+                  })()} 
+                  margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    {[
+                      { id: 'Emerald', color: 'var(--color-success)' },
+                      { id: 'Indigo', color: 'var(--color-primary)' },
+                      { id: 'Amber', color: 'var(--color-warning)' },
+                      { id: 'Sky', color: 'var(--color-info)' },
+                      { id: 'Pink', color: 'var(--color-secondary)' }
+                    ].map(g => (
+                      <linearGradient key={g.id} id={`color${g.id}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={g.color} stopOpacity={0.2}/>
+                        <stop offset="95%" stopColor={g.color} stopOpacity={0}/>
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border-subtle)" style={{ opacity: 0.3 }} />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'var(--color-text-tertiary)', fontSize: 10, fontWeight: 'bold' }}
+                    minTickGap={40}
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'var(--color-text-tertiary)', fontSize: 10, fontWeight: 'bold' }}
+                  />
+                  <Legend 
+                    verticalAlign="top" 
+                    align="right" 
+                    height={36} 
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.8 }}
+                  />
+                  <RechartsTooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'var(--color-bg-glass)', 
+                      borderRadius: '16px', 
+                      border: 'none',
+                      backdropFilter: 'blur(10px)',
+                      boxShadow: 'var(--shadow-xl)',
+                      color: 'var(--color-text-inverse)'
+                    }}
+                  />
+                  {(marketData.market_trends.trends || []).slice(0, 5).map((skill: any, idx: number) => {
+                    const palettes = [
+                      { id: 'Emerald', color: 'var(--color-success)' },
+                      { id: 'Indigo', color: 'var(--color-primary)' },
+                      { id: 'Amber', color: 'var(--color-warning)' },
+                      { id: 'Sky', color: 'var(--color-info)' },
+                      { id: 'Pink', color: 'var(--color-secondary)' }
+                    ];
+                    const p = palettes[idx % palettes.length];
+                    return (
+                      <Area 
+                        key={skill.name}
+                        type="monotone" 
+                        dataKey={skill.name} 
+                        stroke={p.color} 
+                        strokeWidth={3}
+                        fillOpacity={1} 
+                        fill={`url(#color${p.id})`} 
+                        animationDuration={1500}
+                      />
+                    );
+                  })}
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: 0.5 }}>
+                <p>{t("loading")}...</p>
+              </div>
+            )}
+          </div>
         </div>
+
+
       </PageContainer>
     </AuthGuard>
   );

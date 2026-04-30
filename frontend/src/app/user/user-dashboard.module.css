@@ -14,18 +14,12 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 2.5rem;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
 [data-theme="light"] .card {
   background: var(--color-bg-elevated);
-}
-
-.card:hover {
-  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 /* --- Specific Components --- */
@@ -50,19 +44,66 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 [data-theme="dark"] .uploadIcon { background: var(--color-bg-secondary); color: var(--color-text-inverse); }
 
 .uploadBtn {
-  margin-top: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 1rem 2rem;
   background: var(--color-primary);
   color: var(--color-text-inverse);
   border-radius: 9999px;
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-base);
+  transition: background 0.2s ease;
+}
+
+.uploadBtn:hover {
+  background: color-mix(in srgb, var(--color-primary) 85%, black);
+}
+
+.uploadDivider {
+  width: 100%;
+  height: 1px;
+  background: var(--color-border);
+  margin: 2rem 0;
+}
+
+.uploadText {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+}
+
+.analysisText {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+}
+
+.analysisBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2rem;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-radius: 9999px;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  transition: background 0.2s ease;
+}
+
+.analysisBtn:hover {
+  background: color-mix(in srgb, var(--color-primary) 85%, black);
 }
 
 /* Stats Bento */
@@ -135,17 +176,16 @@
   background: var(--color-bg-elevated);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-subtle);
-  transition: all 0.3s ease;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .gapMiniCard:hover {
   background: var(--color-bg-hover);
   border-color: var(--color-border-default);
-  transform: translateY(-2px);
 }
 
 .gapCardTop {
@@ -429,12 +469,6 @@
   padding: 1rem;
   background: color-mix(in srgb, var(--color-bg-elevated) 2%, transparent);
   border-radius: var(--radius-sm);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.trendItem:hover {
-  transform: translateX(4px);
-  background: color-mix(in srgb, var(--color-bg-elevated) 4%, transparent);
 }
 
 .barChartContainer {
@@ -560,12 +594,6 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  transition: all 0.3s ease;
-}
-
-.snapshotItem:hover {
-  background: color-mix(in srgb, var(--color-bg-elevated) 4%, transparent);
-  transform: translateY(-2px);
 }
 
 .snapshotLabel {
@@ -585,7 +613,8 @@
 .verticalStack8 {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 1rem;
+  margin-top: 4rem;
 }
 
 /* Job List Header */
@@ -616,125 +645,7 @@
   gap: 1.5rem;
 }
 
-/* CTA Card */
-.ctaCard {
-  grid-column: span 12;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  background: linear-gradient(135deg, var(--color-neutral-900), var(--color-neutral-900));
-  color: var(--color-text-inverse);
-  padding: 2rem !important;
-}
 
-@media (min-width: 768px) {
-  .ctaCard {
-    padding: 3rem !important;
-    gap: 3rem;
-  }
-}
-
-[data-theme="light"] .ctaCard {
-  background: linear-gradient(135deg, var(--color-bg-primary), var(--color-bg-secondary));
-  color: var(--color-text-primary);
-}
-
-@media (min-width: 1024px) {
-  .ctaCard { flex-direction: row; align-items: center; }
-}
-
-.ctaTitle {
-  font-size: var(--font-size-title);
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.2;
-  letter-spacing: -0.05em;
-  margin-bottom: 1.5rem;
-}
-
-.ctaMainBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: var(--color-bg-elevated);
-  color: var(--color-text-primary);
-  border-radius: var(--radius-md);
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-base);
-  transition: transform 0.3s;
-  margin-top: 1.5rem;
-}
-
-[data-theme="light"] .ctaMainBtn { background: var(--color-neutral-900); color: var(--color-text-inverse); }
-
-.ctaMainBtn:hover { transform: scale(1.05); }
-
-/* Decoration */
-.radarContainer {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  position: relative;
-  min-height: 180px;
-}
-
-@media (min-width: 768px) {
-  .radarContainer {
-    min-height: 300px;
-  }
-}
-
-.radarScan {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
-}
-
-@media (min-width: 768px) {
-  .radarScan {
-    width: 250px;
-    height: 250px;
-  }
-}
-
-.bowArrowIcon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.bowArrowIcon svg {
-  width: 64px !important;
-  height: 64px !important;
-}
-
-@media (min-width: 768px) {
-  .bowArrowIcon svg {
-    width: 120px !important;
-    height: 120px !important;
-  }
-}
-
-@keyframes spin {
-  from { transform: rotate(0); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
 /* ══════════════════════════════════════════════════════════════════════════
    MOBILE RESPONSIVE (max-width: 768px)
@@ -758,7 +669,7 @@
   .uploadIcon {
     width: 3rem;
     height: 3rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
   }
 
   .uploadBtn {
@@ -871,36 +782,5 @@
   .jobGrid {
     grid-template-columns: 1fr;
     gap: 1rem;
-  }
-
-  /* CTA Card */
-  .ctaCard {
-    padding: 1.5rem !important;
-    gap: 1.5rem;
-  }
-
-  .ctaTitle {
-    font-size: var(--font-size-large);
-    margin-bottom: 1rem;
-  }
-
-  .ctaMainBtn {
-    padding: 0.875rem 1.5rem;
-    font-size: var(--font-size-small);
-  }
-
-  /* Radar Container */
-  .radarContainer {
-    min-height: 150px;
-  }
-
-  .radarScan {
-    width: 80px;
-    height: 80px;
-  }
-
-  .bowArrowIcon svg {
-    width: 48px !important;
-    height: 48px !important;
   }
 }
