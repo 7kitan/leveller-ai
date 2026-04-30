@@ -798,7 +798,7 @@ const UserRecommendPage = () => {
                           type: 'bar', 
                           data: sortedGapsForChart.map(g => parseFloat(formatNumber(g.match_impact || 0))).reverse(), 
                           itemStyle: { 
-                            color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: primaryColor }, { offset: 1, color: secondaryColor }] }, 
+                            color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#4f46e5' }, { offset: 1, color: '#0ea5e9' }] }, 
                             borderRadius: [0, 4, 4, 0] 
                           }, 
                           barWidth: '20%' 

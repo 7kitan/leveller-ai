@@ -20,7 +20,7 @@ import {
   Globe,
   Settings
 } from "lucide-react";
-import { cn, formatMillions } from "@/lib/utils";
+import { cn, formatSalaryVND } from "@/lib/utils";
 import styles from "./admin-jobs.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
@@ -397,7 +397,7 @@ const AdminJobsPage = () => {
                     <td className={styles.td}>
                         <div className={styles.metaInfo}>
                           <DollarSign size={14} />
-                          {job.max_salary_vnd ? formatMillions(job.max_salary_vnd) : t("jobs_salary_negotiable")}
+                          {job.max_salary_vnd ? formatSalaryVND(job.max_salary_vnd) : t("jobs_salary_negotiable")}
                        </div>
                     </td>
                     <td className={styles.td}>

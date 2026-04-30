@@ -1,4 +1,4 @@
-import { type ClassValue, clsx } from "clsx";
+import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -59,9 +59,5 @@ export function formatSalaryVND(value: number | null | undefined, decimals: numb
  */
 export function formatHours(value: number | null | undefined, decimals: number = 1): string {
   if (value == null || isNaN(value)) return '0h';
-  if (value < 1) {
-    const minutes = Math.round(value * 60);
-    return `${minutes}m`;
-  }
   return `${Number(value.toFixed(decimals))}h`;
 }
