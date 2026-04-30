@@ -232,7 +232,7 @@ const AdminUsersPage = () => {
               <tr className={styles.tableHeader}>
                 <th className={styles.th}>{t("admin_users_table_user")}</th>
                 <th className={styles.th}>{t("admin_users_table_role")}</th>
-                <th className={styles.th}>Usage (Today)</th>
+                <th className={styles.th}>{t("admin_users_usage_today")}</th>
                 <th className={styles.th}>{t("admin_users_table_status")}</th>
                 <th className={styles.th}>{t("admin_users_table_date")}</th>
                 <th className={cn(styles.th, styles.thRight)}>{t("admin_users_table_actions")}</th>
@@ -268,7 +268,7 @@ const AdminUsersPage = () => {
                         <div>
                           <div className={styles.userName}>
                             {user.full_name || t("fail")}
-                            {user.is_flagged && <span title="Flagged for review"><AlertTriangle size={14} className="inline ml-2 text-amber-500" /></span>}
+                            {user.is_flagged && <span title={t("admin_users_flagged_tooltip")}><AlertTriangle size={14} className="inline ml-2 text-amber-500" /></span>}
                           </div>
                           <div className={styles.userEmail}>{user.email}</div>
                         </div>
@@ -287,7 +287,7 @@ const AdminUsersPage = () => {
                     <td className={styles.td}>
                        <div className={styles.usageContainer}>
                           <div className={styles.usageText}>
-                            {user.today_usage.toLocaleString()} / {user.daily_token_limit > 0 ? user.daily_token_limit.toLocaleString() : "Global"}
+                            {user.today_usage.toLocaleString()} / {user.daily_token_limit > 0 ? user.daily_token_limit.toLocaleString() : t("admin_users_global_limit")}
                           </div>
                           <div className={styles.usageBar}>
                              <div 

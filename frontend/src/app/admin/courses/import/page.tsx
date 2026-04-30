@@ -29,7 +29,7 @@ import {
   Download,
   FileUp
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 import styles from "./admin-import.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
@@ -146,7 +146,7 @@ const CourseImportPage = () => {
     if (!file) return;
 
     if (!file.name.endsWith('.txt')) {
-      showNotification("Please upload a .txt file", "error");
+      showNotification(t("courses_import_txt_only"), "error");
       return;
     }
 
@@ -154,10 +154,10 @@ const CourseImportPage = () => {
     reader.onload = (event) => {
       const content = event.target?.result as string;
       setUrlsText(content);
-      showNotification(`Loaded ${file.name} successfully`);
+      showNotification(t("courses_import_loaded").replace("{filename}", file.name));
     };
     reader.onerror = () => {
-      showNotification("Failed to read file", "error");
+      showNotification(t("courses_import_read_error"), "error");
     };
     reader.readAsText(file);
   };
@@ -167,7 +167,7 @@ const CourseImportPage = () => {
     if (!file) return;
 
     if (!file.name.endsWith('.txt')) {
-      showNotification("Please upload a .txt file", "error");
+      showNotification(t("courses_import_txt_only"), "error");
       return;
     }
 
@@ -186,7 +186,7 @@ const CourseImportPage = () => {
         `Queued ${resp.data.queued} URLs for crawling. Skipped: ${resp.data.skipped}`
       );
     } catch (err: any) {
-      const msg = err.response?.data?.detail || "Failed to upload URLs";
+      const msg = err.response?.data?.detail || t("courses_import_upload_error");
       showNotification(msg, "error");
     } finally {
       setIsUploadingUrls(false);
@@ -208,7 +208,7 @@ const CourseImportPage = () => {
         const file = files[i];
         
         if (!file.name.endsWith('.json')) {
-          showNotification(`Skipped ${file.name} - not a JSON file`, "error");
+          showNotification(t("courses_import_skipped_not_json").replace("{filename}", file.name), "error");
           continue;
         }
 
@@ -216,7 +216,7 @@ const CourseImportPage = () => {
         const data = JSON.parse(content);
         
         if (!data.courses || !Array.isArray(data.courses)) {
-          showNotification(`Invalid format in ${file.name}. Expected {courses: [...]}`, "error");
+          showNotification(t("courses_import_invalid_format").replace("{filename}", file.name), "error");
           continue;
         }
 
@@ -233,7 +233,7 @@ const CourseImportPage = () => {
         `Imported: ${totalImported}, Skipped: ${totalSkipped}, Errors: ${totalErrors}`
       );
     } catch (err: any) {
-      const msg = err.response?.data?.detail || "Failed to import courses";
+      const msg = err.response?.data?.detail || t("courses_import_failed");
       showNotification(msg, "error");
     } finally {
       setIsImportingFull(false);
@@ -248,7 +248,7 @@ const CourseImportPage = () => {
       setNumParts(resp.data.recommended_parts || 1);
       setShowExportDialog(true);
     } catch (err: any) {
-      const msg = err.response?.data?.detail || "Failed to get export info";
+      const msg = err.response?.data?.detail || t("courses_import_export_info_error");
       showNotification(msg, "error");
     }
   };
@@ -291,10 +291,10 @@ const CourseImportPage = () => {
         }
       }
 
-      showNotification(`Exported ${exportInfo.total_courses} courses in ${numParts} parts successfully`);
+      showNotification(t("courses_import_exported").replace("{count}", exportInfo.total_courses.toString()).replace("{parts}", numParts.toString()));
       setShowExportDialog(false);
     } catch (err: any) {
-      const msg = err.response?.data?.detail || "Failed to export courses";
+      const msg = err.response?.data?.detail || t("courses_import_export_error");
       showNotification(msg, "error");
     } finally {
       setIsExporting(false);
@@ -472,7 +472,7 @@ const CourseImportPage = () => {
     <AuthGuard requireAdmin>
       <PageContainer>
         <PageHeader 
-          title="Course Importer PRO"
+          title={t("courses_import_title")}
           subtitle={t("admin_courses_import_subtitle")}
         >
           <Link href="/admin/courses" className={styles.backBtn}>
@@ -822,7 +822,7 @@ const CourseImportPage = () => {
                 </div>
                 <div className={styles.exportInfoRow}>
                   <span className={styles.exportInfoLabel}>Estimated size:</span>
-                  <span className={styles.exportInfoValue}>~{exportInfo.estimated_total_size_mb.toFixed(1)} MB</span>
+                  <span className={styles.exportInfoValue}>~{formatNumber(exportInfo.estimated_total_size_mb)} MB</span>
                 </div>
                 <div className={styles.exportInfoRow}>
                   <span className={styles.exportInfoLabel}>Recommended parts:</span>
@@ -845,7 +845,7 @@ const CourseImportPage = () => {
                 />
                 <p className={styles.exportInputHint}>
                   {Math.ceil(exportInfo.total_courses / numParts).toLocaleString()} courses per part
-                  (~{(exportInfo.estimated_total_size_mb / numParts).toFixed(1)} MB each)
+                  (~{formatNumber(exportInfo.estimated_total_size_mb / numParts)} MB each)
                 </p>
               </div>
 

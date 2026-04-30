@@ -1,0 +1,100 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_SERVICE: ${{ github.repository }}-backend-service
+  IMAGE_NAME_WORKER: ${{ github.repository }}-backend-worker
+
+jobs:
+  build-and-push:
+    runs-on: phoenix-runner-02
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Service
+        id: meta-service
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_SERVICE }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+            latest
+
+      - name: Build and push Service image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile.service
+          push: true
+          tags: ${{ steps.meta-service.outputs.tags }}
+          labels: ${{ steps.meta-service.outputs.labels }}
+
+      - name: Extract metadata (tags, labels) for Worker
+        id: meta-worker
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_WORKER }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+            latest
+
+      - name: Build and push Worker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile.worker
+          push: true
+          tags: ${{ steps.meta-worker.outputs.tags }}
+          labels: ${{ steps.meta-worker.outputs.labels }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: phoenix-runner-02
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          envs: GHCR_TOKEN,REGISTRY,IMAGE_NAME_SERVICE,IMAGE_NAME_WORKER,GHCR_USERNAME
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}/backend
+            
+            echo "Logging in to GHCR..."
+            echo $GHCR_TOKEN | docker login $REGISTRY -u $GHCR_USERNAME --password-stdin
+            
+            echo "Setting image environment variables..."
+            export GHCR_BACKEND_SERVICE_IMAGE=$REGISTRY/${IMAGE_NAME_SERVICE,,}:latest
+            export GHCR_BACKEND_WORKER_IMAGE=$REGISTRY/${IMAGE_NAME_WORKER,,}:latest
+            
+            echo "Pulling latest images..."
+            docker-compose -f docker-compose.prod.yml pull
+            
+            echo "Restarting containers..."
+            docker-compose -f docker-compose.prod.yml up -d
+            
+            echo "Cleaning up old images..."
+            docker image prune -f

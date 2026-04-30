@@ -27,7 +27,7 @@ import {
   Play,
 } from "lucide-react";
 import CourseCard from "@/components/user/CourseCard";
-import { cn } from "@/lib/utils";
+import { cn, formatPercent, formatNumber, formatHours } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactECharts from 'echarts-for-react';
 import FeedbackSection from "@/components/user/FeedbackSection";
@@ -171,7 +171,7 @@ const UserRecommendPage = () => {
 
   /* ── Progressive Polling Logic ───────────────────────────────────────── */
   useEffect(() => {
-    if (!user || !taskIdFromUrl) return;
+    if (!user || !taskIdFromUrl || taskIdFromUrl === "null" || taskIdFromUrl === "undefined") return;
 
     console.log("[RECOMMEND] Polling for progressive updates - Task ID:", taskIdFromUrl);
     setIsProcessing(true);
@@ -433,7 +433,7 @@ const UserRecommendPage = () => {
   );
 
   const totalHours = course_recommendations.reduce((s, c) => s + (c.duration_hours || 0), 0);
-  const displayTotalHours = totalHours > 0 ? `${totalHours.toFixed(1)}h` : t("not_available");
+  const displayTotalHours = totalHours > 0 ? formatHours(totalHours) : t("not_available");
 
   const tabs = [
     { key: "gaps", label: t("skill_gaps"), icon: Layers, count: skill_gaps.length },
@@ -500,7 +500,7 @@ const UserRecommendPage = () => {
 
       <div className={styles.matchBanner}>
         <div className={styles.matchScoreBlock}>
-          <span className={styles.matchScore}>{(overall_match_pct ?? 0).toFixed(1)}%</span>
+          <span className={styles.matchScore}>{formatPercent(overall_match_pct ?? 0)}</span>
           <span className={styles.matchLabel}>{t("current_match")}</span>
         </div>
         
@@ -581,7 +581,7 @@ const UserRecommendPage = () => {
                       const val = params.value[i];
                       res += `<div style="display: flex; justify-content: space-between; gap: 20px; margin-bottom: 4px;">
                         <span style="color: rgba(255,255,255,0.7);">${translateRadarCategory(name)}</span>
-                        <strong style="color: #fff;">${Number(val).toFixed(1)}%</strong>
+                        <strong style="color: #fff;">${formatNumber(Number(val))}%</strong>
                       </div>`;
                     });
                     res += `</div>`;
@@ -622,9 +622,9 @@ const UserRecommendPage = () => {
                   {t("dash_potential_match")}
                 </div>
                 <div className={styles.growthValue}>
-                  {(gapResult.potential_match_pct || 0).toFixed(1)}%
+                  {formatPercent(gapResult.potential_match_pct || 0)}
                   <span className={styles.growthDiff}>
-                    +{((gapResult.potential_match_pct || 0) - (overall_match_pct || 0)).toFixed(1)}%
+                    +{formatPercent((gapResult.potential_match_pct || 0) - (overall_match_pct || 0))}
                   </span>
                 </div>
               </div>
@@ -634,7 +634,7 @@ const UserRecommendPage = () => {
                   {t("dash_salary_boost")}
                 </div>
                 <div className={styles.growthValue}>
-                  +{(gapResult.salary_growth_pct || 0).toFixed(1)}%
+                  +{formatPercent(gapResult.salary_growth_pct || 0)}
                 </div>
               </div>
               {gapResult.market_sentiment && (
@@ -749,14 +749,22 @@ const UserRecommendPage = () => {
                   <ReactECharts
                     key={`impact-chart-${skill_gaps.map(g => g.skill).join('-')}-${skill_gaps.length}`}
                     option={{
-                      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: chartTooltipBg, borderColor: '#4f46e5', borderWidth: 1, textStyle: { color: chartTooltipText } },
+                      tooltip: { 
+                        trigger: 'axis', 
+                        axisPointer: { type: 'shadow' }, 
+                        backgroundColor: chartTooltipBg, 
+                        borderColor: '#4f46e5', 
+                        borderWidth: 1, 
+                        textStyle: { color: chartTooltipText },
+                        valueFormatter: (value: any) => formatNumber(value) + '%'
+                      },
                       legend: { data: [t('match_impact'), t('salary_impact')], textStyle: { color: chartTextColor, fontSize: 10 }, top: 0 },
                       grid: { left: '3%', right: '4%', bottom: '3%', top: '40px', containLabel: true },
                       xAxis: { type: 'value', axisLabel: { color: chartTextColor, fontSize: 10 }, splitLine: { lineStyle: { color: chartSplitLineColor } } },
                       yAxis: { type: 'category', data: skill_gaps.map(g => g.skill).reverse(), axisLabel: { color: chartTextColor, fontSize: 11, width: 100, overflow: 'truncate' }, axisLine: { lineStyle: { color: chartAxisColor } } },
                       series: [
-                        { name: t('match_impact'), type: 'bar', data: skill_gaps.map(g => Number((g.match_impact || 0).toFixed(1))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#4f46e5' }, { offset: 1, color: '#0ea5e9' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' },
-                        { name: t('salary_impact'), type: 'bar', data: skill_gaps.map(g => Number((g.salary_impact || 0).toFixed(1))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#34d399' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' }
+                        { name: t('match_impact'), type: 'bar', data: skill_gaps.map(g => parseFloat(formatNumber(g.match_impact || 0))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#4f46e5' }, { offset: 1, color: '#0ea5e9' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' },
+                        { name: t('salary_impact'), type: 'bar', data: skill_gaps.map(g => parseFloat(formatNumber(g.salary_impact || 0))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#34d399' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' }
                       ]
                     }}
                     style={{ height: '100%', width: '100%' }}
@@ -790,8 +798,8 @@ const UserRecommendPage = () => {
                 </div>
                 {(!!gap.match_impact || !!gap.salary_impact) && (
                   <div className={styles.gapImpact}>
-                    {!!gap.match_impact && <span className={styles.impactBadge} style={{ background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}><Target size={12} /> +{gap.match_impact.toFixed(1)}% {t('match')}</span>}
-                    {!!gap.salary_impact && <span className={styles.impactBadge} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}><TrendingUp size={12} /> +{gap.salary_impact.toFixed(1)}% {t('salary_text')}</span>}
+                    {!!gap.match_impact && <span className={styles.impactBadge} style={{ background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}><Target size={12} /> +{formatNumber(gap.match_impact)}% {t('match')}</span>}
+                    {!!gap.salary_impact && <span className={styles.impactBadge} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}><TrendingUp size={12} /> +{formatNumber(gap.salary_impact)}% {t('salary_text')}</span>}
                   </div>
                 )}
                 {gap.learning_path && <div className={styles.gapLearningPath}><Sparkles size={12} className={styles.pathIcon} /><p>{gap.learning_path}</p></div>}

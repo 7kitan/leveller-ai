@@ -1,0 +1,83 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}-frontend
+
+jobs:
+  build-and-push:
+    runs-on: phoenix-runner-02
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Frontend
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+            latest
+
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL || 'http://your-api-url' }}
+            NEXT_PUBLIC_RECAPTCHA_SITE_KEY=${{ secrets.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || 'your-recaptcha-key' }}
+            NEXT_PUBLIC_ENVIRONMENT=production
+
+  deploy:
+    needs: build-and-push
+    runs-on: phoenix-runner-02
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          envs: GHCR_TOKEN,REGISTRY,IMAGE_NAME,GHCR_USERNAME
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}/frontend
+            
+            echo "Logging in to GHCR..."
+            echo $GHCR_TOKEN | docker login $REGISTRY -u $GHCR_USERNAME --password-stdin
+            
+            echo "Setting image environment variable..."
+            export GHCR_FRONTEND_IMAGE=$REGISTRY/${IMAGE_NAME,,}:latest
+            
+            echo "Pulling latest image..."
+            docker-compose -f docker-compose.prod.yml pull
+            
+            echo "Restarting container..."
+            docker-compose -f docker-compose.prod.yml up -d
+            
+            echo "Cleaning up old images..."
+            docker image prune -f

@@ -28,7 +28,7 @@ import {
   Download,
   FileUp
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 import styles from "./admin-import.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/common/PageHeader";
@@ -106,7 +106,7 @@ const JobImportPage = () => {
     if (!file) return;
 
     if (!file.name.endsWith('.txt')) {
-      showNotification("Please upload a .txt file", "error");
+      showNotification(t("jobs_import_txt_only"), "error");
       return;
     }
 
@@ -114,10 +114,10 @@ const JobImportPage = () => {
     reader.onload = (event) => {
       const content = event.target?.result as string;
       setUrlsText(content);
-      showNotification(`Loaded ${file.name} successfully`);
+      showNotification(t("jobs_import_loaded").replace("{filename}", file.name));
     };
     reader.onerror = () => {
-      showNotification("Failed to read file", "error");
+      showNotification(t("jobs_import_read_error"), "error");
     };
     reader.readAsText(file);
   };
@@ -127,7 +127,7 @@ const JobImportPage = () => {
     if (!file) return;
 
     if (!file.name.endsWith('.txt')) {
-      showNotification("Please upload a .txt file", "error");
+      showNotification(t("jobs_import_txt_only"), "error");
       return;
     }
 
@@ -146,7 +146,7 @@ const JobImportPage = () => {
         `Queued ${resp.data.queued} URLs for crawling. Skipped: ${resp.data.skipped}`
       );
     } catch (err: any) {
-      const msg = err.response?.data?.detail || "Failed to upload URLs";
+      const msg = err.response?.data?.detail || t("jobs_import_upload_error");
       showNotification(msg, "error");
     } finally {
       setIsUploadingUrls(false);
@@ -168,7 +168,7 @@ const JobImportPage = () => {
         const file = files[i];
         
         if (!file.name.endsWith('.json')) {
-          showNotification(`Skipped ${file.name} - not a JSON file`, "error");
+          showNotification(t("jobs_import_skipped_not_json").replace("{filename}", file.name), "error");
           continue;
         }
 
@@ -193,7 +193,7 @@ const JobImportPage = () => {
         `Imported: ${totalImported}, Skipped: ${totalSkipped}, Errors: ${totalErrors}`
       );
     } catch (err: any) {
-      const msg = err.response?.data?.detail || "Failed to import jobs";
+      const msg = err.response?.data?.detail || t("jobs_import_failed");
       showNotification(msg, "error");
     } finally {
       setIsImportingFull(false);
@@ -208,7 +208,7 @@ const JobImportPage = () => {
       setNumParts(resp.data.recommended_parts || 1);
       setShowExportDialog(true);
     } catch (err: any) {
-      const msg = err.response?.data?.detail || "Failed to get export info";
+      const msg = err.response?.data?.detail || t("jobs_import_export_info_error");
       showNotification(msg, "error");
     }
   };
@@ -254,7 +254,7 @@ const JobImportPage = () => {
       showNotification(`Exported ${exportInfo.total_jobs} jobs in ${numParts} parts successfully`);
       setShowExportDialog(false);
     } catch (err: any) {
-      const msg = err.response?.data?.detail || "Failed to export jobs";
+      const msg = err.response?.data?.detail || t("jobs_import_export_error");
       showNotification(msg, "error");
     } finally {
       setIsExporting(false);
@@ -356,7 +356,7 @@ const JobImportPage = () => {
     <AuthGuard requireAdmin>
       <PageContainer>
         <PageHeader 
-          title="Job Importer PRO"
+          title={t("jobs_import_title")}
           subtitle={t('admin_jobs_import_subtitle')}
         >
           <Link href="/admin/jobs" className={styles.backBtn}>
@@ -370,7 +370,7 @@ const JobImportPage = () => {
             <div className={styles.actionGroup}>
               <label className={styles.uploadBtn}>
                 <Upload size={18} />
-                Upload .txt URLs
+                {t("jobs_import_upload_txt")}
                 <input 
                   type="file" 
                   accept=".txt" 
@@ -393,7 +393,7 @@ const JobImportPage = () => {
               
               <label className={cn(styles.uploadBtn, styles.uploadBtnSecondary)}>
                 <FileUp size={18} />
-                {isImportingFull ? <Loader2 className="animate-spin" size={18} /> : "Import Full Data"}
+                {isImportingFull ? <Loader2 className="animate-spin" size={18} /> : t("jobs_import_import_full")}
                 <input 
                   type="file" 
                   accept=".json" 
@@ -700,7 +700,7 @@ const JobImportPage = () => {
                 </div>
                 <div className={styles.exportInfoRow}>
                   <span className={styles.exportInfoLabel}>Estimated size:</span>
-                  <span className={styles.exportInfoValue}>~{exportInfo.estimated_total_size_mb.toFixed(1)} MB</span>
+                  <span className={styles.exportInfoValue}>~{formatNumber(exportInfo.estimated_total_size_mb)} MB</span>
                 </div>
                 <div className={styles.exportInfoRow}>
                   <span className={styles.exportInfoLabel}>Recommended parts:</span>
@@ -723,7 +723,7 @@ const JobImportPage = () => {
                 />
                 <p className={styles.exportInputHint}>
                   {Math.ceil(exportInfo.total_jobs / numParts).toLocaleString()} jobs per part
-                  (~{(exportInfo.estimated_total_size_mb / numParts).toFixed(1)} MB each)
+                  (~{formatNumber(exportInfo.estimated_total_size_mb / numParts)} MB each)
                 </p>
               </div>
 

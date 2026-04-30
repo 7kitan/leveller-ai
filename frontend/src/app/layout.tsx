@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { AlertProvider } from "@/context/AlertContext";
+import DynamicHtmlLang from "@/components/shared/DynamicHtmlLang";
 
 const openSans = Open_Sans({ 
   subsets: ["latin", "vietnamese"], 
@@ -28,6 +29,7 @@ export default function RootLayout({
     <html lang="en" className={`${openSans.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <LanguageProvider>
+          <DynamicHtmlLang />
           <ThemeProvider>
             <AlertProvider>
               <AuthProvider>

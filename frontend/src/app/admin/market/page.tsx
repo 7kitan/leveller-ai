@@ -17,6 +17,7 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 import api from "@/lib/api";
+import { formatNumber } from "@/lib/utils";
 import styles from "./market.module.css";
 
 interface MarketStats {
@@ -43,7 +44,7 @@ const AdminMarketPage = () => {
       setStats(res.data);
     } catch (err: any) {
       console.error("Fetch market stats error:", err);
-      toast.error("Failed to load market stats");
+      toast.error(t("market_load_failed"));
     } finally {
       setLoading(false);
     }
@@ -59,7 +60,7 @@ const AdminMarketPage = () => {
     try {
       setRefreshing(true);
       const res = await api.post("/admin/refresh-market-stats");
-      toast.success("Market stats refresh has been triggered. This may take a few minutes.");
+      toast.success(t("market_refresh_triggered"));
       
       // Wait 3 seconds then refresh the stats
       setTimeout(() => {
@@ -67,24 +68,25 @@ const AdminMarketPage = () => {
       }, 3000);
     } catch (err: any) {
       console.error("Refresh error:", err);
-      toast.error(err.response?.data?.detail || "Failed to trigger refresh");
+      toast.error(err.response?.data?.detail || t("market_refresh_error"));
     } finally {
       setRefreshing(false);
     }
   };
 
   const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "Never";
+    if (!dateStr) return t("market_never");
     try {
       return new Date(dateStr).toLocaleString();
     } catch {
-      return "Unknown";
+      return t("market_unknown");
     }
   };
 
   const formatSalary = (salary: number) => {
     if (!salary) return "N/A";
-    return `$${(salary / 1000000).toFixed(1)}M`;
+    const millions = salary / 1000000;
+    return `$${formatNumber(millions)}M`;
   };
 
   return (
@@ -92,8 +94,8 @@ const AdminMarketPage = () => {
       <PageContainer>
         <div className={styles.pageRoot}>
           <PageHeader
-            title={<><TrendingUp className={styles.headerIcon} /> Market Intelligence</>}
-            subtitle="Monitor and manage market data aggregation"
+            title={<><TrendingUp className={styles.headerIcon} /> {t("market_title")}</>}
+            subtitle={t("market_subtitle")}
           />
 
           {/* Actions Bar */}
@@ -101,7 +103,7 @@ const AdminMarketPage = () => {
             <div className={styles.statusBox}>
               <Activity className={styles.statusIcon} size={20} />
               <span className={styles.statusText}>
-                Auto-refresh: <strong>Hourly</strong>
+                {t("market_auto_refresh")} <strong>{t("market_hourly")}</strong>
               </span>
             </div>
 
@@ -111,7 +113,7 @@ const AdminMarketPage = () => {
               className={styles.btnPrimary}
             >
               <RefreshCcw size={16} className={refreshing ? styles.spinning : ""} />
-              {refreshing ? "Refreshing..." : "Refresh Now"}
+              {refreshing ? t("market_refreshing") : t("market_refresh_now")}
             </button>
           </div>
 
@@ -119,7 +121,7 @@ const AdminMarketPage = () => {
           {loading ? (
             <div className={styles.loadingState}>
               <div className={styles.spinner} />
-              <p>Loading market data...</p>
+              <p>{t("market_loading")}</p>
             </div>
           ) : stats ? (
             <>
@@ -129,7 +131,7 @@ const AdminMarketPage = () => {
                     <Zap size={28} />
                   </div>
                   <div className={styles.statValue}>{stats.total_skills || 0}</div>
-                  <div className={styles.statLabel}>Total Skills Tracked</div>
+                  <div className={styles.statLabel}>{t("market_total_skills")}</div>
                 </div>
 
                 <div className={styles.statCard}>
@@ -137,10 +139,10 @@ const AdminMarketPage = () => {
                     <Clock size={28} />
                   </div>
                   <div className={styles.statValue}>
-                    {stats.last_updated ? "Active" : "Pending"}
+                    {stats.last_updated ? t("market_status_active") : t("market_status_pending")}
                   </div>
                   <div className={styles.statLabel}>
-                    Last Updated: {formatDate(stats.last_updated)}
+                    {t("market_last_updated")} {formatDate(stats.last_updated)}
                   </div>
                 </div>
 
@@ -151,23 +153,23 @@ const AdminMarketPage = () => {
                   <div className={styles.statValue}>
                     {stats.top_skills?.length || 0}
                   </div>
-                  <div className={styles.statLabel}>Top Trending Skills</div>
+                  <div className={styles.statLabel}>{t("market_top_skills")}</div>
                 </div>
               </div>
 
               {/* Top Skills Table */}
               <div className={styles.tableSection}>
-                <h3 className={styles.sectionTitle}>Top Trending Skills</h3>
+                <h3 className={styles.sectionTitle}>{t("market_top_skills")}</h3>
                 
                 {stats.top_skills && stats.top_skills.length > 0 ? (
                   <div className={styles.tableWrapper}>
                     <table className={styles.table}>
                       <thead>
                         <tr>
-                          <th>Rank</th>
-                          <th>Skill Name</th>
-                          <th>Demand Score</th>
-                          <th>Avg Salary (Min)</th>
+                          <th>{t("market_table_rank")}</th>
+                          <th>{t("market_table_skill")}</th>
+                          <th>{t("market_table_demand")}</th>
+                          <th>{t("market_table_salary")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -179,7 +181,7 @@ const AdminMarketPage = () => {
                             </td>
                             <td className={styles.scoreCell}>
                               <span className={styles.scoreBadge}>
-                                {skill.demand_score.toFixed(1)}
+                                {formatNumber(skill.demand_score)}
                               </span>
                             </td>
                             <td className={styles.salaryCell}>
@@ -193,7 +195,7 @@ const AdminMarketPage = () => {
                 ) : (
                   <div className={styles.emptyState}>
                     <AlertCircle size={48} />
-                    <p>No market data available. Click "Refresh Now" to aggregate data.</p>
+                    <p>{t("market_no_data")}</p>
                   </div>
                 )}
               </div>
@@ -201,7 +203,7 @@ const AdminMarketPage = () => {
           ) : (
             <div className={styles.emptyState}>
               <AlertCircle size={48} />
-              <p>Failed to load market stats</p>
+              <p>{t("market_load_failed")}</p>
             </div>
           )}
         </div>
