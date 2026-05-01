@@ -1,4 +1,5 @@
 import os
+import psycopg2
 from dotenv import load_dotenv
 from ragas import evaluate, RunConfig
 from ragas.metrics import faithfulness, answer_relevancy, context_precision
@@ -7,37 +8,69 @@ from datasets import Dataset
 
 load_dotenv()
 
-# Giả lập dữ liệu thu thập được từ hệ thống sau khi chạy thực tế (5 cases)
-test_data = {
-    "question": [
-        "Lộ trình để trở thành Senior Backend từ vị trí hiện tại là gì?",
-        "Tại sao tôi phù hợp với công việc Python Developer tại TechCorp?",
-        "Tôi là Frontend Developer, tôi cần học gì để làm được vị trí Fullstack tại VinGroup?",
-        "Kinh nghiệm của tôi có đủ ứng tuyển vị trí AI Engineer không?",
-        "Tại sao CV của tôi bị đánh giá là thiếu kỹ năng Cloud?"
-    ],
-    "answer": [
-        "1. Mức độ tương thích: Medium. Bạn đáp ứng tốt về ngôn ngữ (Python, Django) nhưng thiếu kỹ năng hạ tầng.\n2. Lộ trình hành động: Cần học ngay Kubernetes và AWS Cloud để làm quen với môi trường cloud-native.\n3. Lời khuyên tối ưu CV: Nên liệt kê chi tiết các project đã triển khai bằng Docker để làm nổi bật nền tảng Containerization.",
-        "1. Mức độ tương thích: High. Bạn hoàn toàn đáp ứng yêu cầu về Python và PostgreSQL.\n2. Lộ trình hành động: Không cần bổ sung kỹ năng cứng, có thể tập trung chuẩn bị cho bài test thuật toán.\n3. Lời khuyên tối ưu CV: Nên nêu bật các project Python có quy mô lớn hoặc xử lý dữ liệu phức tạp với PostgreSQL.",
-        "1. Mức độ tương thích: Medium. Bạn đã có nền tảng tốt về React nhưng thiếu hoàn toàn mảng Server-side.\n2. Lộ trình hành động: Tập trung học Node.js (Express) và MongoDB để hoàn thiện kỹ năng Fullstack.\n3. Lời khuyên tối ưu CV: Hãy nhấn mạnh khả năng học hỏi nhanh và các project Frontend phức tạp bạn đã từng làm.",
-        "1. Mức độ tương thích: Low. Bạn mạnh về phân tích dữ liệu nhưng thiếu kinh nghiệm triển khai AI thực tế.\n2. Lộ trình hành động: Cần học thêm Docker, FastAPI và quy trình MLOps để đưa model lên Production.\n3. Lời khuyên tối ưu CV: Nên thêm các chứng chỉ liên quan đến ML hoặc các project cá nhân có triển khai API.",
-        "1. Mức độ tương thích: Low. CV hiện tại chỉ tập trung vào quản trị server vật lý/local.\n2. Lộ trình hành động: Đăng ký khóa học AWS Certified Cloud Practitioner hoặc Azure Fundamentals.\n3. Lời khuyên tối ưu CV: Cần thay thế các kỹ năng quản trị local bằng các từ khóa tương ứng trên Cloud như EC2, S3 hoặc VPC."
-    ],
-    "contexts": [
-        ["Job yêu cầu: Python, Django, AWS, Kubernetes. Ứng viên có: Python, Django, Docker."],
-        ["Job yêu cầu: 3 năm Python, PostgreSQL. Ứng viên có: 4 năm Python, PostgreSQL."],
-        ["Vị trí Fullstack VinGroup yêu cầu: React, Node.js, MongoDB. Ứng viên hiện tại: React, CSS, HTML."],
-        ["Job AI Engineer yêu cầu: PyTorch, MLOps, Docker. Ứng viên có: Python, SQL, Pandas, Scikit-learn."],
-        ["Job yêu cầu: Experience with AWS/Azure/GCP. Ứng viên có: Local server management, Nginx, Linux."]
-    ],
-    "ground_truth": [
-        "Mức độ tương thích: Medium. Bạn cần tập trung bổ sung Kubernetes và AWS Cloud để đạt mức Senior Backend như yêu cầu của Job.",
-        "Mức độ tương thích: High. Bạn hoàn toàn đáp ứng đủ yêu cầu về ngôn ngữ (Python) và database (PostgreSQL) cho vị trí này.",
-        "Mức độ tương thích: Medium. Bạn cần học thêm Node.js và MongoDB để hoàn thiện kỹ năng Fullstack theo yêu cầu của VinGroup.",
-        "Mức độ tương thích: Low. Bạn chưa đủ điều kiện, cần bổ sung gấp kỹ năng MLOps và Docker để ứng tuyển AI Engineer.",
-        "Mức độ tương thích: Low. Bạn bị đánh giá thấp do thiếu kinh nghiệm thực tế với các nền tảng Public Cloud (AWS/Azure/GCP)."
-    ]
-}
+# Hàm trích xuất dữ liệu thực tế từ Database
+def get_real_test_data():
+    try:
+        # Kết nối vào Database (thay đổi thông tin kết nối nếu cần)
+        conn = psycopg2.connect("postgresql://postgres:postgres@localhost:5432/career_advisor")
+        cursor = conn.cursor()
+
+        # Lấy dữ liệu 5 file CV mới nhất đã parse xong
+        cursor.execute("""
+            SELECT raw_text, cv_parsed_json 
+            FROM user_cvs 
+            WHERE status = 'completed'
+            ORDER BY created_at DESC LIMIT 5
+        """)
+        rows = cursor.fetchall()
+        
+        questions = []
+        answers = []
+        contexts = []
+        ground_truths = []
+
+        # Ground truths bạn cần tự điền thủ công dựa trên 5 CV thực tế
+        human_answers = [
+            "Mức độ tương thích CV 1...",
+            "Mức độ tương thích CV 2...",
+            "Mức độ tương tcvhích CV 3...",
+            "Mức độ tương thích CV 4...",
+            "Mức độ tương thích CV 5..."
+        ]
+
+        for idx, row in enumerate(rows):
+            raw_text, ai_json = row
+            
+            # Ráp data theo chuẩn RAGAS
+            questions.append("Hãy trích xuất số năm kinh nghiệm, kỹ năng và tóm tắt CV này theo chuẩn JSON schema.")
+            contexts.append([raw_text])  # List of strings
+            answers.append(str(ai_json)) # Đưa JSON AI sinh ra thành string
+            
+            # Gán ground truth (lưu ý: số lượng human_answers phải khớp với số row trả về)
+            gt = human_answers[idx] if idx < len(human_answers) else "Chưa có đáp án chuẩn"
+            ground_truths.append(gt)
+
+        return {
+            "question": questions,
+            "answer": answers,
+            "contexts": contexts,
+            "ground_truth": ground_truths
+        }
+    except Exception as e:
+        print(f"Lỗi khi lấy dữ liệu từ DB: {e}")
+        return None
+
+# Lấy dữ liệu thực tế để test
+test_data = get_real_test_data()
+
+# Nếu không lấy được data, fallback về dữ liệu giả lập
+if not test_data:
+    test_data = {
+        "question": ["Lộ trình để trở thành Senior Backend?"] * 5,
+        "answer": ["Bạn cần học AWS."] * 5,
+        "contexts": [["Job yêu cầu AWS."]] * 5,
+        "ground_truth": ["Bạn cần học AWS."] * 5
+    }
 
 def run_ragas_evaluation():
     # 1. Chuyển đổi dữ liệu sang định dạng Dataset của HuggingFace
