@@ -2,6 +2,7 @@ import os
 import requests
 import json
 import time
+import subprocess
 
 # Cấu hình
 BASE_URL = "http://localhost:8000"
@@ -37,6 +38,27 @@ def test_batch_parsing():
     if not os.path.exists(SAMPLES_DIR):
         print(f"Lỗi: Thư mục {SAMPLES_DIR} không tồn tại. Hãy tạo và bỏ các file CV mẫu vào đó.")
         return
+
+    # Bước 0: Dọn dẹp Database (Xóa CV cũ để tránh cache is_duplicate) và Restart Worker
+    print("Đang dọn dẹp database và khởi động lại Worker để nạp code mới...")
+    try:
+        subprocess.run(
+            ["docker", "exec", "advisor_db", "psql", "-U", "postgres", "-d", "career_advisor", "-c", "DELETE FROM user_cvs;"],
+            check=True,
+            capture_output=True
+        )
+        print(" -> Đã dọn dẹp database thành công!")
+        
+        # Tự động restart Celery Worker để nạp code Python mới
+        print(" -> Đang khởi động lại advisor_worker_parsing (có thể mất vài giây)...")
+        subprocess.run(
+            ["docker", "restart", "advisor_worker_parsing"],
+            check=True,
+            capture_output=True
+        )
+        print(" -> Đã khởi động lại Worker thành công!")
+    except Exception as e:
+        print(f" -> Cảnh báo: Lỗi khi dọn dẹp/restart tự động ({e}).")
 
     # Bước 1: Lấy Token
     token = get_auth_token()
@@ -80,10 +102,39 @@ def test_batch_parsing():
                     
                     if status_resp.status_code == 200:
                         cv_data = status_resp.json()
-                        if cv_data.get("status") == "completed":
-                            status = "SUCCESS"
-                            parsed_name = cv_data.get("full_name") or "Unknown"
-                            skills_count = len(cv_data.get("skills", []))
+                        if cv_data.get("status") in ["completed", "failed"]:
+                            if cv_data.get("status") == "completed":
+                                status = "SUCCESS"
+                                parsed_name = cv_data.get("full_name") or "Unknown"
+                                skills_count = len(cv_data.get("skills", []))
+                                print(" [XONG]")
+                            else:
+                                status = "FAILED"
+                                error_detail = cv_data.get("error_message", "AI parsing failed")
+                                print(" [LỖI]")
+                            
+                            # Format data to match LLM prompt JSON schema exactly
+                            skills_schema = []
+                            for s in cv_data.get("skills", []):
+                                skills_schema.append({
+                                    "name": s.get("name"),
+                                    "category": s.get("category", "Other"),
+                                    "experience_years": float(s.get("experience_years", s.get("years_exp", 0.0)))
+                                })
+                                
+                            schema_output = {
+                                "status": "success" if cv_data.get("status") == "completed" else "fail",
+                                "error_message": cv_data.get("error_message") or None,
+                                "full_name": cv_data.get("full_name") or None,
+                                "summary": cv_data.get("summary") or None,
+                                "seniority": cv_data.get("seniority") or None,
+                                "experience_years_total": float(cv_data.get("experience_years_total") or 0.0),
+                                "skills": skills_schema,
+                                "work_history": cv_data.get("work_history", []),
+                                "education": cv_data.get("education", []),
+                                "certifications": cv_data.get("certifications", []),
+                                "ocr_confidence": float(cv_data.get("ocr_confidence", 1.0))
+                            }
                             
                             # Lưu dữ liệu chi tiết vào file riêng
                             results_dir = "detailed_results"
@@ -92,15 +143,11 @@ def test_batch_parsing():
                             
                             detail_file = os.path.join(results_dir, f"{filename.replace('.pdf', '')}_parsed.json")
                             with open(detail_file, "w", encoding="utf-8") as df:
-                                json.dump(cv_data, df, indent=4, ensure_ascii=False)
+                                json.dump(schema_output, df, indent=4, ensure_ascii=False)
                                 
-                            error_detail = f"Chi tiết lưu tại: {detail_file}"
-                            print(" [XONG]")
-                            break
-                        elif cv_data.get("status") == "failed":
-                            status = "FAILED"
-                            error_detail = cv_data.get("error_message", "AI parsing failed")
-                            print(" [LỖI]")
+                            if status == "SUCCESS":
+                                error_detail = f"Chi tiết lưu tại: {detail_file}"
+                                
                             break
                     else:
                         status = "FAILED"
