@@ -1,205 +1,69 @@
 {
-    "id": "6ed02899-c158-4296-ab1c-185034be0fdb",
+    "status": "success",
+    "error_message": null,
     "full_name": "NGUYEN TUAN KIET",
-    "summary": "",
-    "experience_years_total": 2.5,
-    "is_verified": false,
-    "status": "completed",
-    "error_message": "",
-    "user_info": {
-        "full_name": "NGUYEN TUAN KIET",
-        "total_exp_years": 2.5
-    },
+    "summary": null,
+    "seniority": "Mid-level",
+    "experience_years_total": 3.3,
     "skills": [
         {
-            "id": "45f87eff-d90a-40fa-b5d6-8517dc1d29fc",
-            "skill_id": "00ec89ad-5b4a-4949-8980-983ffe7f6838",
             "name": "Python",
             "category": "Programming Language",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "b988a42b-9e82-46e2-a272-5b24fbee1de3",
-            "skill_id": "371e392c-b53c-4c83-9bf5-4a3369d7e33a",
             "name": "Matlab",
             "category": "Programming Language",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "6baed51d-024e-4512-be62-8e7462e6afb3",
-            "skill_id": "42f43df4-93d5-4603-a8f0-7a684906209b",
             "name": "C#",
             "category": "Programming Language",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "1dfef8ac-955b-4d79-a7e8-e3f95885ad19",
-            "skill_id": "f15e6ebc-fdc8-4b9b-a420-983015c2074f",
             "name": "Git",
             "category": "Tool",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "3a14257c-2f39-4e2c-97f9-2330cdfa32c0",
-            "skill_id": "d5468b8d-b9fd-479f-b3df-5aa89c0951ad",
             "name": "Docker",
             "category": "Tool",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "67995403-91b7-48f8-abaa-10ca31ac56e9",
-            "skill_id": "7cedcf97-cada-4bd4-9a76-c9a1dd3a8975",
             "name": "Pytorch",
             "category": "Tool",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "2eab966b-5cb5-433c-8d88-9e317772d13b",
-            "skill_id": "949496f5-79fc-4e77-a738-131e8bb34ac6",
             "name": "Pandas",
             "category": "Tool",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "551a0bef-9813-4bb6-b3ac-a24968ca12d2",
-            "skill_id": "a0fc6218-1877-4d76-939e-1e1a05d91da3",
             "name": "Scikit-Learn",
             "category": "Tool",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "54dcbe33-6296-4cea-a349-72dfb0c5ee40",
-            "skill_id": "ae88b307-bf11-42fc-a2bb-9ee737c7f98e",
             "name": "Tensorflow",
             "category": "Tool",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         }
     ],
-    "created_at": "2026-04-28T14:57:59.778662+00:00",
-    "is_ocr": false,
-    "ocr_confidence": 1.0,
-    "ocr_warning": null,
-    "cv_parsed": {
-        "full_name": "NGUYEN TUAN KIET",
-        "summary": "",
-        "seniority": "Mid-level",
-        "experience_years_total": 2.5,
-        "skills": [
-            {
-                "name": "Python",
-                "category": "Programming Language",
-                "years_exp": 2.5,
-                "level": "Junior"
-            },
-            {
-                "name": "Matlab",
-                "category": "Programming Language",
-                "years_exp": 2.5,
-                "level": "Junior"
-            },
-            {
-                "name": "C#",
-                "category": "Programming Language",
-                "years_exp": 2.5,
-                "level": "Junior"
-            },
-            {
-                "name": "Git",
-                "category": "Tool",
-                "years_exp": 2.5,
-                "level": "Junior"
-            },
-            {
-                "name": "Docker",
-                "category": "Tool",
-                "years_exp": 2.5,
-                "level": "Junior"
-            },
-            {
-                "name": "Pytorch",
-                "category": "Tool",
-                "years_exp": 2.5,
-                "level": "Junior"
-            },
-            {
-                "name": "Pandas",
-                "category": "Tool",
-                "years_exp": 2.5,
-                "level": "Junior"
-            },
-            {
-                "name": "Scikit-Learn",
-                "category": "Tool",
-                "years_exp": 2.5,
-                "level": "Junior"
-            },
-            {
-                "name": "Tensorflow",
-                "category": "Tool",
-                "years_exp": 2.5,
-                "level": "Junior"
-            }
-        ],
-        "work_history": [
-            {
-                "position": "Researcher",
-                "company": "Intelligent Communications Lab., SeoulTech",
-                "duration_years": 1.25,
-                "description": "Researched existing machine learning algorithms, proposed and developed novel model to improve performance of telecommunication systems."
-            },
-            {
-                "position": "Power System Study Engineer",
-                "company": "LND Technical Services",
-                "duration_years": 0.5,
-                "description": "Perform power system studies for Transmission & Distribution projects, ensuring technical accuracy, and manage technical risks."
-            }
-        ],
-        "education": [
-            {
-                "degree": "Master of Science in Electrical & Information Engineering",
-                "institution": "Seoul National University of Science and Technology",
-                "year": 2024
-            },
-            {
-                "degree": "Bachelor in Electrical & Electronics Engineering",
-                "institution": "Ho Chi Minh University of Technology",
-                "year": 2021
-            }
-        ],
-        "certifications": [],
-        "is_ocr": false,
-        "ocr_confidence": 1.0
-    },
     "work_history": [
-        {
-            "position": "Researcher",
-            "company": "Intelligent Communications Lab., SeoulTech",
-            "duration_years": 1.25,
-            "description": "Researched existing machine learning algorithms, proposed and developed novel model to improve performance of telecommunication systems."
-        },
         {
             "position": "Power System Study Engineer",
             "company": "LND Technical Services",
-            "duration_years": 0.5,
+            "duration_years": 3.3,
             "description": "Perform power system studies for Transmission & Distribution projects, ensuring technical accuracy, and manage technical risks."
+        },
+        {
+            "position": "Reseacher",
+            "company": "Intelligent Communications Lab., SeoulTech",
+            "duration_years": 1.2,
+            "description": "Researched existing machine learning algorithms, proposed and developed novel model to improve performance of telecommunication systems."
         }
     ],
     "education": [
@@ -214,6 +78,8 @@
             "year": 2021
         }
     ],
-    "certifications": [],
-    "seniority": "Mid-level"
+    "certifications": [
+        "DELF B1"
+    ],
+    "ocr_confidence": 1.0
 }
