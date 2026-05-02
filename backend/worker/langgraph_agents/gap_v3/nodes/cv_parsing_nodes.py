@@ -118,18 +118,9 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
     # ── Locate CV file on disk ───────────────────────────────────────────────
     file_id = getattr(cv_record, "file_id", None) or cv_id_str
     
-    # Use absolute path to avoid ambiguity in Docker
+    # Environment-agnostic path resolution
     env_dir = os.getenv("CV_UPLOAD_DIR", "data/cv_uploads")
-    if os.path.isabs(env_dir):
-        upload_dir = env_dir
-    else:
-        # Fallback to absolute /app/ path if relative
-        upload_dir = os.path.join("/app", env_dir)
-        
-    if not os.path.exists(upload_dir):
-        # Last resort fallback to common docker path
-        if os.path.exists("/app/data/cv_uploads"):
-            upload_dir = "/app/data/cv_uploads"
+    upload_dir = os.path.abspath(env_dir)
     
     # Strategy Detection
     strategy = config_manager.get_setting("CV_PARSER_STRATEGY", default="direct").lower()
@@ -137,6 +128,16 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
     
     # Robust File Discovery
     file_path = None
+    if not os.path.exists(upload_dir):
+        # Fallback for Docker if relative path fails to resolve correctly in some setups
+        docker_path = os.path.join("/app", env_dir)
+        if os.path.exists(docker_path):
+            upload_dir = docker_path
+            logger.info(f"[STEP 1] Fallback to Docker path: {upload_dir}")
+        else:
+            logger.error(f"[STEP 1] Upload directory NOT FOUND: {upload_dir}")
+            return {**state, "error": f"Upload directory not found: {upload_dir}", "status": "failed"}
+
     if os.path.exists(upload_dir):
         files_in_dir = os.listdir(upload_dir)
         for f_name in files_in_dir:
@@ -147,8 +148,6 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
         
         if not file_path:
             logger.warning(f"[STEP 1] File {file_id}.* not found in {upload_dir}. Content: {files_in_dir[:10]}...")
-    else:
-        logger.error(f"[STEP 1] Upload directory NOT FOUND: {upload_dir}")
     
     # BUG-001 FIX: Cache hit validation - Check both raw_text AND cv_parsed_json exist
     # If raw_text exists but cv_parsed_json is missing, re-parse is needed
