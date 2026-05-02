@@ -25,6 +25,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Modal from "@/components/shared/Modal";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
+import ScanLineLoader from "@/components/shared/ScanLineLoader";
 
 const POLLING_INTERVAL = 5000;
 
@@ -70,7 +71,7 @@ function AnalysisPageContent() {
   const searchParams = useSearchParams();
   const { token } = useAuth();
   const { language, t } = useLanguage();
-  
+
   const initialJobId = searchParams.get("job_id");
   const initialJobTitle = searchParams.get("job_title");
 
@@ -215,13 +216,13 @@ function AnalysisPageContent() {
 
     console.log(
       `[ANALYSIS] Starting — cv_id=${selectedCvId} | jd_mode=${jdMode} | force=${force} | ` +
-        (jdMode === "paste"
-          ? `jd_text length=${pastedJdText.length}`
-          : `job_id=${selectedJobId}`)
+      (jdMode === "paste"
+        ? `jd_text length=${pastedJdText.length}`
+        : `job_id=${selectedJobId}`)
     );
 
     try {
-      const payload: Record<string, unknown> = { 
+      const payload: Record<string, unknown> = {
         cv_id: selectedCvId,
         lang: language,
         force: force
@@ -260,7 +261,7 @@ function AnalysisPageContent() {
           setCurrentStep(3);
           try {
             sessionStorage.setItem("gap_analysis_result", JSON.stringify(result));
-          } catch {}
+          } catch { }
           console.log(`[ANALYSIS] ✅ DONE — redirecting to /user/recommend`);
           setPhase("completed");
           setTimeout(() => router.push("/user/recommend"), 1200);
@@ -275,40 +276,40 @@ function AnalysisPageContent() {
         }
 
         // Capture granular progress from API
-        const { progress: apiProgress, message, partial_result } = resp.data as { 
-          progress?: number; 
-          message?: string; 
-          partial_result?: any 
+        const { progress: apiProgress, message, partial_result } = resp.data as {
+          progress?: number;
+          message?: string;
+          partial_result?: any
         };
 
         if (apiProgress !== undefined) {
           setProgress(apiProgress);
           setCurrentStep(detectStep(apiProgress));
         } else {
-            // Fallback to simulation if no granular progress yet
-            setProgress((p) => {
-              const next = p + Math.floor(Math.random() * 3) + 1;
-              const clamped = Math.min(next, 94);
-              setCurrentStep(detectStep(clamped));
-              return clamped;
-            });
+          // Fallback to simulation if no granular progress yet
+          setProgress((p) => {
+            const next = p + Math.floor(Math.random() * 3) + 1;
+            const clamped = Math.min(next, 94);
+            setCurrentStep(detectStep(clamped));
+            return clamped;
+          });
         }
-        
+
         if (message) {
-            setProcessMessage(message);
+          setProcessMessage(message);
         }
 
         // --- PROGRESSIVE LOADING: Redirect early if gaps are ready ---
         if (partial_result && partial_result.node === "gap_analysis") {
-            console.log("[ANALYSIS] Gaps are ready! Redirecting early to /user/recommend for progressive loading.");
-            try {
-              sessionStorage.setItem("gap_analysis_partial", JSON.stringify(partial_result));
-            } catch {}
-            
-            clearInterval(interval);
-            setPhase("completed");
-            router.push(`/user/recommend?task_id=${tid}`);
-            return;
+          console.log("[ANALYSIS] Gaps are ready! Redirecting early to /user/recommend for progressive loading.");
+          try {
+            sessionStorage.setItem("gap_analysis_partial", JSON.stringify(partial_result));
+          } catch { }
+
+          clearInterval(interval);
+          setPhase("completed");
+          router.push(`/user/recommend?task_id=${tid}`);
+          return;
         }
       } catch (err) {
         console.error(`[ANALYSIS] poll error:`, err);
@@ -445,13 +446,13 @@ function AnalysisPageContent() {
                   <div className={styles.jobSearchWrap}>
                     <div className={styles.jobSearchInput}>
                       <Search size={16} className={styles.jobSearchIcon} />
-                        <input
-                          type="text"
-                          placeholder={t("jd_search_placeholder")}
-                          value={jobSearch}
-                          onChange={(e) => setJobSearch(e.target.value)}
-                          className={styles.jobSearchField}
-                        />
+                      <input
+                        type="text"
+                        placeholder={t("jd_search_placeholder")}
+                        value={jobSearch}
+                        onChange={(e) => setJobSearch(e.target.value)}
+                        className={styles.jobSearchField}
+                      />
                     </div>
 
                     {jobResults.length > 0 && (
@@ -586,12 +587,16 @@ function AnalysisPageContent() {
   if (phase === "processing") {
     return (
       <PageContainer>
-        <PageHeader 
+        <PageHeader
           title={t("analysis_title")}
           subtitle={t("analysis_engine_badge")}
         />
 
         <div className={styles.processingCard}>
+          <div className={styles.scanLoaderContainer}>
+            <ScanLineLoader size={120} className={styles.scanLoader} />
+          </div>
+
           <div className={styles.stepsList}>
             {PIPELINE_STEPS.map((s, i) => (
               <div
@@ -626,7 +631,6 @@ function AnalysisPageContent() {
           <div className={styles.progressPct}>{progress}%</div>
           
           <div className={styles.granularMessage}>
-            <Loader2 size={16} className={styles.spinIcon} />
             <AnimatePresence mode="wait">
               <motion.span
                 key={spamIndex}
@@ -642,7 +646,7 @@ function AnalysisPageContent() {
           </div>
           
           <div className={styles.backendMessage}>
-             {processMessage}
+            {processMessage}
           </div>
 
           <p className={styles.processingSub}>
@@ -663,21 +667,21 @@ function AnalysisPageContent() {
               <p className={styles.timeoutDescription}>
                 {t("analysis_timeout_desc")}
               </p>
-               <div className={styles.timeoutActionsRow}>
-                 <button onClick={handleNotify} className={styles.timeoutNotifyBtn}>
-                   <Zap size={16} />
-                   {t("analysis_notify_and_back")}
-                 </button>
-                 <button onClick={handleContinueWaiting} className={styles.timeoutContinueBtn}>
-                   {t("analysis_continue_waiting")}
-                 </button>
+              <div className={styles.timeoutActionsRow}>
+                <button onClick={handleNotify} className={styles.timeoutNotifyBtn}>
+                  <Zap size={16} />
+                  {t("analysis_notify_and_back")}
+                </button>
+                <button onClick={handleContinueWaiting} className={styles.timeoutContinueBtn}>
+                  {t("analysis_continue_waiting")}
+                </button>
               </div>
             </div>
           </Modal>
 
           <div className={styles.asyncActions}>
-            <button 
-              onClick={handleNotify} 
+            <button
+              onClick={handleNotify}
               disabled={notified}
               className={cn(styles.notifyBtn, notified && styles.notifyBtnDone)}
             >
@@ -722,6 +726,3 @@ export default function AnalysisPage() {
     </Suspense>
   );
 }
-
-
-

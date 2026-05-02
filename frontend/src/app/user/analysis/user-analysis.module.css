@@ -1072,6 +1072,30 @@
   margin: 0 auto;
 }
 
+/* ── SCAN LINE LOADER ──────────────────────────────────── */
+.scanLoaderContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.scanLoader {
+  color: var(--color-primary);
+  filter: drop-shadow(0 0 20px color-mix(in srgb, var(--color-primary) 25%, transparent));
+  animation: scanGlow 3s ease-in-out infinite;
+}
+
+@keyframes scanGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 20px color-mix(in srgb, var(--color-primary) 25%, transparent));
+  }
+  50% {
+    filter: drop-shadow(0 0 30px color-mix(in srgb, var(--color-primary) 40%, transparent));
+  }
+}
+
 .processingBadge {
   display: inline-flex;
   align-items: center;
