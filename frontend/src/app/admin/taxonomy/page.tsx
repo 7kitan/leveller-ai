@@ -153,6 +153,30 @@ const AdminTaxonomyPage = () => {
     }
   };
 
+  const handleUpdateSkill = async () => {
+    if (!formName.trim() || !selectedSkill) {
+      toast.error("Skill name is required");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await api.put(`/admin/skills/${selectedSkill.id}`, {
+        name: formName.trim(),
+        category: formCategory.trim() || null
+      });
+      
+      toast.success("Skill updated successfully");
+      setShowEditModal(false);
+      fetchSkills(currentPage);
+      fetchCategories();
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Failed to update skill");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!selectedSkill || !token) return;
     setSubmitting(true);
@@ -355,6 +379,56 @@ const AdminTaxonomyPage = () => {
                 className={styles.saveBtn}
               >
                 {submitting ? "Adding..." : "Add Skill"}
+              </button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Edit Skill Modal */}
+        <Modal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          title="Edit Skill"
+          maxWidth="32rem"
+        >
+          <div className={styles.modalContent}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Skill Name *</label>
+              <input
+                type="text"
+                placeholder="e.g., React, Python, Docker"
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                className={styles.formInput}
+                maxLength={200}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Category</label>
+              <input
+                type="text"
+                placeholder="e.g., Technology, Tool, Methodology"
+                value={formCategory}
+                onChange={(e) => setFormCategory(e.target.value)}
+                className={styles.formInput}
+                maxLength={100}
+              />
+            </div>
+
+            <div className={styles.modalActions}>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className={styles.cancelBtn}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateSkill}
+                disabled={submitting || !formName.trim()}
+                className={styles.saveBtn}
+              >
+                {submitting ? "Updating..." : "Update Skill"}
               </button>
             </div>
           </div>

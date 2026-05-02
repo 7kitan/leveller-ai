@@ -345,7 +345,7 @@ async def list_user_cvs(request: Request, db: Session = Depends(get_db)):
     user_id = uuid.UUID(user_id_str)
     cvs = (
         db.query(UserCV)
-        .filter(UserCV.user_id == user_id)
+        .filter(UserCV.user_id == user_id, UserCV.deleted_at.is_(None))
         .order_by(UserCV.created_at.desc())
         .all()
     )
@@ -375,7 +375,7 @@ async def finalize_cv(
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     cv_uuid = uuid.UUID(req.id)
-    cv = db.query(UserCV).filter(UserCV.id == cv_uuid).first()
+    cv = db.query(UserCV).filter(UserCV.id == cv_uuid, UserCV.deleted_at.is_(None)).first()
     if not cv:
         raise HTTPException(status_code=404, detail="CV not found")
 
@@ -486,13 +486,21 @@ async def admin_list_all_cvs(
     db: Session = Depends(get_db),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
-    q: Optional[str] = Query(None)
+    q: Optional[str] = Query(None),
+    show_deleted: Optional[bool] = Query(None, description="Filter: true=only deleted, false=only active, null=all")
 ):
-    """Admin only: Lấy tất cả CV của toàn hệ thống với phân trang."""
+    """Admin only: Lấy tất cả CV của toàn hệ thống với phân trang. Hiển thị cả CV đã xóa."""
     if not is_admin(request):
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
     query = db.query(UserCV, User.email).join(User, UserCV.user_id == User.id)
+    
+    # Filter by deleted status
+    if show_deleted is True:
+        query = query.filter(UserCV.deleted_at.isnot(None))
+    elif show_deleted is False:
+        query = query.filter(UserCV.deleted_at.is_(None))
+    # If show_deleted is None, show all CVs
     
     if q:
         query = query.filter(
@@ -509,6 +517,8 @@ async def admin_list_all_cvs(
             "full_name": cv.full_name,
             "status": cv.status,
             "created_at": cv.created_at,
+            "deleted_at": cv.deleted_at,
+            "is_deleted": cv.deleted_at is not None,
         }
         for cv, email in results
     ]
@@ -525,7 +535,7 @@ async def admin_list_all_cvs(
 
 @app.delete("/cv/{cv_id}")
 async def delete_cv(cv_id: str, request: Request, db: Session = Depends(get_db)):
-    """Xóa CV (Admin hoặc Owner)."""
+    """Soft delete CV (Admin hoặc Owner). CV sẽ bị ẩn khỏi user nhưng vẫn giữ trong database."""
     user_id_str = request.headers.get("X-User-ID")
     logger.info(
         f"DEBUG CV_SERVICE [delete_cv]: cv_id={cv_id}, X-User-ID={user_id_str}, Role={request.headers.get('X-User-Role')}"
@@ -538,7 +548,7 @@ async def delete_cv(cv_id: str, request: Request, db: Session = Depends(get_db))
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     cv_uuid = uuid.UUID(cv_id)
-    cv = db.query(UserCV).filter(UserCV.id == cv_uuid).first()
+    cv = db.query(UserCV).filter(UserCV.id == cv_uuid, UserCV.deleted_at.is_(None)).first()
     if not cv:
         raise HTTPException(status_code=404, detail="CV not found")
 
@@ -546,19 +556,52 @@ async def delete_cv(cv_id: str, request: Request, db: Session = Depends(get_db))
     if not is_admin(request) and str(cv.user_id) != user_id_str:
         raise HTTPException(status_code=403, detail="Not authorized to delete this CV")
 
-    # Xóa file vật lý trong Local Storage
+    # Soft delete: Set deleted_at timestamp and clear file_hash
+    # Clear file_hash allows user to upload the same file again
+    from datetime import datetime, timezone
+    cv.deleted_at = datetime.now(timezone.utc)
+    cv.file_hash = None
+    db.commit()
+    
+    logger.info(f"CV {cv_id} soft deleted by user {user_id_str}, file_hash cleared")
+    return {"message": "Successfully deleted CV. You can now upload a new CV with the same file."}
+
+
+@app.delete("/cv/admin/{cv_id}/permanent")
+async def admin_permanent_delete_cv(cv_id: str, request: Request, db: Session = Depends(get_db)):
+    """
+    Admin only: Hard delete CV hoàn toàn khỏi database.
+    Xóa cả CV đã soft delete và CV active.
+    Xóa luôn file vật lý trong storage.
+    """
+    if not is_admin(request):
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    cv_uuid = uuid.UUID(cv_id)
+    # Query without deleted_at filter to allow deleting soft-deleted CVs
+    cv = db.query(UserCV).filter(UserCV.id == cv_uuid).first()
+    if not cv:
+        raise HTTPException(status_code=404, detail="CV not found")
+
+    # Delete physical file from storage
     try:
-        # Tìm file có ID tương ứng trong UPLOAD_DIR
         for filename in os.listdir(UPLOAD_DIR):
             if filename.startswith(str(cv.id)):
-                os.remove(os.path.join(UPLOAD_DIR, filename))
+                file_path = os.path.join(UPLOAD_DIR, filename)
+                os.remove(file_path)
+                logger.info(f"Deleted physical file: {file_path}")
                 break
     except Exception as e:
         logger.error(f"Error deleting physical file: {e}")
+        # Continue with database deletion even if file deletion fails
 
+    # Hard delete from database (cascades to related records)
     db.delete(cv)
     db.commit()
-    return {"message": "Successfully deleted CV and associated data."}
+    
+    logger.info(f"CV {cv_id} permanently deleted by admin {request.headers.get('X-User-ID')}")
+    system_logger.info("ADMIN", f"Permanently deleted CV {cv_id}")
+    return {"message": "CV permanently deleted from database and storage."}
 
 
 @app.patch("/cv/{cv_id}")
@@ -570,7 +613,7 @@ async def update_cv_metadata(
     if not user_id_str:
         raise HTTPException(status_code=401, detail="Authentication required")
 
-    cv = db.query(UserCV).filter(UserCV.id == uuid.UUID(cv_id)).first()
+    cv = db.query(UserCV).filter(UserCV.id == uuid.UUID(cv_id), UserCV.deleted_at.is_(None)).first()
     if not cv:
         raise HTTPException(status_code=404, detail="CV not found")
 
@@ -610,7 +653,7 @@ async def get_cv_detail(cv_id: str, request: Request, db: Session = Depends(get_
     - Transparency: is_ocr flag + ocr_confidence + cảnh báo
     """
     cv_uuid = uuid.UUID(cv_id)
-    cv = db.query(UserCV).filter(UserCV.id == cv_uuid).first()
+    cv = db.query(UserCV).filter(UserCV.id == cv_uuid, UserCV.deleted_at.is_(None)).first()
     if not cv:
         raise HTTPException(status_code=404, detail="CV not found")
 
@@ -967,7 +1010,7 @@ async def get_cv_analysis_history(
         raise HTTPException(status_code=401, detail="Authentication required")
 
     cv_uuid = uuid.UUID(cv_id)
-    cv = db.query(UserCV).filter(UserCV.id == cv_uuid).first()
+    cv = db.query(UserCV).filter(UserCV.id == cv_uuid, UserCV.deleted_at.is_(None)).first()
     if not cv:
         raise HTTPException(status_code=404, detail="CV not found")
     if not is_admin(request) and str(cv.user_id) != user_id_str:
@@ -980,6 +1023,8 @@ async def get_cv_analysis_history(
         .all()
     )
 
+    from services.analysis_service.result_normalizer import normalize_analysis_result
+    
     return [
         {
             "id": str(a.id),
@@ -989,12 +1034,12 @@ async def get_cv_analysis_history(
             "match_score": a.match_score,
             "created_at": a.created_at,
             "overall_match_pct": (
-                a.result_json.get("overall_match_pct")
+                normalize_analysis_result(a.result_json).get("overall_match_pct")
                 if a.result_json and isinstance(a.result_json, dict)
                 else None
             ),
             "overall_assessment": (
-                a.result_json.get("overall_assessment")
+                normalize_analysis_result(a.result_json).get("overall_assessment")
                 if a.result_json and isinstance(a.result_json, dict)
                 else None
             ),

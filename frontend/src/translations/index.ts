@@ -411,6 +411,10 @@ export const translations = {
     cv_analysis_error: "Lỗi phân tích",
     cv_no_history: "Chưa có lịch sử phân tích.",
     cv_add_exp: "Thêm kinh nghiệm",
+    
+    // Gap Analysis Errors
+    gap_error_detected_domain: "Lĩnh vực phát hiện",
+    gap_error_confidence: "Độ tin cậy",
     cv_add_edu: "Thêm học vấn",
     cv_add_cert: "Thêm chứng chỉ",
     cv_uploading: "Đang tải lên...",
@@ -420,6 +424,10 @@ export const translations = {
     cv_history_empty: "Chưa có lịch sử phân tích.",
     cv_history_footer: "Dữ liệu được bảo mật và mã hóa theo tiêu chuẩn ISO/IEC 27001.",
     cv_upload_error: "Lỗi khi tải file. Vui lòng thử lại.",
+    cv_delete: "Xóa CV",
+    cv_delete_confirm_title: "Xác nhận xóa CV",
+    cv_delete_confirm_desc: "Bạn có chắc chắn muốn xóa CV này? Bạn có thể tải lên lại file này sau khi xóa.",
+    cv_delete_success: "Đã xóa CV thành công. Bạn có thể tải lên file mới.",
     pdf_loading: "Đang tải PDF...",
     pdf_error: "Không thể hiển thị PDF",
     pdf_prev: "Trang trước",
@@ -542,7 +550,8 @@ export const translations = {
     admin_jobs_save_success: "Đã lưu công việc thành công",
     admin_jobs_delete_success: "Đã xóa tin tuyển dụng",
     admin_jobs_delete_confirm: "Xóa tin tuyển dụng này?",
-    admin_jobs_status_inactive: "Đã tắt Auto Crawl",
+    admin_jobs_status_inactive: "Không hoạt động",
+    admin_jobs_auto_crawl_disabled: "Đã tắt Auto Crawl",
 
     // Admin Dashboard
     admin_dash_title: "System Oversight",
@@ -681,9 +690,9 @@ export const translations = {
     admin_settings_daily_analysis_limit_label: "Hạn mức phân tích / ngày",
     admin_settings_daily_analysis_limit_desc: "Số lượt phân tích tối đa mỗi người dùng được thực hiện trong 24h.",
     admin_settings_global_token_limit_label: "Hạn mức Token Tổng (triệu token)",
-    admin_settings_global_token_limit_desc: "Giới hạn tổng số token API hàng tháng. 0 để không giới hạn.",
+    admin_settings_global_token_limit_desc: "Giới hạn tổng số token API hàng ngày. 0 để không giới hạn.",
     admin_settings_user_token_limit_label: "Hạn mức Token / Người dùng (triệu token)",
-    admin_settings_user_token_limit_desc: "Giới hạn số token API tối đa cho mỗi người dùng hàng tháng.",
+    admin_settings_user_token_limit_desc: "Giới hạn số token API tối đa cho mỗi người dùng hàng ngày.",
     admin_settings_system_log_ttl_days_label: "Thời gian lưu trữ Log (ngày)",
     admin_settings_system_log_ttl_days_desc: "Số ngày hệ thống sẽ giữ lại nhật ký trước khi tự động xóa.",
     admin_settings_discard_btn: "Hủy thay đổi",
@@ -1554,6 +1563,10 @@ export const translations = {
     cv_analysis_error: "Analysis error",
     cv_no_history: "No analysis history found.",
     cv_add_exp: "Add Experience",
+    
+    // Gap Analysis Errors
+    gap_error_detected_domain: "Detected domain",
+    gap_error_confidence: "Confidence",
     cv_add_edu: "Add Education",
     cv_add_cert: "Add Certification",
     cv_uploading: "Uploading...",
@@ -1563,6 +1576,10 @@ export const translations = {
     cv_history_empty: "No analysis history found.",
     cv_history_footer: "Data is secured and encrypted following ISO/IEC 27001 standards.",
     cv_upload_error: "Error uploading file. Please try again.",
+    cv_delete: "Delete CV",
+    cv_delete_confirm_title: "Confirm Delete CV",
+    cv_delete_confirm_desc: "Are you sure you want to delete this CV? You can upload this file again after deletion.",
+    cv_delete_success: "CV deleted successfully. You can now upload a new file.",
     pdf_loading: "Loading PDF...",
     pdf_error: "Cannot display PDF",
     pdf_prev: "Previous Page",
@@ -1685,7 +1702,8 @@ export const translations = {
     admin_jobs_save_success: "Job saved successfully",
     admin_jobs_delete_success: "Job listing deleted",
     admin_jobs_delete_confirm: "Delete this job listing?",
-    admin_jobs_status_inactive: "Auto Crawl disabled",
+    admin_jobs_status_inactive: "Inactive",
+    admin_jobs_auto_crawl_disabled: "Auto Crawl disabled",
 
     // Admin Dashboard
     admin_dash_title: "System Oversight",

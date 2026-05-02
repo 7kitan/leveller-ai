@@ -97,11 +97,11 @@ function AnalysisPageContent() {
   const [taskId, setTaskId] = useState<string>("");
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
-  const [processMessage, setProcessMessage] = useState<string>(t("init_message"));
   const [spamIndex, setSpamIndex] = useState(0);
   const [processingTime, setProcessingTime] = useState(0);
   const [showTimeoutOverlay, setShowTimeoutOverlay] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [processMessage, setProcessMessage] = useState("");
 
   const spamMessages = [
     t("analysis_msg_1"),
@@ -236,15 +236,60 @@ function AnalysisPageContent() {
       }
 
       const resp = await api.post("analysis/gap", payload);
+      
+      // If result is already cached, handle it immediately
+      if (resp.data.status === "cached" && resp.data.result) {
+        console.log(`[ANALYSIS] Cache hit — using pre-computed result`);
+        setProgress(100);
+        setCurrentStep(3);
+        try {
+          sessionStorage.setItem("gap_analysis_result", JSON.stringify(resp.data.result));
+        } catch { }
+        setPhase("completed");
+        setTimeout(() => router.push("/user/recommend"), 800);
+        return;
+      }
 
       const tid = resp.data.task_id as string;
+      if (!tid) {
+        throw new Error("No task_id returned from server");
+      }
       setTaskId(tid);
       console.log(`[ANALYSIS] Task dispatched — task_id=${tid}`);
       pollStatus(tid);
     } catch (err: any) {
       const detail = err.response?.data?.detail || err.message;
-      console.error(`[ANALYSIS] Start failed: ${detail}`);
-      setError(String(detail));
+      console.error(`[ANALYSIS] Start failed:`, detail);
+      
+      // Handle structured error responses (e.g., NON_TECH_JOB)
+      if (typeof detail === 'object' && detail !== null) {
+        if (detail.error_code === 'NON_TECH_JOB') {
+          const message = language === 'vi' ? detail.message : detail.english_message;
+          const classification = detail.classification || {};
+          const suggestion = detail.suggestion || '';
+          
+          // Build detailed error message
+          let errorMsg = message;
+          if (classification.primary_domain) {
+            errorMsg += `\n\n${t("gap_error_detected_domain")}: ${classification.primary_domain}`;
+          }
+          if (classification.confidence) {
+            errorMsg += ` (${t("gap_error_confidence")}: ${Math.round(classification.confidence * 100)}%)`;
+          }
+          if (suggestion) {
+            errorMsg += `\n\n${suggestion}`;
+          }
+          
+          setError(errorMsg);
+        } else {
+          // Other structured errors
+          setError(detail.message || detail.english_message || JSON.stringify(detail));
+        }
+      } else {
+        // Simple string errors
+        setError(String(detail));
+      }
+      
       setPhase("failed");
     }
   };
@@ -259,6 +304,15 @@ function AnalysisPageContent() {
 
         if (status === "completed") {
           clearInterval(interval);
+          
+          // Double check for logical failure inside successful response
+          const resObj = result as any;
+          if (resObj && resObj.status === "failed") {
+            setError(resObj.overall_assessment || t("analysis_failed"));
+            setPhase("failed");
+            return;
+          }
+
           setProgress(100);
           setCurrentStep(3);
           try {
@@ -296,13 +350,20 @@ function AnalysisPageContent() {
             return clamped;
           });
         }
-
         if (message) {
           setProcessMessage(message);
         }
 
         // --- PROGRESSIVE LOADING: Redirect early if gaps are ready ---
         if (partial_result && partial_result.node === "gap_analysis") {
+          // Verify partial result isn't a failure
+          if (partial_result.status === "failed") {
+             clearInterval(interval);
+             setError(partial_result.overall_assessment || t("analysis_failed"));
+             setPhase("failed");
+             return;
+          }
+
           console.log("[ANALYSIS] Gaps are ready! Redirecting early to /user/recommend for progressive loading.");
           try {
             sessionStorage.setItem("gap_analysis_partial", JSON.stringify(partial_result));
@@ -313,8 +374,12 @@ function AnalysisPageContent() {
           router.push(`/user/recommend?task_id=${tid}`);
           return;
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error(`[ANALYSIS] poll error:`, err);
+        clearInterval(interval);
+        const detail = err.response?.data?.detail || err.message;
+        setError(typeof detail === 'string' ? detail : t("analysis_failed"));
+        setPhase("failed");
       }
     }, POLLING_INTERVAL);
 
@@ -609,11 +674,6 @@ function AnalysisPageContent() {
                 {spamMessages[spamIndex]}
               </motion.div>
             </AnimatePresence>
-            {processMessage && (
-              <div className={styles.secondaryMessage}>
-                {processMessage}
-              </div>
-            )}
           </div>
 
           {/* Scan Line Loader */}

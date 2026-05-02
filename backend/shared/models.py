@@ -95,6 +95,7 @@ class UserCV(Base):
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    deleted_at = Column(DateTime(timezone=True), nullable=True, index=True)  # Soft delete
 
     user = relationship("User", back_populates="cvs")
     skills = relationship("UserSkillProfile", back_populates="cv")
@@ -130,8 +131,8 @@ class Job(Base):
 
     status = Column(String(20), nullable=False, default="active")
 
-    embedding_context = Column(Text)
-    vector = Column(Vector(1536))  # pgvector embedding
+    # Vector fields removed - using text search only for better performance
+    # embedding_context and vector columns dropped in migration 004
 
     has_insurance = Column(Boolean, default=False)
     has_13th_month = Column(Boolean, default=False)
@@ -178,6 +179,12 @@ class JobSkillRequirement(Base):
     required_level = Column(String(20))
     min_years_exp = Column(Float)
     is_mandatory = Column(Boolean, default=True)
+    
+    # Alternative skill groups support
+    is_group = Column(Boolean, default=False)
+    group_strategy = Column(String(20))  # 'any_one', 'at_least_n', 'all'
+    alternative_skills = Column(ARRAY(String))  # Array of skill names
+    min_required = Column(Integer, default=1)
 
     job = relationship("Job", back_populates="skills_required")
     skill = relationship("Skill", back_populates="requirements")

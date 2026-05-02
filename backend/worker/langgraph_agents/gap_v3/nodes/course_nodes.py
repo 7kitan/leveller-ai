@@ -64,20 +64,38 @@ async def course_recommendation_llm_node(
         logger.warning("[STEP 4] No gap_analysis — skipping course recommendation")
         return {**state, "course_recommendations": [], "career_roadmap": {}, "status": "courses_done"}
 
-    # ── top_gaps already computed inline in gap_analysis_llm_node (no extra LLM) ──
-    top_gaps = gap_analysis.get("top_gaps") or []
+    # ── STEP 0: Expand group gaps into individual skills ──────────────────────
     all_skill_gaps = gap_analysis.get("skill_gaps") or []
+    expanded_gaps = []
+    
+    for gap in all_skill_gaps:
+        # Check for is_group flag or if the skill name looks like a known group from JD requirements
+        is_group = gap.get("is_group")
+        alt_skills = gap.get("alternative_skills")
+        
+        if is_group and alt_skills:
+            logger.info(f"[STEP 4] Expanding group gap '{gap.get('skill')}' into: {alt_skills}")
+            for alt_skill in alt_skills:
+                # Create a copy for each alternative skill
+                alt_gap = gap.copy()
+                alt_gap["skill"] = alt_skill
+                alt_gap["is_group"] = False # Now it's an individual skill
+                alt_gap["original_group"] = gap.get("skill")
+                expanded_gaps.append(alt_gap)
+        else:
+            expanded_gaps.append(gap)
+
     jd_context = gap_analysis.get("jd_context") or ""
 
-    if not top_gaps and not all_skill_gaps:
+    if not expanded_gaps:
         logger.warning("[STEP 4] No gaps found — skipping course recommendation")
         return {**state, "course_recommendations": [], "career_roadmap": {}, "status": "courses_done"}
 
-    # Use top_gaps if available, fallback to top-3 of all_skill_gaps
-    gaps_to_process = top_gaps if top_gaps else all_skill_gaps[:3]
+    # Use top 4 expanded gaps for course recommendation
+    gaps_to_process = expanded_gaps[:4]
 
     logger.info(
-        f"[STEP 4] ✓ Using top_gaps (from gap_analysis state — no extra LLM)\n"
+        f"[STEP 4] ✓ Processing {len(gaps_to_process)} gaps (from {len(all_skill_gaps)} original gaps)\n"
         f"  gaps: {', '.join(str(g.get('skill', '?')) for g in gaps_to_process)}"
     )
 
@@ -280,15 +298,27 @@ async def _llm_select_courses_and_roadmap_unified(
     gaps_context = _json.dumps(gaps_json, ensure_ascii=False, indent=2)
 
     # ── Build candidates block (JSON) ──────────────────────────────────────────
-    # Increase limit to 10 to give more options across all gaps
-    sorted_candidates = sorted(
-        all_candidates, 
-        key=lambda x: float(x.get("similarity") or 0), 
-        reverse=True
-    )[:10]
+    # ── STEP 1: Filter candidates PER GAP (Ensure variety) ──────────────────────
+    # Previous version took global Top 10, which caused "starvation" of gaps with lower scores.
+    # New version: Take Top 5 PER GAP to ensure AI sees candidates for everything.
+    candidates_by_gap: Dict[str, List[Dict]] = {}
+    for c in all_candidates:
+        skill = c.get("_gap_skill") or "?"
+        if skill not in candidates_by_gap:
+            candidates_by_gap[skill] = []
+        candidates_by_gap[skill].append(c)
+
+    final_candidates = []
+    for skill, cands in candidates_by_gap.items():
+        # Sort by combined_score (which includes keyword boost)
+        sorted_cands = sorted(cands, key=lambda x: float(x.get("combined_score") or x.get("similarity") or 0), reverse=True)
+        final_candidates.extend(sorted_cands[:5]) # Top 5 per gap
+
+    # Final safeguard: Limit total candidates to 20 to avoid prompt overflow
+    final_candidates = sorted(final_candidates, key=lambda x: float(x.get("combined_score") or 0), reverse=True)[:20]
 
     candidates_json = []
-    for c in sorted_candidates:
+    for c in final_candidates:
         candidates_json.append({
             "course_id": c.get("course_id"),
             "target_gap_skill": c.get("_gap_skill") or "?",
@@ -316,13 +346,12 @@ async def _llm_select_courses_and_roadmap_unified(
         "## FREE YOUTUBE CANDIDATES:\n" + yt_context + "\n\n"
         "## MISSION:\n"
         "1. SELECT RESOURCES: For each gap, evaluate if there are truly relevant resources.\n"
-        "   - CRITICAL: Only select a course if it DIRECTLY teaches the gap skill (not just mentions it).\n"
-        "   - If NO relevant paid course exists for a gap, set course_id to null.\n"
-        "   - If NO relevant YouTube video exists for a gap, set video_id to null.\n"
-        "   - It's better to return null than to recommend an irrelevant resource.\n"
+        "   - STRICT TECHNICAL MATCHING: Only select a course if it SPECIFICALLY teaches the gap skill.\n"
+        "   - DO NOT suggest Node.js for Golang. DO NOT suggest Python for Java.\n"
+        "   - If the candidates list for a gap only contains irrelevant skills, set course_id to null.\n"
+        "   - It is BETTER to return NO course than to return a WRONG course.\n"
+        "   - CRITICAL: Check the title and skills list carefully. If 'Golang' is the gap but the course title is 'Node.js', it is a REJECT.\n"
         "   - STRICT REASONING: The 'selection_reason' MUST explain WHY this resource teaches the specific gap skill.\n"
-        "   - DO NOT select courses that only mention the skill as a prerequisite or in passing.\n"
-        "   - DO NOT mix YouTube details into a Paid Course description.\n"
         "   - Selection reason must be in Vietnamese.\n"
         "2. BUILD ROADMAP: Create a personalized learning roadmap in Vietnamese.\n"
         "   - Only include gaps that have at least one relevant resource.\n"
@@ -487,14 +516,14 @@ async def _vector_search_courses(
             # Check if it's a word boundary match (not substring)
             import re
             if re.search(r'\b' + re.escape(skill_lower) + r'\b', title_lower):
-                keyword_boost += 0.20  # +20% for exact word match in title
+                keyword_boost += 0.40  # +40% for exact word match in title (was 0.20)
             else:
-                keyword_boost += 0.10  # +10% for substring match
+                keyword_boost += 0.20  # +20% for substring match (was 0.10)
         
         # Boost 2: Match in skills_raw (medium weight)
         skills_text = " ".join(course.get("skills_raw", [])).lower()
         if skill_lower in skills_text:
-            keyword_boost += 0.15  # +15% for match in skills
+            keyword_boost += 0.25  # +25% for match in skills (was 0.15)
         
         # Boost 3: Match in embedding_context (low weight, for fallback)
         context_lower = course.get("embedding_context", "").lower()

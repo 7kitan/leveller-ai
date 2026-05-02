@@ -28,7 +28,9 @@ def run_migrations():
     
     migrations = [
         ("001_add_job_sections.sql", "Add job sections columns"),
-        ("add_missing_indexes.sql", "Add performance indexes"),
+        ("002_add_missing_indexes.sql", "Add performance indexes"),
+        ("003_add_cv_soft_delete.sql", "Add soft delete support for CVs"),
+        ("004_drop_job_vectors_optimize_indexes.sql", "Drop job vectors and optimize for text search"),
     ]
     
     logger.info("🚀 Starting database migrations...")

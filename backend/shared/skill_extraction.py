@@ -28,8 +28,8 @@ def find_or_create_skill(db: Session, skill_name: str, category: str = None, vec
     Returns:
         Skill object (existing or newly created)
     """
-    # Normalize skill name
-    normalized_name = skill_name.strip().title()
+    # Only strip whitespace - let LLM handle proper capitalization (SQL, HTML, etc.)
+    normalized_name = skill_name.strip()
     
     # Try to find existing skill (case-insensitive)
     existing = db.query(Skill).filter(
@@ -154,6 +154,9 @@ def save_job_skills(
     for i, (s_data, skill, ctx) in enumerate(valid_skill_data):
         if i >= len(requirement_vectors): break
         
+        # Check if this is a skill group
+        is_group = s_data.get("is_group", False)
+        
         # Create JobSkillRequirement
         job_skill = JobSkillRequirement(
             id=uuid.uuid4(),
@@ -164,7 +167,12 @@ def save_job_skills(
             is_mandatory=s_data.get("is_mandatory", True),
             importance_weight=s_data.get("importance_weight", 5),
             embedding_context=ctx,
-            vector=requirement_vectors[i]
+            vector=requirement_vectors[i],
+            # NEW: Skill group fields
+            is_group=is_group,
+            group_strategy=s_data.get("group_strategy") if is_group else None,
+            alternative_skills=s_data.get("alternative_skills") if is_group else None,
+            min_required=s_data.get("min_required", 1) if is_group else None
         )
         db.add(job_skill)
         saved_count += 1

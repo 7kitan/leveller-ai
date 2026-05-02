@@ -41,9 +41,52 @@ def _indent_data(text: str) -> str:
     return "\n".join("    " + line for line in text.split("\n"))
 
 
+def _enrich_gaps_with_group_data(gap_analysis: dict, jd_requirements: list) -> dict:
+    """
+    Enrich gap analysis results with group metadata from original JD requirements.
+    Ensures 'is_group' and 'alternative_skills' are preserved even if LLM omits them.
+    """
+    if not gap_analysis or not jd_requirements:
+        return gap_analysis
+
+    skill_gaps = gap_analysis.get("skill_gaps") or []
+    if not skill_gaps:
+        return gap_analysis
+
+    # Create a map of JD requirements for fast lookup
+    # Normalize keys to lower case for better matching
+    req_map = {}
+    for req in jd_requirements:
+        skill_name = (req.get("skill") or req.get("skill_name") or req.get("group_name") or "").lower()
+        if skill_name:
+            req_map[skill_name] = req
+
+    enriched_gaps = []
+    for gap in skill_gaps:
+        gap_skill = (gap.get("skill") or "").lower()
+        req = req_map.get(gap_skill)
+        
+        if req:
+            # Enrich gap with group data from original requirement if not already present
+            if req.get("is_group"):
+                gap["is_group"] = True
+                if not gap.get("alternative_skills"):
+                    gap["alternative_skills"] = req.get("alternative_skills") or []
+            else:
+                # Ensure fields exist even for non-groups for schema consistency
+                if "is_group" not in gap:
+                    gap["is_group"] = False
+                if "alternative_skills" not in gap:
+                    gap["alternative_skills"] = []
+        enriched_gaps.append(gap)
+    
+    gap_analysis["skill_gaps"] = enriched_gaps
+    return gap_analysis
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # NODE 1: Load CV from DB
-# ══════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 
 async def load_cv_parsed_data_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3:
     """
@@ -330,21 +373,6 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
 
         gap_analysis_raw = result.get("gap_analysis") or {}
 
-        # Compute top_gaps inline
-        top_gaps_raw = gap_analysis_raw.get("top_gaps") or []
-        top_gaps: List[Any] = list(top_gaps_raw)
-        if not top_gaps:
-            skill_gaps_fallback = gap_analysis_raw.get("skill_gaps") or []
-            severity_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
-            top_gaps = sorted(
-                skill_gaps_fallback,
-                key=lambda g: (
-                    severity_order.get(g.get("severity") or "LOW", 2),
-                    -int(bool(g.get("is_critical"))),
-                    float(g.get("estimated_months") or 999),
-                ),
-            )[:3]
-
         gap_analysis = {
             **gap_analysis_raw,
             "match_breakdown": gap_analysis_raw.get("match_breakdown") or {},
@@ -353,7 +381,6 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
             "skill_gaps": list(gap_analysis_raw.get("skill_gaps") or []),
             "transferable_insights": list(gap_analysis_raw.get("transferable_insights") or []),
             "jd_context": jd_context,
-            "top_gaps": top_gaps,
         }
 
         # Build jd_parsed to match schema
@@ -373,6 +400,9 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
         except Exception as e:
             logger.warning(f"[STEP 3/PATH_A] Caching failed: {e}")
 
+        # Enrichment: Restore group data if LLM missed it
+        gap_analysis = _enrich_gaps_with_group_data(gap_analysis, pre_jd_requirements)
+        
         logger.info(f"[STEP 3] PATH A DONE | match={gap_analysis.get('overall_match_pct')}%")
 
         return {
@@ -470,21 +500,6 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
         jd_parsed = result.get("jd_parsed") or {}
         gap_analysis_raw = result.get("gap_analysis") or {}
 
-        # Compute top_gaps inline
-        top_gaps_raw = gap_analysis_raw.get("top_gaps") or []
-        top_gaps: List[Any] = list(top_gaps_raw)
-        if not top_gaps:
-            skill_gaps_fallback = gap_analysis_raw.get("skill_gaps") or []
-            severity_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
-            top_gaps = sorted(
-                skill_gaps_fallback,
-                key=lambda g: (
-                    severity_order.get(g.get("severity") or "LOW", 2),
-                    -int(bool(g.get("is_critical"))),
-                    float(g.get("estimated_months") or 999),
-                ),
-            )[:3]
-
         gap_analysis = {
             **gap_analysis_raw,
             "match_breakdown": gap_analysis_raw.get("match_breakdown") or {},
@@ -493,7 +508,6 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
             "skill_gaps": list(gap_analysis_raw.get("skill_gaps") or []),
             "transferable_insights": list(gap_analysis_raw.get("transferable_insights") or []),
             "jd_context": jd_context,
-            "top_gaps": top_gaps,
         }
 
         # BUG-022 FIX: Cache result to Redis with token usage
@@ -521,6 +535,9 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
             except Exception as e:
                 logger.warning(f"[STEP 3/PATH_B] Failed to persist JD extraction: {e}")
                 db.rollback()
+
+        # Enrichment: Restore group data if LLM missed it
+        gap_analysis = _enrich_gaps_with_group_data(gap_analysis, jd_parsed.get("requirements") or [])
 
         logger.info(f"[STEP 3/PATH_B] DONE | match={gap_analysis.get('overall_match_pct')}%")
 
@@ -619,6 +636,8 @@ def _build_merged_gap_prompt(cv_text: str, jd_text: str, language: str = "Vietna
         "\n\n"
         "## MISSION:\n"
         "1. EXTRACT: Analyze JD to identify requirements.\n"
+        "   - DETECT ALTERNATIVE SKILLS: If JD mentions 'or', 'hoặc', 'at least one of', or lists skills with slashes (e.g., 'Blender/Maya/3ds Max'), treat as a skill group.\n"
+        "   - For skill groups, set 'is_group': true, 'group_strategy': 'any_one', and list all alternatives in 'alternative_skills' array.\n"
         "2. CHAIN OF THOUGHT (CoT):\n"
         "   - Step 1: List all extracted JD requirements.\n"
         "   - Step 2: For each requirement, search the 'skills', 'summary', and 'work_history' in the CV JSON for evidence.\n"
@@ -628,34 +647,42 @@ def _build_merged_gap_prompt(cv_text: str, jd_text: str, language: str = "Vietna
         "   - NO HALLUCINATIONS: If evidence exists in CV, it is a MATCH. Do NOT assume skills not explicitly mentioned.\n"
         "   - NO LEVEL UPSCALING: If JD asks for Junior, Junior is a MATCH.\n"
         "   - STANDARDIZED LEVELS: Use only 'Beginner', 'Intermediate', or 'Advanced' for 'required_level'. If the JD specifies years (e.g. '5 years'), translate it to the appropriate level (e.g. 'Advanced').\n"
-        "4. RESPONSE STRUCTURE (for " + language + "):\n"
+        "   - SKILL GROUPS: For requirements with 'is_group': true:\n"
+        "     * Example: JD says 'Blender, Maya, or 3ds Max' → Extract as group with alternatives=['Blender', 'Maya', '3ds Max'].\n"
+        "       → If CV has 'Blender', it's a MATCH. Do NOT create gaps for 'Maya' or '3ds Max'.\n"
+        "     * If it is a GAP: You can list it as a group gap (e.g. '3D Modeling Software') but you MUST set 'is_group': true and provide all specific 'alternative_skills'. Alternatively, you can list the most relevant individual skill as the gap entry.\n"
+        "   - This represents the candidate's maximum potential for this role.\n"
+        "5. SCORING RULES (STRICT MATH):\n"
+        "   - Every JD requirement has an 'importance_weight' (1-10).\n"
+        "   - overall_match_pct = (Sum of weights of all MATCHED requirements / Sum of weights of ALL requirements) * 100.\n"
+        "   - match_breakdown (per category) = (Sum of weights of MATCHED requirements in this category / Sum of weights of ALL requirements in this category) * 100.\n"
+        "   - If a category has NO requirements in the JD, set its score to 100 (candidate meets the 'zero requirements' of that category).\n"
+        "5. RESPONSE STRUCTURE (for " + language + "):\n"
         "   - overall_assessment: Must be structured as follows:\n"
         "     1. Tóm tắt mức độ tương thích (High/Medium/Low).\n"
-        "     2. Lộ trình hành động: Liệt kê top 3 kỹ năng cần học ngay.\n"
+        "     2. Lộ trình hành động: Liệt kê top 3 kỹ năng cụ thể cần học ngay. CHÚ Ý: Sử dụng tên kỹ năng cụ thể (ví dụ: 'AWS', 'React'), TUYỆT ĐỐI không dùng tên nhóm kỹ năng chung chung (ví dụ: 'Cloud Platforms', 'Web Frameworks').\n"
         "     3. Lời khuyên tối ưu CV.\n"
-        "5. OUTPUT: Provide the result in the specified JSON format.\n\n"
+        "6. OUTPUT: Provide the result in the specified JSON format.\n\n"
         "## OUTPUT JSON SCHEMA:\n"
         "{\n"
         '  "thought_process": "Your step-by-step analytical reasoning in English",\n'
         '  "jd_parsed": {\n'
         '    "job_title": "...",\n'
         '    "requirements": [\n'
-        '      { "skill": "...", "target_level": "...", "years_required": number, "is_mandatory": boolean, "importance_weight": number }\n'
+        '      { "skill": "...", "target_level": "...", "years_required": number, "is_mandatory": boolean, "importance_weight": number, "is_group": boolean, "group_strategy": "any_one|at_least_n|all", "alternative_skills": ["..."], "min_required": number }\n'
         '    ]\n'
         '  },\n'
         '  "gap_analysis": {\n'
         '    "overall_match_pct": score 0-100,\n'
+        '    "potential_match_pct": score 0-100 (if all gaps are filled),\n'
         '    "overall_assessment": "summary in Vietnamese",\n'
         '    "match_breakdown": { "Technical Skills": 0-100, "Soft Skills": 0-100, "Tools & Frameworks": 0-100, "Domain Knowledge": 0-100, "Certifications": 0-100 },\n'
         '    "strengths": ["..."],\n'
         '    "weaknesses": ["..."],\n'
         '    "skill_gaps": [\n'
-        '       { "skill": "...", "category": "Technical Skills|Soft Skills|Tools & Frameworks|Domain Knowledge|Certifications", "required_level": "Beginner|Intermediate|Advanced", "severity": "...", "is_critical": boolean, "estimated_months": number, "reasoning": "Vietnamese", "learning_path": "Vietnamese" }\n'
+        '       { "skill": "...", "category": "Technical Skills|Soft Skills|Tools & Frameworks|Domain Knowledge|Certifications", "is_group": boolean, "alternative_skills": ["..."], "required_level": "Beginner|Intermediate|Advanced", "severity": "...", "is_critical": boolean, "estimated_months": number, "reasoning": "Vietnamese", "learning_path": "Vietnamese" }\n'
         '    ],\n'
-        '    "transferable_insights": ["..."],\n'
-        '    "top_gaps": [\n'
-        '       { "skill": "...", "category": "Technical Skills|Soft Skills|Tools & Frameworks|Domain Knowledge|Certifications", "required_level": "Beginner|Intermediate|Advanced", "severity": "...", "is_critical": boolean, "estimated_months": number, "learning_path": "Vietnamese" }\n'
-        '    ]\n'
+        '    "transferable_insights": ["..."]\n'
         '  }\n'
         "}\n\n"
         "Return ONLY valid JSON."
@@ -687,28 +714,34 @@ def _build_gap_only_prompt(
         "   - NO HALLUCINATIONS: Do not invent gaps. If CV lists the skill, it's a match. Do NOT assume skills not explicitly mentioned.\n"
         "   - NO LEVEL UPSCALING: Match Junior to Junior. Do not demand higher levels.\n"
         "   - STANDARDIZED LEVELS: Use only 'Beginner', 'Intermediate', or 'Advanced' for 'required_level'. If the JD specifies years (e.g. '5 years'), translate it to the appropriate level (e.g. 'Advanced').\n"
-        "3. RESPONSE STRUCTURE (for " + language + "):\n"
+        "       → If CV has 'Blender', it's a MATCH. Do NOT create gaps for 'Maya' or '3ds Max'.\n"
+        "     * If it is a GAP: Do NOT list the group name in 'skill_gaps'. Instead, identify the most relevant individual skills (e.g., 'AWS') from the alternatives and list them as individual gap entries.\n"
+        "   - This represents the candidate's maximum potential for this role.\n"
+        "4. SCORING RULES (STRICT MATH):\n"
+        "   - Every JD requirement has an 'importance_weight' (1-10).\n"
+        "   - overall_match_pct = (Sum of weights of all MATCHED requirements / Sum of weights of ALL requirements) * 100.\n"
+        "   - match_breakdown (per category) = (Sum of weights of MATCHED requirements in this category / Sum of weights of ALL requirements in this category) * 100.\n"
+        "   - If a category has NO requirements in the JD, set its score to 100 (candidate meets the 'zero requirements' of that category).\n"
+        "4. RESPONSE STRUCTURE (for " + language + "):\n"
         "   - overall_assessment: Must be structured as follows:\n"
         "     1. Tóm tắt mức độ tương thích (High/Medium/Low).\n"
-        "     2. Lộ trình hành động: Liệt kê top 3 kỹ năng cần học ngay.\n"
+        "     2. Lộ trình hành động: Liệt kê top 3 kỹ năng cụ thể cần học ngay. CHÚ Ý: Sử dụng tên kỹ năng cụ thể (ví dụ: 'AWS', 'React'), TUYỆT ĐỐI không dùng tên nhóm kỹ năng chung chung (ví dụ: 'Cloud Platforms', 'Web Frameworks').\n"
         "     3. Lời khuyên tối ưu CV.\n"
-        "4. OUTPUT: Provide the result in the specified JSON format.\n\n"
+        "5. OUTPUT: Provide the result in the specified JSON format.\n\n"
         "## OUTPUT JSON SCHEMA:\n"
         "{\n"
         '  "thought_process": "Your step-by-step analytical reasoning in English",\n'
         '  "gap_analysis": {\n'
         '    "overall_match_pct": score 0-100,\n'
+        '    "potential_match_pct": score 0-100 (if all gaps are filled),\n'
         '    "overall_assessment": "summary in Vietnamese",\n'
         '    "match_breakdown": { "Technical Skills": 0-100, "Soft Skills": 0-100, "Tools & Frameworks": 0-100, "Domain Knowledge": 0-100, "Certifications": 0-100 },\n'
         '    "strengths": ["..."],\n'
         '    "weaknesses": ["..."],\n'
         '    "skill_gaps": [\n'
-        '       { "skill": "...", "category": "Technical Skills|Soft Skills|Tools & Frameworks|Domain Knowledge|Certifications", "required_level": "Beginner|Intermediate|Advanced", "severity": "...", "is_critical": boolean, "estimated_months": number, "reasoning": "Vietnamese", "learning_path": "Vietnamese" }\n'
+        '       { "skill": "...", "category": "Technical Skills|Soft Skills|Tools & Frameworks|Domain Knowledge|Certifications", "is_group": boolean, "alternative_skills": ["..."], "required_level": "Beginner|Intermediate|Advanced", "severity": "...", "is_critical": boolean, "estimated_months": number, "reasoning": "Vietnamese", "learning_path": "Vietnamese" }\n'
         '    ],\n'
-        '    "transferable_insights": ["..."],\n'
-        '    "top_gaps": [\n'
-        '       { "skill": "...", "category": "Technical Skills|Soft Skills|Tools & Frameworks|Domain Knowledge|Certifications", "required_level": "Beginner|Intermediate|Advanced", "severity": "...", "is_critical": boolean, "estimated_months": number, "learning_path": "Vietnamese" }\n'
-        '    ]\n'
+        '    "transferable_insights": ["..."]\n'
         '  }\n'
         "}\n\n"
         "Return ONLY valid JSON."

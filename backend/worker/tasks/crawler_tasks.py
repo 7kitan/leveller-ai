@@ -2,12 +2,13 @@ import logging
 import re
 import time
 import os
+import uuid
 from worker.celery_app import celery_app
 from shared.scrapers.coursera import scrape_coursera_course
 from shared.scrapers.topcv import TopCVScraper
 from shared.database import SessionLocal
 from shared.models import Job, SystemSetting, Course
-from shared.llm_utils import get_embedding, build_job_embedding_context, normalize_location
+from shared.llm_utils import normalize_location
 from shared.skill_extraction import extract_and_save_job_skills
 from shared.system_logger import system_logger
 
@@ -33,8 +34,6 @@ def crawl_course_task(url: str, auto_save: bool = False):
                 return {"error": err}
             
             if auto_save:
-                import uuid
-                
                 db = SessionLocal()
                 try:
                     # Deduplication
@@ -134,7 +133,6 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False, extract_skills: 
             proxy_str = str(proxy_setting.value).strip()
             if proxy_str:
                 # Split by both comma and newline, then filter empty strings
-                import re
                 proxy_list = [p.strip() for p in re.split(r'[,\n\r]+', proxy_str) if p.strip()]
                 logger.info(f"[TOPCV CRAWLER] Loaded {len(proxy_list)} proxies from global PROXY_LIST")
         else:
@@ -185,30 +183,8 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False, extract_skills: 
             data['location_normalized'] = location_normalized
             logger.info(f"[TOPCV CRAWLER] Location normalized: '{location_raw}' → '{location_normalized}'")
             
-            # Generate Embedding - ONLY from requirements + job_description (NO title, location, company)
-            # Strategy: Vector search matches on skills/requirements, SQL filters on location/title
-            requirements = data.get('requirements', '')
-            job_description = data.get('job_description', '')
-            
-            # Build optimized embedding context using unified function
-            embedding_ctx = build_job_embedding_context(
-                requirements=requirements,
-                extracted_skills=None,  # Skills extracted later asynchronously
-                job_description=job_description
-            )
-            
-            if not embedding_ctx:
-                logger.warning(f"⚠️ [TOPCV CRAWLER] No content for embedding for {source_id}, using fallback")
-                embedding_ctx = f"Job requirements not available. Description: {job_description[:200] if job_description else 'N/A'}"
-            
-            # Generate embedding with cost logging
-            logger.info(f"[TOPCV CRAWLER] Generating embedding for {source_id}...")
-            vector = get_embedding(embedding_ctx, log_cost=True)
-            
-            # Save
+            # Save job
             job = Job(**data)
-            job.embedding_context = embedding_ctx
-            job.vector = vector
             
             db.add(job)
             db.flush()  # Get job.id before commit
@@ -366,25 +342,8 @@ def crawl_single_job_url_task(url: str):
         location_normalized = normalize_location(location_raw)
         data['location_normalized'] = location_normalized
         
-        # Generate embedding
-        requirements = data.get('requirements', '')
-        job_description = data.get('job_description', '')
-        
-        embedding_ctx = build_job_embedding_context(
-            requirements=requirements,
-            extracted_skills=None,
-            job_description=job_description
-        )
-        
-        if not embedding_ctx:
-            embedding_ctx = f"Job requirements not available. Description: {job_description[:200] if job_description else 'N/A'}"
-        
-        vector = get_embedding(embedding_ctx, log_cost=True)
-        
         # Save to database
         job = Job(**data)
-        job.embedding_context = embedding_ctx
-        job.vector = vector
         
         db.add(job)
         db.flush()

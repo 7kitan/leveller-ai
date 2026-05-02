@@ -152,24 +152,16 @@ WHERE vector IS NOT NULL;
 COMMIT;
 
 -- ============================================================================
--- Verify indexes were created
--- ============================================================================
-SELECT 
-    schemaname,
-    tablename,
-    indexname,
-    pg_size_pretty(pg_relation_size(indexrelid)) as index_size
-FROM pg_indexes 
-JOIN pg_class ON pg_class.relname = indexname
-WHERE schemaname = 'public' 
-  AND indexname LIKE 'idx_%'
-ORDER BY tablename, indexname;
-
--- ============================================================================
 -- Performance Tips:
 -- ============================================================================
 -- 1. Run ANALYZE after creating indexes to update statistics
 -- 2. Monitor query performance with EXPLAIN ANALYZE
 -- 3. Consider REINDEX if indexes become bloated over time
 -- 4. Use pg_stat_user_indexes to monitor index usage
+-- 
+-- To verify indexes were created, run:
+-- SELECT schemaname, tablename, indexname 
+-- FROM pg_indexes 
+-- WHERE schemaname = 'public' AND indexname LIKE 'idx_%'
+-- ORDER BY tablename, indexname;
 -- ============================================================================

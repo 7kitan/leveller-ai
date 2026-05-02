@@ -35,7 +35,7 @@ def is_user_over_limit(user_id: str, db: Session) -> bool:
     # 1. Lấy giới hạn: Ưu tiên override trên user, nếu không dùng global setting
     limit = user.daily_token_limit
     if limit <= 0:
-        limit = int(config_manager.get_setting("USER_DAILY_TOKEN_LIMIT", 50000))
+        limit = int(config_manager.get_setting("USER_TOKEN_LIMIT", 500000))
     
     # 2. Lấy usage hiện tại
     usage = get_user_daily_usage(user_id, db)

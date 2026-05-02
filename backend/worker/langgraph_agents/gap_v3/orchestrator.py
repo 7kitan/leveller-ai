@@ -121,14 +121,32 @@ async def run_gap_analysis_v3(
                     for jsr in job_record.skills_required:
                         # Join with Skill to get the name
                         skill_name = jsr.skill.name if jsr.skill else "Unknown Skill"
-                        assembled_reqs.append({
-                            "type": "skill",
-                            "skill": skill_name,
-                            "target_level": jsr.required_level or "Junior",
-                            "years_required": jsr.min_years_exp or 0,
-                            "is_mandatory": jsr.is_mandatory,
-                            "importance_weight": jsr.importance_weight or 5
-                        })
+                        
+                        # Check if this is a skill group
+                        if jsr.is_group:
+                            # Skill group: user needs ANY ONE (or N) from alternatives
+                            assembled_reqs.append({
+                                "type": "group",
+                                "skill": skill_name,  # Group name (e.g., "3D Modeling Software")
+                                "is_group": True,
+                                "group_strategy": jsr.group_strategy,
+                                "alternative_skills": jsr.alternative_skills or [],
+                                "min_required": jsr.min_required or 1,
+                                "target_level": jsr.required_level or "Junior",
+                                "years_required": jsr.min_years_exp or 0,
+                                "is_mandatory": jsr.is_mandatory,
+                                "importance_weight": jsr.importance_weight or 5
+                            })
+                        else:
+                            # Individual skill (existing logic)
+                            assembled_reqs.append({
+                                "type": "skill",
+                                "skill": skill_name,
+                                "target_level": jsr.required_level or "Junior",
+                                "years_required": jsr.min_years_exp or 0,
+                                "is_mandatory": jsr.is_mandatory,
+                                "importance_weight": jsr.importance_weight or 5
+                            })
                     pre_jd_requirements = assembled_reqs
                     _logger.info(f"[ORCHESTRATOR] ✓ Assembled {len(pre_jd_requirements)} requirements from separate DB columns.")
 
