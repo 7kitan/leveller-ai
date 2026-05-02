@@ -1116,105 +1116,150 @@
   letter-spacing: -0.04em;
 }
 
-/* ── PIPELINE STEPS ─────────────────────────────────────── */
+/* ── STEP PROGRESS (VERTICAL CENTERED) ──────────────────── */
+.stepsContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+  padding: 1rem 1rem 0.5rem;
+}
+
 .stepsList {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  align-items: flex-start;
+  gap: 0.625rem;
   width: 100%;
-  padding: 0 0.5rem;
+  max-width: 16rem;
 }
 
 .stepItem {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 0;
-  opacity: 0.3;
-  transition: opacity 0.3s;
-  position: relative;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  width: 100%;
 }
 
-.stepItem + .stepItem::before {
-  content: "";
-  position: absolute;
-  left: 0.45rem;
-  top: -0.75rem;
-  height: 0.75rem;
-  width: 2px;
-  background-color: var(--color-border-subtle);
+.stepItemActive {
+  opacity: 1;
 }
-
-.stepItemActive { opacity: 1; }
 
 .stepItemDone {
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
-.stepDot {
+.stepItemPending {
+  opacity: 0.35;
+}
+
+.progressDot {
   width: 1rem;
   height: 1rem;
   border-radius: 9999px;
   border: 2px solid var(--color-border-subtle);
   flex-shrink: 0;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.stepDotActive {
+.progressDotActive {
   border-color: var(--color-primary);
   background-color: var(--color-primary);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 15%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+  animation: pulse 2s ease-in-out infinite;
 }
 
-.stepDotDone {
+.progressDotDone {
   border-color: var(--color-success);
   background-color: var(--color-success);
 }
 
 .stepLabel {
   font-size: var(--font-size-small);
-  font-weight: 900;
-  color: var(--color-text-muted);
-  transition: color 0.3s;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  flex: 1;
 }
 
-.stepItemActive .stepLabel { color: var(--color-text-primary); }
+.stepItemActive .stepLabel {
+  font-weight: 900;
+}
 
 .stepCheck {
-  color: var(--color-success);
-  margin-left: auto;
+  color: white;
   flex-shrink: 0;
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+.stepCounter {
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* ── PROGRESS BAR (INLINE) ──────────────────────────────── */
+.progressSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 1rem;
 }
 
 .progressBarWrap {
   width: 100%;
-  height: 0.5rem;
+  height: 0.625rem;
   background-color: color-mix(in srgb, var(--color-text-primary) 4%, transparent);
   border-radius: 9999px;
   overflow: hidden;
+  position: relative;
 }
 
-.progressBarWrap {
-  width: 100%;
-  border-radius: 9999px;
-  background-color: color-mix(in srgb, var(--color-text-primary) 4%, transparent);
-  height: 0.5rem;
-  overflow: hidden;
+[data-theme="dark"] .progressBarWrap {
+  background-color: color-mix(in srgb, var(--color-bg-elevated) 8%, transparent);
 }
 
 .progressFill {
   height: 100%;
-  /* gradient removed - use solid color instead */ background: var(--color-primary);
+  background: var(--color-primary);
   border-radius: 9999px;
   transition: width 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.progressFill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, white 20%, transparent), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .progressPct {
   font-size: var(--font-size-small);
   font-weight: 900;
   color: var(--color-text-muted);
-  opacity: 0.4;
-  align-self: flex-end;
+  opacity: 0.5;
+  text-align: center;
 }
 
 .processingSub {
@@ -1279,53 +1324,154 @@
   transition: width 0.4s ease;
 }
 
-.asyncActions {
+/* ── UNIFIED MESSAGE AREA ──────────────────────────────── */
+.unifiedMessage {
   display: flex;
-  gap: 1.5rem;
-  margin-top: 3rem;
-  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1.5rem;
+  min-height: 6rem;
+  text-align: center;
+  justify-content: center;
 }
 
-.notifyBtn, .cancelBtn {
-  flex: 1;
+.primaryMessage {
+  font-size: var(--font-size-label);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.secondaryMessage {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+  line-height: 1.6;
+}
+
+/* ── COLLAPSIBLE DETAILS ──────────────────────────────── */
+.detailsSection {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.detailsToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0.4;
+}
+
+.detailsToggle:hover {
+  opacity: 0.8;
+}
+
+.detailsToggleIcon {
+  transition: transform 0.3s ease;
+}
+
+.detailsToggleOpen .detailsToggleIcon {
+  transform: rotate(180deg);
+}
+
+.detailsContent {
+  padding: 1rem 1.5rem;
+  background: color-mix(in srgb, var(--color-text-primary) 2%, transparent);
+  border-radius: var(--radius-md);
+  margin-top: 0.5rem;
+}
+
+[data-theme="dark"] .detailsContent {
+  background: color-mix(in srgb, var(--color-bg-elevated) 3%, transparent);
+}
+
+.detailsContent p {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  line-height: 1.6;
+  opacity: 0.7;
+  margin: 0;
+}
+
+.detailsContent code {
+  font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+  font-size: var(--font-size-small);
+  opacity: 0.8;
+  word-break: break-all;
+}
+
+/* ── SIMPLIFIED ACTIONS ──────────────────────────────── */
+.primaryAction {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  padding: 1rem;
+  padding: 1.125rem 2rem;
+  background: var(--color-primary);
+  color: white;
   border-radius: var(--radius-md);
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-base);
   font-weight: 900;
-  transition: all 0.3s ease;
+  border: none;
   cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
-.notifyBtn {
-  background-color: color-mix(in srgb, var(--color-primary) 5%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 10%, transparent);
-  color: var(--color-primary);
+.primaryAction:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
-.notifyBtn:hover:not(:disabled) {
-  background-color: var(--color-primary);
-  color: white;
+.primaryAction:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.notifyBtnDone {
-  background-color: var(--color-success);
-  color: white;
-  border-color: var(--color-success);
+.primaryActionSuccess {
+  background: var(--color-success);
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--color-success) 25%, transparent);
 }
 
-.cancelBtn {
-  background-color: color-mix(in srgb, var(--color-error) 5%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-error) 10%, transparent);
+.secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  background: none;
+  border: 1.5px solid var(--color-error);
+  border-radius: var(--radius-md);
   color: var(--color-error);
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 0.75rem;
+  opacity: 0.7;
 }
 
-.cancelBtn:hover {
-  background-color: var(--color-error);
-  color: white;
+.secondaryAction:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--color-error) 5%, transparent);
 }
 
 .leaveHint {

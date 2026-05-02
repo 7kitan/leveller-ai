@@ -18,6 +18,7 @@ import {
   Plus,
   X,
   Target,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import styles from "./user-analysis.module.css";
@@ -100,6 +101,7 @@ function AnalysisPageContent() {
   const [spamIndex, setSpamIndex] = useState(0);
   const [processingTime, setProcessingTime] = useState(0);
   const [showTimeoutOverlay, setShowTimeoutOverlay] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const spamMessages = [
     t("analysis_msg_1"),
@@ -593,65 +595,131 @@ function AnalysisPageContent() {
         />
 
         <div className={styles.processingCard}>
-          <div className={styles.scanLoaderContainer}>
-            <ScanLineLoader size={120} className={styles.scanLoader} />
-          </div>
-
-          <div className={styles.stepsList}>
-            {PIPELINE_STEPS.map((s, i) => (
-              <div
-                key={s.key}
-                className={cn(
-                  styles.stepItem,
-                  currentStep >= i && styles.stepItemActive,
-                  currentStep > i && styles.stepItemDone
-                )}
-              >
-                <div
-                  className={cn(
-                    styles.stepDot,
-                    currentStep > i && styles.stepDotDone,
-                    currentStep === i && styles.stepDotActive
-                  )}
-                />
-                <span className={styles.stepLabel}>{t(s.label as any)}</span>
-                {currentStep > i && (
-                  <CheckCircle2 size={14} className={styles.stepCheck} />
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className={styles.progressBarWrap}>
-            <div
-              className={styles.progressFill}
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <div className={styles.progressPct}>{progress}%</div>
-          
-          <div className={styles.granularMessage}>
+          {/* Unified Message Area */}
+          <div className={styles.unifiedMessage}>
             <AnimatePresence mode="wait">
-              <motion.span
+              <motion.div
                 key={spamIndex}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.5 }}
-                className={styles.spamText}
+                className={styles.primaryMessage}
               >
                 {spamMessages[spamIndex]}
-              </motion.span>
+              </motion.div>
             </AnimatePresence>
-          </div>
-          
-          <div className={styles.backendMessage}>
-            {processMessage}
+            {processMessage && (
+              <div className={styles.secondaryMessage}>
+                {processMessage}
+              </div>
+            )}
           </div>
 
-          <p className={styles.processingSub}>
-            {t("task_id_label")}: <code>{taskId}</code> | Time: {processingTime}s
-          </p>
+          {/* Scan Line Loader */}
+          <div className={styles.scanLoaderContainer}>
+            <ScanLineLoader size={120} className={styles.scanLoader} />
+          </div>
+
+          {/* Step Progress */}
+          <div className={styles.stepsContainer}>
+            <div className={styles.stepsList}>
+              {PIPELINE_STEPS.map((s, i) => {
+                const isDone = currentStep > i;
+                const isActive = currentStep === i;
+                const isPending = currentStep < i;
+                
+                return (
+                  <div
+                    key={s.key}
+                    className={cn(
+                      styles.stepItem,
+                      isActive && styles.stepItemActive,
+                      isDone && styles.stepItemDone,
+                      isPending && styles.stepItemPending
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        styles.progressDot,
+                        isActive && styles.progressDotActive,
+                        isDone && styles.progressDotDone
+                      )}
+                    >
+                      {isDone && (
+                        <CheckCircle2 size={10} className={styles.stepCheck} />
+                      )}
+                    </div>
+                    <span className={styles.stepLabel}>{t(s.label as any)}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className={styles.stepCounter}>
+              Step {currentStep + 1} of {PIPELINE_STEPS.length}
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className={styles.progressSection}>
+            <div className={styles.progressBarWrap}>
+              <div
+                className={styles.progressFill}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <div className={styles.progressPct}>{progress}%</div>
+          </div>
+
+          {/* Primary Action */}
+          <button
+            onClick={handleNotify}
+            disabled={notified}
+            className={cn(
+              styles.primaryAction,
+              notified && styles.primaryActionSuccess
+            )}
+          >
+            {notified ? <CheckCircle2 size={18} /> : <Zap size={18} />}
+            {notified ? t("will_notify") : t("notify_me")}
+          </button>
+
+          {/* Secondary Action */}
+          <button onClick={handleCancel} className={styles.secondaryAction}>
+            {t("stop_analysis")}
+          </button>
+
+          {/* Collapsible Details */}
+          <div className={styles.detailsSection}>
+            <button
+              onClick={() => setShowDetails(!showDetails)}
+              className={cn(
+                styles.detailsToggle,
+                showDetails && styles.detailsToggleOpen
+              )}
+            >
+              <span>Details</span>
+              <ChevronDown size={14} className={styles.detailsToggleIcon} />
+            </button>
+            {showDetails && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className={styles.detailsContent}
+              >
+                <p>
+                  {t("task_id_label")}: <code>{taskId}</code>
+                </p>
+                <p>
+                  Time: {processingTime}s
+                </p>
+                <p style={{ marginTop: "0.5rem", fontSize: "var(--font-size-small)" }}>
+                  {t("processing_hint")}
+                </p>
+              </motion.div>
+            )}
+          </div>
 
           {/* Timeout Overlay Dialog */}
           <Modal
@@ -678,25 +746,6 @@ function AnalysisPageContent() {
               </div>
             </div>
           </Modal>
-
-          <div className={styles.asyncActions}>
-            <button
-              onClick={handleNotify}
-              disabled={notified}
-              className={cn(styles.notifyBtn, notified && styles.notifyBtnDone)}
-            >
-              {notified ? <CheckCircle2 size={16} /> : <Zap size={16} />}
-              {notified ? t("will_notify") : t("notify_me")}
-            </button>
-            <button onClick={handleCancel} className={styles.cancelBtn}>
-              <X size={16} />
-              {t("stop_analysis")}
-            </button>
-          </div>
-
-          <div className={styles.leaveHint}>
-            <p>{t("processing_hint")}</p>
-          </div>
         </div>
       </PageContainer>
     );
