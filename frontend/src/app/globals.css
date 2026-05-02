@@ -5,34 +5,34 @@
      * ============================================================================
      * ARTEMIS/ARROW - OKLCH COLOR SYSTEM
      * ============================================================================
-     * 
+     *
      * LUNAR SILVER-BLUE: Precision, clarity, and aspiration
      * Inspired by Artemis (moon goddess) and the arrow (focused direction)
-     * 
+     *
      * This is the SINGLE SOURCE OF TRUTH for all colors in the application.
-     * 
+     *
      * USAGE RULES:
      * ✅ DO: Use semantic aliases (--color-bg-primary, --color-text-primary)
      * ✅ DO: Use scale values for specific needs (--color-accent-300)
      * ✅ DO: Use color-mix() for transparency (works in dark mode)
      * ❌ DON'T: Create local color variables in component CSS
      * ❌ DON'T: Use hardcoded hex, rgb, or named colors
-     * 
+     *
      * OKLCH BENEFITS:
      * - Perceptually uniform (consistent brightness across hues)
      * - Perfect dark mode (invert lightness, maintain chroma/hue)
      * - Better accessibility (predictable contrast ratios)
      * - Smaller palette (fewer colors needed)
-     * 
+     *
      * COLOR SCALES:
      * - Accent (Lunar Silver-Blue): Brand identity, primary actions - 10 shades
      * - Neutral (Warm): Backgrounds, text, borders - 10 shades
      * - Semantic: Success, Warning, Error, Info - 3 shades each
-     * 
+     *
      * SEMANTIC ALIASES:
      * Use these 90% of the time for consistency. They automatically adjust
      * for dark mode via [data-theme="dark"] overrides.
-     * 
+     *
      * ============================================================================
      */
 
@@ -73,7 +73,7 @@
      * Success, Warning, Error, Info - 3 key shades each
      * Lower chroma for sophisticated, minimalist aesthetic
      * ======================================================================== */
-    
+
     /* Success (Muted Green) - Success states, positive actions */
     --color-success-light: oklch(0.85 0.08 150);  /* Success backgrounds */
     --color-success: oklch(0.60 0.12 150);        /* Success default */
@@ -537,6 +537,7 @@
     .text-premium-gradient {
         background: linear-gradient(180deg, var(--color-text-primary) 0%, rgba(255, 255, 255, 0.4) 100%);
         -webkit-background-clip: text;
+        background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 

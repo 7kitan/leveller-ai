@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Lato } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -13,9 +14,19 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk" 
 });
 
-const lato = Lato({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "700"],
+const lato = localFont({
+  src: [
+    {
+      path: "../fonts/Lato Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../fonts/Lato Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-lato",
 });
 
