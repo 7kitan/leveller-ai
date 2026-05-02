@@ -238,10 +238,70 @@ async def start_gap_analysis(
     from shared.email_utils import notify_queue_delay
     from shared.config_utils import config_manager
     from shared.quota_manager import quota_manager
+    from shared.llm_utils import extract_skills_from_requirements
     
     user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    # ── CLASSIFY JOB TYPE (for custom JD text) ──────────────────
+    # If user provides custom JD text, classify it first to reject non-tech jobs
+    if req.jd_text:
+        logger.info(f"[ANALYSIS GAP] Classifying custom JD text ({len(req.jd_text)} chars)")
+        
+        classification_result = extract_skills_from_requirements(req.jd_text)
+        
+        if classification_result and not classification_result.get("is_tech_job", True):
+            logger.warning(
+                f"[ANALYSIS GAP] Non-tech job rejected: "
+                f"domain={classification_result.get('primary_domain')}, "
+                f"confidence={classification_result.get('confidence', 0):.2f}"
+            )
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error_code": "NON_TECH_JOB",
+                    "message": "Hệ thống chỉ hỗ trợ phân tích công việc trong lĩnh vực công nghệ.",
+                    "english_message": "This system only supports tech job analysis.",
+                    "classification": {
+                        "is_tech": False,
+                        "confidence": classification_result.get("confidence", 0),
+                        "primary_domain": classification_result.get("primary_domain", "Unknown"),
+                        "reason": classification_result.get("classification_reason", "")
+                    },
+                    "suggestion": "Vui lòng cung cấp mô tả công việc kỹ thuật (Software Engineer, Developer, Data Scientist, DevOps, v.v.)"
+                }
+            )
+        
+        logger.info(
+            f"[ANALYSIS GAP] Tech job confirmed: "
+            f"domain={classification_result.get('primary_domain')}, "
+            f"confidence={classification_result.get('confidence', 0):.2f}"
+        )
+    
+    # ── Check if job_id refers to non-tech job ──────────────────
+    if req.job_id:
+        job = db.query(Job).filter(Job.id == req.job_id).first()
+        if job and not job.is_tech_job:
+            logger.warning(
+                f"[ANALYSIS GAP] Non-tech job in DB rejected: "
+                f"job_id={req.job_id}, domain={job.job_primary_domain}"
+            )
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error_code": "NON_TECH_JOB",
+                    "message": "Công việc này không thuộc lĩnh vực công nghệ.",
+                    "english_message": "This job is not in the tech domain.",
+                    "classification": {
+                        "is_tech": False,
+                        "confidence": job.job_classification_confidence or 0,
+                        "primary_domain": job.job_primary_domain or "Unknown",
+                        "reason": job.job_classification_reason or ""
+                    },
+                    "suggestion": "Vui lòng chọn công việc kỹ thuật khác để phân tích."
+                }
+            )
 
     if not quota_manager.check_analysis_quota(user, db):
         limit = quota_manager.get_analysis_limit(user)
@@ -1603,6 +1663,194 @@ def get_market_stats(
 
 
 # ─── Health Check ───────────────────────────────────────────────────────────
+
+@app.get("/market/skill-trend/{skill_name}")
+def get_skill_market_trend(
+    skill_name: str,
+    period: str = Query("weekly", regex="^(weekly|monthly)$"),
+    duration: int = Query(4, ge=1, le=12),
+    db: Session = Depends(get_db)
+):
+    """
+    Get historical demand trend for a specific skill (aggregated by week/month).
+    
+    Args:
+        skill_name: Name of the skill (e.g., "Python", "Docker")
+        period: Aggregation period - "weekly" or "monthly" (default: weekly)
+        duration: Number of periods to look back (default: 4)
+    
+    Returns:
+        Trend data with demand scores and job counts over time
+    """
+    try:
+        from shared.market_stats_utils import get_skill_trend_weekly, get_skill_trend_monthly
+        
+        if period == "weekly":
+            data = get_skill_trend_weekly(db, skill_name, weeks=duration)
+        else:  # monthly
+            data = get_skill_trend_monthly(db, skill_name, months=duration)
+        
+        if not data:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No historical data found for skill '{skill_name}'"
+            )
+        
+        return {
+            "skill_name": skill_name,
+            "period": period,
+            "duration": duration,
+            "data": data
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get skill trend for {skill_name}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve skill trend: {str(e)}")
+
+
+@app.get("/market/skill-trend-daily/{skill_name}")
+def get_skill_trend_daily_endpoint(
+    skill_name: str,
+    days: int = Query(7, ge=1, le=90),
+    db: Session = Depends(get_db)
+):
+    """
+    Get daily demand data for a specific skill (not aggregated).
+    
+    Use this endpoint for daily charts (e.g., 7-day chart with 7 data points).
+    
+    Args:
+        skill_name: Name of the skill (e.g., "Python", "Docker")
+        days: Number of days to look back (1-90, default: 7)
+    
+    Returns:
+        Daily data points with demand scores for each day
+        
+    Example:
+        GET /market/skill-trend-daily/Python?days=7
+        Returns 7 daily data points for the last 7 days
+    """
+    try:
+        from shared.market_stats_utils import get_skill_trend_daily
+        
+        data = get_skill_trend_daily(db, skill_name, days=days)
+        
+        if not data:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No data found for skill '{skill_name}' in the last {days} days"
+            )
+        
+        return {
+            "skill_name": skill_name,
+            "days": days,
+            "data_points": len(data),
+            "data": data
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get daily trend for {skill_name}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve daily trend: {str(e)}")
+
+
+@app.get("/market/trending-skills")
+def get_trending_skills_endpoint(
+    period_days: int = Query(30, ge=7, le=90),
+    limit: int = Query(10, ge=1, le=50),
+    min_demand: float = Query(5.0, ge=0, le=100),
+    db: Session = Depends(get_db)
+):
+    """
+    Get top trending skills by growth rate.
+    
+    Args:
+        period_days: Period to calculate growth over (7-90 days, default: 30)
+        limit: Maximum number of skills to return (1-50, default: 10)
+        min_demand: Minimum current demand % to be considered (default: 5%)
+    
+    Returns:
+        List of trending skills with growth rates and current demand
+    """
+    try:
+        from shared.market_stats_utils import get_top_trending_skills
+        
+        trending = get_top_trending_skills(
+            db,
+            period_days=period_days,
+            limit=limit,
+            min_current_demand=min_demand
+        )
+        
+        return {
+            "period_days": period_days,
+            "min_demand_threshold": min_demand,
+            "trending_skills": trending
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get trending skills: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve trending skills: {str(e)}")
+
+
+class SkillComparisonRequest(BaseModel):
+    skill_names: List[str] = Field(..., min_items=2, max_items=10)
+
+
+@app.post("/market/compare")
+def compare_skills_post(
+    request: SkillComparisonRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Compare multiple skills side-by-side.
+    
+    Request body:
+        {
+            "skill_names": ["Python", "Java", "JavaScript"]
+        }
+    
+    Returns:
+        Comparison data for each skill including demand, growth, salary
+    """
+    try:
+        from shared.market_stats_utils import get_skill_comparison
+        
+        comparison = get_skill_comparison(db, request.skill_names)
+        
+        return comparison
+        
+    except Exception as e:
+        logger.error(f"Failed to compare skills: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to compare skills: {str(e)}")
+
+
+@app.get("/market/overview")
+def get_market_overview_endpoint(db: Session = Depends(get_db)):
+    """
+    Get overall market statistics and overview.
+    
+    Returns:
+        - total_skills_tracked: Total number of skills in database
+        - avg_market_demand: Average demand across all skills
+        - high_demand_skills_count: Number of skills with >10% demand
+        - growing_skills_count: Number of skills with positive growth
+        - top_5_skills: Top 5 most demanded skills
+    """
+    try:
+        from shared.market_stats_utils import get_market_overview
+        
+        overview = get_market_overview(db)
+        
+        return overview
+        
+    except Exception as e:
+        logger.error(f"Failed to get market overview: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve market overview: {str(e)}")
+
 
 @app.get("/analysis/health")
 def health_check():

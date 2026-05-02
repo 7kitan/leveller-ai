@@ -211,10 +211,11 @@ class RequirementRetriever:
     async def _ai_extract(self, jd_text: str, user_id: Optional[str] = None) -> List[Dict[str, Any]]:
         prompt = f"""
         YOU ARE A SENIOR TECHNICAL RECRUITMENT EXPERT.
-        Extract the required technical skills from the following Job Description (JD).
+        Extract the required skills from the following Job Description (JD).
         
-        STRICT SCOPE: Extract ONLY pure technology skills.
-        DO NOT extract soft skills, spoken languages, or general methodologies.
+        EXTRACT BOTH:
+        1. TECHNICAL SKILLS: Programming languages, frameworks, tools, databases, cloud platforms, etc.
+        2. SOFT SKILLS: Communication, leadership, teamwork, problem-solving, time management, adaptability, etc.
         
         CRITICAL RULES:
         1. NAME PRECISION: Extract specific technical names (e.g., 'SQL', 'ReactJS', 'Node.js') rather than generic categories (e.g., 'Database Technologies', 'Frontend Frameworks', 'Web Development').
@@ -229,12 +230,19 @@ class RequirementRetriever:
              a. Set "years_required" to 0.
              b. Set "target_level" to "Junior".
            - DO NOT hallucinate years. Only capture what is explicitly written. Use 0 as the safe minimum.
+        5. SOFT SKILLS: Extract explicitly mentioned soft skills like:
+           - Communication skills (presentation, written/verbal communication, English proficiency)
+           - Leadership (team leadership, mentoring, decision making)
+           - Teamwork (collaboration, cross-functional work)
+           - Problem solving (analytical thinking, critical thinking, troubleshooting)
+           - Time management (prioritization, meeting deadlines)
+           - Adaptability (learning agility, flexibility, growth mindset)
 
         JD CONTENT: 
         {jd_text}
 
-        5. FEW-SHOT EXAMPLE:
-           Input: "Kinh nghiệm với VueJS/ReactJS 2 năm và hiểu biết về Docker, REST API"
+        6. FEW-SHOT EXAMPLE:
+           Input: "Kinh nghiệm với VueJS/ReactJS 2 năm và hiểu biết về Docker, REST API. Cần có kỹ năng giao tiếp tốt và làm việc nhóm."
            Expected Output:
            {{
              "requirements": [
@@ -243,34 +251,51 @@ class RequirementRetriever:
                  "group_name": "Frontend Alternatives",
                  "group_strategy": "exclusive",
                  "skills": [
-                   {{"skill": "VueJS", "target_level": "Mid-level", "years_required": 2}},
-                   {{"skill": "ReactJS", "target_level": "Mid-level", "years_required": 2}}
+                   {{"skill": "VueJS", "target_level": "Mid-level", "years_required": 2, "skill_type": "technical"}},
+                   {{"skill": "ReactJS", "target_level": "Mid-level", "years_required": 2, "skill_type": "technical"}}
                  ]
                }},
                {{
                  "type": "skill",
                  "skill": "Docker",
                  "target_level": "Junior",
-                 "years_required": 0
+                 "years_required": 0,
+                 "skill_type": "technical"
                }},
                {{
                  "type": "skill",
                  "skill": "REST API",
                  "target_level": "Junior",
-                 "years_required": 0
+                 "years_required": 0,
+                 "skill_type": "technical"
+               }},
+               {{
+                 "type": "skill",
+                 "skill": "Communication",
+                 "target_level": null,
+                 "years_required": 0,
+                 "skill_type": "soft"
+               }},
+               {{
+                 "type": "skill",
+                 "skill": "Teamwork",
+                 "target_level": null,
+                 "years_required": 0,
+                 "skill_type": "soft"
                }}
              ]
            }}
 
-        6. JSON FORMAT: Return a JSON object with the key "requirements". Each element must contain:
+        7. JSON FORMAT: Return a JSON object with the key "requirements". Each element must contain:
            - type: "skill" or "group"
-           - skill: Specific name (e.g., "PostgreSQL", NOT "Database")
+           - skill: Specific name (e.g., "PostgreSQL", "Communication", NOT "Database" or "Soft Skills")
            - group_strategy: "inclusive" or "exclusive"
            - skills: List of sub-skills (if type is "group").
-           - target_level: (Junior, Mid-level, Senior, Expert)
+           - target_level: (Junior, Mid-level, Senior, Expert) or null for soft skills
            - years_required: integer (Default to 0 if not mentioned)
            - is_primary: true (mandatory) or false (optional)
            - importance_weight: 1-10 (default 5).
+           - skill_type: "technical" or "soft"
 
         Return ONLY valid JSON.
         """
@@ -321,6 +346,7 @@ class RequirementRetriever:
                                     else True,
                                     "importance_weight": r.get("importance_weight")
                                     or 5,
+                                    "skill_type": s.get("skill_type", "technical"),
                                 }
                             )
                         continue
@@ -332,6 +358,7 @@ class RequirementRetriever:
                                 "skill": s.get("skill"),
                                 "target_level": s.get("target_level") or "Junior",
                                 "years_required": s.get("years_required", 0),
+                                "skill_type": s.get("skill_type", "technical"),
                             }
                         )
                     normalized_reqs.append(
@@ -345,6 +372,7 @@ class RequirementRetriever:
                             if r.get("is_primary") is not None
                             else True,
                             "importance_weight": r.get("importance_weight") or 5,
+                            "skill_type": r.get("skill_type", "technical"),
                         }
                     )
                 else:
@@ -385,6 +413,7 @@ class RequirementRetriever:
                                         "years_required": r.get(
                                             "years_required", 0
                                         ),
+                                        "skill_type": r.get("skill_type", "technical"),
                                     }
                                 )
                             normalized_reqs.append(
@@ -398,6 +427,7 @@ class RequirementRetriever:
                                     else True,
                                     "importance_weight": r.get("importance_weight")
                                     or 5,
+                                    "skill_type": r.get("skill_type", "technical"),
                                 }
                             )
                             continue
@@ -412,6 +442,7 @@ class RequirementRetriever:
                             if r.get("is_primary") is not None
                             else True,
                             "importance_weight": r.get("importance_weight") or 5,
+                            "skill_type": r.get("skill_type", "technical"),
                         }
                     )
             return normalized_reqs

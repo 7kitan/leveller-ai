@@ -140,6 +140,14 @@ class Job(Base):
     indexed_at = Column(DateTime(timezone=True))
     last_analyzed_at = Column(DateTime(timezone=True))
     extracted_requirements_json = Column(JSON)  # Lưu kết quả bóc tách từ LLM
+    
+    # Job classification fields (tech vs non-tech)
+    is_tech_job = Column(Boolean, default=True, nullable=False, index=True)
+    job_classification_confidence = Column(Float)  # 0.0-1.0
+    job_primary_domain = Column(String(100))  # "Software Engineering", "Sales", etc.
+    job_classification_reason = Column(Text)  # Why classified as tech/non-tech
+    classified_at = Column(DateTime(timezone=True))  # When classification was done
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

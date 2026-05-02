@@ -315,12 +315,17 @@ async def _llm_select_courses_and_roadmap_unified(
         "## PAID COURSE CANDIDATES:\n" + candidates_context + "\n\n"
         "## FREE YOUTUBE CANDIDATES:\n" + yt_context + "\n\n"
         "## MISSION:\n"
-        "1. SELECT RESOURCES: For each gap, pick 1 best paid course AND 1 best YouTube video.\n"
-        "   - STRICTOR REASONING: The 'selection_reason' MUST describe the specific resource selected.\n"
+        "1. SELECT RESOURCES: For each gap, evaluate if there are truly relevant resources.\n"
+        "   - CRITICAL: Only select a course if it DIRECTLY teaches the gap skill (not just mentions it).\n"
+        "   - If NO relevant paid course exists for a gap, set course_id to null.\n"
+        "   - If NO relevant YouTube video exists for a gap, set video_id to null.\n"
+        "   - It's better to return null than to recommend an irrelevant resource.\n"
+        "   - STRICT REASONING: The 'selection_reason' MUST explain WHY this resource teaches the specific gap skill.\n"
+        "   - DO NOT select courses that only mention the skill as a prerequisite or in passing.\n"
         "   - DO NOT mix YouTube details into a Paid Course description.\n"
-        "   - If you select a Coursera course, talk about its curriculum. If you select a YouTube video, talk about its content/length.\n"
         "   - Selection reason must be in Vietnamese.\n"
         "2. BUILD ROADMAP: Create a personalized learning roadmap in Vietnamese.\n"
+        "   - Only include gaps that have at least one relevant resource.\n"
         "   - Group resources by learning stage (Stage 1: fundamentals → Stage 2: intermediate → Stage 3: advanced)\n"
         "   - Use English for skill names, Vietnamese for descriptions\n"
         "   - Each stage: focus skill, duration_weeks, milestones\n\n"
@@ -328,10 +333,10 @@ async def _llm_select_courses_and_roadmap_unified(
         "{\n"
         '  "selected_courses": [\n'
         '    {\n'
-        '      "course_id": "standard_course_id_here",\n'
-        '      "video_id": "youtube_video_id_here (if youtube)",\n'
+        '      "course_id": "standard_course_id_here or null if no relevant course",\n'
+        '      "video_id": "youtube_video_id_here or null if no relevant video",\n'
         '      "gap_skills": ["skill1"],\n'
-        '      "selection_reason": "...",\n'
+        '      "selection_reason": "Explain WHY this resource teaches the gap skill (Vietnamese)",\n'
         '      "stage": 1\n'
         '    }\n'
         '  ],\n'
@@ -351,6 +356,7 @@ async def _llm_select_courses_and_roadmap_unified(
         '    "summary": "Vietnamese summary"\n'
         '  }\n'
         "}\n\n"
+        "IMPORTANT: If a gap has no relevant resources, you can skip it entirely from selected_courses.\n"
         "Return ONLY valid JSON."
     )
 
@@ -397,6 +403,14 @@ async def _vector_search_courses(
     db,
     limit: int = 12,
 ) -> List[Dict]:
+    """
+    Hybrid search: Vector similarity + BM25-style keyword boosting.
+    
+    Strategy:
+    1. Vector search for semantic similarity (broad recall)
+    2. Keyword boosting for exact matches (precision)
+    3. Combine scores and re-rank
+    """
     from shared.llm_utils import get_embedding
     from sqlalchemy import text
 
@@ -408,12 +422,12 @@ async def _vector_search_courses(
         # ── Fallback: ILIKE text search when embedding unavailable ──────────────
         return _search_courses_ilike(skill_name, target_level, db, limit)
 
-    # ── pgvector search: fetch skills_raw + modules for ranking ────────────────
+    # ── STEP 1: Vector search (broad recall) ────────────────────────────────────
     # ── SECURITY: Limit max courses to prevent prompt overflow ───────────────
     MAX_COURSES_PER_QUERY = 50  # Hard limit to prevent massive prompts
-    limit = min(limit, MAX_COURSES_PER_QUERY)
+    search_limit = min(limit * 3, MAX_COURSES_PER_QUERY)  # Get 3x candidates for re-ranking
     
-    sim_threshold = config_manager.get_setting("GAP_VECTOR_SIM_THRESHOLD", default=0.35, cast=float)
+    sim_threshold = config_manager.get_setting("GAP_VECTOR_SIM_THRESHOLD", default=0.50, cast=float)
     query = text("""
         SELECT id, title, platform, url, level, provider, source_platform,
                duration_hours, is_certification, cost_usd, tags,
@@ -432,7 +446,7 @@ async def _vector_search_courses(
             {
                 "vec": skill_vector,
                 "sim_threshold": sim_threshold,
-                "limit_val": limit,
+                "limit_val": search_limit,
             },
         ).fetchall()
     except Exception as e:
@@ -460,19 +474,58 @@ async def _vector_search_courses(
             "similarity": float(r.similarity or 0),
         })
 
-    # ── Log vector search results ─────────────────────────────────────────────
+    # ── STEP 2: BM25-style keyword boosting ──────────────────────────────────────
+    skill_lower = skill_name.lower()
+    
+    for course in courses:
+        vector_score = course["similarity"]
+        keyword_boost = 0.0
+        
+        # Boost 1: Exact match in title (highest weight)
+        title_lower = course["title"].lower()
+        if skill_lower in title_lower:
+            # Check if it's a word boundary match (not substring)
+            import re
+            if re.search(r'\b' + re.escape(skill_lower) + r'\b', title_lower):
+                keyword_boost += 0.20  # +20% for exact word match in title
+            else:
+                keyword_boost += 0.10  # +10% for substring match
+        
+        # Boost 2: Match in skills_raw (medium weight)
+        skills_text = " ".join(course.get("skills_raw", [])).lower()
+        if skill_lower in skills_text:
+            keyword_boost += 0.15  # +15% for match in skills
+        
+        # Boost 3: Match in embedding_context (low weight, for fallback)
+        context_lower = course.get("embedding_context", "").lower()
+        if skill_lower in context_lower and keyword_boost == 0:
+            keyword_boost += 0.05  # +5% only if no other matches
+        
+        # Combined score: 70% vector + 30% keyword boost
+        combined_score = (vector_score * 0.7) + (keyword_boost * 0.3) + keyword_boost
+        
+        course["keyword_boost"] = keyword_boost
+        course["combined_score"] = min(1.0, combined_score)  # Cap at 1.0
+    
+    # ── STEP 3: Re-rank by combined score ────────────────────────────────────────
+    courses.sort(key=lambda x: x["combined_score"], reverse=True)
+    
+    # Return top N after re-ranking
+    final_courses = courses[:limit]
+
+    # ── Log hybrid search results ─────────────────────────────────────────────
     logger.info(
-        f"[STEP 4/Search] {len(courses)} courses found for '{skill_name}' | "
+        f"[STEP 4/Hybrid] {len(final_courses)}/{len(courses)} courses after re-ranking for '{skill_name}' | "
         f"sim_threshold={sim_threshold}"
     )
-    for c in courses[:5]:
+    for c in final_courses[:5]:
         logger.info(
-            f"  course: {c.get('title')} | platform={c.get('platform')} | "
-            f"level={c.get('level')} | hrs={c.get('duration_hours')} | "
-            f"sim={c.get('similarity', 0):.3f} | cert={c.get('is_certification')}"
+            f"  course: {c.get('title')[:50]} | "
+            f"vec={c.get('similarity', 0):.3f} | boost={c.get('keyword_boost', 0):.3f} | "
+            f"combined={c.get('combined_score', 0):.3f}"
         )
 
-    return courses
+    return final_courses
 
 
 def _search_courses_ilike(

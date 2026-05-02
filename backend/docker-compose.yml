@@ -7,7 +7,6 @@ x-worker-base:
   - REDIS_HOST=advisor_redis
   - POSTGRES_HOST=advisor_db
   volumes: &id003
-  - .:/app
   - ./data:/app/data
   depends_on: &id004
     db:
@@ -84,9 +83,8 @@ services:
     ports:
     - 8000:8000
     env_file: .env
-    command: sh -c "uvicorn gateway.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "uvicorn gateway.main:app --host 0.0.0.0 --port 8000"
     volumes:
-    - .:/app
     - ./data:/app/data
     depends_on:
       redis:
@@ -107,10 +105,7 @@ services:
     - POSTGRES_HOST=advisor_db
     - REDIS_HOST=advisor_redis
     env_file: .env
-    command: sh -c "uvicorn services.auth_service.main:app --host 0.0.0.0 --port 8000
-      --reload"
-    volumes:
-    - .:/app
+    command: sh -c "uvicorn services.auth_service.main:app --host 0.0.0.0 --port 8000"
     depends_on:
       db:
         condition: service_healthy
@@ -128,10 +123,8 @@ services:
     - POSTGRES_HOST=advisor_db
     - REDIS_HOST=advisor_redis
     env_file: .env
-    command: sh -c "uvicorn services.jd_service.main:app --host 0.0.0.0 --port 8000
-      --reload"
+    command: sh -c "uvicorn services.jd_service.main:app --host 0.0.0.0 --port 8000"
     volumes:
-    - .:/app
     - ./data:/app/data
     depends_on:
       db:
@@ -148,10 +141,8 @@ services:
     - REDIS_HOST=advisor_redis
     - POSTGRES_HOST=advisor_db
     env_file: .env
-    command: sh -c "uvicorn services.cv_service.main:app --host 0.0.0.0 --port 8000
-      --reload"
+    command: sh -c "uvicorn services.cv_service.main:app --host 0.0.0.0 --port 8000"
     volumes:
-    - .:/app
     - ./data:/app/data
     depends_on:
       db:
@@ -168,10 +159,7 @@ services:
     - POSTGRES_HOST=advisor_db
     - REDIS_HOST=advisor_redis
     env_file: .env
-    command: sh -c "uvicorn services.analysis_service.main:app --host 0.0.0.0 --port
-      8000 --reload"
-    volumes:
-    - .:/app
+    command: sh -c "uvicorn services.analysis_service.main:app --host 0.0.0.0 --port 8000"
     depends_on:
       db:
         condition: service_healthy
@@ -189,10 +177,7 @@ services:
     - POSTGRES_HOST=advisor_db
     - REDIS_HOST=advisor_redis
     env_file: .env
-    command: sh -c "uvicorn services.recommender_service.main:app --host 0.0.0.0 --port
-      8000 --reload"
-    volumes:
-    - .:/app
+    command: sh -c "uvicorn services.recommender_service.main:app --host 0.0.0.0 --port 8000"
     depends_on:
       db:
         condition: service_healthy
@@ -237,6 +222,24 @@ services:
     networks: *id005
     container_name: advisor_worker_default
     command: celery -A worker.celery_app worker --loglevel=info --logfile=- --concurrency=${WORKER_DEFAULT_CONCURRENCY:-1}
+  worker_email:
+    build: *id001
+    env_file: .env
+    environment: *id002
+    volumes: *id003
+    depends_on: *id004
+    networks: *id005
+    container_name: advisor_worker_email
+    command: celery -A worker.celery_app worker -Q email --loglevel=info --logfile=- --concurrency=${WORKER_EMAIL_CONCURRENCY:-2}
+  celery_beat:
+    build: *id001
+    env_file: .env
+    environment: *id002
+    volumes: *id003
+    depends_on: *id004
+    networks: *id005
+    container_name: advisor_celery_beat
+    command: celery -A worker.celery_app beat --loglevel=info
   admin-service:
     build:
       context: .
@@ -247,10 +250,7 @@ services:
     - POSTGRES_HOST=advisor_db
     - REDIS_HOST=advisor_redis
     env_file: .env
-    command: sh -c "uvicorn services.admin_service.main:app --host 0.0.0.0 --port
-      8000 --reload"
-    volumes:
-    - .:/app
+    command: sh -c "uvicorn services.admin_service.main:app --host 0.0.0.0 --port 8000"
     depends_on:
       db:
         condition: service_healthy

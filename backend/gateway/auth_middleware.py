@@ -52,7 +52,24 @@ def get_cors_headers(request: Request) -> dict:
 
 async def auth_middleware(request: Request, call_next):
     # Public endpoints & preflight requests
-    public_paths = ["/health", "/auth/login", "/auth/register", "/user/login", "/user/register", "/jd/list", "/auth/forgot-password", "/auth/reset-password", "/auth/captcha-status", "/user/captcha-status"]
+    public_paths = [
+        "/health", 
+        "/auth/login", 
+        "/auth/register", 
+        "/user/login", 
+        "/user/register", 
+        "/jd/list", 
+        "/auth/forgot-password", 
+        "/auth/reset-password", 
+        "/auth/captcha-status", 
+        "/user/captcha-status",
+        "/market/skill-trend",       # Public market data - skill trends (weekly/monthly)
+        "/market/skill-trend-daily", # Public market data - skill trends (daily)
+        "/market/trending-skills",   # Public market data - trending skills
+        "/market/overview",          # Public market data - overview
+        "/market/compare",           # Public market data - skill comparison
+        "/analysis/market-stats"     # Public market data - legacy endpoint
+    ]
     
     path = request.url.path
     if path.startswith("/api"):

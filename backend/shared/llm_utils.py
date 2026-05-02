@@ -49,6 +49,8 @@ MODEL_PROVIDER_MAP = {
     "gpt-4-turbo": "openai",
     # Anthropic
     "claude-3-5-sonnet": "anthropic",
+    "claude-3-5-haiku": "anthropic",
+    "claude-3-haiku": "anthropic",
     "claude-3-opus": "anthropic",
 }
 
@@ -349,53 +351,354 @@ def clean_json_response(response: str) -> str:
 
 # ─── Skill Extraction ────────────────────────────────────────────────────────
 
-def extract_skills_from_requirements(requirements_text: str, model_key: str = "ai_model", user_id: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
+def validate_and_clean_skill(skill: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
-    Extract structured skills from job requirements text using LLM.
+    Validate and clean a single extracted skill.
+    Returns cleaned skill dict or None if invalid.
+    """
+    import re
     
-    Returns list of skills with metadata:
-    [
-        {
-            "skill_name": "Python",
-            "category": "Programming Language",
-            "required_level": "Senior",
-            "min_years_exp": 5.0,
-            "is_mandatory": true,
-            "importance_weight": 10
-        },
-        ...
+    # Valid categories (21 categories: 15 technical + 6 soft skills)
+    VALID_CATEGORIES = {
+        # Core Programming
+        "Programming Language",      # Python, Java, JavaScript, C++, Go, Rust
+        "Web Technology",            # HTML, CSS, REST API, GraphQL, WebSocket
+        "Backend Framework",         # Django, Spring Boot, Express, FastAPI
+        "Frontend Framework",        # React, Vue, Angular, Svelte
+        "Mobile Framework",          # Flutter, React Native, SwiftUI, Jetpack Compose
+        
+        # Data & Storage
+        "Database",                  # PostgreSQL, MySQL, MongoDB, Cassandra
+        "Caching & Queue",          # Redis, Memcached, Kafka, RabbitMQ
+        
+        # Infrastructure & Operations
+        "Cloud Platform",            # AWS, Azure, GCP, DigitalOcean
+        "DevOps & CI/CD",           # Docker, Kubernetes, Jenkins, GitHub Actions
+        "Development Tool",          # Git, VS Code, Postman, Jira
+        
+        # Specialized Domains
+        "Testing Framework",         # Jest, Pytest, Selenium, Cypress, JUnit
+        "Security",                  # OAuth, JWT, SSL/TLS, Penetration Testing
+        "Machine Learning",          # TensorFlow, PyTorch, scikit-learn, Keras
+        "Data Science",              # Pandas, NumPy, Jupyter, Tableau, Power BI
+        
+        # Technical Practices
+        "Methodology",               # TDD, Microservices, Design Patterns, CI/CD
+        
+        # Soft Skills
+        "Communication",             # Presentation, Written/Verbal communication, English
+        "Leadership",                # Team leadership, Mentoring, Decision making
+        "Teamwork",                  # Collaboration, Cross-functional teamwork
+        "Problem Solving",           # Analytical thinking, Critical thinking, Troubleshooting
+        "Time Management",           # Prioritization, Meeting deadlines, Multi-tasking
+        "Adaptability"               # Learning agility, Flexibility, Growth mindset
+    }
+    
+    # Extract skill_name
+    skill_name = skill.get("skill_name", "").strip()
+    
+    if not skill_name:
+        return None
+    
+    # Check length (2-50 characters)
+    if len(skill_name) < 2 or len(skill_name) > 50:
+        logger.debug(f"[SKILL VALIDATE] Rejected '{skill_name}': invalid length ({len(skill_name)} chars)")
+        return None
+    
+    # Check for Vietnamese characters
+    vietnamese_pattern = r'[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]'
+    if re.search(vietnamese_pattern, skill_name):
+        logger.debug(f"[SKILL VALIDATE] Rejected '{skill_name}': contains Vietnamese characters")
+        return None
+    
+    # Check for invalid patterns (phrases that are not skill names)
+    invalid_patterns = [
+        r'\d+\+?\s*(years?|yrs?)',  # "5+ years", "3 years"
+        r'(knowledge|experience|ability|understanding)\s+(of|in|with)',  # "knowledge of", "experience in"
+        r'(bachelor|master|degree|diploma)',  # Education requirements
+        r'(good|excellent|strong|solid)\s+',  # Adjectives
     ]
+    
+    for pattern in invalid_patterns:
+        if re.search(pattern, skill_name, re.IGNORECASE):
+            logger.debug(f"[SKILL VALIDATE] Rejected '{skill_name}': matches invalid pattern '{pattern}'")
+            return None
+    
+    # Validate category
+    category = skill.get("category", "").strip()
+    if category not in VALID_CATEGORIES:
+        # Try to map common variations to valid categories
+        category_mapping = {
+            # Programming
+            "language": "Programming Language",
+            "programming": "Programming Language",
+            
+            # Web
+            "web": "Web Technology",
+            "api": "Web Technology",
+            "web tech": "Web Technology",
+            
+            # Frameworks
+            "framework": "Backend Framework",  # Default to backend
+            "backend": "Backend Framework",
+            "frontend": "Frontend Framework",
+            "mobile": "Mobile Framework",
+            
+            # Data & Storage
+            "database": "Database",
+            "db": "Database",
+            "cache": "Caching & Queue",
+            "caching": "Caching & Queue",
+            "queue": "Caching & Queue",
+            "message queue": "Caching & Queue",
+            
+            # Infrastructure
+            "cloud": "Cloud Platform",
+            "cloud platform": "Cloud Platform",
+            "devops": "DevOps & CI/CD",
+            "ci/cd": "DevOps & CI/CD",
+            "cicd": "DevOps & CI/CD",
+            "tool": "Development Tool",
+            "dev tool": "Development Tool",
+            
+            # Specialized
+            "testing": "Testing Framework",
+            "test": "Testing Framework",
+            "security": "Security",
+            "ml": "Machine Learning",
+            "machine learning": "Machine Learning",
+            "ai": "Machine Learning",
+            "data science": "Data Science",
+            "data": "Data Science",
+            
+            # Technical Practices
+            "methodology": "Methodology",
+            "practice": "Methodology",
+            "pattern": "Methodology",
+            
+            # Soft Skills
+            "communication": "Communication",
+            "communication skill": "Communication",
+            "presentation": "Communication",
+            "english": "Communication",
+            "leadership": "Leadership",
+            "leadership skill": "Leadership",
+            "mentoring": "Leadership",
+            "teamwork": "Teamwork",
+            "collaboration": "Teamwork",
+            "team work": "Teamwork",
+            "problem solving": "Problem Solving",
+            "analytical thinking": "Problem Solving",
+            "critical thinking": "Problem Solving",
+            "time management": "Time Management",
+            "prioritization": "Time Management",
+            "adaptability": "Adaptability",
+            "flexibility": "Adaptability",
+            "learning agility": "Adaptability",
+        }
+        category_lower = category.lower()
+        if category_lower in category_mapping:
+            category = category_mapping[category_lower]
+        else:
+            logger.debug(f"[SKILL VALIDATE] Invalid category '{category}' for skill '{skill_name}', rejecting skill")
+            return None  # Reject skills with invalid categories
+    
+    # Validate and clean other fields
+    required_level = skill.get("required_level")
+    if required_level and not isinstance(required_level, str):
+        required_level = None
+    
+    min_years_exp = skill.get("min_years_exp", 0)
+    try:
+        min_years_exp = float(min_years_exp) if min_years_exp else 0
+        min_years_exp = max(0, min(min_years_exp, 50))  # Cap at 50 years
+    except (ValueError, TypeError):
+        min_years_exp = 0
+    
+    is_mandatory = skill.get("is_mandatory", True)
+    if not isinstance(is_mandatory, bool):
+        is_mandatory = True
+    
+    importance_weight = skill.get("importance_weight", 5)
+    try:
+        importance_weight = int(importance_weight)
+        importance_weight = max(1, min(importance_weight, 10))  # Clamp to 1-10
+    except (ValueError, TypeError):
+        importance_weight = 5
+    
+    # Determine skill_type based on category
+    SOFT_SKILL_CATEGORIES = {
+        "Communication", "Leadership", "Teamwork", 
+        "Problem Solving", "Time Management", "Adaptability"
+    }
+    
+    skill_type = skill.get("skill_type", "").lower()
+    if not skill_type or skill_type not in ["technical", "soft"]:
+        # Auto-detect based on category
+        skill_type = "soft" if category in SOFT_SKILL_CATEGORIES else "technical"
+    
+    # Return cleaned skill
+    return {
+        "skill_name": skill_name,
+        "category": category,
+        "required_level": required_level,
+        "min_years_exp": min_years_exp,
+        "is_mandatory": is_mandatory,
+        "importance_weight": importance_weight,
+        "skill_type": skill_type
+    }
+
+
+def extract_skills_from_requirements(requirements_text: str, model_key: str = "ai_model", user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """
+    Extract structured skills AND classify job type from requirements text using LLM.
+    
+    Returns dict with classification and skills:
+    {
+        "is_tech_job": true/false,
+        "confidence": 0.0-1.0,
+        "primary_domain": "Software Engineering" or "Sales" etc,
+        "classification_reason": "Brief explanation",
+        "skills": [
+            {
+                "skill_name": "Python",
+                "category": "Programming Language",
+                "required_level": "Senior",
+                "min_years_exp": 5.0,
+                "is_mandatory": true,
+                "importance_weight": 10
+            },
+            ...
+        ]
+    }
     """
     if not requirements_text or len(requirements_text.strip()) < 20:
         logger.warning("[SKILL EXTRACT] Requirements text too short, skipping extraction")
         return None
     
-    prompt = f"""Extract all technical and professional skills from the following job requirements.
+    prompt = f"""Analyze this job requirements and perform TWO tasks:
+
+TASK 1: Classify if this is a TECH job
+TASK 2: If TECH job, extract technical skills
 
 Job Requirements:
 {requirements_text}
 
-For each skill, identify:
-1. skill_name: The specific skill (e.g., "Python", "React", "Project Management")
-2. category: Type of skill (e.g., "Programming Language", "Framework", "Soft Skill", "Tool", "Methodology")
-3. required_level: Seniority level if mentioned (e.g., "Junior", "Mid", "Senior", "Expert") or null
-4. min_years_exp: Minimum years of experience required (extract number, or 0 if not specified)
-5. is_mandatory: true if explicitly required, false if "nice to have" or "plus"
-6. importance_weight: Rate 1-10 based on emphasis in text (10 = critical, 1 = minor)
+=== TASK 1: JOB CLASSIFICATION ===
 
-Return ONLY a JSON array of skills. Example:
-[
-  {{"skill_name": "Python", "category": "Programming Language", "required_level": "Senior", "min_years_exp": 5, "is_mandatory": true, "importance_weight": 10}},
-  {{"skill_name": "Django", "category": "Framework", "required_level": null, "min_years_exp": 3, "is_mandatory": true, "importance_weight": 8}},
-  {{"skill_name": "Docker", "category": "Tool", "required_level": null, "min_years_exp": 0, "is_mandatory": false, "importance_weight": 5}}
-]
+Think step-by-step to determine if this is a TECH job:
 
-Important:
-- Extract ONLY skills explicitly mentioned in the text
-- Do NOT infer or add skills not mentioned
-- Include both technical skills (languages, frameworks, tools) and soft skills (communication, leadership)
-- Be specific: "React" not "JavaScript frameworks"
-- Return empty array [] if no clear skills found
+Step 1: Identify the main responsibilities
+- What are the core tasks mentioned?
+- Do they involve coding, system design, technical problem-solving?
+
+Step 2: Check for technical requirements
+- Programming languages mentioned?
+- Frameworks, databases, cloud platforms?
+- Technical tools or methodologies?
+
+Step 3: Determine job domain
+- Is this Software Engineering, DevOps, Data Science, QA, IT?
+- Or is it Sales, Marketing, HR, Finance, Operations?
+
+TECH jobs include:
+- Software Engineer, Developer, Programmer
+- DevOps Engineer, SRE, System Administrator
+- Data Scientist, Data Engineer, ML Engineer
+- QA Engineer, Test Automation Engineer
+- Security Engineer, Network Engineer
+- Technical roles requiring programming/technical skills
+
+NON-TECH jobs include:
+- Sales, Marketing, HR, Finance, Operations
+- Customer Service, Administrative roles
+- Management roles WITHOUT technical focus
+- Jobs mentioning only "MS Office" or "basic computer skills"
+
+Provide:
+- is_tech_job: true/false
+- confidence: 0.0-1.0 (how confident in classification)
+- primary_domain: Main job domain (e.g., "Software Engineering", "Sales", "Marketing")
+- classification_reason: Your step-by-step reasoning (2-3 sentences)
+
+=== TASK 2: SKILL EXTRACTION (only if is_tech_job = true) ===
+
+If TECH job, extract skills using these 21 categories (15 technical + 6 soft skills):
+
+CORE PROGRAMMING:
+- "Programming Language" (Python, Java, JavaScript, C++, Go, Rust, TypeScript)
+- "Web Technology" (HTML, CSS, REST API, GraphQL, WebSocket)
+- "Backend Framework" (Django, Spring Boot, Express, FastAPI, Laravel)
+- "Frontend Framework" (React, Vue, Angular, Svelte, Next.js)
+- "Mobile Framework" (Flutter, React Native, SwiftUI, Jetpack Compose)
+
+DATA & STORAGE:
+- "Database" (PostgreSQL, MySQL, MongoDB, Cassandra)
+- "Caching & Queue" (Redis, Kafka, RabbitMQ, Memcached)
+
+INFRASTRUCTURE:
+- "Cloud Platform" (AWS, Azure, GCP)
+- "DevOps & CI/CD" (Docker, Kubernetes, Jenkins, Terraform)
+- "Development Tool" (Git, VS Code, Postman, Jira)
+
+SPECIALIZED:
+- "Testing Framework" (Jest, Pytest, Selenium, Cypress)
+- "Security" (OAuth, JWT, SSL/TLS, OWASP)
+- "Machine Learning" (TensorFlow, PyTorch, scikit-learn)
+- "Data Science" (Pandas, NumPy, Jupyter, Tableau)
+
+PRACTICES:
+- "Methodology" (TDD, Microservices, Design Patterns)
+
+SOFT SKILLS (extract these separately):
+- "Communication" (Presentation skills, Written communication, Verbal communication, English proficiency)
+- "Leadership" (Team leadership, Mentoring, Decision making, Strategic thinking)
+- "Teamwork" (Collaboration, Cross-functional teamwork, Agile teamwork)
+- "Problem Solving" (Analytical thinking, Critical thinking, Troubleshooting, Debugging mindset)
+- "Time Management" (Prioritization, Meeting deadlines, Multi-tasking)
+- "Adaptability" (Learning agility, Flexibility, Change management, Growth mindset)
+
+For each skill:
+- skill_name: Specific name in ENGLISH (e.g., "Python", "React", "Communication", "Leadership")
+- category: ONE of the 21 categories above (15 technical + 6 soft skills)
+- required_level: "Junior", "Mid", "Senior", "Expert" or null
+- min_years_exp: Number (0 if not specified)
+- is_mandatory: true if required, false if "nice to have"
+- importance_weight: 1-10 (10=critical, 5=mentioned, 1=minor)
+- skill_type: "technical" or "soft" (to distinguish between technical and soft skills)
+
+RULES:
+- English only, no Vietnamese
+- 2-50 characters per skill name
+- No phrases like "years of experience", "knowledge of"
+- Specific names: "React" not "frameworks"
+- Proper capitalization: "JavaScript" not "javascript"
+- Extract BOTH technical AND soft skills explicitly mentioned
+- For soft skills, use the skill_type="soft" field
+- If NON-TECH job, return empty skills array []
+
+Return JSON:
+{{
+  "is_tech_job": true/false,
+  "confidence": 0.95,
+  "primary_domain": "Software Engineering",
+  "classification_reason": "This is a software development role requiring programming skills",
+  "skills": [
+    {{"skill_name": "Python", "category": "Programming Language", "required_level": "Senior", "min_years_exp": 5, "is_mandatory": true, "importance_weight": 10, "skill_type": "technical"}},
+    {{"skill_name": "Django", "category": "Backend Framework", "required_level": null, "min_years_exp": 3, "is_mandatory": true, "importance_weight": 8, "skill_type": "technical"}},
+    {{"skill_name": "Communication", "category": "Communication", "required_level": null, "min_years_exp": 0, "is_mandatory": true, "importance_weight": 7, "skill_type": "soft"}},
+    {{"skill_name": "Team leadership", "category": "Leadership", "required_level": "Mid", "min_years_exp": 2, "is_mandatory": false, "importance_weight": 6, "skill_type": "soft"}}
+  ]
+}}
+
+If NON-TECH:
+{{
+  "is_tech_job": false,
+  "confidence": 0.90,
+  "primary_domain": "Sales",
+  "classification_reason": "This is a sales role focusing on customer relationships, not technical development",
+  "skills": []
+}}
 """
 
     system_prompt = "You are a technical recruiter expert at analyzing job requirements and extracting structured skill data. Always return valid JSON."
@@ -420,24 +723,75 @@ Important:
         # Parse JSON response with cleaning
         import json
         cleaned_response = clean_json_response(response)
-        skills = json.loads(cleaned_response)
+        result = json.loads(cleaned_response)
         
-        # Handle cases where LLM returns {"skills": [...]} instead of [...]
-        if isinstance(skills, dict) and "skills" in skills:
-            skills = skills["skills"]
-        
-        if not isinstance(skills, list):
-            logger.error(f"[SKILL EXTRACT] Expected list, got {type(skills)}")
+        # Validate response structure
+        if not isinstance(result, dict):
+            logger.error(f"[SKILL EXTRACT] Expected dict, got {type(result)}")
             return None
         
-        logger.info(f"[SKILL EXTRACT] ✓ Extracted {len(skills)} skills")
-        system_logger.info("AI_SKILL_EXTRACT", f"Successfully extracted {len(skills)} skills")
+        # Extract classification data
+        is_tech_job = result.get("is_tech_job", True)
+        confidence = result.get("confidence", 0.5)
+        primary_domain = result.get("primary_domain", "Unknown")
+        classification_reason = result.get("classification_reason", "")
+        skills = result.get("skills", [])
         
-        # Log extracted skills for monitoring
-        for skill in skills[:5]:  # Log first 5
-            logger.debug(f"[SKILL EXTRACT]   - {skill.get('skill_name')} ({skill.get('category')}) | Level: {skill.get('required_level')} | Years: {skill.get('min_years_exp')}")
+        # Validate classification fields
+        if not isinstance(is_tech_job, bool):
+            is_tech_job = True
         
-        return skills
+        try:
+            confidence = float(confidence)
+            confidence = max(0.0, min(confidence, 1.0))  # Clamp to 0.0-1.0
+        except (ValueError, TypeError):
+            confidence = 0.5
+        
+        if not isinstance(skills, list):
+            logger.error(f"[SKILL EXTRACT] Expected skills list, got {type(skills)}")
+            skills = []
+        
+        logger.info(f"[SKILL EXTRACT] Classification: is_tech={is_tech_job}, confidence={confidence:.2f}, domain={primary_domain}")
+        logger.info(f"[SKILL EXTRACT] Raw extraction: {len(skills)} skills")
+        
+        # If non-tech job, return early with empty skills
+        if not is_tech_job:
+            logger.warning(f"[SKILL EXTRACT] Non-tech job detected: {classification_reason}")
+            system_logger.info("AI_SKILL_EXTRACT", f"Non-tech job: {primary_domain} (confidence: {confidence:.2f})")
+            return {
+                "is_tech_job": False,
+                "confidence": confidence,
+                "primary_domain": primary_domain,
+                "classification_reason": classification_reason,
+                "skills": []
+            }
+        
+        # Validate and clean each skill (only for tech jobs)
+        validated_skills = []
+        rejected_count = 0
+        
+        for skill in skills:
+            cleaned_skill = validate_and_clean_skill(skill)
+            if cleaned_skill:
+                validated_skills.append(cleaned_skill)
+            else:
+                rejected_count += 1
+        
+        logger.info(f"[SKILL EXTRACT] ✓ Validated {len(validated_skills)} skills ({rejected_count} rejected)")
+        system_logger.info("AI_SKILL_EXTRACT", f"Tech job: {primary_domain} - extracted {len(validated_skills)} skills ({rejected_count} rejected)")
+        
+        # Log validated skills for monitoring
+        for skill in validated_skills[:5]:  # Log first 5
+            logger.debug(f"[SKILL EXTRACT]   - {skill.get('skill_name')} ({skill.get('category')}) | Level: {skill.get('required_level')} | Years: {skill.get('min_years_exp')} | Weight: {skill.get('importance_weight')}")
+        
+        # Return full result with classification + skills
+        return {
+            "is_tech_job": True,
+            "confidence": confidence,
+            "primary_domain": primary_domain,
+            "classification_reason": classification_reason,
+            "skills": validated_skills
+        }
         
     except json.JSONDecodeError as e:
         logger.error(f"[SKILL EXTRACT] Failed to parse JSON response: {e}")

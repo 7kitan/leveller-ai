@@ -252,10 +252,10 @@ def crawl_topcv_jobs_task(limit: int = 20, force: bool = False, extract_skills: 
 @celery_app.task(name="worker.tasks.crawler_tasks.extract_job_skills_task")
 def extract_job_skills_task(job_id: str):
     """
-    Background task to extract skills from a single job's requirements.
-    This runs asynchronously after job is saved to avoid blocking crawler.
+    Background task to extract skills AND classify job type.
+    Non-tech jobs from crawlers will be automatically deactivated.
     """
-    logger.info(f"🔍 [SKILL EXTRACT] Starting skill extraction for job {job_id}")
+    logger.info(f"🔍 [SKILL EXTRACT] Starting extraction + classification for job {job_id}")
     
     db = SessionLocal()
     try:
@@ -268,25 +268,41 @@ def extract_job_skills_task(job_id: str):
             logger.warning(f"⚠️ [SKILL EXTRACT] Job {job_id} has no requirements")
             return {"status": "no_requirements"}
         
-        # Extract and save skills
-        skills_count = extract_and_save_job_skills(
+        # Extract skills + classify job type
+        result = extract_and_save_job_skills(
             db=db,
             job=job,
             model_key="ai_model",
             commit=True
         )
         
-        if skills_count is None:
-            logger.warning(f"⚠️ [SKILL EXTRACT] No skills extracted for job {job_id}")
-            return {"status": "no_skills_extracted"}
+        if not result:
+            logger.warning(f"⚠️ [SKILL EXTRACT] Extraction failed for job {job_id}")
+            return {"status": "extraction_failed"}
         
-        logger.info(f"✅ [SKILL EXTRACT] Extracted {skills_count} skills for job {job_id}")
-        return {"status": "success", "skills_count": skills_count}
+        # Log classification results
+        if result["status"] in ["non_tech", "deactivated"]:
+            logger.warning(
+                f"🚫 [SKILL EXTRACT] Non-tech job: {job.title_raw}\n"
+                f"   Domain: {result['primary_domain']}\n"
+                f"   Confidence: {result['confidence']:.2f}\n"
+                f"   Status: {result['status']}\n"
+                f"   Reason: {result['reason']}"
+            )
+        else:
+            logger.info(
+                f"✅ [SKILL EXTRACT] Tech job: {job.title_raw}\n"
+                f"   Domain: {result['primary_domain']}\n"
+                f"   Skills: {result['skill_count']}\n"
+                f"   Confidence: {result['confidence']:.2f}"
+            )
+        
+        return result
         
     except Exception as e:
         db.rollback()
         logger.error(f"💥 [SKILL EXTRACT] Error for job {job_id}: {e}", exc_info=True)
-        return {"error": str(e)}
+        return {"error": str(e), "status": "error"}
     finally:
         db.close()
 
@@ -386,15 +402,19 @@ def crawl_single_job_url_task(url: str):
             logger.info(f"[SINGLE JOB CRAWLER] Starting skill extraction for {job_id}...")
             
             if job.requirements:
-                skills_count = extract_and_save_job_skills(
+                result = extract_and_save_job_skills(
                     db=db,
                     job=job,
                     model_key="ai_model",
                     commit=True
                 )
                 
-                if skills_count:
+                # extract_and_save_job_skills returns a dict with status info
+                if result and result.get("status") == "success":
+                    skills_count = result.get("skill_count", 0)
                     logger.info(f"✅ [SINGLE JOB CRAWLER] Extracted {skills_count} skills for {job_id}")
+                elif result and result.get("status") == "non_tech":
+                    logger.info(f"⚠️ [SINGLE JOB CRAWLER] Non-tech job {job_id}, skipped")
                 else:
                     logger.warning(f"⚠️ [SINGLE JOB CRAWLER] No skills extracted for {job_id}")
             else:
@@ -456,17 +476,21 @@ def batch_extract_skills_task(limit: int = 100, skip_existing: bool = True):
             try:
                 logger.info(f"[BATCH SKILL EXTRACT] Processing job {job.id}: {job.title_raw}")
                 
-                skills_count = extract_and_save_job_skills(
+                result = extract_and_save_job_skills(
                     db=db,
                     job=job,
                     model_key="ai_model",
                     commit=True
                 )
                 
-                if skills_count:
+                # extract_and_save_job_skills now returns a dict, not int
+                if result and result.get("status") == "success":
+                    skills_count = result.get("skill_count", 0)
                     processed += 1
                     total_skills += skills_count
                     logger.info(f"[BATCH SKILL EXTRACT] ✓ Job {job.id}: {skills_count} skills")
+                elif result and result.get("status") == "non_tech":
+                    logger.info(f"[BATCH SKILL EXTRACT] ⚠️ Job {job.id}: Non-tech job, skipped")
                 else:
                     logger.warning(f"[BATCH SKILL EXTRACT] ⚠️ Job {job.id}: No skills extracted")
                 

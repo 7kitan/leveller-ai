@@ -636,7 +636,7 @@ const UserRecommendPage = () => {
                 <div className={styles.growthValue}>
                   {formatPercent(gapResult.potential_match_pct || 0)}
                   <span className={styles.growthDiff}>
-                    +{formatPercent((gapResult.potential_match_pct || 0) - (overall_match_pct || 0))}
+                    {((gapResult.potential_match_pct || 0) - (overall_match_pct || 0)) > 0 ? '+' : ''}{formatPercent((gapResult.potential_match_pct || 0) - (overall_match_pct || 0))}
                   </span>
                 </div>
               </div>
@@ -646,7 +646,7 @@ const UserRecommendPage = () => {
                   {t("dash_salary_boost")}
                 </div>
                 <div className={styles.growthValue}>
-                  +{formatPercent(gapResult.salary_growth_pct || 0)}
+                  {Number(gapResult.salary_growth_pct || 0) > 0 ? '+' : ''}{formatPercent(gapResult.salary_growth_pct || 0)}
                 </div>
               </div>
               {gapResult.market_sentiment && (
@@ -676,12 +676,11 @@ const UserRecommendPage = () => {
               <div className={cn(styles.skeleton, styles.skeletonText)} />
               <div className={cn(styles.skeleton, styles.skeletonText, styles.skeletonTextMedium)} />
             </div>
-          ) : (
+          ) : strengths.length > 0 ? (
             <ul className={styles.infoList}>
               {strengths.map((s, i) => <li key={i}>{s}</li>)}
-              {strengths.length === 0 && <li>{t("analyzing_data")}</li>}
             </ul>
-          )}
+          ) : null}
         </div>
         <div className={styles.infoCard}>
           <h3 className={styles.infoTitle}>
@@ -693,12 +692,11 @@ const UserRecommendPage = () => {
               <div className={cn(styles.skeleton, styles.skeletonText)} />
               <div className={cn(styles.skeleton, styles.skeletonText, styles.skeletonTextShort)} />
             </div>
-          ) : (
+          ) : weaknesses.length > 0 ? (
             <ul className={styles.infoList}>
               {weaknesses.map((w, i) => <li key={i}>{w}</li>)}
-              {weaknesses.length === 0 && <li>{t("all_skills_ok")}</li>}
             </ul>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -760,15 +758,27 @@ const UserRecommendPage = () => {
                 {hasImpactData ? (
                   <ReactECharts
                     key={`impact-chart-${skill_gaps.map(g => g.skill).join('-')}-${skill_gaps.length}`}
-                    option={{
-                      tooltip: { 
-                        trigger: 'axis', 
-                        axisPointer: { type: 'shadow' }, 
-                        backgroundColor: chartTooltipBg, 
-                        borderColor: primaryColor, 
-                        borderWidth: 1, 
-                        textStyle: { color: chartTooltipText } 
-                      },
+                     option={{
+                       tooltip: { 
+                         trigger: 'axis', 
+                         axisPointer: { type: 'shadow' }, 
+                         backgroundColor: chartTooltipBg, 
+                         borderColor: primaryColor, 
+                         borderWidth: 1, 
+                         textStyle: { color: chartTooltipText },
+                         formatter: (params: any) => {
+                           const skillName = params[0].axisValue;
+                           let html = `<div style="font-weight: 600; margin-bottom: 4px;">${skillName}</div>`;
+                           params.forEach((param: any) => {
+                             const value = typeof param.value === 'number' ? formatNumber(param.value) : param.value;
+                             html += `<div style="display: flex; align-items: center; gap: 8px;">
+                               <span style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: ${param.color};"></span>
+                               <span>${param.seriesName}: <strong>${value}%</strong></span>
+                             </div>`;
+                           });
+                           return html;
+                         }
+                       },
                       legend: { 
                         data: [t('demand_score'), t('match_impact'), t('salary_impact')], 
                         textStyle: { color: chartTextColor, fontSize: 10 }, 
@@ -846,8 +856,8 @@ const UserRecommendPage = () => {
                 </div>
                 {(!!gap.match_impact || !!gap.salary_impact) && (
                   <div className={styles.gapImpact}>
-                    {!!gap.match_impact && <span className={styles.impactBadge} style={{ background: primaryColor10, color: primaryColor }}><Target size={12} /> +{formatNumber(gap.match_impact)}% {t('match')}</span>}
-                    {!!gap.salary_impact && <span className={styles.impactBadge} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}><TrendingUp size={12} /> +{formatNumber(gap.salary_impact)}% {t('salary_text')}</span>}
+                    {!!gap.match_impact && <span className={styles.impactBadge} style={{ background: primaryColor10, color: primaryColor }}><Target size={12} /> {gap.match_impact > 0 ? '+' : ''}{formatNumber(gap.match_impact)}% {t('match')}</span>}
+                    {!!gap.salary_impact && <span className={styles.impactBadge} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}><TrendingUp size={12} /> {gap.salary_impact > 0 ? '+' : ''}{formatNumber(gap.salary_impact)}% {t('salary_text')}</span>}
                   </div>
                 )}
                 {gap.learning_path && <div className={styles.gapLearningPath}><Sparkles size={12} className={styles.pathIcon} /><p>{gap.learning_path}</p></div>}

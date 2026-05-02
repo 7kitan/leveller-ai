@@ -76,6 +76,8 @@ def generate_completion(
     litellm_model = model_id
     if "gemini" in model_id and "/" not in model_id:
         litellm_model = f"gemini/{model_id}"
+    elif "claude" in model_id and "/" not in model_id:
+        litellm_model = f"anthropic/{model_id}"
     
     # Get fallback list from config
     fallback_model = config_manager.get_setting("FALLBACK_AI_MODEL", "gpt-4o-mini")
@@ -86,6 +88,8 @@ def generate_completion(
     for f in fallbacks:
         if "gemini" in f and "/" not in f:
             litellm_fallbacks.append(f"gemini/{f}")
+        elif "claude" in f and "/" not in f:
+            litellm_fallbacks.append(f"anthropic/{f}")
         else:
             litellm_fallbacks.append(f)
 

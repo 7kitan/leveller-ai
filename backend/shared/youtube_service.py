@@ -43,11 +43,24 @@ class YouTubeSearchService:
         # Extract level from query
         skill_name = clean_query
         level_suffix = ""
+        target_skill_level = None  # For database matching
+        
+        # Map to database skill_level format
+        level_to_db_map = {
+            "beginner": "Junior",
+            "junior": "Junior",
+            "intermediate": "Mid-level",
+            "mid-level": "Mid-level",
+            "advanced": "Senior",
+            "senior": "Senior",
+            "expert": "Expert"
+        }
         
         for eng_level, vi_level in level_map_vi.items():
             if eng_level in clean_query.lower():
                 skill_name = clean_query.lower().replace(eng_level, "").strip()
                 level_suffix = vi_level if lang == "vi" else eng_level
+                target_skill_level = level_to_db_map.get(eng_level)
                 break
         
         # 2. Build optimized query with domain context
@@ -80,23 +93,98 @@ class YouTubeSearchService:
         now = datetime.now(timezone.utc)
         
         if query_vector:
-            # 3. Tìm kiếm trong Cache bằng Vector Similarity (Threshold 0.85)
-            # ... (keep existing cache logic)
+            # 3. HYBRID SEARCH: Vector Similarity + BM25 Full-Text + Metadata Boosts
+            # 
+            # Scoring System (Weighted):
+            # - Vector similarity (50%): Semantic understanding (0.75 - 1.0) × 0.5 = 0.375 - 0.5
+            # - BM25 text rank (30%): Keyword matching (0 - 1.0) × 0.3 = 0 - 0.3
+            # - Metadata boosts (20%): Curated, quality, level, skill, language = 0 - 0.35
+            # 
+            # Total possible score: 0.375 (min) to 1.15 (max)
+            # 
+            # Example: "Python Beginner" query
+            # - Curated Python tutorial: vector=0.82, bm25=0.95, boosts=0.25 → 0.41 + 0.285 + 0.25 = 0.945
+            # - Generic programming video: vector=0.85, bm25=0.20, boosts=0.05 → 0.425 + 0.06 + 0.05 = 0.535
+            # → Curated video wins despite lower vector similarity!
+            
+            # Build tsquery for BM25 search
+            # Clean and prepare search terms
+            search_terms = skill_name.strip().replace("'", "").split()
+            tsquery = " & ".join(search_terms)  # AND query for all terms
+            
             results = db.execute(
                 text("""
-                    SELECT id, video_id, title, description, thumbnail, channel_name, url, (vector <=> :v) as distance
-                    FROM youtube_courses
-                    WHERE (1 - (vector <=> :v)) > 0.85
-                      AND (expires_at > :now OR expires_at IS NULL)
-                    ORDER BY distance ASC
+                    WITH ranked_videos AS (
+                        SELECT 
+                            yc.id,
+                            yc.video_id,
+                            yc.title,
+                            yc.description,
+                            yc.thumbnail,
+                            yc.channel_name,
+                            yc.url,
+                            yc.last_verified_at,
+                            (yc.vector <=> :v) as distance,
+                            (1 - (yc.vector <=> :v)) as similarity,
+                            -- BM25 full-text search score (0-1 normalized)
+                            CASE 
+                                WHEN yc.search_vector IS NOT NULL THEN
+                                    LEAST(ts_rank(yc.search_vector, to_tsquery('english', :tsquery)) * 2.0, 1.0)
+                                ELSE 0
+                            END as bm25_score,
+                            -- Metadata boost factors
+                            CASE WHEN yc.is_curated = TRUE THEN 0.10 ELSE 0 END as curated_boost,
+                            CASE WHEN yc.quality_score >= 80 THEN 0.05 
+                                 WHEN yc.quality_score >= 60 THEN 0.02 
+                                 ELSE 0 END as quality_boost,
+                            CASE WHEN yc.skill_level = :target_level THEN 0.05 ELSE 0 END as level_boost,
+                            CASE WHEN EXISTS (
+                                SELECT 1 FROM youtube_video_skills yvs
+                                WHERE yvs.video_id = yc.video_id 
+                                AND yvs.skill_name ILIKE :skill
+                            ) THEN 0.12 ELSE 0 END as skill_boost,
+                            CASE WHEN yc.language = :lang THEN 0.03 ELSE 0 END as lang_boost
+                        FROM youtube_courses yc
+                        WHERE (
+                            -- Vector search OR text search (union of results)
+                            (1 - (yc.vector <=> :v)) > 0.70
+                            OR (yc.search_vector IS NOT NULL AND yc.search_vector @@ to_tsquery('english', :tsquery))
+                        )
+                        AND (yc.expires_at > :now OR yc.expires_at IS NULL)
+                    )
+                    SELECT 
+                        id, video_id, title, description, thumbnail, channel_name, url, 
+                        last_verified_at, distance, similarity, bm25_score,
+                        -- Hybrid score: 50% vector + 30% BM25 + 20% boosts
+                        (
+                            (similarity * 0.5) + 
+                            (bm25_score * 0.3) + 
+                            (curated_boost + quality_boost + level_boost + skill_boost + lang_boost)
+                        ) as final_score
+                    FROM ranked_videos
+                    WHERE similarity > 0.70 OR bm25_score > 0.1
+                    ORDER BY final_score DESC, distance ASC
                     LIMIT :l
                 """),
-                {"v": str(query_vector), "l": limit, "now": now}
+                {
+                    "v": str(query_vector), 
+                    "l": limit * 2,  # Fetch more to ensure quality after verification
+                    "now": now,
+                    "skill": f"%{skill_name}%",
+                    "target_level": target_skill_level,
+                    "lang": lang,
+                    "tsquery": tsquery
+                }
             ).fetchall()
 
             if results:
-                # ... (rest of cache logic)
-                logger.info(f"[YOUTUBE CACHE] Found {len(results)} matches. Checking verification age...")
+                # Log scoring details
+                curated_count = sum(1 for r in results if hasattr(r, 'final_score'))
+                logger.info(
+                    f"[YOUTUBE CACHE] Found {len(results)} matches with boost scoring. "
+                    f"Skill: '{skill_name}', Level: {target_skill_level}, Lang: {lang}. "
+                    f"Checking verification age..."
+                )
                 
                 now = datetime.now(timezone.utc)
                 verification_threshold = now - timedelta(days=7) # Chỉ kiểm tra lại nếu quá 7 ngày

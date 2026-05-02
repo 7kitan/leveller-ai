@@ -187,6 +187,7 @@ SERVICES = {
     "cv": os.getenv("CV_SVC_URL", "http://cv-service:8000"),
     "jd": os.getenv("JD_SVC_URL", "http://jd-service:8000"),
     "analysis": os.getenv("ANALYSIS_SVC_URL", "http://analysis-service:8000"),
+    "market": os.getenv("ANALYSIS_SVC_URL", "http://analysis-service:8000"),  # Market endpoints served by analysis service
     "recommend": os.getenv("RECOMMEND_SVC_URL", "http://recommender-service:8000"),
     "admin": os.getenv("ADMIN_SVC_URL", "http://admin-service:8000"),
 }

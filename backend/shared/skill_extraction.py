@@ -182,51 +182,150 @@ def extract_and_save_job_skills(
     model_key: str = "ai_model",
     commit: bool = True,
     user_id: Optional[str] = None
-) -> Optional[int]:
+) -> Optional[Dict[str, Any]]:
     """
-    Complete workflow: Extract skills from job requirements and save to database.
+    Complete workflow: Extract skills AND classify job type, then save to database.
     
     Args:
         db: Database session
         job: Job object with requirements field
         model_key: LLM model to use for extraction
         commit: Whether to commit the transaction
+        user_id: User ID for logging
     
     Returns:
-        Number of skills saved, or None if extraction failed
+        Dict with status information:
+        {
+            "status": "success" | "non_tech" | "deactivated" | "no_skills" | "error",
+            "is_tech": bool,
+            "skill_count": int,
+            "confidence": float,
+            "reason": str,
+            "primary_domain": str
+        }
     """
     if not job.requirements:
         logger.warning(f"[SKILL WORKFLOW] Job {job.id} has no requirements text")
-        return None
+        return {
+            "status": "error",
+            "is_tech": True,
+            "skill_count": 0,
+            "confidence": 0.0,
+            "reason": "No requirements text",
+            "primary_domain": "Unknown"
+        }
     
-    logger.info(f"[SKILL WORKFLOW] Starting skill extraction for job {job.id}: {job.title_raw}")
-    system_logger.info("AI_SKILL_EXTRACT", f"Starting skill extraction for Job: {job.title_raw}")
+    logger.info(f"[SKILL WORKFLOW] Starting extraction + classification for job {job.id}: {job.title_raw}")
+    system_logger.info("AI_SKILL_EXTRACT", f"Starting extraction for Job: {job.title_raw}")
     
-    # Step 1: Extract skills using LLM
-    extracted_skills = extract_skills_from_requirements(
+    # Step 1: Extract skills + classify job type (combined prompt)
+    from datetime import datetime
+    result = extract_skills_from_requirements(
         job.requirements,
         model_key=model_key,
         user_id=user_id
     )
     
-    if not extracted_skills:
-        logger.warning(f"[SKILL WORKFLOW] No skills extracted for job {job.id}")
-        return None
+    if not result:
+        logger.warning(f"[SKILL WORKFLOW] No result from extraction for job {job.id}")
+        return {
+            "status": "error",
+            "is_tech": True,
+            "skill_count": 0,
+            "confidence": 0.0,
+            "reason": "Extraction failed",
+            "primary_domain": "Unknown"
+        }
     
-    # Step 2: Save to database
+    # Step 2: Update job classification fields
+    job.is_tech_job = result.get("is_tech_job", True)
+    job.job_classification_confidence = result.get("confidence", 0.5)
+    job.job_primary_domain = result.get("primary_domain", "Unknown")
+    job.job_classification_reason = result.get("classification_reason", "")
+    job.classified_at = datetime.utcnow()
+    
+    # Step 3: Handle non-tech jobs
+    if not result.get("is_tech_job", True):
+        logger.warning(
+            f"[SKILL WORKFLOW] Non-tech job detected: {job.title_raw} "
+            f"(Domain: {job.job_primary_domain}, Confidence: {job.job_classification_confidence:.2f})"
+        )
+        
+        # Deactivate non-tech jobs from crawlers/imports
+        if job.source_label in ["topcv", "crawler", "import"]:
+            job.status = "inactive"
+            logger.info(f"[SKILL WORKFLOW] Deactivated non-tech job {job.id}")
+            status = "deactivated"
+        else:
+            # For manual jobs, just mark as non-tech but keep active
+            status = "non_tech"
+        
+        # Save empty skills array
+        job.extracted_requirements_json = []
+        
+        if commit:
+            db.commit()
+        
+        system_logger.info(
+            "AI_SKILL_EXTRACT",
+            f"Non-tech job: {job.job_primary_domain} - {status}"
+        )
+        
+        return {
+            "status": status,
+            "is_tech": False,
+            "skill_count": 0,
+            "confidence": job.job_classification_confidence,
+            "reason": job.job_classification_reason,
+            "primary_domain": job.job_primary_domain
+        }
+    
+    # Step 4: Extract skills list from result
+    extracted_skills = result.get("skills", [])
+    
+    if not extracted_skills:
+        logger.warning(f"[SKILL WORKFLOW] No skills extracted for tech job {job.id}")
+        job.extracted_requirements_json = []
+        if commit:
+            db.commit()
+        return {
+            "status": "no_skills",
+            "is_tech": True,
+            "skill_count": 0,
+            "confidence": job.job_classification_confidence,
+            "reason": "Tech job but no skills found",
+            "primary_domain": job.job_primary_domain
+        }
+    
+    # Step 5: Save skills to database
     saved_count = save_job_skills(
         db=db,
         job=job,
         extracted_skills=extracted_skills,
-        commit=commit
+        commit=False  # Don't commit yet
     )
     
-    # Step 3: Update job metadata
+    # Step 6: Update job metadata
     job.extracted_requirements_json = extracted_skills
+    
     if commit:
         db.commit()
     
-    logger.info(f"[SKILL WORKFLOW] ✓ Complete for job {job.id}: {saved_count} skills saved")
-    system_logger.info("AI_SKILL_EXTRACT", f"Completed skill extraction for Job {job.id}: {saved_count} skills saved")
+    logger.info(
+        f"[SKILL WORKFLOW] ✓ Complete for job {job.id}: "
+        f"{saved_count} skills saved (Domain: {job.job_primary_domain}, "
+        f"Confidence: {job.job_classification_confidence:.2f})"
+    )
+    system_logger.info(
+        "AI_SKILL_EXTRACT",
+        f"Tech job: {job.job_primary_domain} - {saved_count} skills saved"
+    )
     
-    return saved_count
+    return {
+        "status": "success",
+        "is_tech": True,
+        "skill_count": saved_count,
+        "confidence": job.job_classification_confidence,
+        "reason": job.job_classification_reason,
+        "primary_domain": job.job_primary_domain
+    }

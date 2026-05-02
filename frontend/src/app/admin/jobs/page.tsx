@@ -51,6 +51,20 @@ interface Job {
   has_13th_month?: boolean;
   remote_friendly?: boolean;
   created_at: string;
+  extracted_skills?: Array<{
+    skill_name: string;
+    category: string;
+    required_level?: string;
+    min_years_exp?: number;
+    is_mandatory?: boolean;
+    importance_weight?: number;
+  }>;
+  // Classification fields
+  is_tech_job?: boolean;
+  job_classification_confidence?: number;
+  job_primary_domain?: string;
+  job_classification_reason?: string;
+  classified_at?: string;
 }
 
 interface SystemSetting {
@@ -401,12 +415,27 @@ const AdminJobsPage = () => {
                        </div>
                     </td>
                     <td className={styles.td}>
-                       <span className={cn(
-                         styles.statusBadge,
-                         job.status === 'active' ? styles.statusActive : styles.statusInactive
-                       )}>
-                         {job.status === 'active' ? t("admin_jobs_status_active") : t("admin_jobs_status_inactive")}
-                       </span>
+                       <div className="flex flex-col gap-1">
+                         <span className={cn(
+                           styles.statusBadge,
+                           job.status === 'active' ? styles.statusActive : styles.statusInactive
+                         )}>
+                           {job.status === 'active' ? t("admin_jobs_status_active") : t("admin_jobs_status_inactive")}
+                         </span>
+                         {job.is_tech_job !== undefined && (
+                           <span className={cn(
+                             "text-xs px-2 py-0.5 rounded",
+                             job.is_tech_job 
+                               ? "bg-blue-100 text-blue-700" 
+                               : "bg-orange-100 text-orange-700"
+                           )}>
+                             {job.is_tech_job ? "Tech" : "Non-Tech"}
+                             {job.job_classification_confidence && 
+                               ` (${(job.job_classification_confidence * 100).toFixed(0)}%)`
+                             }
+                           </span>
+                         )}
+                       </div>
                     </td>
                     <td className={styles.td}>
                       <div className={styles.actionGroup}>
@@ -577,6 +606,120 @@ const AdminJobsPage = () => {
                   </label>
                 </div>
             </div>
+
+            {/* Extracted Skills Section */}
+            {editingJob?.extracted_skills && editingJob.extracted_skills.length > 0 && (
+              <div className={styles.formFieldFull}>
+                <label className="text-lg font-semibold mb-3 block">
+                  Extracted Skills ({editingJob.extracted_skills.length})
+                </label>
+                <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {editingJob.extracted_skills.map((skill, idx) => (
+                      <div 
+                        key={idx}
+                        className="bg-white rounded-lg p-3 border border-gray-200 hover:border-indigo-300 transition-colors"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <div className="font-semibold text-gray-900 mb-1">
+                              {skill.skill_name}
+                            </div>
+                            <div className="text-xs text-gray-500 mb-2">
+                              {skill.category}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            {skill.is_mandatory && (
+                              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">
+                                Required
+                              </span>
+                            )}
+                            {skill.importance_weight && (
+                              <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">
+                                Weight: {skill.importance_weight}/10
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-gray-600">
+                          {skill.required_level && (
+                            <span className="flex items-center gap-1">
+                              <Briefcase size={12} />
+                              {skill.required_level}
+                            </span>
+                          )}
+                          {skill.min_years_exp !== undefined && skill.min_years_exp > 0 && (
+                            <span className="flex items-center gap-1">
+                              📅 {skill.min_years_exp}+ years
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Job Classification Section */}
+            {editingJob && editingJob.is_tech_job !== undefined && (
+              <div className={styles.formFieldFull}>
+                <label className="text-lg font-semibold mb-3 block">
+                  Job Classification
+                </label>
+                <div className={cn(
+                  "rounded-lg p-4 border-2",
+                  editingJob.is_tech_job 
+                    ? "bg-blue-50 border-blue-200" 
+                    : "bg-orange-50 border-orange-200"
+                )}>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-sm text-gray-600 mb-1">Type</div>
+                      <div className={cn(
+                        "font-semibold text-lg",
+                        editingJob.is_tech_job ? "text-blue-700" : "text-orange-700"
+                      )}>
+                        {editingJob.is_tech_job ? "Tech Job" : "Non-Tech Job"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600 mb-1">Domain</div>
+                      <div className="font-semibold text-gray-900">
+                        {editingJob.job_primary_domain || "Unknown"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600 mb-1">Confidence</div>
+                      <div className="font-semibold text-gray-900">
+                        {editingJob.job_classification_confidence 
+                          ? `${(editingJob.job_classification_confidence * 100).toFixed(1)}%`
+                          : "N/A"
+                        }
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600 mb-1">Classified At</div>
+                      <div className="text-sm text-gray-700">
+                        {editingJob.classified_at 
+                          ? new Date(editingJob.classified_at).toLocaleDateString()
+                          : "N/A"
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  {editingJob.job_classification_reason && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="text-sm text-gray-600 mb-1">Reason</div>
+                      <div className="text-sm text-gray-700 italic">
+                        {editingJob.job_classification_reason}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
           <div className={styles.modalFooter}>
             <button onClick={() => setIsModalOpen(false)} className={styles.cancelBtn}>{t("cancel")}</button>
