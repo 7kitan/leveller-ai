@@ -14,15 +14,18 @@ env:
 
 jobs:
   build-and-push:
-  
     runs-on: [self-hosted, phoenix-runner]
     permissions:
       contents: read
       packages: write
 
     steps:
+      - name: Fix safe directory for self-hosted runner
+        run: |
+          git config --global --add safe.directory "*"
+          
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Log in to the Container registry
         uses: docker/login-action@v2
@@ -92,10 +95,13 @@ jobs:
             export GHCR_BACKEND_WORKER_IMAGE=$REGISTRY/${IMAGE_NAME_WORKER,,}:latest
             
             echo "Pulling latest images..."
-            docker-compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml pull
             
             echo "Restarting containers..."
-            docker-compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
             
-            echo "Cleaning up old images..."
+            echo "Cleaning up unused images..."
             docker image prune -f
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}

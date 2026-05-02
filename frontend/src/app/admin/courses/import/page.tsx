@@ -132,7 +132,7 @@ const CourseImportPage = () => {
     if (!file) return;
 
     if (!file.name.endsWith('.txt')) {
-      showNotification("Please upload a .txt file", "error");
+      showNotification(t('courses_import_txt_only'), "error");
       return;
     }
 
@@ -140,10 +140,10 @@ const CourseImportPage = () => {
     reader.onload = (event) => {
       const content = event.target?.result as string;
       setUrlsText(content);
-      showNotification(`Loaded ${file.name} successfully`);
+      showNotification(t('courses_import_loaded').replace('{filename}', file.name));
     };
     reader.onerror = () => {
-      showNotification("Failed to read file", "error");
+      showNotification(t('courses_import_read_error'), "error");
     };
     reader.readAsText(file);
   };
@@ -153,7 +153,7 @@ const CourseImportPage = () => {
     if (!file) return;
 
     if (!file.name.endsWith('.json')) {
-      showNotification("Please upload a .json file", "error");
+      showNotification(t('courses_import_json_only'), "error");
       return;
     }
 
@@ -165,7 +165,7 @@ const CourseImportPage = () => {
         const data = JSON.parse(content);
         
         if (!data.courses || !Array.isArray(data.courses)) {
-          showNotification("Invalid JSON format. Expected {courses: [...]}", "error");
+          showNotification(t('courses_import_invalid_json'), "error");
           setIsImportingFull(false);
           return;
         }
@@ -176,17 +176,20 @@ const CourseImportPage = () => {
         );
 
         showNotification(
-          `Imported: ${resp.data.imported_count}, Skipped: ${resp.data.skipped_count}, Errors: ${resp.data.error_count}`
+          t('courses_import_result')
+            .replace('{imported}', resp.data.imported_count)
+            .replace('{skipped}', resp.data.skipped_count)
+            .replace('{errors}', resp.data.error_count)
         );
       } catch (err: any) {
-        const msg = err.response?.data?.detail || "Failed to import courses";
+        const msg = err.response?.data?.detail || t('courses_import_failed');
         showNotification(msg, "error");
       } finally {
         setIsImportingFull(false);
       }
     };
     reader.onerror = () => {
-      showNotification("Failed to read file", "error");
+      showNotification(t('courses_import_read_error'), "error");
       setIsImportingFull(false);
     };
     reader.readAsText(file);
@@ -210,9 +213,9 @@ const CourseImportPage = () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      showNotification(`Exported ${resp.data.count} courses successfully`);
+      showNotification(t('courses_import_exported').replace('{count}', resp.data.count));
     } catch (err: any) {
-      const msg = err.response?.data?.detail || "Failed to export courses";
+      const msg = err.response?.data?.detail || t('courses_import_export_error');
       showNotification(msg, "error");
     } finally {
       setIsExporting(false);
@@ -419,7 +422,7 @@ const CourseImportPage = () => {
             <div className={styles.actionGroup}>
               <label className={styles.uploadBtn}>
                 <Upload size={18} />
-                Upload .txt URLs
+                {t('courses_import_upload_txt')}
                 <input 
                   type="file" 
                   accept=".txt" 
@@ -430,7 +433,7 @@ const CourseImportPage = () => {
               
               <label className={cn(styles.uploadBtn, styles.uploadBtnSecondary)}>
                 <FileUp size={18} />
-                {isImportingFull ? <Loader2 className="animate-spin" size={18} /> : "Import Full Data"}
+                {isImportingFull ? <Loader2 className="animate-spin" size={18} /> : t('courses_import_import_full')}
                 <input 
                   type="file" 
                   accept=".json" 
@@ -447,7 +450,7 @@ const CourseImportPage = () => {
               disabled={isExporting}
             >
               {isExporting ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
-              {isExporting ? "Exporting..." : "Export All with Vectors"}
+              {isExporting ? t('courses_import_exporting') : t('courses_import_export_all')}
             </button>
           </div>
 

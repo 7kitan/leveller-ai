@@ -95,6 +95,22 @@
     --color-info-dark: oklch(0.45 0.10 240);      /* Info hover/text */
 
     /* ========================================================================
+     * CHART COLORS - DISTINCT PALETTE FOR DATA VISUALIZATION
+     * 10 distinct colors for charts, graphs, and data visualization
+     * Optimized for distinguishability and accessibility
+     * ======================================================================== */
+    --color-chart-emerald: oklch(0.60 0.12 150);   /* Green - Success/Growth */
+    --color-chart-indigo: oklch(0.65 0.08 240);    /* Blue - Primary data */
+    --color-chart-amber: oklch(0.70 0.14 80);      /* Amber - Warning/Caution */
+    --color-chart-sky: oklch(0.65 0.10 220);       /* Sky Blue - Info/Secondary */
+    --color-chart-pink: oklch(0.65 0.12 340);      /* Pink/Magenta - Accent */
+    --color-chart-purple: oklch(0.60 0.12 280);    /* Purple - Alternative */
+    --color-chart-teal: oklch(0.60 0.10 180);      /* Teal - Alternative */
+    --color-chart-orange: oklch(0.65 0.14 40);     /* Orange - Warm accent */
+    --color-chart-cyan: oklch(0.65 0.10 200);      /* Cyan - Cool accent */
+    --color-chart-lime: oklch(0.70 0.12 120);      /* Lime - Yellow-green */
+
+    /* ========================================================================
      * TYPOGRAPHY SCALE
      * Font sizes with semantic naming
      * ======================================================================== */
@@ -186,25 +202,45 @@
         --color-border-strong: var(--color-neutral-700);
 
         /* Semantic States */
-        --color-success: var(--color-success);
+        --color-success-light: oklch(0.85 0.08 150);
+        --color-success: oklch(0.60 0.12 150);
+        --color-success-dark: oklch(0.45 0.10 150);
         --color-success-bg: var(--color-success-light);
         --color-success-hover: var(--color-success-dark);
         --color-success-text: var(--color-success-dark);
 
-        --color-warning: var(--color-warning);
+        --color-warning-light: oklch(0.88 0.10 80);
+        --color-warning: oklch(0.70 0.14 80);
+        --color-warning-dark: oklch(0.55 0.12 80);
         --color-warning-bg: var(--color-warning-light);
         --color-warning-hover: var(--color-warning-dark);
         --color-warning-text: var(--color-warning-dark);
 
-        --color-error: var(--color-error);
+        --color-error-light: oklch(0.85 0.12 15);
+        --color-error: oklch(0.60 0.18 15);
+        --color-error-dark: oklch(0.45 0.15 15);
         --color-error-bg: var(--color-error-light);
         --color-error-hover: var(--color-error-dark);
         --color-error-text: var(--color-error-dark);
 
-        --color-info: var(--color-info);
+        --color-info-light: oklch(0.85 0.08 240);
+        --color-info: oklch(0.60 0.12 240);
+        --color-info-dark: oklch(0.45 0.10 240);
         --color-info-bg: var(--color-info-light);
         --color-info-hover: var(--color-info-dark);
         --color-info-text: var(--color-info-dark);
+
+        /* Chart Colors - Make available as CSS variables */
+        --color-chart-emerald: oklch(0.60 0.12 150);
+        --color-chart-indigo: oklch(0.65 0.08 240);
+        --color-chart-amber: oklch(0.70 0.14 80);
+        --color-chart-sky: oklch(0.65 0.10 220);
+        --color-chart-pink: oklch(0.65 0.12 340);
+        --color-chart-purple: oklch(0.60 0.12 280);
+        --color-chart-teal: oklch(0.60 0.10 180);
+        --color-chart-orange: oklch(0.65 0.14 40);
+        --color-chart-cyan: oklch(0.65 0.10 200);
+        --color-chart-lime: oklch(0.70 0.12 120);
     }
 
     [data-theme="dark"] {
@@ -251,25 +287,45 @@
         --color-border-strong: var(--color-neutral-400);
 
         /* Semantic States - Adjust for dark backgrounds */
-        --color-success: var(--color-success);
+        --color-success-light: oklch(0.85 0.08 150);
+        --color-success: oklch(0.60 0.12 150);
+        --color-success-dark: oklch(0.45 0.10 150);
         --color-success-bg: var(--color-success-dark);
         --color-success-hover: var(--color-success-light);
         --color-success-text: var(--color-success-light);
 
-        --color-warning: var(--color-warning);
+        --color-warning-light: oklch(0.88 0.10 80);
+        --color-warning: oklch(0.70 0.14 80);
+        --color-warning-dark: oklch(0.55 0.12 80);
         --color-warning-bg: var(--color-warning-dark);
         --color-warning-hover: var(--color-warning-light);
         --color-warning-text: var(--color-warning-light);
 
-        --color-error: var(--color-error);
+        --color-error-light: oklch(0.85 0.12 15);
+        --color-error: oklch(0.60 0.18 15);
+        --color-error-dark: oklch(0.45 0.15 15);
         --color-error-bg: var(--color-error-dark);
         --color-error-hover: var(--color-error-light);
         --color-error-text: var(--color-error-light);
 
-        --color-info: var(--color-info);
+        --color-info-light: oklch(0.85 0.08 240);
+        --color-info: oklch(0.60 0.12 240);
+        --color-info-dark: oklch(0.45 0.10 240);
         --color-info-bg: var(--color-info-dark);
         --color-info-hover: var(--color-info-light);
         --color-info-text: var(--color-info-light);
+
+        /* Chart Colors - Slightly brighter for dark mode visibility */
+        --color-chart-emerald: oklch(0.65 0.12 150);
+        --color-chart-indigo: oklch(0.70 0.08 240);
+        --color-chart-amber: oklch(0.75 0.14 80);
+        --color-chart-sky: oklch(0.70 0.10 220);
+        --color-chart-pink: oklch(0.70 0.12 340);
+        --color-chart-purple: oklch(0.65 0.12 280);
+        --color-chart-teal: oklch(0.65 0.10 180);
+        --color-chart-orange: oklch(0.70 0.14 40);
+        --color-chart-cyan: oklch(0.70 0.10 200);
+        --color-chart-lime: oklch(0.75 0.12 120);
     }
 
     /* Dark mode typography spacing - matches light mode */
@@ -388,4 +444,126 @@
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
+}
+
+
+/* Apple Pro Typography Utilities */
+@layer utilities {
+    .text-display-hero {
+        font-size: 56px;
+        font-weight: 600;
+        line-height: 1.07;
+        letter-spacing: -0.015em;
+    }
+
+    .text-section-heading {
+        font-size: 40px;
+        font-weight: 600;
+        line-height: 1.10;
+    }
+
+    /* UI Element Font Scale */
+    .font-micro {
+        font-size: var(--font-size-caption);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .font-meta {
+        font-size: var(--font-size-small);
+        font-weight: 600;
+        opacity: 0.6;
+    }
+
+    .font-label {
+        font-size: var(--font-size-base);
+        font-weight: 700;
+    }
+
+    .font-stat {
+        font-size: 2.5rem;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+    }
+
+    .font-stat-label {
+        font-size: var(--font-size-small);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+        opacity: 0.5;
+    }
+
+    /* Semantic Text Classes */
+    .text-body {
+        font-size: var(--font-size-base);
+        line-height: 1.5;
+    }
+
+    .text-subheading {
+        font-size: var(--font-size-medium);
+        font-weight: 700;
+    }
+
+    .text-card-title {
+        font-size: var(--font-size-large);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .text-page-title {
+        font-size: var(--font-size-display);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+    }
+
+    .apple-glass {
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: saturate(180%) blur(20px);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+    }
+
+    .pill-button {
+        border-radius: var(--radius-full);
+        padding: 8px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    .text-premium-gradient {
+        background: linear-gradient(180deg, var(--color-text-primary) 0%, rgba(255, 255, 255, 0.4) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .luminous-bg {
+        background: radial-gradient(circle at 10% 20%, rgba(0, 113, 227, 0.03) 0%, transparent 50%),
+            radial-gradient(circle at 90% 80%, rgba(41, 151, 255, 0.03) 0%, transparent 50%),
+            #ffffff;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Global Gradient Text Utility - Standardized across all pages */
+.gradient-text {
+    background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-block;
 }

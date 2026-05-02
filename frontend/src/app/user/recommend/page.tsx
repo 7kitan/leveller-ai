@@ -27,7 +27,7 @@ import {
   Play,
 } from "lucide-react";
 import CourseCard from "@/components/user/CourseCard";
-import { cn } from "@/lib/utils";
+import { cn, formatNumber, formatPercent, formatHours } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactECharts from 'echarts-for-react';
 import FeedbackSection from "@/components/user/FeedbackSection";
@@ -36,7 +36,7 @@ import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 import { useLanguage } from "@/context/LanguageContext";
 
-/* ── Types ─────────────────────────────────────────────────────────────── */
+/* --- Types --------------------------------------------------------------- */
 interface CourseRec {
   course_id: string;
   gap_skill?: string;
@@ -114,7 +114,7 @@ interface GapResult {
   is_cached?: boolean;
 }
 
-/* ── Helpers ────────────────────────────────────────────────────────────── */
+/* --- Helpers ------------------------------------------------------------- */
 function severityColor(sev: string) {
   const map: Record<string, string> = {
     HIGH: "#f43f5e",
@@ -176,10 +176,17 @@ const UserRecommendPage = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [processMessage, setProcessMessage] = useState("");
 
+  const skill_gaps = gapResult?.skill_gaps || [];
+  const youtube_videos = gapResult?.youtube_videos || [];
+  
+  const sortedGapsForChart = useMemo(() => {
+    return [...skill_gaps].sort((a, b) => (b.market_demand || 0) - (a.market_demand || 0));
+  }, [skill_gaps]);
+
   const searchParams = useSearchParams();
   const taskIdFromUrl = searchParams.get("task_id");
 
-  /* ── Progressive Polling Logic ───────────────────────────────────────── */
+  /* --- Progressive Polling Logic ----------------------------------------- */
   useEffect(() => {
     if (!token || !taskIdFromUrl) return;
 
@@ -196,6 +203,12 @@ const UserRecommendPage = () => {
       }
     } catch (e) {}
 
+    // Skip polling if task_id is invalid (cached result)
+    if (taskIdFromUrl === "null" || taskIdFromUrl === "undefined") {
+      console.log("[RECOMMEND] Invalid task_id, skipping status polling");
+      setIsProcessing(false);
+      return;
+    }
     // 1. Initial fetch to check if task is already completed
     const fetchInitialStatus = async () => {
       try {
@@ -333,7 +346,7 @@ const UserRecommendPage = () => {
     return () => {};
   }, [token, taskIdFromUrl]);
 
-  /* ── Load initial gap result (if no task_id) ─────────────────────────── */
+  /* --- Load initial gap result (if no task_id) --------------------------- */
   useEffect(() => {
     if (!token || taskIdFromUrl) return;
 
@@ -381,8 +394,6 @@ const UserRecommendPage = () => {
     }
   };
 
-  const youtube_videos = gapResult?.youtube_videos || [];
-
   if (loading) {
     return (
       <div className={styles.loadingWrapper}>
@@ -419,7 +430,6 @@ const UserRecommendPage = () => {
   const { 
     overall_match_pct, 
     overall_assessment, 
-    skill_gaps = [], 
     course_recommendations = [], 
     career_roadmap,
     strengths = [],
@@ -436,7 +446,7 @@ const UserRecommendPage = () => {
   );
 
   const totalHours = course_recommendations.reduce((s, c) => s + (c.duration_hours || 0), 0);
-  const displayTotalHours = totalHours > 0 ? `${totalHours.toFixed(1)}h` : t("not_available");
+  const displayTotalHours = totalHours > 0 ? formatHours(totalHours) : t("not_available");
 
   const tabs = [
     { key: "gaps", label: t("skill_gaps"), icon: Layers, count: skill_gaps.length },
@@ -502,7 +512,7 @@ const UserRecommendPage = () => {
 
       <div className={styles.matchBanner}>
         <div className={styles.matchScoreBlock}>
-          <span className={styles.matchScore}>{(overall_match_pct ?? 0).toFixed(1)}%</span>
+          <span className={styles.matchScore}>{formatNumber(overall_match_pct ?? 0)}%</span>
           <span className={styles.matchLabel}>{t("current_match")}</span>
         </div>
         
@@ -583,7 +593,7 @@ const UserRecommendPage = () => {
                       const val = params.value[i];
                       res += `<div style="display: flex; justify-content: space-between; gap: 20px; margin-bottom: 4px;">
                         <span style="color: rgba(255,255,255,0.7);">${translateRadarCategory(name)}</span>
-                        <strong style="color: #fff;">${Number(val).toFixed(1)}%</strong>
+                        <strong style="color: #fff;">${formatNumber(Number(val))}%</strong>
                       </div>`;
                     });
                     res += `</div>`;
@@ -624,9 +634,9 @@ const UserRecommendPage = () => {
                   {t("dash_potential_match")}
                 </div>
                 <div className={styles.growthValue}>
-                  {(gapResult.potential_match_pct || 0).toFixed(1)}%
+                  {formatPercent(gapResult.potential_match_pct || 0)}
                   <span className={styles.growthDiff}>
-                    +{((gapResult.potential_match_pct || 0) - (overall_match_pct || 0)).toFixed(1)}%
+                    {((gapResult.potential_match_pct || 0) - (overall_match_pct || 0)) > 0 ? '+' : ''}{formatPercent((gapResult.potential_match_pct || 0) - (overall_match_pct || 0))}
                   </span>
                 </div>
               </div>
@@ -636,7 +646,7 @@ const UserRecommendPage = () => {
                   {t("dash_salary_boost")}
                 </div>
                 <div className={styles.growthValue}>
-                  +{(gapResult.salary_growth_pct || 0).toFixed(1)}%
+                  {Number(gapResult.salary_growth_pct || 0) > 0 ? '+' : ''}{formatPercent(gapResult.salary_growth_pct || 0)}
                 </div>
               </div>
               {gapResult.market_sentiment && (
@@ -666,12 +676,11 @@ const UserRecommendPage = () => {
               <div className={cn(styles.skeleton, styles.skeletonText)} />
               <div className={cn(styles.skeleton, styles.skeletonText, styles.skeletonTextMedium)} />
             </div>
-          ) : (
+          ) : strengths.length > 0 ? (
             <ul className={styles.infoList}>
               {strengths.map((s, i) => <li key={i}>{s}</li>)}
-              {strengths.length === 0 && <li>{t("analyzing_data")}</li>}
             </ul>
-          )}
+          ) : null}
         </div>
         <div className={styles.infoCard}>
           <h3 className={styles.infoTitle}>
@@ -683,12 +692,11 @@ const UserRecommendPage = () => {
               <div className={cn(styles.skeleton, styles.skeletonText)} />
               <div className={cn(styles.skeleton, styles.skeletonText, styles.skeletonTextShort)} />
             </div>
-          ) : (
+          ) : weaknesses.length > 0 ? (
             <ul className={styles.infoList}>
               {weaknesses.map((w, i) => <li key={i}>{w}</li>)}
-              {weaknesses.length === 0 && <li>{t("all_skills_ok")}</li>}
             </ul>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -750,15 +758,71 @@ const UserRecommendPage = () => {
                 {hasImpactData ? (
                   <ReactECharts
                     key={`impact-chart-${skill_gaps.map(g => g.skill).join('-')}-${skill_gaps.length}`}
-                    option={{
-                      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: chartTooltipBg, borderColor: primaryColor, borderWidth: 1, textStyle: { color: chartTooltipText } },
-                      legend: { data: [t('match_impact'), t('salary_impact')], textStyle: { color: chartTextColor, fontSize: 10 }, top: 0 },
+                     option={{
+                       tooltip: { 
+                         trigger: 'axis', 
+                         axisPointer: { type: 'shadow' }, 
+                         backgroundColor: chartTooltipBg, 
+                         borderColor: primaryColor, 
+                         borderWidth: 1, 
+                         textStyle: { color: chartTooltipText },
+                         formatter: (params: any) => {
+                           const skillName = params[0].axisValue;
+                           let html = `<div style="font-weight: 600; margin-bottom: 4px;">${skillName}</div>`;
+                           params.forEach((param: any) => {
+                             const value = typeof param.value === 'number' ? formatNumber(param.value) : param.value;
+                             html += `<div style="display: flex; align-items: center; gap: 8px;">
+                               <span style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: ${param.color};"></span>
+                               <span>${param.seriesName}: <strong>${value}%</strong></span>
+                             </div>`;
+                           });
+                           return html;
+                         }
+                       },
+                      legend: { 
+                        data: [t('demand_score'), t('match_impact'), t('salary_impact')], 
+                        textStyle: { color: chartTextColor, fontSize: 10 }, 
+                        top: 0 
+                      },
                       grid: { left: '3%', right: '4%', bottom: '3%', top: '40px', containLabel: true },
-                      xAxis: { type: 'value', axisLabel: { color: chartTextColor, fontSize: 10 }, splitLine: { lineStyle: { color: chartSplitLineColor } } },
-                      yAxis: { type: 'category', data: skill_gaps.map(g => g.skill).reverse(), axisLabel: { color: chartTextColor, fontSize: 11, width: 100, overflow: 'truncate' }, axisLine: { lineStyle: { color: chartAxisColor } } },
+                      xAxis: { type: 'value', max: 100, axisLabel: { color: chartTextColor, fontSize: 10 }, splitLine: { lineStyle: { color: chartSplitLineColor } } },
+                      yAxis: { 
+                        type: 'category', 
+                        data: sortedGapsForChart.map(g => g.skill).reverse(), 
+                        axisLabel: { color: chartTextColor, fontSize: 11, width: 100, overflow: 'truncate' }, 
+                        axisLine: { lineStyle: { color: chartAxisColor } } 
+                      },
                       series: [
-                        { name: t('match_impact'), type: 'bar', data: skill_gaps.map(g => Number((g.match_impact || 0).toFixed(1))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: primaryColor }, { offset: 1, color: secondaryColor }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' },
-                        { name: t('salary_impact'), type: 'bar', data: skill_gaps.map(g => Number((g.salary_impact || 0).toFixed(1))).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#34d399' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '30%' }
+                        { 
+                          name: t('demand_score'), 
+                          type: 'bar', 
+                          data: sortedGapsForChart.map(g => g.market_demand || 0).reverse(), 
+                          itemStyle: { 
+                            color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#f59e0b' }, { offset: 1, color: '#fbbf24' }] }, 
+                            borderRadius: [0, 4, 4, 0] 
+                          }, 
+                          barWidth: '20%' 
+                        },
+                        { 
+                          name: t('match_impact'), 
+                          type: 'bar', 
+                          data: sortedGapsForChart.map(g => parseFloat(formatNumber(g.match_impact || 0))).reverse(), 
+                          itemStyle: { 
+                            color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#4f46e5' }, { offset: 1, color: '#0ea5e9' }] }, 
+                            borderRadius: [0, 4, 4, 0] 
+                          }, 
+                          barWidth: '20%' 
+                        },
+                        { 
+                          name: t('salary_impact'), 
+                          type: 'bar', 
+                          data: sortedGapsForChart.map(g => parseFloat(formatNumber(g.salary_impact || 0))).reverse(), 
+                          itemStyle: { 
+                            color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#34d399' }] }, 
+                            borderRadius: [0, 4, 4, 0] 
+                          }, 
+                          barWidth: '20%' 
+                        }
                       ]
                     }}
                     style={{ height: '100%', width: '100%' }}
@@ -792,8 +856,8 @@ const UserRecommendPage = () => {
                 </div>
                 {(!!gap.match_impact || !!gap.salary_impact) && (
                   <div className={styles.gapImpact}>
-                    {!!gap.match_impact && <span className={styles.impactBadge} style={{ background: primaryColor10, color: primaryColor }}><Target size={12} /> +{gap.match_impact.toFixed(1)}% {t('match')}</span>}
-                    {!!gap.salary_impact && <span className={styles.impactBadge} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}><TrendingUp size={12} /> +{gap.salary_impact.toFixed(1)}% {t('salary_text')}</span>}
+                    {!!gap.match_impact && <span className={styles.impactBadge} style={{ background: primaryColor10, color: primaryColor }}><Target size={12} /> {gap.match_impact > 0 ? '+' : ''}{formatNumber(gap.match_impact)}% {t('match')}</span>}
+                    {!!gap.salary_impact && <span className={styles.impactBadge} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}><TrendingUp size={12} /> {gap.salary_impact > 0 ? '+' : ''}{formatNumber(gap.salary_impact)}% {t('salary_text')}</span>}
                   </div>
                 )}
                 {gap.learning_path && <div className={styles.gapLearningPath}><Sparkles size={12} className={styles.pathIcon} /><p>{gap.learning_path}</p></div>}

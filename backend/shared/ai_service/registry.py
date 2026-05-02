@@ -70,6 +70,30 @@ AI_REGISTRY: List[AIModelDefinition] = [
         capabilities=["json", "vision"],
         description="Balanced performance and speed from Anthropic."
     ),
+    AIModelDefinition(
+        id="claude-3-5-haiku",
+        provider="anthropic",
+        name="Claude 3.5 Haiku",
+        type="chat",
+        capabilities=["json"],
+        description="Fastest and most cost-effective model from Anthropic for simple tasks."
+    ),
+    AIModelDefinition(
+        id="claude-3-haiku",
+        provider="anthropic",
+        name="Claude 3 Haiku",
+        type="chat",
+        capabilities=["json"],
+        description="Previous generation fast model from Anthropic."
+    ),
+    AIModelDefinition(
+        id="claude-3-opus",
+        provider="anthropic",
+        name="Claude 3 Opus",
+        type="chat",
+        capabilities=["json", "vision"],
+        description="Most powerful model from Anthropic for complex reasoning."
+    ),
 ]
 
 def get_model_info(model_id: str) -> Optional[AIModelDefinition]:

@@ -2,6 +2,7 @@ import os
 import logging
 from celery import Celery
 from celery.signals import after_setup_logger
+from celery.schedules import crontab
 from dotenv import load_dotenv
 from shared.database import engine, Base
 import shared.models # Ensure all models are registered
@@ -100,9 +101,9 @@ celery_app.conf.update(
             "schedule": 1800.0,  # 30 minutes
             "args": (20,),
         },
-        "hourly-market-aggregation": {
+        "daily-market-aggregation": {
             "task": "worker.tasks.market_stats_tasks.aggregate_market_data",
-            "schedule": 3600.0, # 1 hour (changed from 24 hours for fresher data)
+            "schedule": crontab(hour=2, minute=0),  # Daily at 2:00 AM
         },
         "daily-youtube-cleanup": {
             "task": "worker.tasks.market_stats_tasks.cleanup_expired_youtube_courses",

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -10,9 +10,12 @@ import {
   TrendingUp,
   ArrowRight,
   Target,
+  X,
+  Lightbulb,
+  BookOpen
 } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, formatNumber, formatPercent } from "@/lib/utils";
 import styles from "./user-dashboard.module.css";
 import { useLanguage } from "@/context/LanguageContext";
 import CourseCard from "@/components/user/CourseCard";
@@ -32,6 +35,29 @@ const UserDashboard = () => {
 
   const [period, setPeriod] = useState("month");
   const [selectedGap, setSelectedGap] = useState<any>(null);
+  const [hiddenSkills, setHiddenSkills] = useState<Set<string>>(new Set());
+
+  const sortedTrends = useMemo(() => {
+    if (!marketData?.market_trends?.trends) return [];
+    return [...marketData.market_trends.trends].sort((a, b) => {
+      const latestA = a.history?.[a.history.length - 1]?.demand || 0;
+      const latestB = b.history?.[b.history.length - 1]?.demand || 0;
+      return latestB - latestA;
+    });
+  }, [marketData]);
+
+  const chartData = useMemo(() => {
+    if (sortedTrends.length === 0) return [];
+    const dates = Array.from(new Set(sortedTrends.flatMap((t: any) => (t.history || []).map((h: any) => h.date)))).sort();
+    return dates.map(date => {
+      const entry: any = { date };
+      sortedTrends.forEach((t: any) => {
+        const h = (t.history || []).find((hi: any) => hi.date === date);
+        if (h) entry[t.name] = h.demand;
+      });
+      return entry;
+    });
+  }, [sortedTrends]);
 
   useEffect(() => {
     if (!token) return;
@@ -109,12 +135,12 @@ const UserDashboard = () => {
   const stats = [
     {
       label: t("dash_suggested_courses"),
-      value: loading ? "..." : String(marketData?.matched_jobs ?? "0"),
+      value: loading ? "..." : String(rawCourses.length || 0),
       icon: Target,
     },
     {
       label: t("cv_match_score"),
-      value: loading ? "..." : `${(marketData?.market_fit_pct || 0).toFixed(1)}%`,
+      value: loading ? "..." : formatPercent(latestAnalysis?.overall_match_pct || marketData?.market_fit_pct || 0),
       icon: TrendingUp,
     },
   ];
@@ -182,11 +208,11 @@ const UserDashboard = () => {
                           borderColor: severityBorderColor(gap.severity),
                         }}
                       >
-                        ● {severityLabel(gap.severity)}
+                        {severityLabel(gap.severity)}
                       </span>
                     </div>
                     <span className={styles.gapMiniMeta}>
-                      {gap.required_level || "Intermediate"} · {gap.estimated_months || 3} months
+                      {gap.required_level || "Intermediate"} • {gap.estimated_months || 3} months
                     </span>
                   </div>
                 ))
@@ -218,11 +244,11 @@ const UserDashboard = () => {
                             borderColor: severityBorderColor(selectedGap.severity),
                           }}
                         >
-                          ● {severityLabel(selectedGap.severity)}
+                          {severityLabel(selectedGap.severity)}
                         </span>
                       </div>
                       <p className={styles.slideOverMeta}>
-                        Target: {selectedGap.required_level || "Intermediate"} · {selectedGap.estimated_months || 3} months
+                        Target: {selectedGap.required_level || "Intermediate"} • {selectedGap.estimated_months || 3} months
                       </p>
                     </div>
                     <button 
@@ -230,21 +256,27 @@ const UserDashboard = () => {
                       onClick={() => setSelectedGap(null)}
                       aria-label="Close"
                     >
-                      ✕
+                      <X size={20} />
                     </button>
                   </div>
                   
                   <div className={styles.slideOverContent}>
                     {selectedGap.reasoning && (
                       <div className={styles.slideOverSection}>
-                        <h4 className={styles.slideOverSectionTitle}>💡 Why This Matters</h4>
+                        <h4 className={styles.slideOverSectionTitle}>
+                          <Lightbulb size={18} className="text-warning" />
+                          Why This Matters
+                        </h4>
                         <p className={styles.slideOverText}>{selectedGap.reasoning}</p>
                       </div>
                     )}
                     
                     {selectedGap.learning_path && (
                       <div className={styles.slideOverSection}>
-                        <h4 className={styles.slideOverSectionTitle}>📚 Learning Path</h4>
+                        <h4 className={styles.slideOverSectionTitle}>
+                          <BookOpen size={18} className="text-primary" />
+                          Learning Path
+                        </h4>
                         <p className={styles.slideOverText}>{selectedGap.learning_path}</p>
                       </div>
                     )}
@@ -264,9 +296,9 @@ const UserDashboard = () => {
                       {t("dash_potential_match")}
                     </div>
                     <div className={styles.forecastValue}>
-                      {marketData.potential_match_pct.toFixed(1)}%
+                      {formatPercent(marketData.potential_match_pct)}
                       <span className={styles.growthBadge}>
-                        +{(marketData.potential_match_pct - (marketData.market_fit_pct || 0)).toFixed(1)}%
+                        +{formatPercent(marketData.potential_match_pct - (marketData.market_fit_pct || 0))}
                       </span>
                     </div>
                   </div>
@@ -276,7 +308,7 @@ const UserDashboard = () => {
                       {t("dash_salary_boost")}
                     </div>
                     <div className={styles.forecastValue}>
-                      +{marketData.salary_growth_pct.toFixed(1)}%
+                      +{formatPercent(marketData.salary_growth_pct)}
                     </div>
                   </div>
                 </div>
@@ -325,13 +357,13 @@ const UserDashboard = () => {
           <div className={styles.trendHeader}>
             <h3 className="text-subheading">{t("dash_market_trends")}</h3>
             <div className={styles.periodSelector}>
-              {['day', 'week', 'month'].map((p) => (
+              {['week', 'month'].map((p) => (
                 <button 
                   key={p} 
                   className={cn(styles.periodBtn, period === p && styles.active)}
                   onClick={() => setPeriod(p)}
                 >
-                  {t(`period_${p === 'day' ? '24h' : p === 'week' ? '7d' : '30d'}` as any)}
+                  {t(`period_${p === 'week' ? '7d' : '30d'}` as any)}
                 </button>
               ))}
             </div>
@@ -344,35 +376,30 @@ const UserDashboard = () => {
             </div>
             <div className={styles.snapshotItem}>
               <div className={styles.snapshotLabel}>{t("dash_hot_trend")}</div>
-              <div className={cn(styles.snapshotValue, "text-success")}>{loading ? "..." : (marketData?.market_trends?.summary?.top_gainer || t("not_available"))}</div>
+              <div className={cn(styles.snapshotValue, "text-success")}>
+                {loading ? "..." : (sortedTrends[0]?.name || marketData?.market_trends?.summary?.top_gainer || t("not_available"))}
+              </div>
             </div>
           </div>
           <div className={styles.barChartContainer} style={{ height: '400px', width: '100%', marginTop: '2rem' }}>
-            {(marketData?.market_trends?.trends || []).length > 0 ? (
+            {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart 
-                  data={(() => {
-                    const trends = marketData.market_trends.trends.slice(0, 5);
-                    // Pivot data for Recharts: array of { date, skillA, skillB, ... }
-                    const dates = Array.from(new Set(trends.flatMap((t: any) => (t.history || []).map((h: any) => h.date)))).sort();
-                    return dates.map(date => {
-                      const entry: any = { date };
-                      trends.forEach((t: any) => {
-                        const h = (t.history || []).find((hi: any) => hi.date === date);
-                        if (h) entry[t.name] = h.demand;
-                      });
-                      return entry;
-                    });
-                  })()} 
+                  data={chartData} 
                   margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
                 >
                   <defs>
                     {[
-                      { id: 'Emerald', color: 'var(--color-success)' },
-                      { id: 'Indigo', color: 'var(--color-primary)' },
-                      { id: 'Amber', color: 'var(--color-warning)' },
-                      { id: 'Sky', color: 'var(--color-info)' },
-                      { id: 'Pink', color: 'var(--color-secondary)' }
+                      { id: 'Emerald', color: 'var(--color-chart-emerald)' },
+                      { id: 'Indigo', color: 'var(--color-chart-indigo)' },
+                      { id: 'Amber', color: 'var(--color-chart-amber)' },
+                      { id: 'Sky', color: 'var(--color-chart-sky)' },
+                      { id: 'Pink', color: 'var(--color-chart-pink)' },
+                      { id: 'Purple', color: 'var(--color-chart-purple)' },
+                      { id: 'Teal', color: 'var(--color-chart-teal)' },
+                      { id: 'Orange', color: 'var(--color-chart-orange)' },
+                      { id: 'Cyan', color: 'var(--color-chart-cyan)' },
+                      { id: 'Lime', color: 'var(--color-chart-lime)' }
                     ].map(g => (
                       <linearGradient key={g.id} id={`color${g.id}`} x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor={g.color} stopOpacity={0.2}/>
@@ -385,40 +412,157 @@ const UserDashboard = () => {
                     dataKey="date" 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: 'var(--color-text-tertiary)', fontSize: 10, fontWeight: 'bold' }}
+                    tick={{ fill: 'var(--color-text-secondary)', fontSize: 11, fontWeight: 500 }}
                     minTickGap={40}
                   />
                   <YAxis 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: 'var(--color-text-tertiary)', fontSize: 10, fontWeight: 'bold' }}
+                    tick={{ fill: 'var(--color-text-secondary)', fontSize: 11, fontWeight: 500 }}
                   />
                   <Legend 
                     verticalAlign="top" 
                     align="right" 
                     height={36} 
                     iconType="circle"
-                    wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.8 }}
+                    wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.8, cursor: 'pointer' }}
+                    content={(props: any) => {
+                      const palettes = [
+                        { id: 'Emerald', color: 'var(--color-chart-emerald)' },
+                        { id: 'Indigo', color: 'var(--color-chart-indigo)' },
+                        { id: 'Amber', color: 'var(--color-chart-amber)' },
+                        { id: 'Sky', color: 'var(--color-chart-sky)' },
+                        { id: 'Pink', color: 'var(--color-chart-pink)' },
+                        { id: 'Purple', color: 'var(--color-chart-purple)' },
+                        { id: 'Teal', color: 'var(--color-chart-teal)' },
+                        { id: 'Orange', color: 'var(--color-chart-orange)' },
+                        { id: 'Cyan', color: 'var(--color-chart-cyan)' },
+                        { id: 'Lime', color: 'var(--color-chart-lime)' }
+                      ];
+                      return (
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                          {sortedTrends.map((skill: any, idx: number) => {
+                            const p = palettes[idx % palettes.length];
+                            const isHidden = hiddenSkills.has(skill.name);
+                            return (
+                              <div 
+                                key={skill.name}
+                                onClick={() => {
+                                  setHiddenSkills(prev => {
+                                    const newSet = new Set(prev);
+                                    if (newSet.has(skill.name)) {
+                                      newSet.delete(skill.name);
+                                    } else {
+                                      newSet.add(skill.name);
+                                    }
+                                    return newSet;
+                                  });
+                                }}
+                                style={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: '6px',
+                                  cursor: 'pointer',
+                                  opacity: isHidden ? 0.4 : 1,
+                                  textDecoration: isHidden ? 'line-through' : 'none',
+                                  color: 'var(--color-text-primary)'
+                                }}
+                              >
+                                <div style={{ 
+                                  width: '10px', 
+                                  height: '10px', 
+                                  borderRadius: '50%', 
+                                  backgroundColor: p.color 
+                                }} />
+                                <span style={{ fontSize: '13px', fontWeight: 600 }}>{skill.name}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    }}
                   />
                   <RechartsTooltip 
                     contentStyle={{ 
-                      backgroundColor: 'var(--color-bg-glass)', 
+                      backgroundColor: 'var(--color-bg-elevated)', 
                       borderRadius: '16px', 
-                      border: 'none',
+                      border: '1px solid var(--color-border-subtle)',
                       backdropFilter: 'blur(10px)',
-                      boxShadow: 'var(--shadow-xl)',
-                      color: 'var(--color-text-inverse)'
+                      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+                      color: 'var(--color-text-primary)',
+                      padding: '12px'
+                    }}
+                    content={(props: any) => {
+                      if (!props.active || !props.payload || props.payload.length === 0) return null;
+                      
+                      const palettes = [
+                        { id: 'Emerald', color: 'var(--color-chart-emerald)' },
+                        { id: 'Indigo', color: 'var(--color-chart-indigo)' },
+                        { id: 'Amber', color: 'var(--color-chart-amber)' },
+                        { id: 'Sky', color: 'var(--color-chart-sky)' },
+                        { id: 'Pink', color: 'var(--color-chart-pink)' },
+                        { id: 'Purple', color: 'var(--color-chart-purple)' },
+                        { id: 'Teal', color: 'var(--color-chart-teal)' },
+                        { id: 'Orange', color: 'var(--color-chart-orange)' },
+                        { id: 'Cyan', color: 'var(--color-chart-cyan)' },
+                        { id: 'Lime', color: 'var(--color-chart-lime)' }
+                      ];
+                      
+                      return (
+                        <div style={{ 
+                          backgroundColor: 'var(--color-bg-elevated)', 
+                          borderRadius: '16px', 
+                          border: '1px solid var(--color-border-subtle)',
+                          backdropFilter: 'blur(10px)',
+                          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+                          color: 'var(--color-text-primary)',
+                          padding: '16px 20px',
+                          minWidth: '200px'
+                        }}>
+                          <p style={{ marginBottom: '12px', fontWeight: 'bold', fontSize: '13px', opacity: 0.7 }}>
+                            {props.label}
+                          </p>
+                          {sortedTrends.map((skill: any, idx: number) => {
+                            const p = palettes[idx % palettes.length];
+                            const dataPoint = props.payload.find((pd: any) => pd.dataKey === skill.name);
+                            if (!dataPoint) return null;
+                            
+                            return (
+                              <div key={skill.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <div style={{ 
+                                    width: '10px', 
+                                    height: '10px', 
+                                    borderRadius: '50%', 
+                                    backgroundColor: p.color 
+                                  }} />
+                                  <span style={{ fontSize: '14px' }}>{skill.name}</span>
+                                </div>
+                                <span style={{ fontSize: '14px', fontWeight: 'bold', marginLeft: '16px' }}>
+                                  {formatNumber(dataPoint.value)}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
                     }}
                   />
-                  {(marketData.market_trends.trends || []).slice(0, 5).map((skill: any, idx: number) => {
+                  {sortedTrends.map((skill: any, idx: number) => {
                     const palettes = [
-                      { id: 'Emerald', color: 'var(--color-success)' },
-                      { id: 'Indigo', color: 'var(--color-primary)' },
-                      { id: 'Amber', color: 'var(--color-warning)' },
-                      { id: 'Sky', color: 'var(--color-info)' },
-                      { id: 'Pink', color: 'var(--color-secondary)' }
+                      { id: 'Emerald', color: 'var(--color-chart-emerald)' },
+                      { id: 'Indigo', color: 'var(--color-chart-indigo)' },
+                      { id: 'Amber', color: 'var(--color-chart-amber)' },
+                      { id: 'Sky', color: 'var(--color-chart-sky)' },
+                      { id: 'Pink', color: 'var(--color-chart-pink)' },
+                      { id: 'Purple', color: 'var(--color-chart-purple)' },
+                      { id: 'Teal', color: 'var(--color-chart-teal)' },
+                      { id: 'Orange', color: 'var(--color-chart-orange)' },
+                      { id: 'Cyan', color: 'var(--color-chart-cyan)' },
+                      { id: 'Lime', color: 'var(--color-chart-lime)' }
                     ];
                     const p = palettes[idx % palettes.length];
+                    const isHidden = hiddenSkills.has(skill.name);
                     return (
                       <Area 
                         key={skill.name}
@@ -429,6 +573,7 @@ const UserDashboard = () => {
                         fillOpacity={1} 
                         fill={`url(#color${p.id})`} 
                         animationDuration={1500}
+                        hide={isHidden}
                       />
                     );
                   })}

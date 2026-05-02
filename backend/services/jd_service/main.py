@@ -88,11 +88,14 @@ class JobResponse(BaseModel):
     title: str
     location: Optional[str]
     similarity: Optional[float] = None  # For search results
-
-    class Config:
-        from_attributes = True
-
-
+    extracted_skills: Optional[List[dict]] = None  # Extracted skills from requirements
+    
+    # Classification fields
+    is_tech_job: bool = True
+    job_classification_confidence: Optional[float] = None
+    job_primary_domain: Optional[str] = None
+    job_classification_reason: Optional[str] = None
+    classified_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -134,6 +137,12 @@ class JobFullImport(BaseModel):
     has_13th_month: bool = False
     remote_friendly: bool = False
     extracted_requirements_json: Optional[List[dict]] = None
+    # Job classification fields (added to match table structure)
+    is_tech_job: bool = True
+    job_classification_confidence: Optional[float] = None
+    job_primary_domain: Optional[str] = Field(None, max_length=100)
+    job_classification_reason: Optional[str] = None
+    classified_at: Optional[datetime] = None
 
 
 class JobFullImportBulk(BaseModel):
@@ -170,6 +179,12 @@ class JobExport(BaseModel):
     indexed_at: Optional[datetime] = None
     last_analyzed_at: Optional[datetime] = None
     extracted_requirements_json: Optional[List[dict]] = None
+    # Job classification fields (added to match table structure)
+    is_tech_job: bool = True
+    job_classification_confidence: Optional[float] = None
+    job_primary_domain: Optional[str] = None
+    job_classification_reason: Optional[str] = None
+    classified_at: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
@@ -204,6 +219,14 @@ def _job_to_response(job: Job, similarity: float = None) -> dict:
         "created_at": job.created_at,
         "source_url": job.source_url,
         "similarity": similarity,
+        "extracted_skills": job.extracted_requirements_json,  # Include extracted skills
+        
+        # Classification fields
+        "is_tech_job": job.is_tech_job,
+        "job_classification_confidence": job.job_classification_confidence,
+        "job_primary_domain": job.job_primary_domain,
+        "job_classification_reason": job.job_classification_reason,
+        "classified_at": job.classified_at,
     }
 
 
@@ -235,13 +258,16 @@ def import_jd_text(job_in: JobCreate, request: Request, db: Session = Depends(ge
     db.commit()
     db.refresh(new_job)
 
-    # Trigger real JD parsing task (not stub)
+    # Trigger skill extraction (parse_jd_task is deprecated stub)
     try:
         celery_app.send_task(
-            "worker.tasks.parse_jd_task.parse_jd", args=[str(new_job.id)]
+            "worker.tasks.crawler_tasks.extract_job_skills_task",
+            args=[str(new_job.id)],
+            queue="market_stats"
         )
+        logger.info(f"[IMPORT JD] Triggered skill extraction for job {new_job.id}")
     except Exception as e:
-        logger.warning(f"Failed to trigger JD parsing task: {e}")
+        logger.warning(f"[IMPORT JD] Failed to trigger skill extraction: {e}")
 
     return _job_to_response(new_job)
 
@@ -566,6 +592,21 @@ def admin_create_job(job_in: JobCreate, request: Request, db: Session = Depends(
     db.commit()
     db.refresh(new_job)
 
+    # Trigger background skill extraction
+    try:
+        from shared.skill_extraction import extract_and_save_job_skills
+        
+        # Run skill extraction in background task
+        celery_app.send_task(
+            "worker.tasks.crawler_tasks.extract_job_skills_task",
+            args=[str(new_job.id)],
+            queue="market_stats"
+        )
+        logger.info(f"[MANUAL JOB] Triggered skill extraction for job {new_job.id}")
+    except Exception as e:
+        logger.warning(f"[MANUAL JOB] Failed to trigger skill extraction: {e}")
+        # Don't fail the request, extraction can be retried later
+
     return _job_to_response(new_job)
 
 
@@ -844,15 +885,28 @@ def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = D
     db.commit()
     logger.info(f"[BULK IMPORT] ✅ Successfully imported {new_jobs_count} jobs")
     
-    # Trigger async skill extraction for imported jobs
+    # Trigger skill extraction for EACH newly imported job (not batch)
     if new_jobs_count > 0:
-        logger.info(f"[BULK IMPORT] Triggering skill extraction for {new_jobs_count} jobs...")
+        logger.info(f"[BULK IMPORT] Triggering skill extraction for {new_jobs_count} new jobs...")
+        
+        # Get the newly imported jobs
+        imported_jobs = db.query(Job).filter(
+            Job.requirements.isnot(None),
+            Job.extracted_requirements_json.is_(None)
+        ).order_by(Job.created_at.desc()).limit(new_jobs_count).all()
+        
+        extraction_count = 0
         try:
-            celery_app.send_task(
-                "worker.tasks.crawler_tasks.batch_extract_skills_task",
-                kwargs={"limit": new_jobs_count, "skip_existing": False}
-            )
-            logger.info(f"[BULK IMPORT] ✓ Skill extraction task queued")
+            for job in imported_jobs:
+                celery_app.send_task(
+                    "worker.tasks.crawler_tasks.extract_job_skills_task",
+                    args=[str(job.id)],
+                    queue="market_stats"
+                )
+                extraction_count += 1
+                logger.info(f"[BULK IMPORT] Queued extraction for: {job.title_raw}")
+            
+            logger.info(f"[BULK IMPORT] ✓ Queued {extraction_count} extraction tasks")
         except Exception as e:
             logger.error(f"[BULK IMPORT] Failed to trigger skill extraction: {e}")
     
@@ -1078,6 +1132,26 @@ def admin_import_jobs_full(
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database commit failed: {str(e)}")
     
+    # Trigger skill extraction for jobs that don't have extracted_requirements_json
+    jobs_need_extraction = []
+    for job_id in imported:
+        job = db.query(Job).filter(Job.id == job_id).first()
+        if job and not job.extracted_requirements_json and job.requirements:
+            jobs_need_extraction.append(job_id)
+    
+    if jobs_need_extraction:
+        logger.info(f"[IMPORT FULL] Triggering skill extraction for {len(jobs_need_extraction)} jobs without extracted skills")
+        try:
+            for job_id in jobs_need_extraction:
+                celery_app.send_task(
+                    "worker.tasks.crawler_tasks.extract_job_skills_task",
+                    args=[job_id],
+                    queue="market_stats"
+                )
+            logger.info(f"[IMPORT FULL] ✓ Skill extraction tasks queued")
+        except Exception as e:
+            logger.error(f"[IMPORT FULL] Failed to trigger skill extraction: {e}")
+    
     return {
         "status": "success",
         "imported_count": len(imported),
@@ -1085,7 +1159,8 @@ def admin_import_jobs_full(
         "error_count": len(errors),
         "imported_ids": imported,
         "skipped": skipped,
-        "errors": errors
+        "errors": errors,
+        "extraction_queued": len(jobs_need_extraction)
     }
 
 

@@ -92,7 +92,7 @@ const JobImportPage = () => {
     if (!file) return;
 
     if (!file.name.endsWith('.txt')) {
-      showNotification("Please upload a .txt file", "error");
+      showNotification(t('jobs_import_txt_only'), "error");
       return;
     }
 
@@ -100,10 +100,10 @@ const JobImportPage = () => {
     reader.onload = (event) => {
       const content = event.target?.result as string;
       setUrlsText(content);
-      showNotification(`Loaded ${file.name} successfully`);
+      showNotification(t('jobs_import_loaded').replace('{filename}', file.name));
     };
     reader.onerror = () => {
-      showNotification("Failed to read file", "error");
+      showNotification(t('jobs_import_read_error'), "error");
     };
     reader.readAsText(file);
   };
@@ -113,7 +113,7 @@ const JobImportPage = () => {
     if (!file) return;
 
     if (!file.name.endsWith('.json')) {
-      showNotification("Please upload a .json file", "error");
+      showNotification(t('jobs_import_json_only'), "error");
       return;
     }
 
@@ -125,7 +125,7 @@ const JobImportPage = () => {
         const data = JSON.parse(content);
         
         if (!data.jobs || !Array.isArray(data.jobs)) {
-          showNotification("Invalid JSON format. Expected {jobs: [...]}", "error");
+          showNotification(t('jobs_import_invalid_json'), "error");
           setIsImportingFull(false);
           return;
         }
@@ -136,17 +136,20 @@ const JobImportPage = () => {
         );
 
         showNotification(
-          `Imported: ${resp.data.imported_count}, Skipped: ${resp.data.skipped_count}, Errors: ${resp.data.error_count}`
+          t('jobs_import_result')
+            .replace('{imported}', resp.data.imported_count)
+            .replace('{skipped}', resp.data.skipped_count)
+            .replace('{errors}', resp.data.error_count)
         );
       } catch (err: any) {
-        const msg = err.response?.data?.detail || "Failed to import jobs";
+        const msg = err.response?.data?.detail || t('jobs_import_failed');
         showNotification(msg, "error");
       } finally {
         setIsImportingFull(false);
       }
     };
     reader.onerror = () => {
-      showNotification("Failed to read file", "error");
+      showNotification(t('jobs_import_read_error'), "error");
       setIsImportingFull(false);
     };
     reader.readAsText(file);
@@ -170,9 +173,9 @@ const JobImportPage = () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      showNotification(`Exported ${resp.data.count} jobs successfully`);
+      showNotification(t('jobs_import_exported').replace('{count}', resp.data.count));
     } catch (err: any) {
-      const msg = err.response?.data?.detail || "Failed to export jobs";
+      const msg = err.response?.data?.detail || t('jobs_import_export_error');
       showNotification(msg, "error");
     } finally {
       setIsExporting(false);
@@ -299,7 +302,7 @@ const JobImportPage = () => {
             <div className={styles.actionGroup}>
               <label className={styles.uploadBtn}>
                 <Upload size={18} />
-                Upload .txt URLs
+                {t('jobs_import_upload_txt')}
                 <input 
                   type="file" 
                   accept=".txt" 
@@ -310,7 +313,7 @@ const JobImportPage = () => {
               
               <label className={cn(styles.uploadBtn, styles.uploadBtnSecondary)}>
                 <FileUp size={18} />
-                {isImportingFull ? <Loader2 className="animate-spin" size={18} /> : "Import Full Data"}
+                {isImportingFull ? <Loader2 className="animate-spin" size={18} /> : t('jobs_import_import_full')}
                 <input 
                   type="file" 
                   accept=".json" 
@@ -327,7 +330,7 @@ const JobImportPage = () => {
               disabled={isExporting}
             >
               {isExporting ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
-              {isExporting ? "Exporting..." : "Export All with Vectors"}
+              {isExporting ? t('jobs_import_exporting') : t('jobs_import_export_all')}
             </button>
           </div>
 

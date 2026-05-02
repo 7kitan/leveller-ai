@@ -629,26 +629,39 @@ const UserCVPage = () => {
             <Layers size={20} className={styles.matrixTitleIcon} />
             {t("cv_competency_matrix")}
           </div>
-          <div className={styles.matrixGrid}>
-            {skillsWithIndex.map((skill: any) => (
-              <MemoizedSkillItem 
-                key={skill.originalIndex} 
-                skill={skill} 
-                onUpdate={handleUpdateSkill}
-                onDelete={handleDeleteSkill}
-                seniorityColor={seniorityColor}
-                getSeniorityLabel={getSeniorityLabel}
-                SKILL_LEVELS={SKILL_LEVELS}
-              />
-            ))}
-            
-            <button onClick={handleManualAddSkill} className={styles.addSkillBtn}>
-              <div className={styles.addSkillIcon}>
-                <Plus size={24} />
-              </div>
-              <span className={styles.addSkillText}>{t("cv_add_skill")}</span>
-            </button>
+          
+          <div className={styles.tableWrapper}>
+            <table className={styles.skillsTable}>
+              <thead>
+                <tr>
+                  <th className={styles.tableHeader}>{t("cv_skill_name")}</th>
+                  <th className={styles.tableHeader}>{t("cv_experience")}</th>
+                  <th className={styles.tableHeader}>{t("cv_level")}</th>
+                  <th className={styles.tableHeader}>{t("cv_actions")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {skillsWithIndex.map((skill: any) => (
+                  <MemoizedSkillItem 
+                    key={skill.originalIndex} 
+                    skill={skill} 
+                    onUpdate={handleUpdateSkill}
+                    onDelete={handleDeleteSkill}
+                    seniorityColor={seniorityColor}
+                    getSeniorityLabel={getSeniorityLabel}
+                    SKILL_LEVELS={SKILL_LEVELS}
+                  />
+                ))}
+              </tbody>
+            </table>
           </div>
+          
+          <button onClick={handleManualAddSkill} className={styles.addSkillBtn}>
+            <div className={styles.addSkillIcon}>
+              <Plus size={24} />
+            </div>
+            <span className={styles.addSkillText}>{t("cv_add_skill")}</span>
+          </button>
         </div>
 
         <div className={styles.detailGrid}>
@@ -990,23 +1003,53 @@ const UserCVPage = () => {
 const MemoizedSkillItem = memo(({ skill, onUpdate, onDelete, seniorityColor, getSeniorityLabel, SKILL_LEVELS }: any) => {
   const { t } = useLanguage();
   return (
-    <div className={styles.skillItem}>
-      <div className={styles.skillMain}>
-        <DebouncedInput type="text" value={skill.name} onChange={(val) => onUpdate(skill.originalIndex, "name", val)} className={styles.skillNameInput} maxLength={50} placeholder={t("cv_skill_default_name")} />
-        <div className={styles.skillMeta}>
-          <div className={styles.skillExpGroup}>
-            <Clock size={12} />
-            <input type="number" step="0.5" value={skill.experience_years} onChange={(e) => onUpdate(skill.originalIndex, "experience_years", e.target.value)} className={styles.editInput} min={0} max={60} />
-            <span>{t("cv_years_short")}</span>
-          </div>
-          <CustomDropdown value={getSeniorityLabel(skill.level)} options={SKILL_LEVELS.map(getSeniorityLabel)} onChange={(val: string) => {
+    <tr className={styles.skillRow}>
+      <td className={styles.tableCell}>
+        <DebouncedInput 
+          type="text" 
+          value={skill.name} 
+          onChange={(val) => onUpdate(skill.originalIndex, "name", val)} 
+          className={styles.skillNameInput} 
+          maxLength={50} 
+          placeholder={t("cv_skill_default_name")} 
+        />
+      </td>
+      <td className={styles.tableCell}>
+        <div className={styles.skillExpGroup}>
+          <Clock size={12} />
+          <input 
+            type="number" 
+            step="0.5" 
+            value={skill.experience_years} 
+            onChange={(e) => onUpdate(skill.originalIndex, "experience_years", e.target.value)} 
+            className={styles.editInput} 
+            min={0} 
+            max={60} 
+          />
+          <span>{t("cv_years_short")}</span>
+        </div>
+      </td>
+      <td className={styles.tableCell}>
+        <CustomDropdown 
+          value={getSeniorityLabel(skill.level)} 
+          options={SKILL_LEVELS.map(getSeniorityLabel)} 
+          onChange={(val: string) => {
             const key = SKILL_LEVELS.find((k: string) => getSeniorityLabel(k) === val);
             if (key) onUpdate(skill.originalIndex, "level", key);
-          }} className={styles.skillLevelSelect} style={{ color: seniorityColor[skill.level as keyof typeof seniorityColor] }} />
-        </div>
-      </div>
-      <button onClick={() => onDelete(skill.originalIndex)} className={styles.deleteSkillBtn}><Trash2 size={14} /></button>
-    </div>
+          }} 
+          className={styles.skillLevelSelect} 
+          style={{ color: seniorityColor[skill.level as keyof typeof seniorityColor] }} 
+        />
+      </td>
+      <td className={styles.tableCell}>
+        <button 
+          onClick={() => onDelete(skill.originalIndex)} 
+          className={styles.deleteSkillBtn}
+        >
+          <Trash2 size={14} />
+        </button>
+      </td>
+    </tr>
   );
 });
 

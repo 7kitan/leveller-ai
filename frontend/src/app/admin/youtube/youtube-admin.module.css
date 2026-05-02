@@ -3,19 +3,39 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.625rem 1.25rem;
-    background: linear-gradient(135deg, var(--color-error) 0%, var(--color-error-dark) 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     color: white;
     border-radius: 0.75rem;
     font-weight: 600;
     font-size: var(--font-size-base);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px color-mix(in srgb, var(--color-error) 25%, transparent);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
 .addBtn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px color-mix(in srgb, var(--color-error) 35%, transparent);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--color-primary) 35%, transparent);
     filter: brightness(1.1);
+}
+
+.verifyBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-default);
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: var(--font-size-base);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.verifyBtn:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
 }
 
 .controlBar {
@@ -24,6 +44,36 @@
     align-items: center;
     margin-bottom: 1.5rem;
     gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.filterGroup {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.filterSelect {
+    padding: 0.625rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
+    border-radius: 0.75rem;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.filterSelect:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-primary);
+}
+
+.filterSelect:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 .searchContainer {
@@ -207,6 +257,69 @@
     display: flex;
     align-items: center;
     gap: 0.25rem;
+}
+
+.curatedBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    background: color-mix(in srgb, var(--color-success) 10%, transparent);
+    color: var(--color-success);
+    border-radius: 9999px;
+    font-size: var(--font-size-small);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.skillsCell {
+    max-width: 200px;
+}
+
+.skillTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+}
+
+.skillTag {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    color: var(--color-primary);
+    border-radius: 0.375rem;
+    font-size: var(--font-size-small);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.levelBadge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: color-mix(in srgb, var(--color-info) 10%, transparent);
+    color: var(--color-info);
+    border-radius: 0.375rem;
+    font-size: var(--font-size-small);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.languageBadge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-default);
+    border-radius: 0.375rem;
+    font-size: var(--font-size-small);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.notAvailable {
+    color: var(--color-text-secondary);
+    opacity: 0.5;
+    font-size: var(--font-size-base);
 }
 
 .dateCell {
@@ -468,4 +581,187 @@
 
 .confirmDeleteBtn:hover {
     background: var(--color-error-dark);
+}
+
+/* Add Video Modal */
+.addVideoContent {
+    padding: 1.5rem;
+}
+
+.formGroup {
+    margin-bottom: 1.5rem;
+}
+
+.formLabel {
+    display: block;
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.formInput {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
+    border-radius: 0.75rem;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
+    transition: all 0.2s ease;
+}
+
+.formInput:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent);
+    background: var(--color-bg-primary);
+}
+
+.formInput:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.inputWithButton {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.fetchBtn {
+    padding: 0.75rem 1.5rem;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: var(--font-size-base);
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.fetchBtn:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+}
+
+.fetchBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.videoPreview {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-default);
+    border-radius: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.previewThumbnail {
+    width: 160px;
+    height: 90px;
+    border-radius: 0.5rem;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.previewInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.previewTitle {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.previewChannel {
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.previewMeta {
+    font-size: var(--font-size-small);
+    color: var(--color-text-secondary);
+}
+
+.formSelect {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
+    border-radius: 0.75rem;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.formSelect:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.formSelect[multiple] {
+    min-height: 150px;
+}
+
+.formHint {
+    margin-top: 0.5rem;
+    font-size: var(--font-size-small);
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.formActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border-default);
+}
+
+.cancelBtn {
+    padding: 0.75rem 1.5rem;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-default);
+    border-radius: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    transition: all 0.2s ease;
+}
+
+.cancelBtn:hover {
+    background: var(--color-bg-hover);
+}
+
+.saveBtn {
+    padding: 0.75rem 1.5rem;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.saveBtn:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+}
+
+.saveBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }

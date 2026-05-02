@@ -140,6 +140,14 @@ class Job(Base):
     indexed_at = Column(DateTime(timezone=True))
     last_analyzed_at = Column(DateTime(timezone=True))
     extracted_requirements_json = Column(JSON)  # Lưu kết quả bóc tách từ LLM
+    
+    # Job classification fields (tech vs non-tech)
+    is_tech_job = Column(Boolean, default=True, nullable=False, index=True)
+    job_classification_confidence = Column(Float)  # 0.0-1.0
+    job_primary_domain = Column(String(100))  # "Software Engineering", "Sales", etc.
+    job_classification_reason = Column(Text)  # Why classified as tech/non-tech
+    classified_at = Column(DateTime(timezone=True))  # When classification was done
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -348,6 +356,13 @@ class YouTubeCourse(Base):
     expires_at = Column(DateTime(timezone=True), index=True) # Thời điểm hết hạn cache
     last_verified_at = Column(DateTime(timezone=True), index=True) # Thời điểm kiểm tra tính khả dụng gần nhất
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Curation fields
+    language = Column(String(10), index=True)  # 'en', 'vi'
+    skill_level = Column(String(50), index=True)  # 'Junior', 'Mid-level', 'Senior', 'Expert'
+    is_curated = Column(Boolean, default=False, index=True)  # Manually added by admin
+    quality_score = Column(Float)  # 0-100 quality metric
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
 
 class LLMLog(Base):

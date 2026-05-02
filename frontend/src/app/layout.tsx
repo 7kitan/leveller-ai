@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { AlertProvider } from "@/context/AlertContext";
+import DynamicHtmlLang from "@/components/shared/DynamicHtmlLang";
 
 const spaceGrotesk = Space_Grotesk({ 
   subsets: ["latin"], 
@@ -19,9 +20,8 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-  title: "Lumix AI | Career Nexus & Knowledge Graph",
-  description: "Giải mã tương lai sự nghiệp với trí tuệ nhân tạo. Phân tích khoảng trống kỹ năng, gợi ý lộ trình học tập và quản trị tri thức kỹ thuật chuyên sâu.",
-  keywords: ["AI Career", "Skill Gap Analysis", "Technical Taxonomy", "Career Roadmap", "Job Matching"],
+  title: "Lumix AI - Skill Mapping & Career Roadmaps",
+  description: "Bridge the gap between your skills and your dream job with AI-powered career roadmaps.",
 };
 
 export default function RootLayout({
@@ -33,6 +33,7 @@ export default function RootLayout({
     <html lang="en" className={`${spaceGrotesk.variable} ${lato.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <LanguageProvider>
+          <DynamicHtmlLang />
           <ThemeProvider>
             <AlertProvider>
               <AuthProvider>

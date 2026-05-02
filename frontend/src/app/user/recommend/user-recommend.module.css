@@ -71,7 +71,7 @@
   margin-top: 0.5rem;
 }
 
-/* ── Radar & Detailed Info ────────────────────────────────────────── */
+/* --- Radar & Detailed Info ------------------------------------------ */
 .radarSection {
   width: 100%;
   max-width: 600px;
@@ -533,7 +533,7 @@
   }
 }
 
-/* ── Title Section ────────────────────────────────────────────────────── */
+/* --- Title Section ------------------------------------------------------ */
 .titleSection {
   display: flex;
   flex-direction: column;
@@ -554,7 +554,7 @@
   max-width: 40rem;
 }
 
-/* ── Back Link ────────────────────────────────────────────────────────── */
+/* --- Back Link ---------------------------------------------------------- */
 .backLink {
   display: inline-flex;
   align-items: center;
@@ -573,7 +573,7 @@
   opacity: 1;
 }
 
-/* ── Match Banner ──────────────────────────────────────────────────────── */
+/* --- Match Banner -------------------------------------------------------- */
 .matchBanner {
   display: flex;
   flex-direction: column;
@@ -672,7 +672,7 @@
   opacity: 0.4;
 }
 
-/* ── Growth Forecast ── */
+/* --- Growth Forecast --- */
 .growthForecast {
   margin-top: 2rem;
   padding-top: 2rem;
@@ -742,7 +742,7 @@
   font-weight: 900;
 }
 
-/* ── Severity Row ────────────────────────────────────────────────────── */
+/* --- Severity Row ------------------------------------------------------ */
 .severityRow {
   display: flex;
   gap: 1.25rem;
@@ -760,7 +760,7 @@
   font-weight: 900;
 }
 
-/* ── Tab Bar ──────────────────────────────────────────────────────────── */
+/* --- Tab Bar ------------------------------------------------------------ */
 .tabBar {
   display: flex;
   gap: 0.5rem;

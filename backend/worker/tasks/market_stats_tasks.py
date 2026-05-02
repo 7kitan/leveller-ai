@@ -47,10 +47,19 @@ def aggregate_market_data():
             is_current = job.created_at >= thirty_days_ago
             
             # Extract all skills from extracted_requirements_json
-            # Format: [{"skill_name": "Python", "category": "...", ...}, ...]
+            # Format: [{"skill": "Python", "category": "...", "skill_type": "technical", ...}, ...]
+            # IMPORTANT: Only include TECHNICAL skills in market stats (soft skills don't have meaningful salary/trend data)
             all_skills = []
             for req in reqs:
-                skill_name = req.get("skill_name")
+                # Check skill_type to filter out soft skills
+                skill_type = req.get("skill_type", "technical")  # Default to technical for backward compatibility
+                
+                # Skip soft skills - they don't have meaningful market trends/salary data
+                if skill_type == "soft":
+                    continue
+                
+                # Try different field names for skill name (backward compatibility)
+                skill_name = req.get("skill") or req.get("skill_name")
                 if skill_name:
                     all_skills.append(skill_name)
             
@@ -69,6 +78,10 @@ def aggregate_market_data():
         all_salaries_min = [j.min_salary_vnd for j in jobs_60d if j.min_salary_vnd and j.created_at >= thirty_days_ago]
         avg_market_salary = sum(all_salaries_min) / len(all_salaries_min) if all_salaries_min else 0
 
+        # Calculate total jobs in current period for demand calculation
+        total_jobs_current = len([j for j in jobs_60d if j.created_at >= thirty_days_ago])
+        total_jobs_previous = len([j for j in jobs_60d if j.created_at < thirty_days_ago])
+
         # 4. Cập nhật vào DB
         for skill_name, data in stats_current.items():
             count_current = data["count"]
@@ -81,17 +94,16 @@ def aggregate_market_data():
             growth = 0.0
             if count_prev > 0:
                 growth = (count_current - count_prev) / count_prev
-            elif count_current > 0:
-                growth = 1.0 # New skill trending
+            # Don't set growth=1.0 for new skills, keep it neutral at 0.0
             
             # Tính Salary Premium
             premium_pct = 0.0
             if avg_market_salary > 0 and avg_min > 0:
                 premium_pct = (avg_min - avg_market_salary) / avg_market_salary
             
-            # Tính Demand Score (0-100)
-            # Giả sử 100 jobs/tháng là cực cao (max score)
-            demand_score = min(100, (count_current / 100) * 80 + (max(0, growth) * 20))
+            # Tính Demand Score (0-100) - FIXED: Use actual market penetration rate
+            # Demand = % of jobs that require this skill
+            demand_score = (count_current / total_jobs_current * 100) if total_jobs_current > 0 else 0.0
 
             # Upsert
             stat_record = db.query(MarketSkillStats).filter(MarketSkillStats.skill_name == skill_name).first()
@@ -107,20 +119,32 @@ def aggregate_market_data():
             stat_record.demand_score = demand_score
             stat_record.updated_at = now
 
-            # 5. Save snapshot to history (NEW)
+            # 5. Save snapshot to history with deduplication
             from shared.models import MarketSkillHistory
             avg_salary_val = (avg_min + avg_max) / 2 if avg_min and avg_max else (avg_min or avg_max)
             
-            # Tránh lưu quá nhiều data nếu không có sự thay đổi (optional optimization)
-            # Ở đây ta lưu mỗi lần aggregation chạy (daily)
-            history_record = MarketSkillHistory(
-                skill_name=skill_name,
-                job_count=count_current,
-                avg_salary=int(avg_salary_val),
-                demand_score=demand_score,
-                snapshot_date=now
-            )
-            db.add(history_record)
+            # Check if we already have a snapshot today (deduplication)
+            existing_today = db.query(MarketSkillHistory).filter(
+                MarketSkillHistory.skill_name == skill_name,
+                func.date(MarketSkillHistory.snapshot_date) == func.date(now)
+            ).first()
+            
+            if existing_today:
+                # Update existing snapshot instead of creating duplicate
+                existing_today.job_count = count_current
+                existing_today.avg_salary = int(avg_salary_val)
+                existing_today.demand_score = demand_score
+                existing_today.snapshot_date = now
+            else:
+                # Create new snapshot
+                history_record = MarketSkillHistory(
+                    skill_name=skill_name,
+                    job_count=count_current,
+                    avg_salary=int(avg_salary_val),
+                    demand_score=demand_score,
+                    snapshot_date=now
+                )
+                db.add(history_record)
 
         db.commit()
         logger.info(f"[MARKET STATS] Aggregation completed for {len(stats_current)} skills.")

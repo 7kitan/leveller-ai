@@ -146,7 +146,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
                 type={showPassword ? "text" : "password"}
                 required
                 className={styles.inputField}
-                placeholder={t("password_placeholder")}
+                placeholder={isLogin ? t("password_placeholder") : t("register_password_placeholder")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 maxLength={128}

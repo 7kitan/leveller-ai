@@ -399,13 +399,25 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
     1. FACTUAL INTEGRITY: Extract ONLY information explicitly present. Do not infer skills.
     2. DATE PRECISION & OVERLAP LOGIC: 
        - Use {current_date} for any "Present", "Now", or "Current" end dates.
-       - NON-ADDICTIVE CALCULATION: Identify all unique time segments. If two roles overlap, calculate the unique span (e.g., 2022-2024 & 2023-2025 = 3 years).
+       - NON-ADDITIVE CALCULATION: Identify all unique time segments for total experience.
+       - For individual jobs ('duration_years'), calculate the exact decimal years using ONLY the dates associated directly with that specific job. Example: Jan 2023 to May 2026 is (2026-2023) + (5-1)/12 = 3.3 years. 
+       - DO NOT hallucinate. Do NOT use dates from subsequent lines (e.g. do not mix project dates with work history dates).
     3. LANGUAGE: All summaries and descriptions must be translated into English.
     4. NO NORMALIZATION: Keep 'raw_name' for technical skills (e.g., "Py" remains "Py").
     5. CONTEXTUAL SENIORITY: 
        - Evaluated seniority based on RELEVANT experience to the target role.
        - Junior (< 2 yrs), Mid-level (2-5 yrs), Senior (5-10 yrs), Expert (> 10 yrs).
     6. MESSY TEXT PROTOCOL: Use "Visual Block Anchor" to link dates to job titles within the same logical section.
+    7. SKILL EXPERIENCE CALCULATION LOGIC:
+       - For each skill identified, scan the 'Work History' and 'Projects' sections.
+       - If a skill (or its synonym) is mentioned in a job description or project description, attribute the duration of that job/project to the skill's 'experience_years'.
+       - If a skill is only listed in a standalone 'Skills' section without a timeframe, set its 'experience_years' equal to the duration of the most recent relevant professional role.
+       - Apply the same NON-ADDITIVE CALCULATION (Rule 2) to skills to ensure overlapping roles don't double-count years for a single skill.
+    8. CERTIFICATIONS & LICENSES:
+       - Extract any mentioned certificates, professional licenses, or language proficiencies (e.g., DELF, IELTS, AWS Certified) into the 'certifications' list.
+    9. OCR SPACING RECONSTRUCTION:
+       - The OCR text may have spaces between every single letter and number (e.g., 'J a n  2 0 2 3  -  N o w  P o w e r'). 
+       - You MUST carefully reconstruct these characters into words ('Jan 2023 - Now Power'). Do not skip these spaced-out dates. Use them as the official start/end dates for the adjacent job title.
 
     INTERNAL MONOLOGUE:
     - Step 0: [Validation] Does this text look like a CV? If no, prepare "fail" response.
@@ -413,6 +425,7 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
     - Step 2: Relevance Filter for Seniority.
     - Step 3: Skill-to-Role Mapping.
     - Step 4: Quality Check for 'ocr_confidence'.
+    - Step 5: Skill Duration Trace (Map every skill to specific time blocks in work history/projects to calculate experience_years).
 
     ## CV TEXT:
     {masked_text}
@@ -428,7 +441,7 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
       "skills": [
         {{
           "name": "Skill Name",
-          "category": "Technology | Tool | etc.",
+          "category": "Technology | Tool | Programming Language | Library | AI | Framework | etc.",
           "experience_years": 0.0
         }}
       ],
@@ -615,7 +628,7 @@ async def normalize_cv_node(state: CVParsingState) -> CVParsingState:
             {
                 "name": name_normalized,  # BUG-004 FIX: Use normalized name
                 "category": raw_cat,
-                "years_exp": max(0.0, float(skill.get("experience_years") or skill.get("years_exp") or 0)),
+                "experience_years": max(0.0, float(skill.get("experience_years") or skill.get("years_exp") or 0)),
                 "level": normalized,
             }
         )
@@ -835,7 +848,7 @@ async def _upsert_skills_from_cv(skills: list, cv_id: str, db) -> int:
         )
 
         profile_data = {
-            "years_exp": max(0.0, float(s.get("experience_years") or 0)),
+            "years_exp": max(0.0, float(s.get("experience_years") or s.get("years_exp") or 0)),
             "level": s.get("level", "Mid-level"),
             "source": "cv_parsed_v3",
         }

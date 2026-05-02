@@ -268,7 +268,7 @@ const AdminUsersPage = () => {
                         <div>
                           <div className={styles.userName}>
                             {user.full_name || t("fail")}
-                            {user.is_flagged && <span title="Flagged for review"><AlertTriangle size={14} className="inline ml-2 text-amber-500" /></span>}
+                            {user.is_flagged && <span title={t("admin_users_flagged_title")}><AlertTriangle size={14} className="inline ml-2 text-amber-500" /></span>}
                           </div>
                           <div className={styles.userEmail}>{user.email}</div>
                         </div>
@@ -423,8 +423,8 @@ const AdminUsersPage = () => {
                   </div>
                    <div className={styles.checkboxGroup}>
                       <div className={styles.checkboxLabelArea}>
-                          <span className={styles.checkboxTitle}>Flagged for Review</span>
-                          <span className={styles.checkboxDesc}>Mark user as suspicious</span>
+                          <span className={styles.checkboxTitle}>{t("admin_users_flagged_label")}</span>
+                          <span className={styles.checkboxDesc}>{t("admin_users_flagged_desc")}</span>
                       </div>
                       <input 
                           type="checkbox"

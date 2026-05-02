@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { CheckCircle2, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from './ThemeContext';
+import { useLanguage } from './LanguageContext';
 
 type AlertType = 'success' | 'error' | 'warning' | 'info';
 
@@ -39,6 +40,7 @@ const AlertContext = createContext<AlertContextType | undefined>(undefined);
 
 export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const [alerts, setAlerts] = useState<Array<AlertOptions & { id: string }>>([]);
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
@@ -334,7 +336,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                       : 'rgba(15, 23, 42, 0.05)';
                   }}
                 >
-                  {confirmDialog.options.cancelText || 'Hủy'}
+                  {confirmDialog.options.cancelText || t('cancel')}
                 </button>
                 <button
                   onClick={() => handleConfirm(true)}
@@ -352,7 +354,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                   onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
                   onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                 >
-                  {confirmDialog.options.confirmText || 'Xác nhận'}
+                  {confirmDialog.options.confirmText || t('confirm')}
                 </button>
               </div>
             </motion.div>
