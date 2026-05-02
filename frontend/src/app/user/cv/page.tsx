@@ -39,6 +39,7 @@ import { DebouncedInput } from "@/components/common/DebouncedInput";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 import { CVPreview } from "@/components/cv/CVPreview";
+import { ScanningOverlay } from "@/components/cv/ScanningOverlay";
 
 const POLLING_INTERVAL = 5000;
 
@@ -884,6 +885,7 @@ const UserCVPage = () => {
     return (
       <AuthGuard requireRole={UserRole.USER}>
         <PageContainer>
+          <ScanningOverlay status={status} />
           <PageHeader 
             title={t("cv_repository_title")}
             subtitle={t("cv_repository_subtitle")}
@@ -986,6 +988,7 @@ const UserCVPage = () => {
 
   return (
     <AuthGuard requireRole={UserRole.USER}>
+      <ScanningOverlay status={status} />
       <PageContainer>
         <PageHeader 
           title={t("cv_repository_title")}
