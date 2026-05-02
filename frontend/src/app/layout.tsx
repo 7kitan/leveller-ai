@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Fira_Sans } from "next/font/google";
+import { Space_Grotesk, Lato } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -12,10 +12,10 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk" 
 });
 
-const firaSans = Fira_Sans({
+const lato = Lato({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-fira-sans",
+  weight: ["400", "700"],
+  variable: "--font-lato",
 });
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${firaSans.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${spaceGrotesk.variable} ${lato.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <LanguageProvider>
           <ThemeProvider>
