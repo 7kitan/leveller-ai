@@ -87,6 +87,7 @@ class CourseFullImport(BaseModel):
     duration_raw: Optional[str] = Field(None, max_length=100)
     cost_usd: float = Field(default=0.0, ge=0, le=999999)
     languages: Optional[List[str]] = Field(default_factory=list, max_items=50)
+    language: Optional[str] = Field(None, max_length=10)  # Primary language code
     skills_raw: Optional[List[str]] = Field(default_factory=list, max_items=50)
     tools_raw: Optional[List[str]] = Field(default_factory=list, max_items=50)
     outcomes: Optional[List[str]] = Field(default_factory=list, max_items=20)
@@ -118,6 +119,7 @@ class CourseExport(BaseModel):
     duration_raw: Optional[str] = None
     cost_usd: float = 0.0
     languages: Optional[List[str]] = None
+    language: Optional[str] = None  # Primary language code
     skills_raw: Optional[List[str]] = None
     tools_raw: Optional[List[str]] = None
     outcomes: Optional[List[str]] = None

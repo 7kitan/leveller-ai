@@ -137,6 +137,12 @@ class JobFullImport(BaseModel):
     has_13th_month: bool = False
     remote_friendly: bool = False
     extracted_requirements_json: Optional[List[dict]] = None
+    # Job classification fields (added to match table structure)
+    is_tech_job: bool = True
+    job_classification_confidence: Optional[float] = None
+    job_primary_domain: Optional[str] = Field(None, max_length=100)
+    job_classification_reason: Optional[str] = None
+    classified_at: Optional[datetime] = None
 
 
 class JobFullImportBulk(BaseModel):
@@ -173,6 +179,12 @@ class JobExport(BaseModel):
     indexed_at: Optional[datetime] = None
     last_analyzed_at: Optional[datetime] = None
     extracted_requirements_json: Optional[List[dict]] = None
+    # Job classification fields (added to match table structure)
+    is_tech_job: bool = True
+    job_classification_confidence: Optional[float] = None
+    job_primary_domain: Optional[str] = None
+    job_classification_reason: Optional[str] = None
+    classified_at: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
