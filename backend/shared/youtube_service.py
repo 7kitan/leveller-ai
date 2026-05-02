@@ -380,15 +380,20 @@ class YouTubeSearchService:
                     # Auto-tag skills in junction table
                     # This enables skill-based boost scoring (+0.12) and filtering
                     if skill_name and skill_name.strip():
-                        from sqlalchemy import text as sql_text
+                        from sqlalchemy import text
+                        import uuid
                         try:
                             db.execute(
-                                sql_text("""
-                                    INSERT INTO youtube_video_skills (video_id, skill_name)
-                                    VALUES (:vid, :skill)
+                                text("""
+                                    INSERT INTO youtube_video_skills (id, video_id, skill_name)
+                                    VALUES (:id, :vid, :skill)
                                     ON CONFLICT (video_id, skill_name) DO NOTHING
                                 """),
-                                {"vid": video_id, "skill": skill_name.strip()}
+                                {
+                                    "id": str(uuid.uuid4()),
+                                    "vid": video_id, 
+                                    "skill": skill_name.strip()
+                                }
                             )
                         except Exception as e:
                             logger.warning(f"[YOUTUBE CACHE] Failed to auto-tag skill '{skill_name}' for video {video_id}: {e}")
