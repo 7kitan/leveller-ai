@@ -122,7 +122,7 @@ export default function LandingNavbar() {
             );
           })}
           <button onClick={toggleLanguage} className={styles.langToggle}>
-            {language === 'vi' ? 'EN' : 'VI'}
+            {language === 'vi' ? 'VI' : 'EN'}
           </button>
         </div>
 
