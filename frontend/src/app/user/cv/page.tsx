@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useCallback, memo, useMemo } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
@@ -76,7 +76,7 @@ interface ParsedCV {
 }
 
 const SENIORITY_LEVELS = ["Junior", "Mid-level", "Senior", "Expert", "Unknown"];
-const SKILL_LEVELS = ["Junior", "Mid-level", "Senior", "Expert"];
+const SKILL_LEVELS = ["Junior", "Mid-level", "Senior", "Expert", "Unknown"];
 
 const UserCVPage = () => {
   const { token } = useAuth();
@@ -103,6 +103,7 @@ const UserCVPage = () => {
   const [cvToDelete, setCvToDelete] = useState<string | null>(null);
 
   const getSeniorityLabel = (val: string) => {
+    if (!val) return t("cv_level_unknown");
     switch (val) {
       case "Junior": return t("cv_level_junior");
       case "Mid-level": return t("cv_level_mid");
@@ -112,6 +113,35 @@ const UserCVPage = () => {
       default: return val;
     }
   };
+
+  const normalizeParsedData = useCallback((data: ParsedCV): ParsedCV => {
+    if (!data || !data.skills) return data;
+    
+    const normalizedSkills = data.skills.map(skill => {
+      const yrs = skill.experience_years || 0;
+      let level = skill.level;
+      
+      // Auto-suggest level if missing or Unknown
+      if (!level || level === "Unknown") {
+        if (yrs >= 10) level = "Expert";
+        else if (yrs >= 5) level = "Senior";
+        else if (yrs >= 2) level = "Mid-level";
+        else level = "Junior";
+      }
+      
+      return {
+        ...skill,
+        experience_years: yrs,
+        level: level
+      };
+    });
+    
+    return {
+      ...data,
+      skills: normalizedSkills,
+      seniority: data.seniority || "Unknown"
+    };
+  }, [t]);
 
   const fetchHistory = async () => {
     try {
@@ -128,7 +158,7 @@ const UserCVPage = () => {
     setSelectedHistoryId(cvId);
     try {
       const resp = await api.get(`cv/${cvId}`);
-      setParsedData(resp.data);
+      setParsedData(normalizeParsedData(resp.data));
       setStatus("viewing");
     } catch (err) {
       console.error("Auto-load CV detail error:", err);
@@ -355,7 +385,7 @@ const UserCVPage = () => {
       const { parser_id, cv_id, status: uploadStatus, result: inlineResult, is_duplicate } = resp.data;
 
       if (is_duplicate && uploadStatus === "completed" && inlineResult) {
-        setParsedData(inlineResult);
+        setParsedData(normalizeParsedData(inlineResult));
         setStatus("viewing");
         fetchHistory();
         return;
@@ -363,7 +393,7 @@ const UserCVPage = () => {
 
       if (uploadStatus === "completed") {
         const detailResp = await api.get(`cv/${cv_id}`);
-        setParsedData(detailResp.data);
+        setParsedData(normalizeParsedData(detailResp.data));
         setStatus("viewing");
         fetchHistory();
       } else if (parser_id) {
@@ -383,10 +413,10 @@ const UserCVPage = () => {
         const { status: taskStatus, result, error_message } = resp.data;
         if (taskStatus === "completed") {
           clearInterval(interval);
-          if (result) setParsedData(result);
+          if (result) setParsedData(normalizeParsedData(result));
           else {
             const detailResp = await api.get(`cv/${cvId}`);
-            setParsedData(detailResp.data);
+            setParsedData(normalizeParsedData(detailResp.data));
           }
           setStatus("viewing");
           fetchHistory();

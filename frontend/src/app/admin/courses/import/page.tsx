@@ -35,6 +35,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
+import Modal from "@/components/shared/Modal";
 import Link from "next/link";
 
 interface CrawledData {
@@ -117,6 +118,16 @@ const CourseImportPage = () => {
   const [pendingUrls, setPendingUrls] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [isImportingFull, setIsImportingFull] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportInfo, setExportInfo] = useState<{
+    total_courses: number;
+    recommended_parts: number;
+    recommended_per_part: number;
+    estimated_total_size_mb: number;
+    estimated_size_per_part_mb: number;
+  } | null>(null);
+  const [isLoadingExportInfo, setIsLoadingExportInfo] = useState(false);
+  const [customParts, setCustomParts] = useState<number>(1);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
@@ -196,9 +207,27 @@ const CourseImportPage = () => {
   };
 
   const handleExport = async () => {
+    setIsLoadingExportInfo(true);
+    setShowExportModal(true);
+    try {
+      const resp = await api.get("recommend/admin/export-info", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setExportInfo(resp.data);
+      setCustomParts(resp.data.recommended_parts); // Set default to recommended
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || t('courses_import_export_error');
+      showNotification(msg, "error");
+      setShowExportModal(false);
+    } finally {
+      setIsLoadingExportInfo(false);
+    }
+  };
+
+  const handleExportAll = async () => {
     setIsExporting(true);
     try {
-      const resp = await api.get("recommend/admin/courses/export", {
+      const resp = await api.get("recommend/admin/export", {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -214,6 +243,47 @@ const CourseImportPage = () => {
       window.URL.revokeObjectURL(url);
 
       showNotification(t('courses_import_exported').replace('{count}', resp.data.count));
+      setShowExportModal(false);
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || t('courses_import_export_error');
+      showNotification(msg, "error");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportParts = async () => {
+    if (!exportInfo || customParts < 1) return;
+    
+    setIsExporting(true);
+    try {
+      const perPart = Math.ceil(exportInfo.total_courses / customParts);
+      
+      for (let i = 0; i < customParts; i++) {
+        const offset = i * perPart;
+        const part = i + 1;
+        
+        const resp = await api.get(`recommend/admin/export?limit=${perPart}&offset=${offset}&part=${part}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const dataStr = JSON.stringify(resp.data, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `courses_export_part${part}_of_${customParts}_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        // Small delay between downloads
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      showNotification(t('courses_import_exported_parts').replace('{parts}', customParts.toString()));
+      setShowExportModal(false);
     } catch (err: any) {
       const msg = err.response?.data?.detail || t('courses_import_export_error');
       showNotification(msg, "error");
@@ -727,6 +797,88 @@ const CourseImportPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Export Modal */}
+        <Modal
+          isOpen={showExportModal}
+          onClose={() => !isExporting && setShowExportModal(false)}
+          title={t('courses_export_modal_title')}
+          maxWidth="40rem"
+        >
+          {isLoadingExportInfo ? (
+            <div className={styles.modalLoading}>
+              <Loader2 className="animate-spin" size={32} />
+              <p>{t('courses_export_loading_info')}</p>
+            </div>
+          ) : exportInfo ? (
+            <>
+              <div className={styles.exportInfo}>
+                <div className={styles.exportInfoItem}>
+                  <span className={styles.exportInfoLabel}>{t('courses_export_total')}:</span>
+                  <span className={styles.exportInfoValue}>{exportInfo.total_courses}</span>
+                </div>
+                <div className={styles.exportInfoItem}>
+                  <span className={styles.exportInfoLabel}>{t('courses_export_size')}:</span>
+                  <span className={styles.exportInfoValue}>{exportInfo.estimated_total_size_mb} MB</span>
+                </div>
+                <div className={styles.exportInfoItem}>
+                  <span className={styles.exportInfoLabel}>{t('courses_export_recommended_parts')}:</span>
+                  <span className={styles.exportInfoValue}>{exportInfo.recommended_parts}</span>
+                </div>
+              </div>
+
+              <div className={styles.exportOptions}>
+                <button
+                  className={cn(styles.exportOptionBtn, styles.exportOptionPrimary)}
+                  onClick={handleExportAll}
+                  disabled={isExporting}
+                >
+                  {isExporting ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
+                  <div>
+                    <div className={styles.exportOptionTitle}>{t('courses_export_all')}</div>
+                    <div className={styles.exportOptionDesc}>{t('courses_export_all_desc')}</div>
+                  </div>
+                </button>
+
+                <div className={styles.exportCustom}>
+                  <div className={styles.exportCustomHeader}>
+                    <Layers size={18} />
+                    <div>
+                      <div className={styles.exportOptionTitle}>{t('courses_export_custom_parts')}</div>
+                      <div className={styles.exportOptionDesc}>{t('courses_export_custom_parts_desc')}</div>
+                    </div>
+                  </div>
+                  
+                  <div className={styles.exportCustomInput}>
+                    <label htmlFor="customParts">{t('courses_export_num_parts')}:</label>
+                    <input
+                      id="customParts"
+                      type="number"
+                      min="1"
+                      max={exportInfo.total_courses}
+                      value={customParts}
+                      onChange={(e) => setCustomParts(Math.max(1, Math.min(exportInfo.total_courses, parseInt(e.target.value) || 1)))}
+                      disabled={isExporting}
+                      className={styles.partsInput}
+                    />
+                    <span className={styles.partsInfo}>
+                      (~{Math.ceil(exportInfo.total_courses / customParts)} {t('courses_export_per_part_label')})
+                    </span>
+                  </div>
+
+                  <button
+                    className={cn(styles.exportOptionBtn, styles.exportOptionSecondary)}
+                    onClick={handleExportParts}
+                    disabled={isExporting || customParts < 1}
+                  >
+                    {isExporting ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
+                    {t('courses_export_start')}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : null}
+        </Modal>
       </PageContainer>
     </AuthGuard>
   );

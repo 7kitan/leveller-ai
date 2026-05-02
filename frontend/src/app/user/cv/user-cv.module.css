@@ -1054,8 +1054,14 @@
 /* Table Styles */
 .tableWrapper {
   width: 100%;
-  overflow-x: auto;
+  overflow: visible; /* Allow dropdowns to overflow */
   margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .tableWrapper {
+    overflow-x: auto; /* Allow horizontal scroll on mobile */
+  }
 }
 
 .skillsTable {
@@ -1064,7 +1070,7 @@
   border-spacing: 0;
   background: var(--color-bg-primary);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible; /* Allow dropdowns to overflow */
 }
 
 .skillsTable thead {
