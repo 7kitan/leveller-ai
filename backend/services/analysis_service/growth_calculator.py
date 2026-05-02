@@ -88,8 +88,8 @@ def calculate_skill_impact(
         (potential_match_pct, enriched_skill_gaps)
     """
     
-    if not skill_gaps or not job_id:
-        logger.warning("No skill gaps or job_id provided, returning current match")
+    if not skill_gaps:
+        logger.warning("No skill gaps provided, returning current match")
         return current_match_pct, skill_gaps
     
     # Lấy job để đọc extracted_requirements_json
