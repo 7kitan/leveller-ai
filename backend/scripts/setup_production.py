@@ -33,6 +33,30 @@ logger = logging.getLogger("production_setup")
 
 
 
+def enable_extensions():
+    """Step 0: Enable required PostgreSQL extensions."""
+    logger.info("=" * 70)
+    logger.info("STEP 0: Enabling PostgreSQL Extensions")
+    logger.info("=" * 70)
+    
+    try:
+        with engine.connect() as conn:
+            # Enable pgvector for vector operations
+            conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+            logger.info("  ✓ pgvector extension enabled")
+            
+            # Enable pg_trgm for text search (ILIKE optimization)
+            conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
+            logger.info("  ✓ pg_trgm extension enabled")
+            
+            conn.commit()
+            logger.info("✅ Extensions enabled successfully\n")
+            return True
+    except Exception as e:
+        logger.error(f"❌ Failed to enable extensions: {e}\n")
+        return False
+
+
 def create_schema():
     """Step 1: Create all tables and constraints."""
     logger.info("=" * 70)
@@ -208,6 +232,7 @@ def main():
     logger.info("Safe to run multiple times (idempotent).\n")
     
     steps = [
+        ("Enable Extensions", enable_extensions),
         ("Create Schema", create_schema),
         ("Apply Tuning", apply_tuning),
         ("Init System Settings", init_settings),
