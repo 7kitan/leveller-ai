@@ -1,205 +1,69 @@
 {
-    "id": "298dfde7-f6d0-4694-b000-2b8fbb814189",
+    "status": "success",
+    "error_message": null,
     "full_name": "NGUYEN TUAN KIET",
-    "summary": "",
-    "experience_years_total": 3.0,
-    "is_verified": false,
-    "status": "completed",
-    "error_message": "",
-    "user_info": {
-        "full_name": "NGUYEN TUAN KIET",
-        "total_exp_years": 3.0
-    },
+    "summary": null,
+    "seniority": "Mid-level",
+    "experience_years_total": 3.3,
     "skills": [
         {
-            "id": "8341d35c-8bc1-4e90-aab5-0f46092cb9bb",
-            "skill_id": "d6394df7-e73f-414f-8ab0-c8375668056b",
             "name": "PY",
             "category": "Programming Language",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "2eb53861-f52b-4aca-a0d4-c0099c57b0cd",
-            "skill_id": "371e392c-b53c-4c83-9bf5-4a3369d7e33a",
             "name": "Matlab",
             "category": "Programming Language",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "b81088ba-0adf-4bfc-84de-eb1462ff70a2",
-            "skill_id": "42f43df4-93d5-4603-a8f0-7a684906209b",
             "name": "C#",
             "category": "Programming Language",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "48616ea6-d980-47eb-9504-9e071382ab87",
-            "skill_id": "f15e6ebc-fdc8-4b9b-a420-983015c2074f",
             "name": "Git",
             "category": "Tool",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "ffbb908a-468b-4742-9288-3527c52d08aa",
-            "skill_id": "d5468b8d-b9fd-479f-b3df-5aa89c0951ad",
             "name": "Docker",
             "category": "Tool",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "db864636-d949-4c08-ba8f-0f51f1932e0d",
-            "skill_id": "7cedcf97-cada-4bd4-9a76-c9a1dd3a8975",
             "name": "Pytorch",
             "category": "Tool",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "ce5abe65-4aab-463a-a544-6a7f24f467d8",
-            "skill_id": "949496f5-79fc-4e77-a738-131e8bb34ac6",
             "name": "Pandas",
             "category": "Tool",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "871b2ed8-5427-4bdb-8036-0fa846d2994f",
-            "skill_id": "9f88d28c-f7ac-4395-b148-4aea671cadd9",
             "name": "Sk-Learn",
             "category": "Tool",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         },
         {
-            "id": "673ecf16-f9d5-4e70-b423-e6bbe7d39ee7",
-            "skill_id": "ae88b307-bf11-42fc-a2bb-9ee737c7f98e",
             "name": "Tensorflow",
             "category": "Tool",
-            "experience_years": 0.0,
-            "years_exp": 0.0,
-            "level": "Junior"
+            "experience_years": 3.3
         }
     ],
-    "created_at": "2026-04-28T14:46:42.828682+00:00",
-    "is_ocr": false,
-    "ocr_confidence": 1.0,
-    "ocr_warning": null,
-    "cv_parsed": {
-        "full_name": "NGUYEN TUAN KIET",
-        "summary": "",
-        "seniority": "Mid-level",
-        "experience_years_total": 3.0,
-        "skills": [
-            {
-                "name": "PY",
-                "category": "Programming Language",
-                "years_exp": 2.0,
-                "level": "Junior"
-            },
-            {
-                "name": "Matlab",
-                "category": "Programming Language",
-                "years_exp": 2.0,
-                "level": "Junior"
-            },
-            {
-                "name": "C#",
-                "category": "Programming Language",
-                "years_exp": 2.0,
-                "level": "Junior"
-            },
-            {
-                "name": "Git",
-                "category": "Tool",
-                "years_exp": 2.0,
-                "level": "Junior"
-            },
-            {
-                "name": "Docker",
-                "category": "Tool",
-                "years_exp": 2.0,
-                "level": "Junior"
-            },
-            {
-                "name": "Pytorch",
-                "category": "Tool",
-                "years_exp": 2.0,
-                "level": "Junior"
-            },
-            {
-                "name": "Pandas",
-                "category": "Tool",
-                "years_exp": 2.0,
-                "level": "Junior"
-            },
-            {
-                "name": "Sk-Learn",
-                "category": "Tool",
-                "years_exp": 2.0,
-                "level": "Junior"
-            },
-            {
-                "name": "Tensorflow",
-                "category": "Tool",
-                "years_exp": 2.0,
-                "level": "Junior"
-            }
-        ],
-        "work_history": [
-            {
-                "position": "Researcher",
-                "company": "Intelligent Communications Lab., SeoulTech",
-                "duration_years": 2.0,
-                "description": "Researched existing machine learning algorithms, proposed and developed novel model to improve performance of telecommunication systems."
-            },
-            {
-                "position": "Power System Study Engineer",
-                "company": "LND Technical Services",
-                "duration_years": 1.0,
-                "description": "Perform power system studies for Transmission & Distribution projects, ensuring technical accuracy, and manage technical risks."
-            }
-        ],
-        "education": [
-            {
-                "degree": "Master of Science in Electrical & Information Engineering",
-                "institution": "Seoul National University of Science and Technology",
-                "year": 2024
-            },
-            {
-                "degree": "Bachelor in Electrical & Electronics Engineering",
-                "institution": "Ho Chi Minh University of Technology",
-                "year": 2021
-            }
-        ],
-        "certifications": [],
-        "is_ocr": false,
-        "ocr_confidence": 1.0
-    },
     "work_history": [
+        {
+            "position": "Power System Study Engineer",
+            "company": "LND Technical Services",
+            "duration_years": 0.4,
+            "description": "Perform power system studies for Transmission & Distribution projects, ensuring technical accuracy, and manage technical risks."
+        },
         {
             "position": "Researcher",
             "company": "Intelligent Communications Lab., SeoulTech",
             "duration_years": 2.0,
             "description": "Researched existing machine learning algorithms, proposed and developed novel model to improve performance of telecommunication systems."
-        },
-        {
-            "position": "Power System Study Engineer",
-            "company": "LND Technical Services",
-            "duration_years": 1.0,
-            "description": "Perform power system studies for Transmission & Distribution projects, ensuring technical accuracy, and manage technical risks."
         }
     ],
     "education": [
@@ -214,6 +78,8 @@
             "year": 2021
         }
     ],
-    "certifications": [],
-    "seniority": "Mid-level"
+    "certifications": [
+        "DELF B1"
+    ],
+    "ocr_confidence": 1.0
 }
