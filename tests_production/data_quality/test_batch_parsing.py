@@ -119,7 +119,8 @@ def test_batch_parsing():
                                 skills_schema.append({
                                     "name": s.get("name"),
                                     "category": s.get("category", "Other"),
-                                    "experience_years": float(s.get("experience_years", s.get("years_exp", 0.0)))
+                                    "experience_years": float(s.get("experience_years", s.get("years_exp", 0.0))),
+                                    "level": s.get("level")
                                 })
                                 
                             schema_output = {
