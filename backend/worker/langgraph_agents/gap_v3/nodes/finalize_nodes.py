@@ -208,13 +208,6 @@ async def finalize_report_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3:
     }
 
     # ── Log final report summary ─────────────────────────────────────────────
-    radar_info = ""
-    if radar_chart_data:
-        radar_info = (
-            f"               │ radar_chart        : {radar_chart_data['overall_match']}% "
-            f"({len(radar_chart_data.get('priority_gaps', []))} priority gaps)\n"
-        )
-    
     logger.info(
         f"\n{'═' * 70}\n"
         f"[FINAL REPORT] ┌─── complete report | cv_id={state.get('cv_id')}\n"
@@ -226,7 +219,6 @@ async def finalize_report_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3:
         f"               │ courses            : {len(final_report['course_recommendations'])}\n"
         f"               │ roadmap stages     : {len(final_report.get('career_roadmap', {}).get('stages', []))}\n"
         f"               │ transferable       : {len(final_report['transferable_insights'])}\n"
-        f"{radar_info}"
         f"               └─────────\n"
         f"[FINAL REPORT] FULL REPORT JSON (first 3000 chars):\n"
         f"{_indent_data(_json.dumps(final_report, ensure_ascii=False, indent=2)[:3000])}\n"
