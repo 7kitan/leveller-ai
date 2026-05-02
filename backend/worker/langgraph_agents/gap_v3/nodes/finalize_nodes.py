@@ -146,9 +146,26 @@ async def finalize_report_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3:
             }
         )
 
-    # ── Match Calculation (100% LLM Semantic) ─────────────────────────────
+    # ── Match Calculation (Enriched with real DB stats) ──────────────────
     llm_match_pct = float(gap_analysis.get("overall_match_pct") or 0)
-    potential_match_pct = float(gap_analysis.get("potential_match_pct") or 0)
+    skill_gaps = list(gap_analysis.get("skill_gaps") or [])
+    
+    # Enrich gaps with real Market Data (demand, impact)
+    try:
+        from services.analysis_service.growth_calculator import calculate_skill_impact
+        potential_match_pct, enriched_gaps = calculate_skill_impact(
+            skill_gaps=skill_gaps,
+            job_id=state.get("job_id"),
+            current_match_pct=llm_match_pct,
+            db=db
+        )
+        # Update gaps in the gap_analysis object for final report
+        gap_analysis["skill_gaps"] = enriched_gaps
+        logger.info(f"[STEP 6] Gaps enriched with DB stats | potential={potential_match_pct}%")
+    except Exception as e:
+        logger.warning(f"[STEP 6] Failed to enrich gaps with DB stats: {e}")
+        potential_match_pct = float(gap_analysis.get("potential_match_pct") or 0)
+
     overall_match_pct = llm_match_pct
     
     # Build match_breakdown for frontend (5 dimensions)
