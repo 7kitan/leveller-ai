@@ -155,7 +155,8 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
         cv_record = db.query(UserCV).filter(UserCV.id == cv_id).first()
         if cv_record and cv_record.file_id:
             # Find ALL files with any extension matching the file_id
-            UPLOAD_DIR = "/app/data/cv_uploads"
+            env_dir = os.getenv("CV_UPLOAD_DIR", "data/cv_uploads")
+            UPLOAD_DIR = env_dir if os.path.isabs(env_dir) else os.path.join("/app", env_dir)
             pattern = os.path.join(UPLOAD_DIR, f"{cv_record.file_id}.*")
             matching_files = glob.glob(pattern)
             if matching_files:
@@ -241,7 +242,8 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
 
     finally:
         # ── Cleanup: Delete ALL physical files (success or failure) ──────────
-        UPLOAD_DIR = "/app/data/cv_uploads"
+        env_dir = os.getenv("CV_UPLOAD_DIR", "data/cv_uploads")
+        UPLOAD_DIR = env_dir if os.path.isabs(env_dir) else os.path.join("/app", env_dir)
         if files_to_cleanup:
             for file_path in files_to_cleanup:
                 if os.path.exists(file_path):

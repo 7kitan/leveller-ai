@@ -115,21 +115,40 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
     )
 
     # ── Locate CV file on disk ───────────────────────────────────────────────
+    # ── Locate CV file on disk ───────────────────────────────────────────────
     file_id = getattr(cv_record, "file_id", None) or cv_id_str
-    upload_dir = os.getenv("CV_UPLOAD_DIR", "data/cv_uploads")
+    
+    # Use absolute path to avoid ambiguity in Docker
+    env_dir = os.getenv("CV_UPLOAD_DIR", "data/cv_uploads")
+    if os.path.isabs(env_dir):
+        upload_dir = env_dir
+    else:
+        # Fallback to absolute /app/ path if relative
+        upload_dir = os.path.join("/app", env_dir)
+        
+    if not os.path.exists(upload_dir):
+        # Last resort fallback to common docker path
+        if os.path.exists("/app/data/cv_uploads"):
+            upload_dir = "/app/data/cv_uploads"
     
     # Strategy Detection
     strategy = config_manager.get_setting("CV_PARSER_STRATEGY", default="direct").lower()
-    logger.info(f"[STEP 1] Selected Strategy: {strategy.upper()}")
-
+    logger.info(f"[STEP 1] Selected Strategy: {strategy.upper()} | Target Dir: {upload_dir}")
+    
     # Robust File Discovery
     file_path = None
     if os.path.exists(upload_dir):
-        for f_name in os.listdir(upload_dir):
+        files_in_dir = os.listdir(upload_dir)
+        for f_name in files_in_dir:
             if f_name.startswith(f"{file_id}."):
                 file_path = os.path.join(upload_dir, f_name)
                 logger.info(f"[STEP 1] ✓ File DISCOVERED on disk: {file_path}")
                 break
+        
+        if not file_path:
+            logger.warning(f"[STEP 1] File {file_id}.* not found in {upload_dir}. Content: {files_in_dir[:10]}...")
+    else:
+        logger.error(f"[STEP 1] Upload directory NOT FOUND: {upload_dir}")
     
     # BUG-001 FIX: Cache hit validation - Check both raw_text AND cv_parsed_json exist
     # If raw_text exists but cv_parsed_json is missing, re-parse is needed
