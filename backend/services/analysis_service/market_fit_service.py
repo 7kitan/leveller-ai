@@ -148,8 +148,9 @@ async def update_user_market_fit(user_id: uuid.UUID, db: Session, cv_id: uuid.UU
     user.market_fit_last_updated = now
     user.market_fit_data = market_fit_data
     
-    db.commit()
-    logger.info(f"[MARKET FIT] Successfully updated data for user {user_id}")
+    # NOTE: Do NOT commit here - let the caller handle transaction management
+    # db.commit() removed to avoid nested transaction issues
+    logger.info(f"[MARKET FIT] Successfully updated data for user {user_id} (pending commit)")
     return market_fit_data
 
 
