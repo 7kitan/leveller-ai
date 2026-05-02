@@ -418,6 +418,10 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
     9. OCR SPACING RECONSTRUCTION:
        - The OCR text may have spaces between every single letter and number (e.g., 'J a n  2 0 2 3  -  N o w  P o w e r'). 
        - You MUST carefully reconstruct these characters into words ('Jan 2023 - Now Power'). Do not skip these spaced-out dates. Use them as the official start/end dates for the adjacent job title.
+    10. AUTO-GENERATED SUMMARY:
+       - If the CV does not explicitly contain a summary or objective, DO NOT return null for the 'summary' field. You MUST auto-generate a concise professional summary in English based on the candidate's work history and skills.
+    11. SKILL LEVEL EVALUATION:
+       - For each skill, deduce its 'level' based on its calculated 'experience_years' using the scale: Junior (< 2 yrs), Mid-level (2-5 yrs), Senior (5-10 yrs), Expert (> 10 yrs).
 
     INTERNAL MONOLOGUE:
     - Step 0: [Validation] Does this text look like a CV? If no, prepare "fail" response.
@@ -435,14 +439,15 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
       "status": "success | fail",
       "error_message": "Reason if fail, else null",
       "full_name": "Full Name or null",
-      "summary": "Professional summary in English or null",
+      "summary": "Professional summary in English (auto-generated if missing)",
       "seniority": "Junior | Mid-level | Senior | Expert | null",
       "experience_years_total": 0.0,
       "skills": [
         {{
           "name": "Skill Name",
           "category": "Technology | Tool | Programming Language | Library | AI | Framework | etc.",
-          "experience_years": 0.0
+          "experience_years": 0.0,
+          "level": "Junior | Mid-level | Senior | Expert"
         }}
       ],
       "work_history": [

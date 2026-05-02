@@ -2,54 +2,63 @@
     "status": "success",
     "error_message": null,
     "full_name": "NGUYEN TUAN KIET",
-    "summary": null,
+    "summary": "A dedicated Electrical and Information Engineering professional with experience in machine learning applications and power system studies. Proven ability to conduct research and develop innovative solutions in telecommunications and renewable energy systems.",
     "seniority": "Mid-level",
-    "experience_years_total": 3.3,
+    "experience_years_total": 2.3,
     "skills": [
         {
             "name": "PY",
             "category": "Programming Language",
-            "experience_years": 3.3
+            "experience_years": 2.3,
+            "level": "Junior"
         },
         {
             "name": "Matlab",
             "category": "Programming Language",
-            "experience_years": 3.3
+            "experience_years": 2.3,
+            "level": "Junior"
         },
         {
             "name": "C#",
             "category": "Programming Language",
-            "experience_years": 3.3
+            "experience_years": 2.3,
+            "level": "Junior"
         },
         {
             "name": "Git",
             "category": "Tool",
-            "experience_years": 3.3
+            "experience_years": 2.3,
+            "level": "Junior"
         },
         {
             "name": "Docker",
             "category": "Tool",
-            "experience_years": 3.3
+            "experience_years": 2.3,
+            "level": "Junior"
         },
         {
             "name": "Pytorch",
             "category": "Tool",
-            "experience_years": 3.3
+            "experience_years": 2.3,
+            "level": "Junior"
         },
         {
             "name": "Pandas",
             "category": "Tool",
-            "experience_years": 3.3
+            "experience_years": 2.3,
+            "level": "Junior"
         },
         {
             "name": "Sk-Learn",
             "category": "Tool",
-            "experience_years": 3.3
+            "experience_years": 2.3,
+            "level": "Junior"
         },
         {
             "name": "Tensorflow",
             "category": "Tool",
-            "experience_years": 3.3
+            "experience_years": 2.3,
+            "level": "Junior"
         }
     ],
     "work_history": [
