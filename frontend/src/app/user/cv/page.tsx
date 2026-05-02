@@ -881,40 +881,6 @@ const UserCVPage = () => {
     handleAddSuggestedSkill
   ]);
 
-  if (status === "processing" && file) {
-    return (
-      <AuthGuard requireRole={UserRole.USER}>
-        <PageContainer>
-          <ScanningOverlay status={status} />
-          <PageHeader 
-            title={t("cv_repository_title")}
-            subtitle={t("cv_repository_subtitle")}
-          >
-            <div className={styles.secureBadge}>
-              <ShieldCheck size={18} className={styles.shieldIcon} />
-              <span className={styles.secureText}>{t("cv_secure_iso")}</span>
-            </div>
-          </PageHeader>
-
-          <div className={styles.uploadGrid}>
-            <div className={styles.uploadZone}>
-              <div className={styles.uploadPanel}>
-                <div className={styles.uploadGlow} />
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={styles.previewWrapper}>
-                  <CVPreview 
-                    file={file} 
-                    onConfirm={() => {}} 
-                    onCancel={() => { setFile(null); setStatus("idle"); }} 
-                    isProcessing={true}
-                  />
-                </motion.div>
-              </div>
-            </div>
-          </div>
-        </PageContainer>
-      </AuthGuard>
-    );
-  }
 
   if (status === "processing" && !file) {
     return (
@@ -988,7 +954,6 @@ const UserCVPage = () => {
 
   return (
     <AuthGuard requireRole={UserRole.USER}>
-      <ScanningOverlay status={status} />
       <PageContainer>
         <PageHeader 
           title={t("cv_repository_title")}
@@ -1006,11 +971,12 @@ const UserCVPage = () => {
               <div className={styles.uploadGlow} />
               {(showPreview || status === "uploading") && file ? (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={styles.previewWrapper}>
+                  <ScanningOverlay status={status} />
                   <CVPreview 
                     file={file} 
                     onConfirm={handleUpload} 
                     onCancel={() => { setShowPreview(false); setFile(null); setStatus("idle"); }} 
-                    isProcessing={status === "uploading"}
+                    isProcessing={status === "uploading" || status === "processing"}
                   />
                 </motion.div>
               ) : (
