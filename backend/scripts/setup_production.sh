@@ -16,8 +16,8 @@ echo "======================================================================"
 echo ""
 
 # Check if running from backend directory
-if [ ! -f "docker-compose.yml" ]; then
-    echo "❌ Error: docker-compose.yml not found"
+if [ ! -f "docker-compose.prod.yml" ]; then
+    echo "❌ Error: docker-compose.prod.yml not found"
     echo "   Please run this script from the backend directory:"
     echo "   cd backend && ./scripts/setup_production.sh"
     exit 1
@@ -31,9 +31,9 @@ if ! command -v docker &> /dev/null; then
 fi
 
 # Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null; then
+if ! docker compose version &> /dev/null; then
     echo "❌ Error: Docker Compose is not installed"
-    echo "   Please install Docker Compose: https://docs.docker.com/compose/install/"
+    echo "   Please install Docker Compose V2"
     exit 1
 fi
 
@@ -64,21 +64,21 @@ echo ""
 
 # Stop any existing containers
 echo "🛑 Stopping existing containers..."
-docker-compose down 2>/dev/null || true
+docker compose -f docker-compose.prod.yml down 2>/dev/null || true
 
 # Start database and redis
 echo "🚀 Starting database and redis..."
-docker-compose up -d db redis
+docker compose -f docker-compose.prod.yml up -d db redis
 
 # Wait for database to be ready with retries
 echo "⏳ Waiting for database to be ready..."
 MAX_RETRIES=30
 RETRY_COUNT=0
-until docker-compose exec -T db psql -U postgres -c '\q' 2>/dev/null; do
+until docker compose -f docker-compose.prod.yml exec -T db psql -U postgres -c '\q' 2>/dev/null; do
     RETRY_COUNT=$((RETRY_COUNT+1))
     if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
         echo "❌ Database failed to start after ${MAX_RETRIES} attempts"
-        echo "   Check logs: docker-compose logs db"
+        echo "   Check logs: docker compose -f docker-compose.prod.yml logs db"
         exit 1
     fi
     echo "   Attempt $RETRY_COUNT/$MAX_RETRIES - waiting 2 seconds..."
@@ -95,7 +95,7 @@ echo ""
 
 # Build gateway service (has all Python dependencies)
 echo "📦 Building gateway service with all dependencies..."
-docker-compose build gateway
+docker compose -f docker-compose.prod.yml build gateway
 
 if [ $? -ne 0 ]; then
     echo "❌ Failed to build gateway service"
@@ -115,7 +115,7 @@ echo ""
 echo "🐍 Running setup_production.py inside Docker container..."
 echo ""
 
-docker-compose run --rm \
+docker compose -f docker-compose.prod.yml run --rm \
     --no-deps \
     gateway python3 scripts/setup_production.py
 
@@ -125,7 +125,7 @@ if [ $? -ne 0 ]; then
     echo "   Common issues:"
     echo "   - DATABASE_URL incorrect in .env"
     echo "   - Database not accessible from container"
-    echo "   - Migration files missing"
+    echo "   - tuning file missing"
     exit 1
 fi
 
@@ -139,25 +139,16 @@ echo ""
 echo "🔍 Verifying database setup..."
 
 # Check tables
-TABLE_COUNT=$(docker-compose exec -T db psql -U postgres -d career_advisor -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null | xargs)
+TABLE_COUNT=$(docker compose -f docker-compose.prod.yml exec -T db psql -U postgres -d career_advisor -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null | xargs)
 
 if [ -z "$TABLE_COUNT" ] || [ "$TABLE_COUNT" -lt 15 ]; then
     echo "⚠️  Warning: Expected at least 15 tables, found: $TABLE_COUNT"
 else
-    echo "✅ Tables created: $TABLE_COUNT"
-fi
-
-# Check migrations
-MIGRATION_COUNT=$(docker-compose exec -T db psql -U postgres -d career_advisor -t -c "SELECT COUNT(*) FROM schema_migrations;" 2>/dev/null | xargs)
-
-if [ -z "$MIGRATION_COUNT" ] || [ "$MIGRATION_COUNT" -lt 4 ]; then
-    echo "⚠️  Warning: Expected 4 migrations, found: $MIGRATION_COUNT"
-else
-    echo "✅ Migrations applied: $MIGRATION_COUNT"
+    echo "✅ Database tables ready: $TABLE_COUNT"
 fi
 
 # Check admin user
-ADMIN_COUNT=$(docker-compose exec -T db psql -U postgres -d career_advisor -t -c "SELECT COUNT(*) FROM users WHERE role = 'admin';" 2>/dev/null | xargs)
+ADMIN_COUNT=$(docker compose -f docker-compose.prod.yml exec -T db psql -U postgres -d career_advisor -t -c "SELECT COUNT(*) FROM users WHERE role = 'admin';" 2>/dev/null | xargs)
 
 if [ -z "$ADMIN_COUNT" ] || [ "$ADMIN_COUNT" -lt 1 ]; then
     echo "⚠️  Warning: No admin user found"
@@ -175,14 +166,14 @@ echo ""
 echo "Next steps:"
 echo ""
 echo "  1. Start all services:"
-echo "     docker-compose up -d"
+echo "     docker compose -f docker-compose.prod.yml up -d"
 echo ""
 echo "  2. Check service health:"
-echo "     docker-compose ps"
+echo "     docker compose -f docker-compose.prod.yml ps"
 echo ""
 echo "  3. View logs:"
-echo "     docker-compose logs -f gateway"
-echo "     docker-compose logs -f jd-service"
+echo "     docker compose -f docker-compose.prod.yml logs -f gateway"
+echo "     docker compose -f docker-compose.prod.yml logs -f jd-service"
 echo ""
 echo "  4. Test API:"
 echo "     curl http://localhost:8000/health"

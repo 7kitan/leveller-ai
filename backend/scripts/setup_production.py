@@ -32,34 +32,11 @@ logging.basicConfig(
 logger = logging.getLogger("production_setup")
 
 
-def enable_extensions():
-    """Step 1: Enable required PostgreSQL extensions."""
-    logger.info("=" * 70)
-    logger.info("STEP 1: Enabling PostgreSQL Extensions")
-    logger.info("=" * 70)
-    
-    try:
-        with engine.connect() as conn:
-            # Enable pgvector for vector operations
-            conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
-            logger.info("  ✓ pgvector extension enabled")
-            
-            # Enable pg_trgm for text search (ILIKE optimization)
-            conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
-            logger.info("  ✓ pg_trgm extension enabled")
-            
-            conn.commit()
-            logger.info("✅ Extensions enabled successfully\n")
-            return True
-    except Exception as e:
-        logger.error(f"❌ Failed to enable extensions: {e}\n")
-        return False
-
 
 def create_schema():
-    """Step 2: Create all tables and constraints."""
+    """Step 1: Create all tables and constraints."""
     logger.info("=" * 70)
-    logger.info("STEP 2: Creating Database Schema")
+    logger.info("STEP 1: Creating Database Schema")
     logger.info("=" * 70)
     
     try:
@@ -69,7 +46,7 @@ def create_schema():
             Job, Skill, JobSkillRequirement,
             Course, SystemSetting, LLMLog, SystemLog, UserFeedback,
             MarketSkillStats, MarketSkillHistory,
-            YouTubeCourse
+            YouTubeCourse, YouTubeVideoSkill
         )
         
         # Create all tables
@@ -84,89 +61,56 @@ def create_schema():
         return False
 
 
-def run_migrations():
-    """Step 3: Run all SQL migrations."""
+def apply_tuning():
+    """Step 2: Apply database performance tuning (Indexes, Triggers)."""
     logger.info("=" * 70)
-    logger.info("STEP 3: Running Database Migrations")
+    logger.info("STEP 2: Applying Database Tuning")
     logger.info("=" * 70)
-    
-    migrations = [
-        ("001_add_job_sections.sql", "Add job sections columns"),
-        ("002_add_missing_indexes.sql", "Add performance indexes"),
-        ("003_add_cv_soft_delete.sql", "Add soft delete support for CVs"),
-        ("004_drop_job_vectors_optimize_indexes.sql", "Drop job vectors and optimize for text search"),
-    ]
     
     try:
+        tuning_path = os.path.join(os.path.dirname(__file__), "production_tuning.sql")
+        
+        if not os.path.exists(tuning_path):
+            logger.error(f"❌ Tuning file not found: {tuning_path}")
+            return False
+            
         with engine.connect() as conn:
-            # Create migrations tracking table
-            conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS schema_migrations (
-                    id SERIAL PRIMARY KEY,
-                    migration_name VARCHAR(255) UNIQUE NOT NULL,
-                    applied_at TIMESTAMP DEFAULT NOW()
-                )
-            """))
+            logger.info("  📝 Executing production_tuning.sql...")
+            with open(tuning_path, 'r', encoding='utf-8') as f:
+                sql = f.read()
+            
+            # Execute the entire script
+            conn.execute(text(sql))
             conn.commit()
-            logger.info("  ✓ Migration tracking table ready")
             
-            applied_count = 0
-            skipped_count = 0
-            
-            for filename, description in migrations:
-                # Check if already applied
-                result = conn.execute(
-                    text("SELECT COUNT(*) FROM schema_migrations WHERE migration_name = :name"),
-                    {"name": filename}
-                )
-                
-                if result.scalar() > 0:
-                    logger.info(f"  ⏭️  {filename} (already applied)")
-                    skipped_count += 1
-                    continue
-                
-                # Find migration file
-                migration_path = os.path.join(
-                    os.path.dirname(__file__), 
-                    "migrations",
-                    filename
-                )
-                
-                if not os.path.exists(migration_path):
-                    logger.warning(f"  ⚠️  Migration file not found: {filename}")
-                    continue
-                
-                logger.info(f"  📝 Applying {filename}...")
-                logger.info(f"     {description}")
-                
-                # Read and execute migration
-                with open(migration_path, 'r', encoding='utf-8') as f:
-                    sql = f.read()
-                
-                conn.execute(text(sql))
-                
-                # Mark as applied
-                conn.execute(
-                    text("INSERT INTO schema_migrations (migration_name) VALUES (:name)"),
-                    {"name": filename}
-                )
-                conn.commit()
-                
-                logger.info(f"  ✅ {filename} applied successfully")
-                applied_count += 1
-            
-            logger.info(f"\n✅ Migrations completed: {applied_count} applied, {skipped_count} skipped\n")
+            logger.info("  ✅ Database tuning applied successfully")
             return True
             
     except Exception as e:
-        logger.error(f"❌ Migration failed: {e}\n")
+        logger.error(f"❌ Tuning failed: {e}\n")
+        return False
+
+
+def init_settings():
+    """Step 2.5: Initialize system settings."""
+    logger.info("=" * 70)
+    logger.info("STEP 2.5: Initializing System Settings")
+    logger.info("=" * 70)
+    
+    try:
+        from scripts.init_system_settings import init_settings as run_init
+        run_init(force=False)
+        logger.info("✅ System settings initialized\n")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize settings: {e}\n")
         return False
 
 
 def create_admin_user():
-    """Step 4: Create system admin user."""
+    """Step 3: Create system admin user."""
     logger.info("=" * 70)
-    logger.info("STEP 4: Creating Admin User")
+    logger.info("STEP 3: Creating Admin User")
     logger.info("=" * 70)
     
     try:
@@ -184,9 +128,9 @@ def create_admin_user():
 
 
 def verify_setup():
-    """Step 5: Verify production setup."""
+    """Step 4: Verify production setup."""
     logger.info("=" * 70)
-    logger.info("STEP 5: Verifying Setup")
+    logger.info("STEP 4: Verifying Setup")
     logger.info("=" * 70)
     
     try:
@@ -208,12 +152,15 @@ def verify_setup():
             table_count = result.scalar()
             logger.info(f"  ✓ Tables: {table_count} created")
             
-            # Check migrations
+            # Check if tuning was applied (check for search_vector)
             result = conn.execute(text("""
-                SELECT COUNT(*) FROM schema_migrations
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name = 'youtube_courses' AND column_name = 'search_vector'
             """))
-            migration_count = result.scalar()
-            logger.info(f"  ✓ Migrations: {migration_count} applied")
+            if result.scalar():
+                logger.info("  ✓ Database tuning: search_vector present")
+            else:
+                logger.warning("  ⚠️  Database tuning: search_vector MISSING")
             
             # Check jobs table (no vector columns)
             result = conn.execute(text("""
@@ -261,9 +208,9 @@ def main():
     logger.info("Safe to run multiple times (idempotent).\n")
     
     steps = [
-        ("Enable Extensions", enable_extensions),
         ("Create Schema", create_schema),
-        ("Run Migrations", run_migrations),
+        ("Apply Tuning", apply_tuning),
+        ("Init System Settings", init_settings),
         ("Create Admin User", create_admin_user),
         ("Verify Setup", verify_setup),
     ]
@@ -280,8 +227,8 @@ def main():
     logger.info("=" * 70)
     logger.info("\nYour database is ready for production!")
     logger.info("\nNext steps:")
-    logger.info("  1. Start services: docker-compose up -d")
-    logger.info("  2. Check logs: docker-compose logs -f")
+    logger.info("  1. Start services: docker compose -f docker-compose.prod.yml up -d")
+    logger.info("  2. Check logs: docker compose -f docker-compose.prod.yml logs -f")
     logger.info("  3. Access API: http://localhost:8000/docs\n")
 
 

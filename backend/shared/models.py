@@ -408,3 +408,20 @@ class SystemLog(Base):
     message = Column(Text)
     details = Column(JSON) # Stacktrace, metadata, etc.
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
+class YouTubeVideoSkill(Base):
+    __tablename__ = "youtube_video_skills"
+    __table_args__ = (
+        UniqueConstraint("video_id", "skill_name", name="uq_youtube_video_skill"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    video_id = Column(
+        String(50), 
+        ForeignKey("youtube_courses.video_id", ondelete="CASCADE"), 
+        nullable=False,
+        index=True
+    )
+    skill_name = Column(String(100), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

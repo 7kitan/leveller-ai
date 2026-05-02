@@ -77,6 +77,15 @@ const JobImportPage = () => {
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isImportingFull, setIsImportingFull] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportInfo, setExportInfo] = useState<{
+    total_jobs: number;
+    recommended_parts: number;
+    recommended_per_part: number;
+    estimated_total_size_mb: number;
+    estimated_size_per_part_mb: number;
+  } | null>(null);
+  const [isLoadingExportInfo, setIsLoadingExportInfo] = useState(false);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
