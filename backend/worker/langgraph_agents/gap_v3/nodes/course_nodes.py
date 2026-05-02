@@ -138,9 +138,9 @@ async def course_recommendation_llm_node(
             c["_is_critical"] = bool(gap.get("is_critical"))
         return candidates
 
-    # Run vector searches in parallel
-    course_candidate_lists = await asyncio.gather(*[search_gap_courses(g) for g in gaps_to_process])
-    for cand_list in course_candidate_lists:
+    # Run vector searches sequentially to avoid DB session race conditions
+    for g in gaps_to_process:
+        cand_list = await search_gap_courses(g)
         all_recommendations.extend(cand_list)
 
     # ── STEP 1.5: YouTube Search (Free Resources - Parallel) ───────────
@@ -182,9 +182,9 @@ async def course_recommendation_llm_node(
             v["gap_skill"] = skill_name
         return v_results
 
-    # Run YouTube searches in parallel for top 3 gaps
-    yt_results = await asyncio.gather(*[search_yt(g) for g in gaps_to_process[:3]])
-    for v_list in yt_results:
+    # Run YouTube searches sequentially to avoid DB session race conditions for top 3 gaps
+    for g in gaps_to_process[:3]:
+        v_list = await search_yt(g)
         youtube_videos.extend(v_list)
 
     if not all_recommendations:
