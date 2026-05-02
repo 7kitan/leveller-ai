@@ -65,31 +65,16 @@ def get_db():
         db.close()
 
 def init_db():
-    """Initialize database tables, run migrations, and ensure admin exists. Should be called during app startup."""
+    """Initialize database tables. Advanced setup and tuning should be handled by setup_production.py."""
     from . import models # Ensure models are registered
     
-    # 1. Create tables
-    Base.metadata.create_all(bind=engine)
-    logger.info("✅ Database tables initialized")
-    
-    # 2. Run pending migrations
+    # Create tables (Idempotent: will not recreate if they exist)
     try:
-        from scripts.run_migrations import run_migrations
-        logger.info("Running database migrations...")
-        run_migrations()
-        logger.info("✅ Migrations completed")
+        Base.metadata.create_all(bind=engine)
+        logger.info("✅ Database tables initialized (idempotent)")
     except Exception as e:
-        logger.warning(f"⚠️  Migration runner not available or failed: {e}")
-        logger.warning("Please run migrations manually: python scripts/run_migrations.py")
+        logger.error(f"❌ Failed to initialize database tables: {e}")
     
-    # 3. Ensure admin user exists
-    try:
-        from shared.auto_admin import ensure_admin_exists
-        db = SessionLocal()
-        try:
-            ensure_admin_exists(db)
-        finally:
-            db.close()
-    except Exception as e:
-        logger.warning(f"⚠️  Admin auto-creation failed: {e}")
-        logger.warning("Please create admin manually: python scripts/create_admin.py")
+    # Migrations and Tuning are now handled by scripts/setup_production.sh
+    # This prevents race conditions in production when multiple services start at once.
+    logger.info("ℹ️  Note: Advanced tuning and system settings are handled by scripts/setup_production.py")
