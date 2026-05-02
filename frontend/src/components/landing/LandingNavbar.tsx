@@ -97,7 +97,7 @@ export default function LandingNavbar() {
       layout
       initial={false}
       animate={{
-        backgroundColor: isMenuOpen ? "rgba(255, 255, 255, 1)" : "rgba(255, 255, 255, 0.8)",
+        backgroundColor: "rgba(255, 255, 255, 1)",
         borderRadius: isMenuOpen ? "28px" : "980px",
         paddingBottom: isMenuOpen ? "20px" : "0px",
         boxShadow: isMenuOpen ? "0 20px 40px rgba(0, 0, 0, 0.1)" : "0 8px 32px rgba(0, 0, 0, 0.08)"
