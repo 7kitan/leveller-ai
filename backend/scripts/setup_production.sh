@@ -52,11 +52,18 @@ if [ ! -f ".env" ]; then
     read -p "Press Enter after updating .env file, or Ctrl+C to exit..."
 fi
 
-# Load environment variables
+# Load environment variables safely
 if [ -f ".env" ]; then
-    set -a
-    source .env
-    set +a
+    while IFS= read -r line || [ -n "$line" ]; do
+        # Skip comments and empty lines
+        [[ "$line" =~ ^#.*$ ]] && continue
+        [[ "$line" =~ ^[[:space:]]*$ ]] && continue
+        
+        # Export only if it's a valid KEY=VALUE pair
+        if [[ "$line" =~ ^[^=]+=.+$ ]]; then
+            export "$line"
+        fi
+    done < .env
 fi
 
 echo "======================================================================"
