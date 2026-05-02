@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Open_Sans } from "next/font/google";
+import { Space_Grotesk, Lato } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -8,9 +8,15 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { AlertProvider } from "@/context/AlertContext";
 import DynamicHtmlLang from "@/components/shared/DynamicHtmlLang";
 
-const openSans = Open_Sans({ 
-  subsets: ["latin", "vietnamese"], 
-  variable: "--font-open-sans" 
+const spaceGrotesk = Space_Grotesk({ 
+  subsets: ["latin"], 
+  variable: "--font-space-grotesk" 
+});
+
+const lato = Lato({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "700"],
+  variable: "--font-lato",
 });
 
 export const metadata: Metadata = {
@@ -24,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${openSans.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${spaceGrotesk.variable} ${lato.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <LanguageProvider>
           <DynamicHtmlLang />

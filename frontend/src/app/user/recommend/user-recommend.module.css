@@ -252,7 +252,7 @@
 }
 
 .refreshBtn {
-  padding: 1.25rem 2.5rem;
+  padding: 0.75rem 2.5rem;
   background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
@@ -610,7 +610,7 @@
 .matchScore {
   font-size: var(--font-size-display);
   font-weight: 900;
-  letter-spacing: -0.08em;
+  letter-spacing: 0.02em;
   line-height: 1;
   /* gradient removed - use solid color instead */ background: var(--color-primary);
   -webkit-background-clip: text;
@@ -1408,7 +1408,7 @@
   }
 
   .refreshBtn {
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
     font-size: var(--font-size-small);
     gap: 0.5rem;
     border-radius: 0.875rem;
@@ -1702,7 +1702,7 @@
   }
 
   .refreshBtn {
-    padding: 0.875rem 1.5rem;
+    padding: 0.625rem 1.5rem;
     font-size: var(--font-size-small);
   }
 
@@ -1812,7 +1812,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 .accentBtn {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-info)) !important;
+  background: linear-gradient(135deg, var(--color-accent-600), var(--color-accent-700)) !important;
   color: white !important;
   border-color: transparent !important;
 }
