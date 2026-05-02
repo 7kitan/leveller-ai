@@ -60,206 +60,215 @@ async def course_recommendation_llm_node(
         + state.get("cv_id", "?")
     )
 
-    if not gap_analysis:
-        logger.warning("[STEP 4] No gap_analysis — skipping course recommendation")
-        return {**state, "course_recommendations": [], "career_roadmap": {}, "status": "courses_done"}
-
-    # ── STEP 0: Expand group gaps into individual skills ──────────────────────
-    all_skill_gaps = gap_analysis.get("skill_gaps") or []
-    expanded_gaps = []
-    
-    for gap in all_skill_gaps:
-        # Check for is_group flag or if the skill name looks like a known group from JD requirements
-        is_group = gap.get("is_group")
-        alt_skills = gap.get("alternative_skills")
-        
-        if is_group and alt_skills:
-            logger.info(f"[STEP 4] Expanding group gap '{gap.get('skill')}' into: {alt_skills}")
-            for alt_skill in alt_skills:
-                # Create a copy for each alternative skill
-                alt_gap = gap.copy()
-                alt_gap["skill"] = alt_skill
-                alt_gap["is_group"] = False # Now it's an individual skill
-                alt_gap["original_group"] = gap.get("skill")
-                expanded_gaps.append(alt_gap)
-        else:
-            expanded_gaps.append(gap)
-
-    jd_context = gap_analysis.get("jd_context") or ""
-
-    if not expanded_gaps:
-        logger.warning("[STEP 4] No gaps found — skipping course recommendation")
-        return {**state, "course_recommendations": [], "career_roadmap": {}, "status": "courses_done"}
-
-    # Use top 4 expanded gaps for course recommendation
-    gaps_to_process = expanded_gaps[:4]
-
-    logger.info(
-        f"[STEP 4] ✓ Processing {len(gaps_to_process)} gaps (from {len(all_skill_gaps)} original gaps)\n"
-        f"  gaps: {', '.join(str(g.get('skill', '?')) for g in gaps_to_process)}"
-    )
-
-    # Reset aborted transaction
     try:
-        state["db"].rollback()
-    except Exception:
-        pass
+        if not gap_analysis:
+            logger.warning("[STEP 4] No gap_analysis — skipping course recommendation")
+            return {**state, "course_recommendations": [], "career_roadmap": {}, "status": "courses_done"}
 
-    db = state["db"]
-    all_recommendations: List[Dict] = []
-
-    import asyncio
-
-    # ── STEP 1: Vector search per gap (Parallel) ───────────────────
-    logger.info(f"[STEP 4] Searching courses for {len(gaps_to_process)} gaps in parallel...")
-    
-    async def search_gap_courses(gap):
-        gap_skill = gap.get("skill") or "?"
-        required_level = gap.get("required_level") or "Mid-level"
-        learning_path = gap.get("learning_path") or ""
-        estimated_months = gap.get("estimated_months") or 3
+        # ── STEP 0: Expand group gaps into individual skills ──────────────────────
+        all_skill_gaps = gap_analysis.get("skill_gaps") or []
+        expanded_gaps = []
         
-        candidates = await _vector_search_courses(
-            skill_name=gap_skill,
-            target_level=required_level,
-            db=db,
-            limit=12,
+        for gap in all_skill_gaps:
+            # Check for is_group flag or if the skill name looks like a known group from JD requirements
+            is_group = gap.get("is_group")
+            alt_skills = gap.get("alternative_skills")
+            
+            if is_group and alt_skills:
+                logger.info(f"[STEP 4] Expanding group gap '{gap.get('skill')}' into: {alt_skills}")
+                for alt_skill in alt_skills:
+                    # Create a copy for each alternative skill
+                    alt_gap = gap.copy()
+                    alt_gap["skill"] = alt_skill
+                    alt_gap["is_group"] = False # Now it's an individual skill
+                    alt_gap["original_group"] = gap.get("skill")
+                    expanded_gaps.append(alt_gap)
+            else:
+                expanded_gaps.append(gap)
+
+        jd_context = gap_analysis.get("jd_context") or ""
+
+        if not expanded_gaps:
+            logger.warning("[STEP 4] No gaps found — skipping course recommendation")
+            return {**state, "course_recommendations": [], "career_roadmap": {}, "status": "courses_done"}
+
+        # Use top 4 expanded gaps for course recommendation
+        gaps_to_process = expanded_gaps[:4]
+
+        logger.info(
+            f"[STEP 4] ✓ Processing {len(gaps_to_process)} gaps (from {len(all_skill_gaps)} original gaps)\n"
+            f"  gaps: {', '.join(str(g.get('skill', '?')) for g in gaps_to_process)}"
         )
-        
-        sim_threshold = config_manager.get_setting("GAP_VECTOR_SIM_THRESHOLD", default=0.35, cast=float)
-        logger.info(f"[STEP 4] {len(candidates)} candidates for '{gap_skill}' | sim_threshold={sim_threshold}")
-        
-        # Attach gap metadata
-        for c in candidates:
-            c["_gap_skill"] = gap_skill
-            c["_gap_severity"] = gap.get("severity") or "MEDIUM"
-            c["_gap_learning_path"] = learning_path
-            c["_gap_estimated_months"] = estimated_months
-            c["_is_critical"] = bool(gap.get("is_critical"))
-        return candidates
 
-    # Run vector searches sequentially to avoid DB session race conditions
-    for g in gaps_to_process:
-        cand_list = await search_gap_courses(g)
-        all_recommendations.extend(cand_list)
+        # Reset aborted transaction
+        try:
+            state["db"].rollback()
+        except Exception:
+            pass
 
-    # ── STEP 1.5: YouTube Search (Free Resources - Parallel) ───────────
-    youtube_videos = []
-    current_lang = state.get("lang", "vi")
-    
-    async def search_yt(gap):
-        skill_name = gap.get("skill") or "?"
-        level_name = gap.get("required_level") or "Mid-level"
-        category = gap.get("category", "").lower()
+        db = state["db"]
+        all_recommendations: List[Dict] = []
+
+        import asyncio
+
+        # ── STEP 1: Vector search per gap (Parallel) ───────────────────
+        logger.info(f"[STEP 4] Searching courses for {len(gaps_to_process)} gaps...")
         
-        # Infer domain from skill category
-        domain = "programming"  # default
-        if "devops" in category or "tools" in category:
-            domain = "devops"
-        elif "data" in category or "analytics" in category:
-            domain = "data-science"
-        elif "web" in category or "frontend" in category or "backend" in category:
-            domain = "web-development"
-        elif "mobile" in category or "android" in category or "ios" in category:
-            domain = "mobile"
-        elif "domain" in category:
-            domain = "domain-knowledge"
-        elif "soft" in category:
-            domain = "soft-skills"
-        elif "cert" in category:
-            domain = "certifications"
-        else:
-            domain = "programming" # Default to programming if none match
+        async def search_gap_courses(gap):
+            gap_skill = gap.get("skill") or "?"
+            required_level = gap.get("required_level") or "Mid-level"
+            learning_path = gap.get("learning_path") or ""
+            estimated_months = gap.get("estimated_months") or 3
+            
+            candidates = await _vector_search_courses(
+                skill_name=gap_skill,
+                target_level=required_level,
+                db=db,
+                limit=12,
+            )
+            
+            sim_threshold = config_manager.get_setting("GAP_VECTOR_SIM_THRESHOLD", default=0.35, cast=float)
+            logger.info(f"[STEP 4] {len(candidates)} candidates for '{gap_skill}' | sim_threshold={sim_threshold}")
+            
+            # Attach gap metadata
+            for c in candidates:
+                c["_gap_skill"] = gap_skill
+                c["_gap_severity"] = gap.get("severity") or "MEDIUM"
+                c["_gap_learning_path"] = learning_path
+                c["_gap_estimated_months"] = estimated_months
+                c["_is_critical"] = bool(gap.get("is_critical"))
+            return candidates
+
+        # Run vector searches sequentially to avoid DB session race conditions
+        for g in gaps_to_process:
+            cand_list = await search_gap_courses(g)
+            all_recommendations.extend(cand_list)
+
+        # ── STEP 1.5: YouTube Search (Free Resources) ───────────
+        youtube_videos = []
+        current_lang = state.get("lang", "vi")
         
-        v_results = await youtube_service.search_and_cache(
-            query=f"{skill_name} {level_name}",
-            db=db,
-            limit=3,
-            lang=current_lang,
-            domain=domain
+        async def search_yt(gap):
+            skill_name = gap.get("skill") or "?"
+            level_name = gap.get("required_level") or "Mid-level"
+            category = gap.get("category", "").lower()
+            
+            # Infer domain from skill category
+            domain = "programming"  # default
+            if "devops" in category or "tools" in category:
+                domain = "devops"
+            elif "data" in category or "analytics" in category:
+                domain = "data-science"
+            elif "web" in category or "frontend" in category or "backend" in category:
+                domain = "web-development"
+            elif "mobile" in category or "android" in category or "ios" in category:
+                domain = "mobile"
+            elif "domain" in category:
+                domain = "domain-knowledge"
+            elif "soft" in category:
+                domain = "soft-skills"
+            elif "cert" in category:
+                domain = "certifications"
+            else:
+                domain = "programming" # Default to programming if none match
+            
+            v_results = await youtube_service.search_and_cache(
+                query=f"{skill_name} {level_name}",
+                db=db,
+                limit=3,
+                lang=current_lang,
+                domain=domain
+            )
+            for v in v_results:
+                v["gap_skill"] = skill_name
+            return v_results
+
+        # Run YouTube searches sequentially to avoid DB session race conditions for top 3 gaps
+        for g in gaps_to_process[:3]:
+            v_list = await search_yt(g)
+            youtube_videos.extend(v_list)
+
+        if not all_recommendations:
+            logger.warning("[STEP 4] No courses found for any gap. Providing YouTube only.")
+            return {
+                **state, 
+                "course_recommendations": [], 
+                "youtube_videos": youtube_videos,
+                "career_roadmap": {}, 
+                "status": "courses_done"
+            }
+
+        # ── STEP 2 (FINAL LLM CALL): Unified course selection + roadmap ─────────
+        unified_result = await _llm_select_courses_and_roadmap_unified(
+            all_candidates=all_recommendations,
+            youtube_candidates=youtube_videos,
+            gaps=gaps_to_process,
+            jd_context=jd_context,
+            user_id=state.get("user_id")
         )
-        for v in v_results:
-            v["gap_skill"] = skill_name
-        return v_results
 
-    # Run YouTube searches sequentially to avoid DB session race conditions for top 3 gaps
-    for g in gaps_to_process[:3]:
-        v_list = await search_yt(g)
-        youtube_videos.extend(v_list)
+        selected_courses = unified_result.get("selected_courses", [])
+        career_roadmap = unified_result.get("career_roadmap", {})
 
-    if not all_recommendations:
-        logger.warning("[STEP 4] No courses found for any gap. Providing YouTube only.")
+        # ── Attach gap metadata to selected courses ──────────────────────────────
+        # Map both standard courses (by course_id) and youtube videos (by video_id)
+        course_id_map = {c.get("course_id"): c for c in all_recommendations}
+        youtube_id_map = {v.get("video_id"): v for v in youtube_videos}
+        
+        final_courses = []
+        selected_youtube = []
+
+        for item in selected_courses:
+            cid = item.get("course_id")
+            vid = item.get("video_id")
+            reason = item.get("selection_reason") or ""
+            
+            if cid:
+                c = course_id_map.get(cid)
+                if c:
+                    c_copy = c.copy()
+                    c_copy["gap_skill"] = c_copy.pop("_gap_skill", item.get("gap_skills", [""])[0] if item.get("gap_skills") else "")
+                    c_copy["gap_severity"] = c_copy.pop("_gap_severity", "MEDIUM")
+                    c_copy["gap_learning_path"] = c_copy.pop("_gap_learning_path", "")
+                    c_copy["gap_estimated_months"] = c_copy.pop("_gap_estimated_months", 0)
+                    c_copy["is_critical"] = c_copy.pop("_is_critical", False)
+                    c_copy["selection_reason"] = reason
+                    c_copy["is_youtube"] = False
+                    final_courses.append(c_copy)
+            
+            if vid:
+                v = youtube_id_map.get(vid)
+                if v:
+                    v_copy = v.copy()
+                    # Standardize YouTube video to look like a course if needed, or keep as video
+                    v_copy["selection_reason"] = reason
+                    v_copy["gap_skill"] = v.get("gap_skill", item.get("gap_skills", [""])[0] if item.get("gap_skills") else "")
+                    selected_youtube.append(v_copy)
+
+        # ── STEP 3: Deduplicate + rank ───────────────────────────────────────────
+        course_recommendations = _deduplicate_and_rank(final_courses, gaps=gaps_to_process)
+
+        logger.info(
+            f"[STEP 4] DONE (OPTIMIZED) | courses={len(course_recommendations)} "
+            f"| youtube={len(selected_youtube)} | roadmap stages={len(career_roadmap.get('stages', []))}"
+        )
+
         return {
-            **state, 
-            "course_recommendations": [], 
-            "youtube_videos": youtube_videos,
-            "career_roadmap": {}, 
-            "status": "courses_done"
+            **state,
+            "course_recommendations": course_recommendations,
+            "selected_youtube_videos": selected_youtube,
+            "youtube_videos": youtube_videos, # Keep raw results just in case
+            "career_roadmap": career_roadmap,
+            "status": "courses_done",
         }
-
-    # ── STEP 2 (FINAL LLM CALL): Unified course selection + roadmap ─────────
-    unified_result = await _llm_select_courses_and_roadmap_unified(
-        all_candidates=all_recommendations,
-        youtube_candidates=youtube_videos,
-        gaps=gaps_to_process,
-        jd_context=jd_context,
-        user_id=state.get("user_id")
-    )
-
-    selected_courses = unified_result.get("selected_courses", [])
-    career_roadmap = unified_result.get("career_roadmap", {})
-
-    # ── Attach gap metadata to selected courses ──────────────────────────────
-    # Map both standard courses (by course_id) and youtube videos (by video_id)
-    course_id_map = {c.get("course_id"): c for c in all_recommendations}
-    youtube_id_map = {v.get("video_id"): v for v in youtube_videos}
-    
-    final_courses = []
-    selected_youtube = []
-
-    for item in selected_courses:
-        cid = item.get("course_id")
-        vid = item.get("video_id")
-        reason = item.get("selection_reason") or ""
-        
-        if cid:
-            c = course_id_map.get(cid)
-            if c:
-                c_copy = c.copy()
-                c_copy["gap_skill"] = c_copy.pop("_gap_skill", item.get("gap_skills", [""])[0] if item.get("gap_skills") else "")
-                c_copy["gap_severity"] = c_copy.pop("_gap_severity", "MEDIUM")
-                c_copy["gap_learning_path"] = c_copy.pop("_gap_learning_path", "")
-                c_copy["gap_estimated_months"] = c_copy.pop("_gap_estimated_months", 0)
-                c_copy["is_critical"] = c_copy.pop("_is_critical", False)
-                c_copy["selection_reason"] = reason
-                c_copy["is_youtube"] = False
-                final_courses.append(c_copy)
-        
-        if vid:
-            v = youtube_id_map.get(vid)
-            if v:
-                v_copy = v.copy()
-                # Standardize YouTube video to look like a course if needed, or keep as video
-                v_copy["selection_reason"] = reason
-                v_copy["gap_skill"] = v.get("gap_skill", item.get("gap_skills", [""])[0] if item.get("gap_skills") else "")
-                selected_youtube.append(v_copy)
-
-    # ── STEP 3: Deduplicate + rank ───────────────────────────────────────────
-    course_recommendations = _deduplicate_and_rank(final_courses, gaps=gaps_to_process)
-
-    logger.info(
-        f"[STEP 4] DONE (OPTIMIZED) | courses={len(course_recommendations)} "
-        f"| youtube={len(selected_youtube)} | roadmap stages={len(career_roadmap.get('stages', []))}"
-    )
-
-    return {
-        **state,
-        "course_recommendations": course_recommendations,
-        "selected_youtube_videos": selected_youtube,
-        "youtube_videos": youtube_videos, # Keep raw results just in case
-        "career_roadmap": career_roadmap,
-        "status": "courses_done",
-    }
+    except Exception as e:
+        logger.error(f"[STEP 4] ✗ EXCEPTION: {e}", exc_info=True)
+        if state.get("db"):
+            try:
+                state["db"].rollback()
+            except Exception:
+                pass
+        return {**state, "error": f"Course recommendation failed: {str(e)}", "status": "failed"}
 
 
 # ══════════════════════════════════════════════════════════════════════════════
