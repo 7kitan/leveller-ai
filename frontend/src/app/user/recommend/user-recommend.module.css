@@ -610,7 +610,7 @@
 .matchScore {
   font-size: var(--font-size-display);
   font-weight: 900;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   line-height: 1;
   /* gradient removed - use solid color instead */ background: var(--color-primary);
   -webkit-background-clip: text;
