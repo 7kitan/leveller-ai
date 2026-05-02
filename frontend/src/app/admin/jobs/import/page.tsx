@@ -165,6 +165,23 @@ const JobImportPage = () => {
   };
 
   const handleExport = async () => {
+    setIsLoadingExportInfo(true);
+    setShowExportModal(true);
+    try {
+      const resp = await api.get("jd/admin/export-info", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setExportInfo(resp.data);
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || t('jobs_import_export_error');
+      showNotification(msg, "error");
+      setShowExportModal(false);
+    } finally {
+      setIsLoadingExportInfo(false);
+    }
+  };
+
+  const handleExportAll = async () => {
     setIsExporting(true);
     try {
       const resp = await api.get("jd/admin/export", {
@@ -183,6 +200,47 @@ const JobImportPage = () => {
       window.URL.revokeObjectURL(url);
 
       showNotification(t('jobs_import_exported').replace('{count}', resp.data.count));
+      setShowExportModal(false);
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || t('jobs_import_export_error');
+      showNotification(msg, "error");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportParts = async () => {
+    if (!exportInfo) return;
+    
+    setIsExporting(true);
+    try {
+      const { recommended_parts, recommended_per_part } = exportInfo;
+      
+      for (let i = 0; i < recommended_parts; i++) {
+        const offset = i * recommended_per_part;
+        const part = i + 1;
+        
+        const resp = await api.get(`jd/admin/export?limit=${recommended_per_part}&offset=${offset}&part=${part}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const dataStr = JSON.stringify(resp.data, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `jobs_export_part${part}_of_${recommended_parts}_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        // Small delay between downloads
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      showNotification(t('jobs_import_exported_parts').replace('{parts}', recommended_parts.toString()));
+      setShowExportModal(false);
     } catch (err: any) {
       const msg = err.response?.data?.detail || t('jobs_import_export_error');
       showNotification(msg, "error");
