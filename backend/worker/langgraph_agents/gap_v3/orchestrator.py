@@ -169,6 +169,11 @@ async def run_gap_analysis_v3(
                 else:
                     _logger.warning(f"[ORCHESTRATOR] job_id={job_id} has no raw_text either")
         except Exception as e:
+            if db:
+                try:
+                    db.rollback()
+                except Exception:
+                    pass
             _logger.warning(f"[ORCHESTRATOR] Failed to pre-populate from job_id: {e}")
             import traceback
             _logger.warning(traceback.format_exc())
@@ -184,6 +189,11 @@ async def run_gap_analysis_v3(
                 cv_timestamp = int(cv_record.updated_at.timestamp()) if cv_record.updated_at else int(cv_record.created_at.timestamp())
                 _logger.info(f"[ORCHESTRATOR] CV timestamp loaded: {cv_timestamp}")
         except Exception as e:
+            if db:
+                try:
+                    db.rollback()
+                except Exception:
+                    pass
             _logger.warning(f"[ORCHESTRATOR] Failed to load CV timestamp: {e}")
 
     final_jd_timestamp = locals().get("jd_timestamp") or 0

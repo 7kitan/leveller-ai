@@ -479,6 +479,11 @@ async def _vector_search_courses(
             },
         ).fetchall()
     except Exception as e:
+        if db:
+            try:
+                db.rollback()
+            except Exception:
+                pass
         logger.warning(f"[STEP 4/Search] pgvector query failed: {e}")
         results = []
 
@@ -595,6 +600,11 @@ def _search_courses_ilike(
             },
         ).fetchall()
     except Exception as e:
+        if db:
+            try:
+                db.rollback()
+            except Exception:
+                pass
         logger.warning(f"[STEP 4/Search] ILIKE fallback failed: {e}")
         return []
 
