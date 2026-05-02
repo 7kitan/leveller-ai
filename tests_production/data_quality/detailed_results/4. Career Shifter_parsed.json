@@ -2,54 +2,63 @@
     "status": "success",
     "error_message": null,
     "full_name": "NGUYEN TUAN KIET",
-    "summary": "Electrical Engineer with 8 years of experience in Power Systems, now transitioning into AI Career Advisor/Product Manager roles",
+    "summary": "Electrical Engineer with 8 years of experience in Power Systems, now transitioning into AI Career Advisor/Product Manager roles.",
     "seniority": "Senior",
     "experience_years_total": 8.0,
     "skills": [
         {
             "name": "Python",
             "category": "Programming Language",
-            "experience_years": 3.3
+            "experience_years": 4.0,
+            "level": "Junior"
         },
         {
             "name": "Matlab",
             "category": "Programming Language",
-            "experience_years": 3.3
+            "experience_years": 4.0,
+            "level": "Junior"
         },
         {
             "name": "C#",
             "category": "Programming Language",
-            "experience_years": 3.3
+            "experience_years": 4.0,
+            "level": "Junior"
         },
         {
             "name": "Git",
             "category": "Tool",
-            "experience_years": 3.3
+            "experience_years": 2.0,
+            "level": "Junior"
         },
         {
             "name": "Docker",
             "category": "Tool",
-            "experience_years": 3.3
+            "experience_years": 2.0,
+            "level": "Junior"
         },
         {
             "name": "Pytorch",
             "category": "Tool",
-            "experience_years": 3.3
+            "experience_years": 2.0,
+            "level": "Junior"
         },
         {
             "name": "Pandas",
             "category": "Tool",
-            "experience_years": 3.3
+            "experience_years": 2.0,
+            "level": "Junior"
         },
         {
             "name": "Scikit-Learn",
             "category": "Tool",
-            "experience_years": 3.3
+            "experience_years": 2.0,
+            "level": "Junior"
         },
         {
             "name": "Tensorflow",
             "category": "Tool",
-            "experience_years": 3.3
+            "experience_years": 2.0,
+            "level": "Junior"
         }
     ],
     "work_history": [
@@ -62,7 +71,7 @@
         {
             "position": "Electrical Maintenance Engineer",
             "company": "EVN",
-            "duration_years": 3.0,
+            "duration_years": 3.8,
             "description": "Responsible for maintenance and troubleshooting of electrical systems."
         }
     ],
