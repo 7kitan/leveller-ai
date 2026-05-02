@@ -229,18 +229,16 @@ async def start_gap_analysis(
                 
                 # UPDATE: Ensure user's last_analysis_id points to this cached record
                 user.last_analysis_id = cached_analysis.id
-                db.flush() # Push change to DB so market_fit_service sees it
+                db.commit() # COMMIT IMMEDIATELY to ensure it's in DB
                 
                 # Also trigger market fit update to ensure dashboard is fresh
                 try:
                     from services.analysis_service.market_fit_service import update_user_market_fit
                     # Since this is an async route, we can await it directly
                     await update_user_market_fit(user.id, db, cv_id=req.cv_id)
-                    logger.info(f"[CACHE HIT] Updated last_analysis_id ({cached_analysis.id}) and refreshed Market Fit for CV {req.cv_id}")
+                    logger.info(f"[CACHE HIT] Persisted last_analysis_id ({cached_analysis.id}) and refreshed Market Fit")
                 except Exception as mf_err:
                     logger.warning(f"[CACHE HIT] Failed to refresh Market Fit: {mf_err}")
-                
-                db.commit()
                 
                 return {
                     "task_id": None,
@@ -473,12 +471,24 @@ async def get_latest_analysis(request: Request, db: Session = Depends(get_db)):
     if not user_id:
         raise HTTPException(status_code=401, detail="User not authenticated")
 
-    analysis = (
-        db.query(UserAnalysis)
-        .filter(UserAnalysis.user_id == uuid.UUID(user_id))
-        .order_by(UserAnalysis.created_at.desc())
-        .first()
-    )
+    user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    analysis = None
+    if user.last_analysis_id:
+        analysis = db.query(UserAnalysis).filter(
+            UserAnalysis.id == user.last_analysis_id,
+            UserAnalysis.user_id == user.id
+        ).first()
+
+    if not analysis:
+        analysis = (
+            db.query(UserAnalysis)
+            .filter(UserAnalysis.user_id == uuid.UUID(user_id))
+            .order_by(UserAnalysis.created_at.desc())
+            .first()
+        )
 
     if not analysis:
         return None
