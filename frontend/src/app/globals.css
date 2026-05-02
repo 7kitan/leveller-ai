@@ -466,7 +466,7 @@
     .font-micro {
         font-size: var(--font-size-caption);
         letter-spacing: 0.05em;
-        text-transform: uppercase;
+
         font-weight: 700;
     }
 
