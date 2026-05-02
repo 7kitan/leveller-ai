@@ -241,23 +241,41 @@ def run_cv_parsing(self, cv_id: str, user_id: str = None):
             raise e
 
     finally:
-        # ── Cleanup: Delete ALL physical files (success or failure) ──────────
-        env_dir = os.getenv("CV_UPLOAD_DIR", "data/cv_uploads")
-        UPLOAD_DIR = env_dir if os.path.isabs(env_dir) else os.path.join("/app", env_dir)
-        if files_to_cleanup:
-            for file_path in files_to_cleanup:
-                if os.path.exists(file_path):
-                    try:
-                        # SECURITY: Prevent Path Traversal
-                        abs_f_path = os.path.abspath(file_path)
-                        abs_upload_dir = os.path.abspath(UPLOAD_DIR)
-                        if abs_f_path.startswith(abs_upload_dir + os.sep) or abs_f_path == abs_upload_dir:
-                            os.remove(abs_f_path)
-                            logger.info(f"[TASK CLEANUP] ✓ Deleted CV file: {abs_f_path}")
-                        else:
-                            logger.warning(f"[SECURITY] Attempted to delete file outside upload directory: {abs_f_path}")
-                    except Exception as e:
-                        logger.warning(f"[TASK CLEANUP] ⚠ Failed to delete CV file {file_path}: {e}")
+        # ── Cleanup: Delete ALL physical files ONLY IF not retrying ──────────
+        # Logic: If we are scheduling a retry, we MUST keep the file for the next attempt.
+        # We only delete if:
+        # 1. Task succeeded (status == 'completed' in DB - we'd need to fetch but easier to check if error occurred)
+        # 2. Task failed permanently (no more retries)
+        
+        should_cleanup = True
+        try:
+            # If we just raised a Retry exception, we are NOT finished
+            from celery.exceptions import Retry
+            import sys
+            exc_type, exc_val, exc_tb = sys.exc_info()
+            if exc_type and issubclass(exc_type, Retry):
+                should_cleanup = False
+                logger.info(f"[TASK CLEANUP] ℹ Keeping files for retry | cv_id={cv_id}")
+        except:
+            pass
+
+        if should_cleanup:
+            env_dir = os.getenv("CV_UPLOAD_DIR", "data/cv_uploads")
+            UPLOAD_DIR = env_dir if os.path.isabs(env_dir) else os.path.join("/app", env_dir)
+            if files_to_cleanup:
+                for file_path in files_to_cleanup:
+                    if os.path.exists(file_path):
+                        try:
+                            # SECURITY: Prevent Path Traversal
+                            abs_f_path = os.path.abspath(file_path)
+                            abs_upload_dir = os.path.abspath(UPLOAD_DIR)
+                            if abs_f_path.startswith(abs_upload_dir + os.sep) or abs_f_path == abs_upload_dir:
+                                os.remove(abs_f_path)
+                                logger.info(f"[TASK CLEANUP] ✓ Deleted CV file: {abs_f_path}")
+                            else:
+                                logger.warning(f"[SECURITY] Attempted to delete file outside upload directory: {abs_f_path}")
+                        except Exception as cleanup_err:
+                            logger.warning(f"[TASK CLEANUP] ⚠ Failed to delete CV file {file_path}: {cleanup_err}")
         
         db.close()
         logger.info(f"[TASK CLEANUP] db closed | cv_id={cv_id}")
