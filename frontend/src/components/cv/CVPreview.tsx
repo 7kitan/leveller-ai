@@ -60,7 +60,7 @@ export function CVPreview({ file, onConfirm, onCancel, isProcessing = false, pro
 
       <div className={styles.previewContainer}>
         {renderPreview()}
-        <ScanningOverlay isScanning={isProcessing} progress={progress} />
+        <ScanningOverlay status={isProcessing ? "processing" : "idle"} />
       </div>
 
       {!isProcessing && (
