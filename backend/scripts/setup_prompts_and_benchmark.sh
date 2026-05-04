@@ -29,11 +29,26 @@ NC='\033[0m' # No Color
 # Determine environment (default: dev)
 ENVIRONMENT="${1:-dev}"
 
-# Load .env file safely
+# Load .env file safely (handle special characters and quotes)
 if [ -f "$(dirname "$0")/../.env" ]; then
-    set -a  # Auto-export all variables
-    source "$(dirname "$0")/../.env"
-    set +a  # Disable auto-export
+    while IFS='=' read -r key value; do
+        # Skip comments and empty lines
+        [[ "$key" =~ ^#.*$ ]] && continue
+        [[ -z "$key" ]] && continue
+        
+        # Remove leading/trailing whitespace
+        key=$(echo "$key" | xargs)
+        value=$(echo "$value" | xargs)
+        
+        # Remove quotes if present
+        value="${value%\"}"
+        value="${value#\"}"
+        value="${value%\'}"
+        value="${value#\'}"
+        
+        # Export variable
+        export "$key=$value"
+    done < "$(dirname "$0")/../.env"
     echo -e "${GREEN}[SUCCESS]${NC} .env file loaded"
 else
     echo -e "${YELLOW}[WARNING]${NC} .env file not found, using defaults"
