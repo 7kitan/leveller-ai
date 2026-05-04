@@ -75,8 +75,10 @@ echo -e "${YELLOW}[5/6] Starting all workers...${NC}"
 docker compose -f docker-compose.prod.yml up -d \
     worker-cv-parser \
     worker-analysis \
-    worker-market-stats \
+    worker-crawler \
+    worker-default \
     worker-email \
+    worker-benchmark \
     celery-beat
 
 echo "Waiting for workers to connect..."
