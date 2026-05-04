@@ -87,12 +87,96 @@ fi
 echo "Setting up prompts..."
 run_migration "$MIGRATIONS_DIR/001_setup_prompts.sql"
 
+# Check if core tables exist
+echo "Checking core tables..."
+if [ "$ENVIRONMENT" = "prod" ]; then
+    CORE_EXISTS=$(PGPASSWORD=$POSTGRES_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users');")
+else
+    CORE_EXISTS=$(docker exec advisor_db psql -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users');")
+fi
+
+if [ "$CORE_EXISTS" = "t" ]; then
+    echo "✓ Core tables exist"
+    echo "Skipping core table creation..."
+    echo ""
+else
+    echo "✗ Core tables do not exist"
+    echo "Creating core tables..."
+    echo ""
+    
+    # Run core table creation
+    run_migration "$MIGRATIONS_DIR/003_create_core_tables.sql"
+fi
+
+# Check if relationship tables exist
+echo "Checking relationship tables..."
+if [ "$ENVIRONMENT" = "prod" ]; then
+    REL_EXISTS=$(PGPASSWORD=$POSTGRES_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'job_skill_requirement');")
+else
+    REL_EXISTS=$(docker exec advisor_db psql -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'job_skill_requirement');")
+fi
+
+if [ "$REL_EXISTS" = "t" ]; then
+    echo "✓ Relationship tables exist"
+    echo "Skipping relationship table creation..."
+    echo ""
+else
+    echo "✗ Relationship tables do not exist"
+    echo "Creating relationship tables..."
+    echo ""
+    
+    # Run relationship table creation
+    run_migration "$MIGRATIONS_DIR/004_create_relationship_tables.sql"
+fi
+
+# Check if feedback/logging tables exist
+echo "Checking feedback and logging tables..."
+if [ "$ENVIRONMENT" = "prod" ]; then
+    LOG_EXISTS=$(PGPASSWORD=$POSTGRES_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'llm_logs');")
+else
+    LOG_EXISTS=$(docker exec advisor_db psql -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'llm_logs');")
+fi
+
+if [ "$LOG_EXISTS" = "t" ]; then
+    echo "✓ Feedback and logging tables exist"
+    echo "Skipping feedback/logging table creation..."
+    echo ""
+else
+    echo "✗ Feedback and logging tables do not exist"
+    echo "Creating feedback and logging tables..."
+    echo ""
+    
+    # Run feedback/logging table creation
+    run_migration "$MIGRATIONS_DIR/005_create_feedback_logging_tables.sql"
+fi
+
+# Check if course/market tables exist
+echo "Checking course and market tables..."
+if [ "$ENVIRONMENT" = "prod" ]; then
+    COURSE_EXISTS=$(PGPASSWORD=$POSTGRES_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'courses');")
+else
+    COURSE_EXISTS=$(docker exec advisor_db psql -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'courses');")
+fi
+
+if [ "$COURSE_EXISTS" = "t" ]; then
+    echo "✓ Course and market tables exist"
+    echo "Skipping course/market table creation..."
+    echo ""
+else
+    echo "✗ Course and market tables do not exist"
+    echo "Creating course and market tables..."
+    echo ""
+    
+    # Run course/market table creation
+    run_migration "$MIGRATIONS_DIR/006_create_course_market_tables.sql"
+fi
+
 # Check if benchmark tables exist
 echo "Checking benchmark tables..."
 if [ "$ENVIRONMENT" = "prod" ]; then
-    BENCHMARK_EXISTS=$(PGPASSWORD=$POSTGRES_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'lm_test_sets');")
+    BENCHMARK_EXISTS=$(PGPASSWORD=$POSTGRES_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'llm_test_sets');")
 else
-    BENCHMARK_EXISTS=$(docker exec advisor_db psql -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'lm_test_sets');")
+    BENCHMARK_EXISTS=$(docker exec advisor_db psql -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'llm_test_sets');")
 fi
 
 if [ "$BENCHMARK_EXISTS" = "t" ]; then
@@ -125,17 +209,21 @@ else
 fi
 
 echo ""
-echo "2. Benchmark Tables:"
+echo "2. All Tables:"
 if [ "$ENVIRONMENT" = "prod" ]; then
-    PGPASSWORD=$POSTGRES_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'lm_%' ORDER BY table_name;"
+    PGPASSWORD=$POSTGRES_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "SELECT table_name, (SELECT COUNT(*) FROM information_schema.columns WHERE table_name = t.table_name) as columns FROM information_schema.tables t WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name;"
 else
-    docker exec advisor_db psql -U "$DB_USER" -d "$DB_NAME" -c "SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'lm_%' ORDER BY table_name;"
+    docker exec advisor_db psql -U "$DB_USER" -d "$DB_NAME" -c "SELECT table_name, (SELECT COUNT(*) FROM information_schema.columns WHERE table_name = t.table_name) as columns FROM information_schema.tables t WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name;"
 fi
 
 echo ""
 echo "=========================================="
+echo "Setup Complete!"
+echo "=========================================="
+echo ""
 echo "Next Steps:"
-echo "1. Restart services: docker-compose restart admin_service worker"
-echo "2. Reload cache: curl -X POST http://localhost:8000/admin/prompts/reload"
-echo "3. Test prompts via Admin UI: http://localhost:3000/admin/prompts"
+echo "1. Seed skills: python scripts/seed_data.py"
+echo "2. Restart services: docker-compose restart"
+echo "3. Reload cache: curl -X POST http://localhost:8000/admin/prompts/reload"
+echo "4. Test Admin UI: http://localhost:3000/admin/prompts"
 echo "=========================================="
