@@ -8,19 +8,50 @@
 # 4. Sample benchmark test sets
 #
 # Usage:
-#   .\setup_prompts_and_benchmark.ps1
+#   .\setup_prompts_and_benchmark.ps1 [dev|prod]
 #
 # Requirements:
 #   - Docker Desktop running
-#   - PostgreSQL database 'career_advisor' exists
+#   - PostgreSQL database exists
+#   - .env file configured
 # =============================================================================
+
+param(
+    [string]$Environment = "dev"
+)
 
 $ErrorActionPreference = "Stop"
 
-# Configuration
-$DB_CONTAINER = "advisor_db"
-$DB_NAME = "career_advisor"
-$DB_USER = "postgres"
+# Load .env file
+$envFile = Join-Path (Split-Path $PSScriptRoot -Parent) ".env"
+if (Test-Path $envFile) {
+    Get-Content $envFile | ForEach-Object {
+        if ($_ -match '^([^#][^=]+)=(.*)$') {
+            $key = $matches[1].Trim()
+            $value = $matches[2].Trim()
+            [Environment]::SetEnvironmentVariable($key, $value, "Process")
+        }
+    }
+    Write-Host "[SUCCESS] .env file loaded" -ForegroundColor Green
+}
+else {
+    Write-Host "[WARNING] .env file not found, using defaults" -ForegroundColor Yellow
+}
+
+# Configuration based on environment
+if ($Environment -eq "prod") {
+    $DB_CONTAINER = "advisor_db_prod"
+    $DB_NAME = if ($env:POSTGRES_DB) { $env:POSTGRES_DB } else { "career_advisor" }
+    $DB_USER = if ($env:POSTGRES_USER) { $env:POSTGRES_USER } else { "postgres" }
+    $DB_PASSWORD = $env:POSTGRES_PASSWORD
+}
+else {
+    $DB_CONTAINER = "advisor_db"
+    $DB_NAME = if ($env:POSTGRES_DB) { $env:POSTGRES_DB } else { "career_advisor" }
+    $DB_USER = if ($env:POSTGRES_USER) { $env:POSTGRES_USER } else { "postgres" }
+    $DB_PASSWORD = if ($env:POSTGRES_PASSWORD) { $env:POSTGRES_PASSWORD } else { "postgres" }
+}
+
 $MIGRATIONS_DIR = Join-Path $PSScriptRoot "migrations"
 
 # =============================================================================
@@ -51,7 +82,12 @@ function Test-DockerContainer {
     $running = docker ps --format "{{.Names}}" | Select-String -Pattern $DB_CONTAINER -Quiet
     if (-not $running) {
         Write-Error "Database container '$DB_CONTAINER' is not running"
-        Write-Info "Start it with: docker-compose up -d advisor_db"
+        if ($Environment -eq "prod") {
+            Write-Info "Start it with: docker-compose -f docker-compose.prod.yml up -d db"
+        }
+        else {
+            Write-Info "Start it with: docker-compose up -d advisor_db"
+        }
         exit 1
     }
     Write-Success "Database container is running"
@@ -80,7 +116,13 @@ function Invoke-SqlFile {
     }
     
     try {
-        Get-Content $FilePath -Raw | docker exec -i $DB_CONTAINER psql -U $DB_USER -d $DB_NAME 2>&1 | Out-Null
+        if ($DB_PASSWORD) {
+            $env:PGPASSWORD = $DB_PASSWORD
+            Get-Content $FilePath -Raw | docker exec -i $DB_CONTAINER bash -c "PGPASSWORD='$DB_PASSWORD' psql -U $DB_USER -d $DB_NAME" 2>&1 | Out-Null
+        }
+        else {
+            Get-Content $FilePath -Raw | docker exec -i $DB_CONTAINER psql -U $DB_USER -d $DB_NAME 2>&1 | Out-Null
+        }
         Write-Success "$Description completed"
         return $true
     }
@@ -94,19 +136,34 @@ function Test-TableExists {
     param([string]$TableName)
     
     $query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name='$TableName');"
-    $result = docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -tAc $query 2>$null
+    if ($DB_PASSWORD) {
+        $result = docker exec $DB_CONTAINER bash -c "PGPASSWORD='$DB_PASSWORD' psql -U $DB_USER -d $DB_NAME -tAc `"$query`"" 2>$null
+    }
+    else {
+        $result = docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -tAc $query 2>$null
+    }
     return $result -eq "t"
 }
 
 function Get-PromptCount {
     $query = "SELECT COUNT(*) FROM prompt_templates WHERE is_active = true;"
-    $result = docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -tAc $query 2>$null
+    if ($DB_PASSWORD) {
+        $result = docker exec $DB_CONTAINER bash -c "PGPASSWORD='$DB_PASSWORD' psql -U $DB_USER -d $DB_NAME -tAc `"$query`"" 2>$null
+    }
+    else {
+        $result = docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -tAc $query 2>$null
+    }
     if ($result) { return [int]$result } else { return 0 }
 }
 
 function Get-TestSetCount {
     $query = "SELECT COUNT(*) FROM llm_test_sets;"
-    $result = docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -tAc $query 2>$null
+    if ($DB_PASSWORD) {
+        $result = docker exec $DB_CONTAINER bash -c "PGPASSWORD='$DB_PASSWORD' psql -U $DB_USER -d $DB_NAME -tAc `"$query`"" 2>$null
+    }
+    else {
+        $result = docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -tAc $query 2>$null
+    }
     if ($result) { return [int]$result } else { return 0 }
 }
 
@@ -118,11 +175,15 @@ function Main {
     Write-Host ""
     Write-Host "=========================================================================" -ForegroundColor Cyan
     Write-Host "  Setup Prompt Templates and Benchmark System" -ForegroundColor Cyan
+    Write-Host "  Environment: $Environment" -ForegroundColor Cyan
     Write-Host "=========================================================================" -ForegroundColor Cyan
     Write-Host ""
     
     # Step 1: Pre-flight checks
     Write-Info "Step 1/5: Pre-flight checks"
+    Write-Info "Container: $DB_CONTAINER"
+    Write-Info "Database: $DB_NAME"
+    Write-Info "User: $DB_USER"
     Test-DockerContainer
     Test-Database
     Write-Host ""
@@ -199,7 +260,12 @@ function Main {
     
     if (Test-TableExists "llm_test_cases") {
         $query = "SELECT COUNT(*) FROM llm_test_cases;"
-        $testCaseCount = docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -tAc $query 2>$null
+        if ($DB_PASSWORD) {
+            $testCaseCount = docker exec $DB_CONTAINER bash -c "PGPASSWORD='$DB_PASSWORD' psql -U $DB_USER -d $DB_NAME -tAc `"$query`"" 2>$null
+        }
+        else {
+            $testCaseCount = docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -tAc $query 2>$null
+        }
         Write-Host "✓ llm_test_cases: $testCaseCount test cases" -ForegroundColor Green
     }
     
@@ -217,9 +283,16 @@ function Main {
     Write-Host "=========================================================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Next steps:"
-    Write-Host "  1. Restart workers: docker-compose restart advisor_worker_analysis advisor_worker_parsing"
-    Write-Host "  2. Access admin UI: http://localhost:3000/admin/prompts"
-    Write-Host "  3. Access benchmark UI: http://localhost:3000/admin/benchmarks"
+    if ($Environment -eq "prod") {
+        Write-Host "  1. Enable benchmark: docker exec $DB_CONTAINER bash -c `"PGPASSWORD='$DB_PASSWORD' psql -U $DB_USER -d $DB_NAME -c \`"INSERT INTO system_settings (key, value) VALUES ('ENABLE_BENCHMARK', 'true') ON CONFLICT (key) DO UPDATE SET value = 'true';\`"`""
+        Write-Host "  2. Restart workers: docker-compose -f docker-compose.prod.yml restart worker-benchmark"
+        Write-Host "  3. Access admin UI: https://yourdomain.com/admin/prompts"
+    }
+    else {
+        Write-Host "  1. Enable benchmark: docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -c `"INSERT INTO system_settings (key, value) VALUES ('ENABLE_BENCHMARK', 'true') ON CONFLICT (key) DO UPDATE SET value = 'true';`""
+        Write-Host "  2. Restart workers: docker-compose restart advisor_worker_benchmark"
+        Write-Host "  3. Access admin UI: http://localhost:3000/admin/prompts"
+    }
     Write-Host ""
 }
 

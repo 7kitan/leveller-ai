@@ -9,11 +9,12 @@
 # 4. Sample benchmark test sets
 #
 # Usage:
-#   ./setup_prompts_and_benchmark.sh
+#   ./setup_prompts_and_benchmark.sh [dev|prod]
 #
 # Requirements:
-#   - Docker containers running (advisor_db)
-#   - PostgreSQL database 'career_advisor' exists
+#   - Docker containers running
+#   - PostgreSQL database exists
+#   - .env file configured
 # =============================================================================
 
 set -e  # Exit on error
@@ -25,10 +26,30 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Configuration
-DB_CONTAINER="advisor_db"
-DB_NAME="career_advisor"
-DB_USER="postgres"
+# Determine environment (default: dev)
+ENVIRONMENT="${1:-dev}"
+
+# Load .env file
+if [ -f "$(dirname "$0")/../.env" ]; then
+    export $(grep -v '^#' "$(dirname "$0")/../.env" | xargs)
+    log_success ".env file loaded"
+else
+    log_warning ".env file not found, using defaults"
+fi
+
+# Configuration based on environment
+if [ "$ENVIRONMENT" = "prod" ]; then
+    DB_CONTAINER="advisor_db_prod"
+    DB_NAME="${POSTGRES_DB:-career_advisor}"
+    DB_USER="${POSTGRES_USER:-postgres}"
+    DB_PASSWORD="${POSTGRES_PASSWORD}"
+else
+    DB_CONTAINER="advisor_db"
+    DB_NAME="${POSTGRES_DB:-career_advisor}"
+    DB_USER="${POSTGRES_USER:-postgres}"
+    DB_PASSWORD="${POSTGRES_PASSWORD:-postgres}"
+fi
+
 MIGRATIONS_DIR="$(dirname "$0")/migrations"
 
 # =============================================================================
@@ -54,7 +75,11 @@ log_error() {
 check_docker() {
     if ! docker ps | grep -q "$DB_CONTAINER"; then
         log_error "Database container '$DB_CONTAINER' is not running"
-        log_info "Start it with: docker-compose up -d advisor_db"
+        if [ "$ENVIRONMENT" = "prod" ]; then
+            log_info "Start it with: docker-compose -f docker-compose.prod.yml up -d db"
+        else
+            log_info "Start it with: docker-compose up -d advisor_db"
+        fi
         exit 1
     fi
     log_success "Database container is running"
@@ -79,29 +104,52 @@ run_sql_file() {
         exit 1
     fi
     
-    if docker exec -i "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" < "$file" > /dev/null 2>&1; then
-        log_success "$description completed"
-        return 0
+    # Use PGPASSWORD environment variable for authentication
+    if [ -n "$DB_PASSWORD" ]; then
+        if docker exec -i "$DB_CONTAINER" bash -c "PGPASSWORD='$DB_PASSWORD' psql -U $DB_USER -d $DB_NAME" < "$file" > /dev/null 2>&1; then
+            log_success "$description completed"
+            return 0
+        else
+            log_error "$description failed"
+            return 1
+        fi
     else
-        log_error "$description failed"
-        return 1
+        if docker exec -i "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" < "$file" > /dev/null 2>&1; then
+            log_success "$description completed"
+            return 0
+        else
+            log_error "$description failed"
+            return 1
+        fi
     fi
 }
 
 check_table_exists() {
     local table_name=$1
-    docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -tAc \
-        "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name='$table_name');" | grep -q 't'
+    if [ -n "$DB_PASSWORD" ]; then
+        docker exec "$DB_CONTAINER" bash -c "PGPASSWORD='$DB_PASSWORD' psql -U $DB_USER -d $DB_NAME -tAc \"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name='$table_name');\"" | grep -q 't'
+    else
+        docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -tAc \
+            "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name='$table_name');" | grep -q 't'
+    fi
 }
 
 count_prompts() {
-    docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -tAc \
-        "SELECT COUNT(*) FROM prompt_templates WHERE is_active = true;" 2>/dev/null || echo "0"
+    if [ -n "$DB_PASSWORD" ]; then
+        docker exec "$DB_CONTAINER" bash -c "PGPASSWORD='$DB_PASSWORD' psql -U $DB_USER -d $DB_NAME -tAc 'SELECT COUNT(*) FROM prompt_templates WHERE is_active = true;'" 2>/dev/null || echo "0"
+    else
+        docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -tAc \
+            "SELECT COUNT(*) FROM prompt_templates WHERE is_active = true;" 2>/dev/null || echo "0"
+    fi
 }
 
 count_test_sets() {
-    docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -tAc \
-        "SELECT COUNT(*) FROM llm_test_sets;" 2>/dev/null || echo "0"
+    if [ -n "$DB_PASSWORD" ]; then
+        docker exec "$DB_CONTAINER" bash -c "PGPASSWORD='$DB_PASSWORD' psql -U $DB_USER -d $DB_NAME -tAc 'SELECT COUNT(*) FROM llm_test_sets;'" 2>/dev/null || echo "0"
+    else
+        docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -tAc \
+            "SELECT COUNT(*) FROM llm_test_sets;" 2>/dev/null || echo "0"
+    fi
 }
 
 # =============================================================================
@@ -112,11 +160,15 @@ main() {
     echo ""
     echo "========================================================================="
     echo "  Setup Prompt Templates and Benchmark System"
+    echo "  Environment: $ENVIRONMENT"
     echo "========================================================================="
     echo ""
     
     # Step 1: Pre-flight checks
     log_info "Step 1/5: Pre-flight checks"
+    log_info "Container: $DB_CONTAINER"
+    log_info "Database: $DB_NAME"
+    log_info "User: $DB_USER"
     check_docker
     check_database
     echo ""
@@ -183,8 +235,12 @@ main() {
     fi
     
     if check_table_exists "llm_test_cases"; then
-        TEST_CASE_COUNT=$(docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -tAc \
-            "SELECT COUNT(*) FROM llm_test_cases;" 2>/dev/null || echo "0")
+        if [ -n "$DB_PASSWORD" ]; then
+            TEST_CASE_COUNT=$(docker exec "$DB_CONTAINER" bash -c "PGPASSWORD='$DB_PASSWORD' psql -U $DB_USER -d $DB_NAME -tAc 'SELECT COUNT(*) FROM llm_test_cases;'" 2>/dev/null || echo "0")
+        else
+            TEST_CASE_COUNT=$(docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -tAc \
+                "SELECT COUNT(*) FROM llm_test_cases;" 2>/dev/null || echo "0")
+        fi
         echo -e "${GREEN}✓${NC} llm_test_cases: $TEST_CASE_COUNT test cases"
     fi
     
@@ -202,9 +258,15 @@ main() {
     echo "========================================================================="
     echo ""
     echo "Next steps:"
-    echo "  1. Restart workers: docker-compose restart advisor_worker_*"
-    echo "  2. Access admin UI: http://localhost:3000/admin/prompts"
-    echo "  3. Access benchmark UI: http://localhost:3000/admin/benchmarks"
+    if [ "$ENVIRONMENT" = "prod" ]; then
+        echo "  1. Enable benchmark: docker exec $DB_CONTAINER bash -c \"PGPASSWORD='$DB_PASSWORD' psql -U $DB_USER -d $DB_NAME -c \\\"INSERT INTO system_settings (key, value) VALUES ('ENABLE_BENCHMARK', 'true') ON CONFLICT (key) DO UPDATE SET value = 'true';\\\"\""
+        echo "  2. Restart workers: docker-compose -f docker-compose.prod.yml restart worker-benchmark"
+        echo "  3. Access admin UI: https://yourdomain.com/admin/prompts"
+    else
+        echo "  1. Enable benchmark: docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -c \"INSERT INTO system_settings (key, value) VALUES ('ENABLE_BENCHMARK', 'true') ON CONFLICT (key) DO UPDATE SET value = 'true';\""
+        echo "  2. Restart workers: docker-compose restart advisor_worker_benchmark"
+        echo "  3. Access admin UI: http://localhost:3000/admin/prompts"
+    fi
     echo ""
 }
 
