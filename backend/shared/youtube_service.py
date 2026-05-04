@@ -108,74 +108,91 @@ class YouTubeSearchService:
             # → Curated video wins despite lower vector similarity!
             
             # Build tsquery for BM25 search
-            # Clean and prepare search terms
-            search_terms = skill_name.strip().replace("'", "").split()
-            tsquery = " & ".join(search_terms)  # AND query for all terms
+            # Clean and prepare search terms - filter out '&' and empty strings to avoid syntax errors
+            search_terms = [t for t in skill_name.strip().replace("'", "").split() if t and t != '&']
+            tsquery = " & ".join(search_terms) if search_terms else ""
             
-            results = db.execute(
-                text("""
-                    WITH ranked_videos AS (
-                        SELECT 
-                            yc.id,
-                            yc.video_id,
-                            yc.title,
-                            yc.description,
-                            yc.thumbnail,
-                            yc.channel_name,
-                            yc.url,
-                            yc.last_verified_at,
-                            (yc.vector <=> :v) as distance,
-                            (1 - (yc.vector <=> :v)) as similarity,
-                            -- BM25 full-text search score (0-1 normalized)
-                            CASE 
-                                WHEN yc.search_vector IS NOT NULL THEN
-                                    LEAST(ts_rank(yc.search_vector, to_tsquery('english', :tsquery)) * 2.0, 1.0)
-                                ELSE 0
-                            END as bm25_score,
-                            -- Metadata boost factors
-                            CASE WHEN yc.is_curated = TRUE THEN 0.10 ELSE 0 END as curated_boost,
-                            CASE WHEN yc.quality_score >= 80 THEN 0.05 
-                                 WHEN yc.quality_score >= 60 THEN 0.02 
-                                 ELSE 0 END as quality_boost,
-                            CASE WHEN yc.skill_level = :target_level THEN 0.05 ELSE 0 END as level_boost,
-                            CASE WHEN EXISTS (
-                                SELECT 1 FROM youtube_video_skills yvs
-                                WHERE yvs.video_id = yc.video_id 
-                                AND yvs.skill_name ILIKE :skill
-                            ) THEN 0.12 ELSE 0 END as skill_boost,
-                            CASE WHEN yc.language = :lang THEN 0.03 ELSE 0 END as lang_boost
-                        FROM youtube_courses yc
-                        WHERE (
-                            -- Vector search OR text search (union of results)
-                            (1 - (yc.vector <=> :v)) > 0.70
-                            OR (yc.search_vector IS NOT NULL AND yc.search_vector @@ to_tsquery('english', :tsquery))
+            # Use separate queries or conditional logic if tsquery is empty
+            bm25_score_sql = "0"
+            bm25_filter_sql = "FALSE"
+            if tsquery:
+                bm25_score_sql = "LEAST(ts_rank(yc.search_vector, to_tsquery('english', :tsquery)) * 2.0, 1.0)"
+                bm25_filter_sql = "yc.search_vector @@ to_tsquery('english', :tsquery)"
+
+            try:
+                results = db.execute(
+                    text(f"""
+                        WITH ranked_videos AS (
+                            SELECT 
+                                yc.id,
+                                yc.video_id,
+                                yc.title,
+                                yc.description,
+                                yc.thumbnail,
+                                yc.channel_name,
+                                yc.url,
+                                yc.last_verified_at,
+                                (yc.vector <=> :v) as distance,
+                                (1 - (yc.vector <=> :v)) as similarity,
+                                -- BM25 full-text search score (0-1 normalized)
+                                CASE 
+                                    WHEN yc.search_vector IS NOT NULL AND :has_ts THEN
+                                        {bm25_score_sql}
+                                    ELSE 0
+                                END as bm25_score,
+                                -- Metadata boost factors
+                                CASE WHEN yc.is_curated = TRUE THEN 0.10 ELSE 0 END as curated_boost,
+                                CASE WHEN yc.quality_score >= 80 THEN 0.05 
+                                     WHEN yc.quality_score >= 60 THEN 0.02 
+                                     ELSE 0 END as quality_boost,
+                                CASE WHEN yc.skill_level = :target_level THEN 0.05 ELSE 0 END as level_boost,
+                                CASE WHEN EXISTS (
+                                     SELECT 1 FROM youtube_video_skills yvs
+                                     WHERE yvs.video_id = yc.video_id 
+                                     AND yvs.skill_name ILIKE :skill
+                                ) THEN 0.12 ELSE 0 END as skill_boost,
+                                CASE WHEN yc.language = :lang THEN 0.03 ELSE 0 END as lang_boost
+                            FROM youtube_courses yc
+                            WHERE (
+                                -- Vector search OR text search (union of results)
+                                (1 - (yc.vector <=> :v)) > 0.70
+                                OR (yc.search_vector IS NOT NULL AND :has_ts AND {bm25_filter_sql})
+                            )
+                            AND (yc.expires_at > :now OR yc.expires_at IS NULL)
                         )
-                        AND (yc.expires_at > :now OR yc.expires_at IS NULL)
-                    )
-                    SELECT 
-                        id, video_id, title, description, thumbnail, channel_name, url, 
-                        last_verified_at, distance, similarity, bm25_score,
-                        -- Hybrid score: 50% vector + 30% BM25 + 20% boosts
-                        (
-                            (similarity * 0.5) + 
-                            (bm25_score * 0.3) + 
-                            (curated_boost + quality_boost + level_boost + skill_boost + lang_boost)
-                        ) as final_score
-                    FROM ranked_videos
-                    WHERE similarity > 0.70 OR bm25_score > 0.1
-                    ORDER BY final_score DESC, distance ASC
-                    LIMIT :l
-                """),
-                {
-                    "v": str(query_vector), 
-                    "l": limit * 2,  # Fetch more to ensure quality after verification
-                    "now": now,
-                    "skill": f"%{skill_name}%",
-                    "target_level": target_skill_level,
-                    "lang": lang,
-                    "tsquery": tsquery
-                }
-            ).fetchall()
+                        SELECT 
+                            id, video_id, title, description, thumbnail, channel_name, url, 
+                            last_verified_at, distance, similarity, bm25_score,
+                            -- Hybrid score: 50% vector + 30% BM25 + 20% boosts
+                            (
+                                (similarity * 0.5) + 
+                                (bm25_score * 0.3) + 
+                                (curated_boost + quality_boost + level_boost + skill_boost + lang_boost)
+                            ) as final_score
+                        FROM ranked_videos
+                        WHERE similarity > 0.70 OR bm25_score > 0.1
+                        ORDER BY final_score DESC, distance ASC
+                        LIMIT :l
+                    """),
+                    {
+                        "v": str(query_vector), 
+                        "l": limit * 2,  # Fetch more to ensure quality after verification
+                        "now": now,
+                        "skill": f"%{skill_name}%",
+                        "target_level": target_skill_level,
+                        "lang": lang,
+                        "tsquery": tsquery,
+                        "has_ts": bool(tsquery)
+                    }
+                ).fetchall()
+            except Exception as sql_err:
+                logger.warning(f"[YOUTUBE CACHE] Hybrid search failed: {sql_err}")
+                if db:
+                    try:
+                        db.rollback()
+                    except Exception:
+                        pass
+                results = []
 
             if results:
                 # Log scoring details
@@ -200,21 +217,30 @@ class YouTubeSearchService:
                 
                 if to_verify:
                     logger.info(f"[YOUTUBE VERIFY] Verifying {len(to_verify)} stale videos...")
-                    valid_ids = await self.verify_videos_availability([v.video_id for v in to_verify])
-                    
-                    for v in to_verify:
-                        db_video = db.query(YouTubeCourse).filter(YouTubeCourse.video_id == v.video_id).first()
-                        if not db_video:
-                            continue
+                    try:
+                        valid_ids = await self.verify_videos_availability([v.video_id for v in to_verify])
+                        
+                        for v in to_verify:
+                            db_video = db.query(YouTubeCourse).filter(YouTubeCourse.video_id == v.video_id).first()
+                            if not db_video:
+                                continue
 
-                        if v.video_id in valid_ids:
-                            db_video.last_verified_at = now
-                            final_results.append(self._format_video_result(v))
-                        else:
-                            logger.warning(f"[YOUTUBE CACHE] Video {v.video_id} is no longer available. Removing.")
-                            db.delete(db_video)
-                    
-                    db.commit()
+                            if v.video_id in valid_ids:
+                                db_video.last_verified_at = now
+                                final_results.append(self._format_video_result(v))
+                            else:
+                                logger.warning(f"[YOUTUBE CACHE] Video {v.video_id} is no longer available. Removing.")
+                                db.delete(db_video)
+                        
+                        db.commit()
+                    except Exception as verify_err:
+                        logger.warning(f"[YOUTUBE VERIFY] Failed to verify/update videos: {verify_err}")
+                        if db:
+                            try:
+                                db.rollback()
+                            except Exception:
+                                pass
+                        # Fallback: still return whatever was already in final_results
 
                 if final_results:
                     return final_results[:limit]
@@ -326,6 +352,11 @@ class YouTubeSearchService:
                     if published_at_str:
                         published_at = datetime.fromisoformat(published_at_str.replace("Z", "+00:00"))
 
+                    # Auto-tag with metadata from search context
+                    # This enables boost scoring and filtering for auto-cached videos
+                    auto_language = lang if lang in ["en", "vi"] else None
+                    auto_skill_level = target_skill_level  # Already mapped to DB format (Junior/Mid-level/Senior/Expert)
+
                     new_video = YouTubeCourse(
                         video_id=video_id,
                         title=title,
@@ -337,10 +368,35 @@ class YouTubeSearchService:
                         vector=vector,
                         published_at=published_at,
                         expires_at=now + timedelta(days=30), # Cache trong 30 ngày
-                        last_verified_at=now # Đánh dấu vừa check xong
+                        last_verified_at=now, # Đánh dấu vừa check xong
+                        # Auto-tag metadata for boost scoring and filtering
+                        language=auto_language,
+                        skill_level=auto_skill_level,
+                        is_curated=False  # Mark as auto-cached (not manually curated)
                     )
                     db.add(new_video)
                     db.flush() # Để lấy ID nếu cần
+                    
+                    # Auto-tag skills in junction table
+                    # This enables skill-based boost scoring (+0.12) and filtering
+                    if skill_name and skill_name.strip():
+                        from sqlalchemy import text
+                        import uuid
+                        try:
+                            db.execute(
+                                text("""
+                                    INSERT INTO youtube_video_skills (id, video_id, skill_name)
+                                    VALUES (:id, :vid, :skill)
+                                    ON CONFLICT (video_id, skill_name) DO NOTHING
+                                """),
+                                {
+                                    "id": str(uuid.uuid4()),
+                                    "vid": video_id, 
+                                    "skill": skill_name.strip()
+                                }
+                            )
+                        except Exception as e:
+                            logger.warning(f"[YOUTUBE CACHE] Failed to auto-tag skill '{skill_name}' for video {video_id}: {e}")
                     
                     video_data = {
                         "video_id": video_id,
@@ -349,7 +405,11 @@ class YouTubeSearchService:
                         "thumbnail": thumbnail,
                         "channel_name": channel_name,
                         "url": f"https://www.youtube.com/watch?v={video_id}",
-                        "embed_url": f"https://www.youtube.com/embed/{video_id}"
+                        "embed_url": f"https://www.youtube.com/embed/{video_id}",
+                        # Include auto-tagged metadata in response
+                        "language": auto_language,
+                        "skill_level": auto_skill_level,
+                        "is_curated": False
                     }
                 else:
                     video_data = {
@@ -380,7 +440,12 @@ class YouTubeSearchService:
             "thumbnail": r.thumbnail,
             "channel_name": r.channel_name,
             "url": r.url,
-            "embed_url": f"https://www.youtube.com/embed/{r.video_id}"
+            "embed_url": f"https://www.youtube.com/embed/{r.video_id}",
+            # Include metadata for filtering and display
+            "language": r.language if hasattr(r, 'language') else None,
+            "skill_level": r.skill_level if hasattr(r, 'skill_level') else None,
+            "is_curated": r.is_curated if hasattr(r, 'is_curated') else False,
+            "quality_score": r.quality_score if hasattr(r, 'quality_score') else None
         }
 
     async def verify_videos_availability(self, video_ids: List[str]) -> List[str]:

@@ -27,8 +27,7 @@ class QuotaManager:
             return user.daily_token_limit
         
         return int(
-            config_manager.get_setting("USER_DAILY_TOKEN_LIMIT") or 
-            os.getenv("DAILY_TOKEN_LIMIT", "50000")
+            config_manager.get_setting("USER_TOKEN_LIMIT") or 500000
         )
 
     @classmethod

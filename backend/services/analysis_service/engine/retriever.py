@@ -248,9 +248,9 @@ class RequirementRetriever:
              "requirements": [
                {{
                  "type": "group",
-                 "group_name": "Frontend Alternatives",
+                 "group_name": "Frontend Frameworks (Vue/React)",
                  "group_strategy": "exclusive",
-                 "skills": [
+                 "alternative_skills": [
                    {{"skill": "VueJS", "target_level": "Mid-level", "years_required": 2, "skill_type": "technical"}},
                    {{"skill": "ReactJS", "target_level": "Mid-level", "years_required": 2, "skill_type": "technical"}}
                  ]
@@ -289,6 +289,7 @@ class RequirementRetriever:
         7. JSON FORMAT: Return a JSON object with the key "requirements". Each element must contain:
            - type: "skill" or "group"
            - skill: Specific name (e.g., "PostgreSQL", "Communication", NOT "Database" or "Soft Skills")
+           - group_name: Descriptive name for a group (e.g., "Cloud Platforms", "Programming Languages"). REQUIRED if type is "group".
            - group_strategy: "inclusive" or "exclusive"
            - skills: List of sub-skills (if type is "group").
            - target_level: (Junior, Mid-level, Senior, Expert) or null for soft skills
@@ -318,7 +319,16 @@ class RequirementRetriever:
             for r in reqs:
                 if r.get("type") == "group":
                     # ATOMIC FLATTENING: Nếu group là generic container, flatten nó ra thành từng skill lẻ
-                    g_name = (r.get("group_name") or "Skill Group").lower()
+                    sub_skills_list = r.get("alternative_skills") or r.get("skills") or []
+                    raw_g_name = r.get("group_name") or r.get("skill") or r.get("name")
+                    
+                    # Generate a fallback name if group_name is missing
+                    if not raw_g_name and sub_skills_list:
+                        first_skills = [s.get("skill") for s in sub_skills_list[:2] if s.get("skill")]
+                        raw_g_name = " or ".join(first_skills) + ( " or others" if len(sub_skills_list) > 2 else "")
+                    
+                    g_name = (raw_g_name or "Requirement Group").strip()
+                    
                     container_keywords = [
                         "technologies",
                         "languages",
@@ -327,17 +337,21 @@ class RequirementRetriever:
                         "stack",
                         "category",
                         "alternative",
+                        "generic",
+                        "various",
                     ]
                     is_generic_container = any(
-                        kw in g_name for kw in container_keywords
-                    )
+                        kw in g_name.lower() for kw in container_keywords
+                    ) or len(g_name) < 3
 
                     if is_generic_container:
-                        for s in r.get("skills", []):
+                        for s in sub_skills_list:
+                            s_name = s.get("skill") or s.get("name")
+                            if not s_name: continue
                             normalized_reqs.append(
                                 {
                                     "type": "skill",
-                                    "skill": s.get("skill"),
+                                    "skill": s_name,
                                     "target_level": s.get("target_level")
                                     or "Junior",
                                     "years_required": s.get("years_required", 0),
@@ -352,22 +366,27 @@ class RequirementRetriever:
                         continue
 
                     sub_skills = []
-                    for s in r.get("skills", []):
+                    for s in sub_skills_list:
+                        s_name = s.get("skill") or s.get("name")
+                        if not s_name: continue
                         sub_skills.append(
                             {
-                                "skill": s.get("skill"),
+                                "skill": s_name,
                                 "target_level": s.get("target_level") or "Junior",
                                 "years_required": s.get("years_required", 0),
                                 "skill_type": s.get("skill_type", "technical"),
                             }
                         )
+                    
+                    if not sub_skills: continue
+
                     normalized_reqs.append(
                         {
                             "type": "group",
-                            "group_name": r.get("group_name") or "Skill Group",
+                            "group_name": g_name,
                             "group_strategy": r.get("group_strategy")
                             or "exclusive",
-                            "skills": sub_skills,
+                            "alternative_skills": sub_skills,
                             "is_primary": r.get("is_primary")
                             if r.get("is_primary") is not None
                             else True,
@@ -421,7 +440,7 @@ class RequirementRetriever:
                                     "type": "group",
                                     "group_name": f"{s_name} (Combined)",
                                     "group_strategy": "exclusive",
-                                    "skills": sub_skills,
+                                    "alternative_skills": sub_skills,
                                     "is_primary": r.get("is_primary")
                                     if r.get("is_primary") is not None
                                     else True,

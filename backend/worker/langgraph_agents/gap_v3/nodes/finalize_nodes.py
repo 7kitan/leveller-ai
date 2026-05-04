@@ -37,26 +37,52 @@ async def _llm_build_roadmap(
     courses_str: str,
     user_id: Optional[str] = None
 ) -> Dict[str, Any]:
-    """Gọi LLM để tạo career roadmap JSON."""
+    """
+    LEGACY: Gọi LLM để tạo career roadmap JSON.
+    NOTE: Currently integrated into course_recommendation_llm_node.
+    This function kept for potential standalone use.
+    """
     from ..utils.llm_helpers import llm_json_completion
+    from shared.prompt_manager import get_prompt
 
-    prompt = (
-        "Build a personalized learning roadmap (in Vietnamese). "
-        "Use English for skill names.\n\n"
-        "## Skill gaps (prioritized):\n" + gaps_str + "\n\n"
-        "## Recommended courses:\n" + courses_str + "\n\n"
-        "Output JSON:\n"
-        '{"stages": [{"stage": 1, "focus": "...", "duration_weeks": 4, '
-        '"skills_acquired": [...], "courses_taken": [...], '
-        '"milestones": [{"week": 1, "milestone": "..."}], '
-        '"total_weeks": 0, "total_hours": 0, "summary": "..."}'
-        "}"
-    )
+    # ── Get prompt from prompt manager ──────────────────────────────────────
+    try:
+        prompt, llm_config = get_prompt(
+            'roadmap_building',
+            selected_courses=courses_str,
+            skill_gaps=gaps_str,
+            target_role="Target Role"  # TODO: Pass actual target role if available
+        )
+        
+        if not prompt:
+            raise ValueError("Prompt manager returned empty prompt")
+            
+        logger.info("[ROADMAP] Using managed prompt: roadmap_building")
+        
+    except Exception as e:
+        logger.warning(f"[ROADMAP] Failed to load managed prompt, using fallback: {e}")
+        
+        # Fallback to hardcoded prompt
+        llm_config = {"temperature": 0.6, "max_tokens": 3000}
+        prompt = (
+            "Build a personalized learning roadmap (in Vietnamese). "
+            "Use English for skill names.\n\n"
+            "## Skill gaps (prioritized):\n" + gaps_str + "\n\n"
+            "## Recommended courses:\n" + courses_str + "\n\n"
+            "Output JSON:\n"
+            '{"stages": [{"stage": 1, "focus": "...", "duration_weeks": 4, '
+            '"skills_acquired": [...], "courses_taken": [...], '
+            '"milestones": [{"week": 1, "milestone": "..."}], '
+            '"total_weeks": 0, "total_hours": 0, "summary": "..."}'
+            "}"
+        )
 
     logger.info(f"[STEP 5/LLM] Calling LLM | prompt_chars={len(prompt)}")
 
+    temperature = llm_config.get("temperature", 0.6) if llm_config else 0.6
     result = await llm_json_completion(
         prompt=prompt,
+        temperature=temperature,
         call_name="build_roadmap",
         user_id=user_id
     )
@@ -146,159 +172,97 @@ async def finalize_report_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3:
             }
         )
 
-    # ── Calculate Radar Chart (5-dimension CV vs JD comparison) ──────────────
-    # Dimensions: Technical Skills, Soft Skills, Tools & Frameworks, Domain Knowledge, Certifications
-    radar_chart_data = None
-    try:
-        from shared.radar_dimensions import calculate_radar_scores, get_priority_gaps, SOFT_SKILL_CATEGORIES
-        
-        # Extract CV skills with categories (include ALL skills)
-        cv_skills = []
-        if cv_parsed and cv_parsed.get("skills"):
-            for skill in cv_parsed["skills"]:
-                if isinstance(skill, dict):
-                    category = skill.get("category") or "Technology"
-                    cv_skills.append({
-                        "skill_name": skill.get("name") or skill.get("skill_name") or "",
-                        "category": category
-                    })
-                elif isinstance(skill, str):
-                    cv_skills.append({
-                        "skill_name": skill,
-                        "category": "Technology"
-                    })
-        
-        # Extract JD skills with categories from jd_requirements (include ALL skills)
-        jd_skills = []
-        jd_requirements = state.get("jd_requirements") or []
-        for req in jd_requirements:
-            if isinstance(req, dict):
-                skill_name = req.get("skill") or req.get("skill_name") or req.get("name") or ""
-                category = req.get("category") or "Technology"
-                if skill_name:
-                    jd_skills.append({
-                        "skill_name": skill_name,
-                        "category": category
-                    })
-        
-        # If we have both CV and JD skills, calculate radar scores
-        if cv_skills and jd_skills:
-            radar_chart_data = calculate_radar_scores(cv_skills, jd_skills)
-            priority_gaps = get_priority_gaps(radar_chart_data, threshold=70.0)
-            radar_chart_data["priority_gaps"] = priority_gaps
-            
-            # Extract soft skills match from radar chart (Soft Skills dimension)
-            soft_skills_match_pct = None
-            if "Soft Skills" in radar_chart_data.get("dimension_details", {}):
-                soft_skills_match_pct = radar_chart_data["dimension_details"]["Soft Skills"]["match_percentage"]
-            
-            logger.info(
-                f"[STEP 6] ✓ Radar chart calculated | "
-                f"overall_match={radar_chart_data['overall_match']}% | "
-                f"priority_gaps={len(priority_gaps)} | "
-                f"5 dimensions: Technical Skills, Soft Skills, Tools & Frameworks, Domain Knowledge, Certifications"
-            )
-        else:
-            logger.warning(
-                f"[STEP 6] Radar chart skipped | "
-                f"cv_skills={len(cv_skills)} | jd_skills={len(jd_skills)}"
-            )
-    except Exception as radar_err:
-        logger.error(f"[STEP 6] Radar chart calculation failed: {radar_err}", exc_info=True)
-    
-    # ── Extract Soft Skills details from radar chart ─────────────────────────
-    # Soft Skills is one of the 5 dimensions in radar chart
-    soft_skills_comparison = None
-    if radar_chart_data and "Soft Skills" in radar_chart_data.get("dimension_details", {}):
-        soft_details = radar_chart_data["dimension_details"]["Soft Skills"]
-        soft_skills_comparison = {
-            "cv_soft_skills": soft_details["cv_skills"],
-            "jd_soft_skills": soft_details["jd_skills"],
-            "matched": soft_details["matched"],
-            "missing": soft_details["missing"],
-            "extra": soft_details["extra"],
-            "match_percentage": soft_details["match_percentage"],
-            "skill_count": soft_details["skill_count"]
-        }
-        
-        logger.info(
-            f"[STEP 6] ✓ Soft skills from radar chart | "
-            f"match={soft_skills_comparison['match_percentage']}% | "
-            f"cv={soft_details['skill_count']['cv']} | "
-            f"jd={soft_details['skill_count']['jd']} | "
-            f"missing={soft_details['skill_count']['missing']}"
-        )
-
-    # ── Calculate final match percentages ────────────────────────────────────
-    # Use radar chart's overall match (includes all 5 dimensions)
+    # ── Match Calculation (Enriched with real DB stats) ──────────────────
     llm_match_pct = float(gap_analysis.get("overall_match_pct") or 0)
-    overall_match_pct = radar_chart_data["overall_match"] if radar_chart_data else llm_match_pct
-    soft_skills_match_pct = soft_skills_comparison["match_percentage"] if soft_skills_comparison else None
+    skill_gaps = list(gap_analysis.get("skill_gaps") or [])
+    
+    # Enrich gaps with real Market Data (demand, impact)
+    try:
+        from services.analysis_service.growth_calculator import calculate_skill_impact
+        potential_match_pct, enriched_gaps = calculate_skill_impact(
+            skill_gaps=skill_gaps,
+            job_id=state.get("job_id"),
+            current_match_pct=llm_match_pct,
+            db=db
+        )
+        # Update gaps in the gap_analysis object for final report
+        gap_analysis["skill_gaps"] = enriched_gaps
+        logger.info(f"[STEP 6] Gaps enriched with DB stats | potential={potential_match_pct}%")
+    except Exception as e:
+        logger.warning(f"[STEP 6] Failed to enrich gaps with DB stats: {e}")
+        potential_match_pct = float(gap_analysis.get("potential_match_pct") or 0)
+
+    overall_match_pct = llm_match_pct
     
     # Build match_breakdown for frontend (5 dimensions)
-    match_breakdown = {}
-    if radar_chart_data:
-        for dimension in radar_chart_data["dimensions"]:
-            match_breakdown[dimension] = radar_chart_data["dimension_details"][dimension]["match_percentage"]
+    # We use the breakdown returned by the LLM as it understands synonyms
+    llm_breakdown = gap_analysis.get("match_breakdown") or {}
     
-    logger.info(
-        f"[STEP 6] Match percentages calculated:\n"
-        f"  Overall match (5 dimensions): {overall_match_pct}%\n"
-        f"  Soft skills: {soft_skills_match_pct}%\n"
-        f"  LLM original: {llm_match_pct}%\n"
-        f"  Match breakdown: {match_breakdown}"
-    )
+    # Mapping English LLM keys to normalized keys expected by frontend
+    key_map = {
+        "Technical Skills": ["Technical Skills", "Technology", "Kỹ năng kỹ thuật"],
+        "Soft Skills": ["Soft Skills", "Kỹ năng mềm"],
+        "Tools & Frameworks": ["Tools & Frameworks", "Tools", "Công cụ & Framework"],
+        "Domain Knowledge": ["Domain Knowledge", "Domain", "Kiến thức Domain"],
+        "Certifications": ["Certifications", "Certs", "Chứng chỉ"]
+    }
+    
+    match_breakdown = {}
+    for norm_key, aliases in key_map.items():
+        val = 0
+        # Check if any alias exists in LLM response
+        for alias in aliases:
+            if alias in llm_breakdown:
+                val = llm_breakdown[alias]
+                break
+        
+        # Fallback: if JD didn't have this category, LLM should have set it to 100 
+        # (based on our new prompt instruction), but we ensure it here too.
+        match_breakdown[norm_key] = float(val)
+
+    # Ensure all 5 dimensions exist to avoid frontend issues
+    for dim in ["Technical Skills", "Soft Skills", "Tools & Frameworks", "Domain Knowledge", "Certifications"]:
+        if dim not in match_breakdown:
+            match_breakdown[dim] = 0.0
 
     final_report = {
-        "overall_match_pct": float(overall_match_pct),  # Overall match from radar chart (5 dimensions)
-        "soft_skills_match_pct": float(soft_skills_match_pct) if soft_skills_match_pct is not None else None,
-        "llm_overall_match_pct": float(llm_match_pct),  # Original LLM match (for reference)
+        "overall_match_pct": float(overall_match_pct),
+        "potential_match_pct": float(potential_match_pct),
         "overall_assessment": gap_analysis.get("overall_assessment") or "",
         "strengths": list(gap_analysis.get("strengths") or []),
         "weaknesses": list(gap_analysis.get("weaknesses") or []),
         "skill_gaps": list(gap_analysis.get("skill_gaps") or []),
         "gap_summary": gap_analysis.get("gap_summary") or {},
-        "match_breakdown": match_breakdown,  # 5-dimension breakdown for frontend radar chart
+        "match_breakdown": match_breakdown,
         "transferable_insights": list(gap_analysis.get("transferable_insights") or []),
         "jd_context": gap_analysis.get("jd_context") or "",
-        "top_gaps": list(gap_analysis.get("top_gaps") or []),  # Optimized: inline from gap_analysis
+        "job_id": state.get("job_id"),  # ✅ ADD THIS - needed for API enrichment
         "course_recommendations": course_output,
         "selected_youtube_videos": state.get("selected_youtube_videos") or [],
-        "youtube_videos": state.get("youtube_videos") or [], # Thêm hỗ trợ YouTube videos
+        "youtube_videos": state.get("youtube_videos") or [],
         "career_roadmap": career_roadmap,
-        "radar_chart": radar_chart_data,  # 5-dimension radar chart (Technical, Soft, Tools, Domain, Certifications)
-        "soft_skills": soft_skills_comparison,  # Soft skills details (extracted from radar chart)
         "cv_parsed": cv_parsed,
         "notes": [
             "Analysis Method: LLM Holistic v3 Optimized (2 LLM calls total)",
             "CV parsed=" + (cv_parsed.get("full_name") or state.get("cv_id", "?")),
             "JD context=" + (gap_analysis.get("jd_context") or "?"),
             "Courses recommended=" + str(len(course_output)),
-            "Match calculation: 5-dimension radar chart (Technical Skills, Soft Skills, Tools & Frameworks, Domain Knowledge, Certifications)",
-            "Radar chart=" + ("calculated (5 dimensions)" if radar_chart_data else "skipped"),
-            "Soft skills=" + ("included in radar chart as Soft Skills dimension" if soft_skills_comparison else "none"),
+            "Scoring: 100% AI Semantic Analysis (math-based)",
         ],
     }
 
     # ── Log final report summary ─────────────────────────────────────────────
-    radar_info = ""
-    if radar_chart_data:
-        radar_info = (
-            f"               │ radar_chart        : {radar_chart_data['overall_match']}% "
-            f"({len(radar_chart_data.get('priority_gaps', []))} priority gaps)\n"
-        )
-    
     logger.info(
         f"\n{'═' * 70}\n"
         f"[FINAL REPORT] ┌─── complete report | cv_id={state.get('cv_id')}\n"
-        f"               │ overall_match_pct  : {final_report['overall_match_pct']}\n"
+        f"               │ overall_match_pct  : {final_report['overall_match_pct']}%\n"
+        f"               │ potential_match_pct: {final_report['potential_match_pct']}%\n"
         f"               │ strengths          : {len(final_report['strengths'])}\n"
         f"               │ weaknesses         : {len(final_report['weaknesses'])}\n"
         f"               │ skill_gaps         : {len(final_report['skill_gaps'])}\n"
         f"               │ courses            : {len(final_report['course_recommendations'])}\n"
         f"               │ roadmap stages     : {len(final_report.get('career_roadmap', {}).get('stages', []))}\n"
         f"               │ transferable       : {len(final_report['transferable_insights'])}\n"
-        f"{radar_info}"
         f"               └─────────\n"
         f"[FINAL REPORT] FULL REPORT JSON (first 3000 chars):\n"
         f"{_indent_data(_json.dumps(final_report, ensure_ascii=False, indent=2)[:3000])}\n"

@@ -4,10 +4,11 @@ Chỉ dùng khi USE_LLM_GAP_AGENT_V3=false (không recommend).
 Giữ lại để tránh worker crash khi feature flag chuyển sang legacy.
 """
 
+import os
+import logging
 from celery import Task
 from worker.celery_app import celery_app
 from shared.database import SessionLocal
-import logging
 
 logger = logging.getLogger("worker.tasks.parse_cv_task")
 
@@ -35,7 +36,6 @@ def parse_cv(self, user_id: str, cv_id: str, file_path: str):
     )
     
     # ── Cleanup physical file even for deprecated task ─────────────────────
-    import os
     if file_path and os.path.exists(file_path):
         try:
             os.remove(file_path)

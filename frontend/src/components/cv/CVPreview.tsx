@@ -3,6 +3,7 @@
 import { PDFPreview } from './PDFPreview';
 import { ImagePreview } from './ImagePreview';
 import { DOCXPreview } from './DOCXPreview';
+import { ScanningOverlay } from './ScanningOverlay';
 import { X, Check, FileText } from 'lucide-react';
 import styles from './CVPreview.module.css';
 import { useLanguage } from '@/context/LanguageContext';
@@ -11,9 +12,11 @@ interface CVPreviewProps {
   file: File;
   onConfirm: () => void;
   onCancel: () => void;
+  isProcessing?: boolean;
+  progress?: number;
 }
 
-export function CVPreview({ file, onConfirm, onCancel }: CVPreviewProps) {
+export function CVPreview({ file, onConfirm, onCancel, isProcessing = false, progress }: CVPreviewProps) {
   const { t } = useLanguage();
   const fileExtension = file.name.split('.').pop()?.toLowerCase();
   const fileSizeKB = (file.size / 1024).toFixed(2);
@@ -57,25 +60,28 @@ export function CVPreview({ file, onConfirm, onCancel }: CVPreviewProps) {
 
       <div className={styles.previewContainer}>
         {renderPreview()}
+        <ScanningOverlay status={isProcessing ? "processing" : "idle"} />
       </div>
 
-      <div className={styles.previewActions}>
-        <button 
-          className={`${styles.actionBtn} ${styles.cancelBtn}`}
-          onClick={onCancel}
-        >
-          <X size={18} />
-          {t("cv_browse_files")}
-        </button>
+      {!isProcessing && (
+        <div className={styles.previewActions}>
+          <button 
+            className={`${styles.actionBtn} ${styles.cancelBtn}`}
+            onClick={onCancel}
+          >
+            <X size={18} />
+            {t("cv_browse_files")}
+          </button>
 
-        <button 
-          className={`${styles.actionBtn} ${styles.confirmBtn}`}
-          onClick={onConfirm}
-        >
-          <Check size={18} />
-          {t("cv_start_extract")}
-        </button>
-      </div>
+          <button 
+            className={`${styles.actionBtn} ${styles.confirmBtn}`}
+            onClick={onConfirm}
+          >
+            <Check size={18} />
+            {t("cv_start_extract")}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

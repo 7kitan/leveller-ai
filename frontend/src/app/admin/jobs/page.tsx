@@ -58,6 +58,11 @@ interface Job {
     min_years_exp?: number;
     is_mandatory?: boolean;
     importance_weight?: number;
+    // Skill group fields
+    is_group?: boolean;
+    group_strategy?: string;
+    alternative_skills?: string[];
+    min_required?: number;
   }>;
   // Classification fields
   is_tech_job?: boolean;
@@ -150,7 +155,7 @@ const AdminJobsPage = () => {
         { value: newValue }
       );
       setCrawlEnabled(newValue);
-      showNotification(newValue ? t("admin_jobs_crawl_success") : t("admin_jobs_status_inactive"));
+      showNotification(newValue ? t("admin_jobs_crawl_success") : t("admin_jobs_auto_crawl_disabled"));
     } catch (err) {
       showNotification(t("error"), "error");
     } finally {
@@ -618,16 +623,52 @@ const AdminJobsPage = () => {
                     {editingJob.extracted_skills.map((skill, idx) => (
                       <div 
                         key={idx}
-                        className="bg-white rounded-lg p-3 border border-gray-200 hover:border-indigo-300 transition-colors"
+                        className={cn(
+                          "bg-white rounded-lg p-3 border-2 transition-colors",
+                          skill.is_group 
+                            ? "border-purple-300 bg-purple-50 hover:border-purple-400" 
+                            : "border-gray-200 hover:border-indigo-300"
+                        )}
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
-                            <div className="font-semibold text-gray-900 mb-1">
-                              {skill.skill_name}
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="font-semibold text-gray-900">
+                                {skill.skill_name}
+                              </div>
+                              {skill.is_group && (
+                                <span className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded font-semibold">
+                                  GROUP
+                                </span>
+                              )}
                             </div>
                             <div className="text-xs text-gray-500 mb-2">
                               {skill.category}
                             </div>
+                            
+                            {/* Alternative Skills for Groups */}
+                            {skill.is_group && skill.alternative_skills && skill.alternative_skills.length > 0 && (
+                              <div className="mt-2 pt-2 border-t border-purple-200">
+                                <div className="text-xs text-purple-700 font-medium mb-1">
+                                  Alternatives ({skill.group_strategy === 'any_one' ? 'ANY ONE' : skill.group_strategy}):
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  {skill.alternative_skills.map((alt, altIdx) => (
+                                    <span 
+                                      key={altIdx}
+                                      className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded border border-purple-300"
+                                    >
+                                      {alt}
+                                    </span>
+                                  ))}
+                                </div>
+                                {skill.min_required && skill.min_required > 1 && (
+                                  <div className="text-xs text-purple-600 mt-1">
+                                    Min required: {skill.min_required}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div className="flex flex-col items-end gap-1">
                             {skill.is_mandatory && (

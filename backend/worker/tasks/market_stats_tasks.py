@@ -4,7 +4,9 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, and_
 from worker.celery_app import celery_app
 from shared.database import SessionLocal
-from shared.models import Job, MarketSkillStats
+from shared.models import Job, MarketSkillStats, MarketSkillHistory, YouTubeCourse
+from shared.system_logger import system_logger
+from shared.config_utils import config_manager
 from collections import defaultdict
 
 logger = logging.getLogger("market_stats_worker")
@@ -58,10 +60,25 @@ def aggregate_market_data():
                 if skill_type == "soft":
                     continue
                 
-                # Try different field names for skill name (backward compatibility)
-                skill_name = req.get("skill") or req.get("skill_name")
-                if skill_name:
-                    all_skills.append(skill_name)
+                # Check if this is a skill group
+                is_group = req.get("is_group", False)
+                
+                if is_group:
+                    # Skill group: expand to count each alternative skill
+                    # Example: {"skill_name": "3D Modeling", "is_group": true, "alternative_skills": ["Blender", "Maya", "3ds Max"]}
+                    # → Count Blender, Maya, and 3ds Max individually (employer wants ANY ONE, so all are in demand)
+                    alternative_skills = req.get("alternative_skills", [])
+                    if alternative_skills and isinstance(alternative_skills, list):
+                        all_skills.extend(alternative_skills)
+                    # Optionally also count the group name itself for group-level stats
+                    # group_name = req.get("skill") or req.get("skill_name")
+                    # if group_name:
+                    #     all_skills.append(group_name)
+                else:
+                    # Individual skill (not a group)
+                    skill_name = req.get("skill") or req.get("skill_name")
+                    if skill_name:
+                        all_skills.append(skill_name)
             
             # Aggregate stats for each skill
             for skill_name in all_skills:
@@ -120,7 +137,6 @@ def aggregate_market_data():
             stat_record.updated_at = now
 
             # 5. Save snapshot to history with deduplication
-            from shared.models import MarketSkillHistory
             avg_salary_val = (avg_min + avg_max) / 2 if avg_min and avg_max else (avg_min or avg_max)
             
             # Check if we already have a snapshot today (deduplication)
@@ -164,7 +180,6 @@ def cleanup_expired_youtube_courses():
     db = SessionLocal()
     try:
         now = datetime.now()
-        from shared.models import YouTubeCourse
         
         deleted = db.query(YouTubeCourse).filter(YouTubeCourse.expires_at < now).delete()
         db.commit()

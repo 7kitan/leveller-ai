@@ -196,10 +196,20 @@ services:
     container_name: advisor_worker_analysis_prod
     command: celery -A worker.celery_app worker -Q analysis -n analysis@%h --loglevel=info --concurrency=${WORKER_ANALYSIS_CONCURRENCY:-2}
 
-  worker-market-stats:
+  worker-crawler:
     <<: *worker-base
-    container_name: advisor_worker_market_stats_prod
-    command: celery -A worker.celery_app worker -Q market_stats -n market_stats@%h --loglevel=info --concurrency=${WORKER_CRAWLER_CONCURRENCY:-1}
+    container_name: advisor_worker_crawler_prod
+    command: celery -A worker.celery_app worker -Q market_stats -n crawler@%h --loglevel=info --concurrency=${WORKER_CRAWLER_CONCURRENCY:-1}
+
+  worker-default:
+    <<: *worker-base
+    container_name: advisor_worker_default_prod
+    command: celery -A worker.celery_app worker -n default@%h --loglevel=info --concurrency=${WORKER_DEFAULT_CONCURRENCY:-1}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
   worker-email:
     <<: *worker-base
@@ -210,6 +220,18 @@ services:
         limits:
           cpus: '0.5'
           memory: 512M
+
+  worker-benchmark:
+    <<: *worker-base
+    container_name: advisor_worker_benchmark_prod
+    command: celery -A worker.celery_app worker -Q benchmark -n benchmark@%h --loglevel=info --concurrency=1
+    volumes:
+      - ./data/cv_uploads:/app/data/cv_uploads
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
 
   # Celery Beat Scheduler (for periodic tasks: auto-crawl, daily aggregations)
   celery-beat:

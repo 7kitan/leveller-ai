@@ -36,23 +36,8 @@ def calculate_embedding_cost(token_count: int, model: str = "text-embedding-3-sm
     cost_per_million = EMBEDDING_COSTS.get(model, 0.02)
     return (token_count / 1_000_000) * cost_per_million
 
-# ─── Mapping & Configuration ──────────────────────────────────────────────────
-
-# Mapping từ Model ID sang Provider
-MODEL_PROVIDER_MAP = {
-    # Google Gemini
-    "gemini-1.5-pro": "google",
-    "gemini-1.5-flash": "google",
-    # OpenAI
-    "gpt-4o": "openai",
-    "gpt-4o-mini": "openai",
-    "gpt-4-turbo": "openai",
-    # Anthropic
-    "claude-3-5-sonnet": "anthropic",
-    "claude-3-5-haiku": "anthropic",
-    "claude-3-haiku": "anthropic",
-    "claude-3-opus": "anthropic",
-}
+# Note: MODEL_PROVIDER_MAP has been moved to shared.ai_service.registry.AI_REGISTRY
+# for better maintainability and metadata support.
 
 # ─── Clients Factory ─────────────────────────────────────────────────────────
 
@@ -64,7 +49,9 @@ class LLMFactory:
 
     @classmethod
     def get_provider(cls, model_name: str) -> str:
-        return MODEL_PROVIDER_MAP.get(model_name, "openai")
+        from shared.ai_service.registry import get_model_info
+        info = get_model_info(model_name)
+        return info.provider if info else "openai"
 
     @classmethod
     def get_openai_client(cls):
@@ -207,7 +194,8 @@ def get_chat_completion(
     model: Optional[str] = None,
     model_key: str = "career_advisor_model",
     call_name: str = "chat_completion",
-    user_id: Optional[str] = None
+    user_id: Optional[str] = None,
+    temperature: float = 0.1
 ) -> Optional[str]:
     """
     [LEGACY] Wrapper for the new AI Service completion core.
@@ -223,7 +211,8 @@ def get_chat_completion(
         model=model,
         model_key=m_key,
         call_name=call_name,
-        user_id=user_id
+        user_id=user_id,
+        temperature=temperature
     )
 
 # ─── Utility Functions ───────────────────────────────────────────────────────
@@ -454,12 +443,15 @@ def validate_and_clean_skill(skill: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             
             # Infrastructure
             "cloud": "Cloud Platform",
-            "cloud platform": "Cloud Platform",
             "devops": "DevOps & CI/CD",
             "ci/cd": "DevOps & CI/CD",
             "cicd": "DevOps & CI/CD",
             "tool": "Development Tool",
-            "dev tool": "Development Tool",
+            "development tool": "Development Tool",
+            "design tool": "Development Tool",  # Map Design Tool → Development Tool
+            "infrastructure": "DevOps & CI/CD",
+            "os": "DevOps & CI/CD",
+            "operating system": "DevOps & CI/CD",
             
             # Specialized
             "testing": "Testing Framework",
@@ -471,22 +463,15 @@ def validate_and_clean_skill(skill: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             "data science": "Data Science",
             "data": "Data Science",
             
-            # Technical Practices
+            # Practices
             "methodology": "Methodology",
             "practice": "Methodology",
-            "pattern": "Methodology",
             
             # Soft Skills
             "communication": "Communication",
-            "communication skill": "Communication",
-            "presentation": "Communication",
-            "english": "Communication",
             "leadership": "Leadership",
-            "leadership skill": "Leadership",
-            "mentoring": "Leadership",
             "teamwork": "Teamwork",
             "collaboration": "Teamwork",
-            "team work": "Teamwork",
             "problem solving": "Problem Solving",
             "analytical thinking": "Problem Solving",
             "critical thinking": "Problem Solving",
@@ -537,8 +522,11 @@ def validate_and_clean_skill(skill: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         # Auto-detect based on category
         skill_type = "soft" if category in SOFT_SKILL_CATEGORIES else "technical"
     
-    # Return cleaned skill
-    return {
+    # Check if this is a skill group
+    is_group = skill.get("is_group", False)
+    
+    # Build base cleaned skill
+    cleaned = {
         "skill_name": skill_name,
         "category": category,
         "required_level": required_level,
@@ -547,6 +535,26 @@ def validate_and_clean_skill(skill: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "importance_weight": importance_weight,
         "skill_type": skill_type
     }
+    
+    # If it's a skill group, preserve group fields
+    if is_group:
+        cleaned["is_group"] = True
+        cleaned["group_strategy"] = skill.get("group_strategy", "any_one")
+        cleaned["alternative_skills"] = skill.get("alternative_skills", [])
+        cleaned["min_required"] = skill.get("min_required", 1)
+        
+        # Validate alternative_skills is a list
+        if not isinstance(cleaned["alternative_skills"], list):
+            cleaned["alternative_skills"] = []
+        
+        # Validate min_required is an integer
+        try:
+            cleaned["min_required"] = int(cleaned["min_required"])
+            cleaned["min_required"] = max(1, cleaned["min_required"])
+        except (ValueError, TypeError):
+            cleaned["min_required"] = 1
+    
+    return cleaned
 
 
 def extract_skills_from_requirements(requirements_text: str, model_key: str = "ai_model", user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
@@ -576,7 +584,26 @@ def extract_skills_from_requirements(requirements_text: str, model_key: str = "a
         logger.warning("[SKILL EXTRACT] Requirements text too short, skipping extraction")
         return None
     
-    prompt = f"""Analyze this job requirements and perform TWO tasks:
+    # ── Get prompt from prompt manager ──────────────────────────────────────
+    try:
+        from shared.prompt_manager import get_prompt
+        
+        prompt, llm_config = get_prompt(
+            'jd_parsing',
+            jd_text=requirements_text
+        )
+        
+        if not prompt:
+            raise ValueError("Prompt manager returned empty prompt")
+            
+        logger.info("[JD_PARSE] Using managed prompt: jd_parsing")
+        
+    except Exception as e:
+        logger.warning(f"[JD_PARSE] Failed to load managed prompt, using fallback: {e}")
+        
+        # Fallback to hardcoded prompt
+        llm_config = {"temperature": 0.5, "max_tokens": 2500}
+        prompt = f"""Analyze this job requirements and perform TWO tasks:
 
 TASK 1: Classify if this is a TECH job
 TASK 2: If TECH job, extract technical skills
@@ -668,14 +695,55 @@ For each skill:
 - skill_type: "technical" or "soft" (to distinguish between technical and soft skills)
 
 RULES:
-- English only, no Vietnamese
-- 2-50 characters per skill name
-- No phrases like "years of experience", "knowledge of"
-- Specific names: "React" not "frameworks"
-- Proper capitalization: "JavaScript" not "javascript"
-- Extract BOTH technical AND soft skills explicitly mentioned
-- For soft skills, use the skill_type="soft" field
-- If NON-TECH job, return empty skills array []
+- STRICTLY ENGLISH ONLY. No Vietnamese characters allowed in any field.
+- Any skill_name (including group names) containing Vietnamese will be REJECTED by the system.
+- 2-50 characters per skill name.
+- No phrases like "years of experience", "knowledge of".
+- Specific names: "React" not "frameworks".
+- Proper capitalization: "JavaScript" not "javascript".
+- Extract BOTH technical AND soft skills explicitly mentioned.
+- For soft skills, use the skill_type="soft" field.
+- If NON-TECH job, return empty skills array [].
+
+=== IMPORTANT: ALTERNATIVE SKILL GROUPS ===
+
+MANDATORY RULE: You MUST detect when requirements mention ALTERNATIVES (user only needs ONE or SOME, not ALL) and return them as a SKILL GROUP. Do NOT list them as separate skills.
+
+PATTERNS TO DETECT:
+- English: "or", "at least one of", "one of the following", "any of", "or equivalent"
+- Vietnamese: "hoặc", "ít nhất một", "một trong các", "tương đương", "một trong số", "nắm vững một trong các", "biết ít nhất một"
+- Parentheses: "(Blender, Maya, or 3ds Max)", "(SQL/NoSQL)"
+- Slashes: "SQL/NoSQL", "React/Vue/Angular"
+
+When you detect alternatives, return as a SKILL GROUP:
+{{
+  "skill_name": "3D Modeling Tools",  // Descriptive name in ENGLISH
+  "category": "Development Tool",
+  "is_group": true,                      // Mark as group
+  "group_strategy": "any_one",           // Strategy (see below)
+  "alternative_skills": ["Blender", "Maya", "3ds Max"],  // Array of alternatives
+  "min_required": 1,                     // How many needed
+  "is_mandatory": true,
+  "importance_weight": 8,
+  "skill_type": "technical"
+}}
+
+GROUP STRATEGIES:
+- "any_one": User needs ANY ONE skill from alternatives (most common)
+  Example: "Blender, Maya, or 3ds Max" → any_one, min_required=1
+- "at_least_n": User needs at least N skills
+  Example: "At least 2 of: Python, Java, C++, Go" → at_least_n, min_required=2
+- "all": User needs ALL skills (rare, only if explicitly stated "all of")
+
+EXAMPLES:
+1. "Thành thạo ít nhất một phần mềm: Blender, Maya, hoặc 3ds Max"
+   → {{"skill_name": "3D Modeling Tools", "is_group": true, "group_strategy": "any_one", "alternative_skills": ["Blender", "Maya", "3ds Max"], "min_required": 1}}
+
+2. "Experience with SQL or NoSQL databases"
+   → {{"skill_name": "Database Technology", "is_group": true, "group_strategy": "any_one", "alternative_skills": ["SQL", "NoSQL"], "min_required": 1}}
+
+3. "At least 2 programming languages: Python, Java, C++, or Go"
+   → {{"skill_name": "Backend Programming Languages", "is_group": true, "group_strategy": "at_least_n", "alternative_skills": ["Python", "Java", "C++", "Go"], "min_required": 2}}
 
 Return JSON:
 {{
@@ -686,6 +754,7 @@ Return JSON:
   "skills": [
     {{"skill_name": "Python", "category": "Programming Language", "required_level": "Senior", "min_years_exp": 5, "is_mandatory": true, "importance_weight": 10, "skill_type": "technical"}},
     {{"skill_name": "Django", "category": "Backend Framework", "required_level": null, "min_years_exp": 3, "is_mandatory": true, "importance_weight": 8, "skill_type": "technical"}},
+    {{"skill_name": "3D Modeling Software", "category": "Design Tool", "is_group": true, "group_strategy": "any_one", "alternative_skills": ["Blender", "Maya", "3ds Max"], "min_required": 1, "is_mandatory": true, "importance_weight": 8, "skill_type": "technical"}},
     {{"skill_name": "Communication", "category": "Communication", "required_level": null, "min_years_exp": 0, "is_mandatory": true, "importance_weight": 7, "skill_type": "soft"}},
     {{"skill_name": "Team leadership", "category": "Leadership", "required_level": "Mid", "min_years_exp": 2, "is_mandatory": false, "importance_weight": 6, "skill_type": "soft"}}
   ]
@@ -700,21 +769,25 @@ If NON-TECH:
   "skills": []
 }}
 """
-
-    system_prompt = "You are a technical recruiter expert at analyzing job requirements and extracting structured skill data. Always return valid JSON."
     
     try:
         logger.info(f"[SKILL EXTRACT] Extracting skills from {len(requirements_text)} chars of requirements...")
         system_logger.info("AI_SKILL_EXTRACT", f"Starting skill extraction ({len(requirements_text)} chars)")
         
+        # Extract temperature from llm_config (default 0.1 if not specified)
+        temperature = llm_config.get("temperature", 0.1) if llm_config else 0.1
+        
         response = get_chat_completion(
             prompt=prompt,
-            system_prompt=system_prompt,
             json_mode=True,
             model_key=model_key,
             call_name="extract_skills",
-            user_id=user_id
+            user_id=user_id,
+            temperature=temperature
         )
+        
+        # DEBUG: Log raw response
+        # logger.info(f"[DEBUG RAW LLM] {response}")
         
         if not response:
             logger.error("[SKILL EXTRACT] No response from LLM")

@@ -17,6 +17,28 @@ import json
 app = FastAPI(title="Admin Service")
 logger = logging.getLogger("admin_service")
 
+# Import and include prompt management routes
+from services.admin_service.routes.prompt_routes import router as prompt_router
+app.include_router(prompt_router)
+
+# ============================================================================
+# BENCHMARK EXTENSION (Optional - Can be disabled in production)
+# ============================================================================
+# Import and include benchmark routes ONLY if enabled
+ENABLE_BENCHMARK = config_manager.get_setting("ENABLE_BENCHMARK", default=True, cast=bool)
+
+if ENABLE_BENCHMARK:
+    try:
+        from services.admin_service.routes.benchmark_routes import router as benchmark_router
+        app.include_router(benchmark_router)
+        logger.info("[ADMIN] ✅ Benchmark extension ENABLED - Routes registered")
+    except ImportError as e:
+        logger.warning(f"[ADMIN] Benchmark routes extension not found: {e}")
+    except Exception as e:
+        logger.error(f"[ADMIN] Error registering benchmark routes: {e}")
+else:
+    logger.info("[ADMIN] ⚠️ Benchmark extension DISABLED - Skipping route registration")
+
 # System settings that should be synced to Redis for gateway access
 # These use special "system:" prefix for gateway middleware
 GATEWAY_SETTINGS = {"MAINTENANCE_MODE", "MAINTENANCE_DURATION"}
@@ -75,6 +97,14 @@ def load_settings_to_redis():
         
     except Exception as e:
         logger.error(f"[ADMIN] Failed to load settings to Redis: {e}")
+    
+    # Initialize prompt manager and load active prompts
+    try:
+        from shared.prompt_manager import init_prompt_manager
+        init_prompt_manager(config_cache, SessionLocal)
+        logger.info("[ADMIN] Prompt manager initialized and prompts loaded to Redis")
+    except Exception as e:
+        logger.error(f"[ADMIN] Failed to initialize prompt manager: {e}")
 
 # --- Pydantic Schemas ---
 
@@ -766,16 +796,33 @@ async def admin_add_curated_video(
             {"vid": video_id}
         )
         
-        # Add new skills
-        for skill in data.skills:
-            db.execute(
-                text("""
-                    INSERT INTO youtube_video_skills (video_id, skill_name)
-                    VALUES (:vid, :skill)
-                    ON CONFLICT (video_id, skill_name) DO NOTHING
-                """),
-                {"vid": video_id, "skill": skill}
-            )
+        # Add new skills - match case-insensitively with master skills table
+        for skill_name in data.skills:
+            # Try to find skill in master table (case-insensitive)
+            skill = db.query(Skill).filter(
+                text("LOWER(name) = LOWER(:name)")
+            ).params(name=skill_name).first()
+            
+            if skill:
+                # Use the canonical name from master table
+                db.execute(
+                    text("""
+                        INSERT INTO youtube_video_skills (video_id, skill_id, skill_name)
+                        VALUES (:vid, :sid, :skill)
+                        ON CONFLICT (video_id, skill_name) DO UPDATE SET skill_id = :sid
+                    """),
+                    {"vid": video_id, "sid": str(skill.id), "skill": skill.name}
+                )
+            else:
+                # Skill not in master table - insert with just name
+                db.execute(
+                    text("""
+                        INSERT INTO youtube_video_skills (video_id, skill_name)
+                        VALUES (:vid, :skill)
+                        ON CONFLICT (video_id, skill_name) DO NOTHING
+                    """),
+                    {"vid": video_id, "skill": skill_name}
+                )
         
         db.commit()
         return {"message": "Video updated successfully", "video_id": video_id}
@@ -850,15 +897,31 @@ async def admin_add_curated_video(
         db.add(new_video)
         db.flush()
         
-        # Add skills
-        for skill in data.skills:
-            db.execute(
-                text("""
-                    INSERT INTO youtube_video_skills (video_id, skill_name)
-                    VALUES (:vid, :skill)
-                """),
-                {"vid": video_id, "skill": skill}
-            )
+        # Add skills - match case-insensitively with master skills table
+        for skill_name in data.skills:
+            # Try to find skill in master table (case-insensitive)
+            skill = db.query(Skill).filter(
+                text("LOWER(name) = LOWER(:name)")
+            ).params(name=skill_name).first()
+            
+            if skill:
+                # Use the canonical name from master table
+                db.execute(
+                    text("""
+                        INSERT INTO youtube_video_skills (video_id, skill_id, skill_name)
+                        VALUES (:vid, :sid, :skill)
+                    """),
+                    {"vid": video_id, "sid": str(skill.id), "skill": skill.name}
+                )
+            else:
+                # Skill not in master table - insert with just name
+                db.execute(
+                    text("""
+                        INSERT INTO youtube_video_skills (video_id, skill_name)
+                        VALUES (:vid, :skill)
+                    """),
+                    {"vid": video_id, "skill": skill_name}
+                )
         
         db.commit()
         
@@ -1231,6 +1294,106 @@ def admin_create_skill(
     except Exception as e:
         db.rollback()
         logger.error(f"Error creating skill: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.put("/admin/skills/{skill_id}")
+def admin_update_skill(
+    skill_id: str,
+    data: SkillCreateRequest,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Update existing skill."""
+    try:
+        # Find the skill
+        skill = db.query(Skill).filter(Skill.id == skill_id).first()
+        if not skill:
+            raise HTTPException(status_code=404, detail="Skill not found")
+        
+        # Check if new name conflicts with another skill
+        if data.name != skill.name:
+            existing = db.query(Skill).filter(
+                Skill.name == data.name,
+                Skill.id != skill_id
+            ).first()
+            if existing:
+                raise HTTPException(status_code=400, detail=f"Skill '{data.name}' already exists")
+        
+        # Update skill
+        skill.name = data.name
+        skill.category = data.category
+        skill.parent_skill_id = data.parent_skill_id if data.parent_skill_id else None
+        
+        db.commit()
+        db.refresh(skill)
+        
+        logger.info(f"[ADMIN] Updated skill {skill_id}: {data.name} by {admin_user.email}")
+        
+        return {
+            "message": "Skill updated successfully",
+            "skill": {
+                "id": str(skill.id),
+                "name": skill.name,
+                "category": skill.category
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating skill: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/admin/skills/{skill_id}")
+def admin_delete_skill(
+    skill_id: str,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user)
+):
+    """Admin only: Delete skill."""
+    try:
+        # Find the skill
+        skill = db.query(Skill).filter(Skill.id == skill_id).first()
+        if not skill:
+            raise HTTPException(status_code=404, detail="Skill not found")
+        
+        # Check if skill is being used in youtube_video_skills
+        usage_count = db.execute(
+            text("SELECT COUNT(*) FROM youtube_video_skills WHERE skill_id = :sid"),
+            {"sid": skill_id}
+        ).scalar()
+        
+        if usage_count > 0:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Cannot delete skill. It is used in {usage_count} YouTube video(s). Please remove those associations first."
+            )
+        
+        # Check if skill is a parent of other skills
+        children_count = db.query(Skill).filter(Skill.parent_skill_id == skill_id).count()
+        if children_count > 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot delete skill. It is a parent of {children_count} other skill(s). Please update those skills first."
+            )
+        
+        # Delete the skill
+        skill_name = skill.name
+        db.delete(skill)
+        db.commit()
+        
+        logger.info(f"[ADMIN] Deleted skill {skill_id}: {skill_name} by {admin_user.email}")
+        
+        return {"message": f"Skill '{skill_name}' deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deleting skill: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

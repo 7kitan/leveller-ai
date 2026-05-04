@@ -74,9 +74,9 @@ def calculate_skill_impact(
     job_id: str,
     current_match_pct: float,
     db: Session
-) -> Tuple[float, float, List[Dict]]:
+) -> Tuple[float, List[Dict]]:
     """
-    Tính potential_match_pct và salary_growth_pct dựa trên DB data thực tế.
+    Tính potential_match_pct dựa trên DB data thực tế.
     
     Args:
         skill_gaps: List các skill còn thiếu từ gap analysis
@@ -85,12 +85,12 @@ def calculate_skill_impact(
         db: Database session
         
     Returns:
-        (potential_match_pct, salary_growth_pct, enriched_skill_gaps)
+        (potential_match_pct, enriched_skill_gaps)
     """
     
-    if not skill_gaps or not job_id:
-        logger.warning("No skill gaps or job_id provided, returning current match")
-        return current_match_pct, 0.0, skill_gaps
+    if not skill_gaps:
+        logger.warning("No skill gaps provided, returning current match")
+        return current_match_pct, skill_gaps
     
     # Lấy job để đọc extracted_requirements_json
     job = db.query(Job).filter(Job.id == job_id).first()
@@ -121,14 +121,12 @@ def calculate_skill_impact(
                             skill_weights[skill_name] = group_importance
     
     total_match_gain = 0.0
-    total_salary_gain = 0.0
     enriched_gaps = []
     
     for gap in skill_gaps:
         skill_name = gap.get("skill", "").lower()
         
         # Deterministic jitter to prevent identical percentages
-        # We use a simple hash of the skill name to get a value between -0.5 and 0.5
         import hashlib
         name_hash = int(hashlib.md5(skill_name.encode()).hexdigest(), 16)
         jitter = (name_hash % 11 - 5) / 10.0  # -0.5 to 0.5
@@ -149,31 +147,15 @@ def calculate_skill_impact(
             else:
                 match_impact = 3.0 + jitter
         
-        # 2. Tính salary impact từ MarketSkillStats
-        salary_impact = 0.0
+        # 2. Clamp match impact to valid range
+        clamped_match_impact = max(1.0, match_impact)
+        
+        # 3. Calculate market_demand from real data
         # SECURITY: Use ilike with escaped skill_name to prevent LIKE injection
         market_stat = db.query(MarketSkillStats).filter(
             MarketSkillStats.skill_name.ilike(f"%{escape_like(skill_name)}%", escape='\\')
         ).first()
         
-        if market_stat and market_stat.salary_premium_pct:
-            # Convert from fraction to percentage (e.g., 0.15 -> 15%)
-            salary_impact = (market_stat.salary_premium_pct * 100) + jitter
-        else:
-            # Fallback: estimate dựa trên severity và demand
-            severity = gap.get("severity", "medium").lower()
-            if severity == "high":
-                salary_impact = 12.0 + jitter * 3
-            elif severity == "medium":
-                salary_impact = 6.0 + jitter * 2
-            else:
-                salary_impact = 2.0 + jitter
-        
-        # 3. Clamp impact values to valid ranges
-        clamped_match_impact = max(1.0, match_impact)
-        clamped_salary_impact = max(0.0, salary_impact)
-        
-        # 4. Calculate market_demand from real data
         if market_stat and market_stat.demand_score is not None:
             # Use pre-calculated stats from MarketSkillStats (30-day data)
             market_demand = round(market_stat.demand_score, 1)
@@ -181,29 +163,22 @@ def calculate_skill_impact(
             # Fallback: Calculate real-time from Job table
             market_demand = round(calculate_market_demand_from_jobs(skill_name, db), 1)
         
-        # 5. Enrich skill gap với impact values
+        # 4. Enrich skill gap với impact values (NO SALARY)
         enriched_gap = {
             **gap,
             "match_impact": round(clamped_match_impact, 1),
-            "salary_impact": round(clamped_salary_impact, 1),
             "market_demand": market_demand,
-            "avg_salary_range": {
-                "min": market_stat.avg_salary_min if market_stat else None,
-                "max": market_stat.avg_salary_max if market_stat else None
-            } if market_stat else None
         }
         enriched_gaps.append(enriched_gap)
         
-        # CRITICAL: Use clamped values for totals, not raw values!
         total_match_gain += clamped_match_impact
-        total_salary_gain += clamped_salary_impact
         
         logger.info(
             f"Skill '{skill_name}': match_impact={match_impact}%, "
-            f"salary_impact={salary_impact}%"
+            f"market_demand={market_demand}%"
         )
     
-    # 4. Tính potential_match_pct dựa trên trọng số thực tế
+    # 5. Tính potential_match_pct dựa trên trọng số thực tế
     if skill_weights:
         # Calculate total weight from all JD requirements
         total_weight = sum(skill_weights.values())
@@ -235,15 +210,12 @@ def calculate_skill_impact(
         potential_match_pct = min(98, current_match_pct + total_match_gain)
         logger.warning("No skill weights found, using fallback calculation")
     
-    # 5. Tính salary_growth_pct (cap ở 50% để realistic)
-    salary_growth_pct = min(50, total_salary_gain)
-    
     logger.info(
         f"Growth calculation: current={current_match_pct}%, "
-        f"potential={potential_match_pct}%, salary_growth={salary_growth_pct}%"
+        f"potential={potential_match_pct}%"
     )
     
-    return potential_match_pct, salary_growth_pct, enriched_gaps
+    return potential_match_pct, enriched_gaps
 
 
 def calculate_market_sentiment(
@@ -251,51 +223,62 @@ def calculate_market_sentiment(
     db: Session
 ) -> str:
     """
-    Tính market sentiment dựa trên top skills có demand cao nhất.
-    Trả về sentiment cụ thể dựa trên skill có nhu cầu cao nhất trong gap list.
+    Tính market sentiment dựa trên top skills có demand cao nhất và số lượng job thực tế.
+    Trả về sentiment cụ thể dựa trên số lượng cơ hội việc làm thực tế trong DB.
     """
     if not skill_gaps:
-        return "Không có dữ liệu"
+        return "Thị trường ổn định"
     
-    # Get top 10 skills by demand globally
+    # 1. Lấy tổng số job tech để tính context
+    total_tech_jobs = db.query(Job).filter(Job.is_tech_job == True).count()
+    
+    # 2. Lấy top 10 skills toàn hệ thống
     top_10_skills = db.query(MarketSkillStats).filter(
         MarketSkillStats.demand_score.isnot(None)
     ).order_by(MarketSkillStats.demand_score.desc()).limit(10).all()
     
     top_10_names = {s.skill_name.lower() for s in top_10_skills}
     
-    # Find highest demand skill in gap list
-    max_demand = 0.0
-    max_demand_skill = None
-    max_growth = 0.0
-    has_top_10_skill = False
+    # 3. Tìm skill có "tín hiệu" mạnh nhất trong danh sách gap
+    best_stat = None
+    best_skill_name = None
+    is_in_top_10 = False
     
     for gap in skill_gaps:
         skill_name = gap.get("skill", "").lower()
-        # SECURITY: Use ilike with escaped skill_name to prevent LIKE injection
         market_stat = db.query(MarketSkillStats).filter(
             MarketSkillStats.skill_name.ilike(f"%{escape_like(skill_name)}%", escape='\\')
         ).first()
         
-        if market_stat and market_stat.demand_score:
-            if market_stat.demand_score > max_demand:
-                max_demand = market_stat.demand_score
-                max_demand_skill = gap.get("skill")
-                max_growth = market_stat.growth_rate_30d or 0.0
-            
-            # Check if this skill is in top 10
-            if skill_name in top_10_names:
-                has_top_10_skill = True
+        if market_stat and (market_stat.job_count_30d or 0) > 0:
+            # Ưu tiên skill có job_count lớn nhất
+            if not best_stat or market_stat.job_count_30d > best_stat.job_count_30d:
+                best_stat = market_stat
+                best_skill_name = gap.get("skill")
+                if skill_name in top_10_names:
+                    is_in_top_10 = True
     
-    # Generate specific sentiment based on highest demand skill
-    if has_top_10_skill:
-        return f"Nhu cầu rất cao - {max_demand_skill} thuộc Top 10 kỹ năng được tìm kiếm nhiều nhất"
-    elif max_demand > 15:
-        growth_note = " (Đang tăng nhanh)" if max_growth > 0.2 else ""
-        return f"Nhu cầu cao - {max_demand_skill} xuất hiện trong {max_demand:.1f}% công việc{growth_note}"
-    elif max_demand > 5:
-        return f"Nhu cầu trung bình - {max_demand_skill} xuất hiện trong {max_demand:.1f}% công việc"
-    elif max_demand > 0:
-        return f"Nhu cầu thấp - {max_demand_skill} xuất hiện trong {max_demand:.1f}% công việc"
+    if not best_stat:
+        return "Nhu cầu thị trường đang thay đổi"
+
+    count = best_stat.job_count_30d
+    pct = best_stat.demand_score or 0.0
+    growth = best_stat.growth_rate_30d or 0.0
+    
+    # 4. Phân loại dựa trên số lượng tuyệt đối và tương đối
+    # Ngưỡng: > 50 jobs hoặc > 15% là Rất cao
+    #         > 20 jobs hoặc > 5% là Cao
+    #         Còn lại là Ổn định/Trung bình
+    
+    if is_in_top_10 or count > 50 or pct > 15:
+        msg = f"Nhu cầu rất cao — {best_skill_name} xuất hiện trong {count} vị trí tuyển dụng ({pct:.1f}%)"
+        if is_in_top_10:
+            msg += " (Top 10 Hot Skills)"
+        return msg
+    elif count > 20 or pct > 5:
+        growth_note = " (Đang tăng trưởng)" if growth > 0.1 else ""
+        return f"Nhu cầu cao — {best_skill_name} đang được yêu cầu tại {count} doanh nghiệp{growth_note}"
+    elif count > 5:
+        return f"Nhu cầu ổn định — Có {count} cơ hội việc làm mới cho kỹ năng {best_skill_name}"
     else:
-        return "Không có dữ liệu thị trường"
+        return f"Tín hiệu mới — {best_skill_name} bắt đầu xuất hiện trong các JD gần đây"

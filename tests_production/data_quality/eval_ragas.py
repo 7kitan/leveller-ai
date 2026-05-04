@@ -12,7 +12,7 @@ load_dotenv()
 def get_real_test_data():
     try:
         # Kết nối vào Database (thay đổi thông tin kết nối nếu cần)
-        conn = psycopg2.connect("postgresql://postgres:postgres@localhost:5432/career_advisor")
+        conn = psycopg2.connect("postgresql://postgres:postgres@localhost:5432/team078")
         cursor = conn.cursor()
 
         # Lấy dữ liệu 5 file CV mới nhất đã parse xong
@@ -33,7 +33,7 @@ def get_real_test_data():
         human_answers = [
             "Mức độ tương thích CV 1...",
             "Mức độ tương thích CV 2...",
-            "Mức độ tương tcvhích CV 3...",
+            "Mức độ tương thích CV 3...",
             "Mức độ tương thích CV 4...",
             "Mức độ tương thích CV 5..."
         ]

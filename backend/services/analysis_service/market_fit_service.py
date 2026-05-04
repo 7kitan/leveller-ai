@@ -12,12 +12,12 @@ from services.analysis_service.growth_calculator import (
 
 logger = logging.getLogger("market_fit_service")
 
-async def update_user_market_fit(user_id: uuid.UUID, db: Session) -> dict:
+async def update_user_market_fit(user_id: uuid.UUID, db: Session, cv_id: uuid.UUID = None) -> dict:
     """
     Tính toán và cập nhật dữ liệu Market Fit cho User.
     Hàm này có thể được gọi từ API hoặc từ Background Worker sau khi phân tích Gap.
     """
-    logger.info(f"[MARKET FIT] Updating data for user {user_id}...")
+    logger.info(f"[MARKET FIT] Updating data for user {user_id} | cv_id={cv_id}...")
     
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -26,11 +26,14 @@ async def update_user_market_fit(user_id: uuid.UUID, db: Session) -> dict:
 
     now = datetime.now(timezone.utc)
     
-    # 1. Lấy CV mới nhất của user
-    latest_cv = db.query(UserCV).filter(
-        UserCV.user_id == user_id, 
-        UserCV.status == "completed"
-    ).order_by(UserCV.created_at.desc()).first()
+    # 1. Lấy CV (Ưu tiên cv_id nếu truyền vào, không thì lấy cái mới nhất)
+    if cv_id:
+        latest_cv = db.query(UserCV).filter(UserCV.id == cv_id).first()
+    else:
+        latest_cv = db.query(UserCV).filter(
+            UserCV.user_id == user_id, 
+            UserCV.status == "completed"
+        ).order_by(UserCV.created_at.desc()).first()
 
     total_jobs = db.query(Job).filter(Job.status == "active").count()
     
@@ -64,10 +67,18 @@ async def update_user_market_fit(user_id: uuid.UUID, db: Session) -> dict:
             "last_updated": now.isoformat()
         }
     else:
-        # 2. Lấy analysis mới nhất cho CV này
-        latest_analysis = db.query(UserAnalysis).filter(
-            UserAnalysis.cv_id == latest_cv.id
-        ).order_by(UserAnalysis.created_at.desc()).first()
+        # 2. Lấy analysis mới nhất cho CV này (Ưu tiên last_analysis_id nếu khớp CV)
+        latest_analysis = None
+        if user.last_analysis_id:
+            latest_analysis = db.query(UserAnalysis).filter(
+                UserAnalysis.id == user.last_analysis_id,
+                UserAnalysis.cv_id == latest_cv.id
+            ).first()
+            
+        if not latest_analysis:
+            latest_analysis = db.query(UserAnalysis).filter(
+                UserAnalysis.cv_id == latest_cv.id
+            ).order_by(UserAnalysis.created_at.desc()).first()
 
         matched_jobs_count = 0
         market_fit_pct = 0
@@ -77,17 +88,18 @@ async def update_user_market_fit(user_id: uuid.UUID, db: Session) -> dict:
         courses_to_return = []
         
         if latest_analysis and latest_analysis.result_json:
-            res = latest_analysis.result_json
+            from services.analysis_service.result_normalizer import normalize_analysis_result
+            res = normalize_analysis_result(latest_analysis.result_json)
             course_recs = res.get("course_recommendations") or []
             matched_jobs_count = len(course_recs)
             market_fit_pct = int(float(res.get("overall_match_pct") or 0))
             
-            # Calculate growth metrics using DB data (NEW ALGORITHM)
+            # Calculate growth metrics using DB data (NO SALARY)
             skill_gaps = res.get("skill_gaps") or []
             
             if skill_gaps and latest_analysis.job_id:
                 try:
-                    potential_match_pct, salary_growth_pct, _ = calculate_skill_impact(
+                    potential_match_pct, _ = calculate_skill_impact(
                         skill_gaps=skill_gaps,
                         job_id=str(latest_analysis.job_id),
                         current_match_pct=market_fit_pct,
@@ -97,25 +109,20 @@ async def update_user_market_fit(user_id: uuid.UUID, db: Session) -> dict:
                     market_sentiment = calculate_market_sentiment(skill_gaps, db)
                     
                     logger.info(
-                        f"Market fit calculated from DB: potential={potential_match_pct}%, "
-                        f"salary={salary_growth_pct}%"
+                        f"Market fit calculated from DB: potential={potential_match_pct}%"
                     )
                 except Exception as e:
                     logger.error(f"Error calculating market fit: {e}", exc_info=True)
                     # Fallback to simple heuristic
                     potential_match_pct = min(98, market_fit_pct + (matched_jobs_count * 5))
-                    salary_growth_pct = matched_jobs_count * 8
                     market_sentiment = "Tăng trưởng cao" if matched_jobs_count > 3 else "Ổn định"
             else:
                 # Fallback if no skill_gaps or job_id
                 potential_match_pct = int(float(res.get("potential_match_pct") or 0))
-                salary_growth_pct = int(float(res.get("salary_growth_pct") or 0))
                 market_sentiment = res.get("market_sentiment") or ""
                 
                 if potential_match_pct == 0 and matched_jobs_count > 0:
                     potential_match_pct = min(98, market_fit_pct + (matched_jobs_count * 5))
-                if salary_growth_pct == 0 and matched_jobs_count > 0:
-                    salary_growth_pct = matched_jobs_count * 8
                 if not market_sentiment and matched_jobs_count > 0:
                     market_sentiment = "Tăng trưởng cao" if matched_jobs_count > 3 else "Ổn định"
             
@@ -128,7 +135,6 @@ async def update_user_market_fit(user_id: uuid.UUID, db: Session) -> dict:
             "matched_jobs": matched_jobs_count,
             "market_fit_pct": market_fit_pct,
             "potential_match_pct": potential_match_pct,
-            "salary_growth_pct": salary_growth_pct,
             "market_sentiment": market_sentiment,
             "courses": courses_to_return[:6],
             "total_jobs": total_jobs,
@@ -142,8 +148,9 @@ async def update_user_market_fit(user_id: uuid.UUID, db: Session) -> dict:
     user.market_fit_last_updated = now
     user.market_fit_data = market_fit_data
     
-    db.commit()
-    logger.info(f"[MARKET FIT] Successfully updated data for user {user_id}")
+    # NOTE: Do NOT commit here - let the caller handle transaction management
+    # db.commit() removed to avoid nested transaction issues
+    logger.info(f"[MARKET FIT] Successfully updated data for user {user_id} (pending commit)")
     return market_fit_data
 
 

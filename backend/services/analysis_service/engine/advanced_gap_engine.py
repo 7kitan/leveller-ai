@@ -135,36 +135,105 @@ class AdvancedGapEngine:
         return best_match
 
     def resolve_group_score(self, group_req: Dict[str, Any], skill_results: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """ Tầng 3: Xử lý Group Logic (Exclusive - OR / Inclusive - AND). """
-        strategy = group_req.get("group_strategy", "exclusive")
+        """ 
+        Tầng 3: Xử lý Group Logic.
+        Strategies:
+        - "any_one": User needs ANY ONE skill from alternatives (OR logic)
+        - "at_least_n": User needs at least N skills from alternatives
+        - "all": User needs ALL skills from alternatives (AND logic)
+        """
+        strategy = group_req.get("group_strategy", "any_one")
+        min_required = group_req.get("min_required", 1)
         
         if not skill_results:
             return {"score": 0.0, "status": "GAP", "match_found": False}
         
-        if strategy == "exclusive": # OR - 1 trong list
-            best = max(skill_results, key=lambda x: x["score"])
-            return {
-                "score": best["score"],
-                "skill": best["skill"],
-                "match_found": best["score"] > 0,
-                "strategy": "OR",
-                "details": best.get("details", {})
-            }
-        else: # inclusive - AND - Cần tất cả
-            scores = [s["score"] for s in skill_results]
-            missing_count = scores.count(0)
-            avg_score = sum(scores) / len(scores)
-            
-            # Penalty nếu thiếu member trong nhóm AND
-            final_group_score = float(avg_score * (1 - (missing_count / len(scores)) * 0.5))
-            
-            return {
-                "score": final_group_score,
-                "match_found": final_group_score > 0,
-                "strategy": "AND",
-                "members_count": len(scores),
-                "missing_count": missing_count
-            }
+        # Count how many skills matched (score > 0)
+        matched_skills = [s for s in skill_results if s.get("score", 0) > 0]
+        matched_count = len(matched_skills)
+        
+        if strategy == "any_one":
+            # User needs ANY ONE skill from alternatives
+            if matched_count >= 1:
+                best = max(matched_skills, key=lambda x: x["score"])
+                return {
+                    "score": best["score"],
+                    "skill": best.get("skill"),
+                    "match_found": True,
+                    "strategy": "any_one (OR)",
+                    "matched_count": matched_count,
+                    "details": best.get("details", {})
+                }
+            else:
+                return {"score": 0.0, "status": "GAP", "match_found": False, "strategy": "any_one (OR)"}
+        
+        elif strategy == "at_least_n":
+            # User needs at least N skills from alternatives
+            if matched_count >= min_required:
+                # Take average of top N matched skills
+                top_matches = sorted(matched_skills, key=lambda x: x["score"], reverse=True)[:min_required]
+                avg_score = sum(s["score"] for s in top_matches) / len(top_matches)
+                return {
+                    "score": avg_score,
+                    "match_found": True,
+                    "strategy": f"at_least_{min_required}",
+                    "matched_count": matched_count,
+                    "required_count": min_required
+                }
+            else:
+                # Partial match: user has some but not enough
+                if matched_count > 0:
+                    partial_score = matched_count / min_required * 0.5  # 50% penalty for incomplete
+                    return {
+                        "score": partial_score,
+                        "match_found": False,
+                        "strategy": f"at_least_{min_required}",
+                        "matched_count": matched_count,
+                        "required_count": min_required
+                    }
+                else:
+                    return {"score": 0.0, "status": "GAP", "match_found": False, "strategy": f"at_least_{min_required}"}
+        
+        elif strategy == "all":
+            # User needs ALL skills from alternatives (AND logic)
+            total_count = len(skill_results)
+            if matched_count == total_count:
+                # All skills matched
+                avg_score = sum(s["score"] for s in matched_skills) / total_count
+                return {
+                    "score": avg_score,
+                    "match_found": True,
+                    "strategy": "all (AND)",
+                    "matched_count": matched_count,
+                    "required_count": total_count
+                }
+            else:
+                # Partial match with penalty
+                missing_count = total_count - matched_count
+                avg_score = sum(s["score"] for s in skill_results) / total_count
+                penalty = (missing_count / total_count) * 0.5
+                final_score = float(avg_score * (1 - penalty))
+                return {
+                    "score": final_score,
+                    "match_found": final_score > 0.5,
+                    "strategy": "all (AND)",
+                    "matched_count": matched_count,
+                    "required_count": total_count,
+                    "missing_count": missing_count
+                }
+        
+        else:
+            # Fallback: treat as "any_one"
+            if matched_count >= 1:
+                best = max(matched_skills, key=lambda x: x["score"])
+                return {
+                    "score": best["score"],
+                    "skill": best.get("skill"),
+                    "match_found": True,
+                    "strategy": "fallback (OR)"
+                }
+            else:
+                return {"score": 0.0, "status": "GAP", "match_found": False}
 
     async def calculate_match(self, user_skills_data: List[Dict[str, Any]], jd_requirements: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -173,6 +242,11 @@ class AdvancedGapEngine:
         2. Tier 1 (Exact)
         3. Tier 2 (Vector + Multipliers)
         4. Tier 3 (Group Logic)
+        
+        Supports new skill group schema:
+        - Groups have "is_group": true
+        - "alternative_skills": ["Blender", "Maya", "3ds Max"]
+        - "group_strategy": "any_one" | "at_least_n" | "all"
         """
         cv_norm_names = [self._get_canonical_name(s.get("name", "")) for s in user_skills_data]
         
@@ -180,13 +254,43 @@ class AdvancedGapEngine:
         jd_contexts = []
         req_mapping = []
         for req in jd_requirements:
-            if req.get("type") == "group":
-                for s in req.get("skills", []):
-                    ctx = build_jd_skill_context(s.get("skill"), s.get("target_level"), s.get("years_required"))
-                    jd_contexts.append(ctx)
-                    req_mapping.append(s)
+            # Check for new schema (is_group) or old schema (type == "group")
+            is_group = req.get("is_group", False) or req.get("type") == "group"
+            
+            if is_group:
+                # New schema: alternative_skills is array of strings
+                alternative_skills = req.get("alternative_skills", [])
+                if alternative_skills:
+                    # Create individual requirement objects for each alternative
+                    for skill_name in alternative_skills:
+                        ctx = build_jd_skill_context(
+                            skill_name, 
+                            req.get("target_level") or req.get("required_level", "Junior"), 
+                            req.get("years_required") or req.get("min_years_exp", 0)
+                        )
+                        jd_contexts.append(ctx)
+                        # Create a sub-requirement object
+                        sub_req = {
+                            "skill": skill_name,
+                            "skill_name": skill_name,
+                            "target_level": req.get("target_level") or req.get("required_level", "Junior"),
+                            "years_required": req.get("years_required") or req.get("min_years_exp", 0)
+                        }
+                        req_mapping.append(sub_req)
+                else:
+                    # Old schema fallback: skills array with objects
+                    for s in req.get("skills", []):
+                        ctx = build_jd_skill_context(s.get("skill"), s.get("target_level"), s.get("years_required"))
+                        jd_contexts.append(ctx)
+                        req_mapping.append(s)
             else:
-                ctx = build_jd_skill_context(req.get("skill_name"), req.get("target_level"), req.get("years_required"))
+                # Individual skill (not a group)
+                skill_name = req.get("skill_name") or req.get("skill")
+                ctx = build_jd_skill_context(
+                    skill_name, 
+                    req.get("target_level") or req.get("required_level", "Junior"), 
+                    req.get("years_required") or req.get("min_years_exp", 0)
+                )
                 jd_contexts.append(ctx)
                 req_mapping.append(req)
         
@@ -200,24 +304,41 @@ class AdvancedGapEngine:
         processed_breakdown = {"met": [], "gap": [], "partial": []}
         
         # 2. Process Requirements
+        req_index = 0  # Track position in req_mapping for groups
         for req in jd_requirements:
             is_mandatory = req.get("is_mandatory", True)
+            is_group = req.get("is_group", False) or req.get("type") == "group"
             
-            if req.get("type") == "group":
-                # Match từng member trong group
-                member_results = []
-                for sub_req in req.get("skills", []):
-                    res = await self._process_individual_req(sub_req, user_skills_data, cv_norm_names)
-                    member_results.append(res)
+            if is_group:
+                # Match each alternative skill in the group
+                alternative_skills = req.get("alternative_skills", [])
+                if not alternative_skills:
+                    # Old schema fallback
+                    alternative_skills = [s.get("skill") for s in req.get("skills", [])]
                 
-                # Resolve group
+                member_results = []
+                for skill_name in alternative_skills:
+                    # Get the corresponding sub_req from req_mapping
+                    if req_index < len(req_mapping):
+                        sub_req = req_mapping[req_index]
+                        req_index += 1
+                        res = await self._process_individual_req(sub_req, user_skills_data, cv_norm_names)
+                        member_results.append(res)
+                
+                # Resolve group using new strategy
                 match_res = self.resolve_group_score(req, member_results)
-                match_res["skill"] = req.get("group_name", "Skill Group")
+                match_res["skill"] = req.get("skill") or req.get("group_name") or req.get("skill_name") or "Requirement Group"
             else:
-                match_res = await self._process_individual_req(req, user_skills_data, cv_norm_names)
+                # Individual skill
+                if req_index < len(req_mapping):
+                    mapped_req = req_mapping[req_index]
+                    req_index += 1
+                    match_res = await self._process_individual_req(mapped_req, user_skills_data, cv_norm_names)
+                else:
+                    match_res = await self._process_individual_req(req, user_skills_data, cv_norm_names)
 
             match_res["is_mandatory"] = is_mandatory
-            score = match_res["score"]
+            score = match_res.get("score", 0)
             
             if is_mandatory:
                 must_have_results.append(match_res)
@@ -236,8 +357,8 @@ class AdvancedGapEngine:
         must_count = len(must_have_results)
         nice_count = len(nice_to_have_results)
         
-        must_match_ratio = float(sum(r["score"] for r in must_have_results) / must_count) if must_count > 0 else 1.0
-        nice_match_ratio = float(sum(r["score"] for r in nice_to_have_results) / nice_count) if nice_count > 0 else 1.0
+        must_match_ratio = float(sum(r.get("score", 0) for r in must_have_results) / must_count) if must_count > 0 else 1.0
+        nice_match_ratio = float(sum(r.get("score", 0) for r in nice_to_have_results) / nice_count) if nice_count > 0 else 1.0
         
         if must_count > 0 and nice_count > 0:
             overall_match_pct = (must_match_ratio * 0.7 + nice_match_ratio * 0.3) * 100

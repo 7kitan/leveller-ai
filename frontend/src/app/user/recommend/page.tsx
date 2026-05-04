@@ -67,13 +67,8 @@ interface SkillGap {
   learning_path?: string;
   gap_type?: string;
   learning_effort?: string;
-  match_impact?: number;        // NEW: % tăng match nếu học skill này
-  salary_impact?: number;       // NEW: % tăng lương nếu học skill này
-  market_demand?: number;       // NEW: Điểm nhu cầu thị trường (0-100)
-  avg_salary_range?: {          // NEW: Mức lương trung bình cho skill này
-    min: number | null;
-    max: number | null;
-  };
+  match_impact?: number;        // % tăng match nếu học skill này
+  market_demand?: number;       // Điểm nhu cầu thị trường (0-100)
 }
 
 interface GapResult {
@@ -90,7 +85,6 @@ interface GapResult {
   jd_context?: string;
   top_gaps?: SkillGap[];
   potential_match_pct?: number;
-  salary_growth_pct?: number;
   market_sentiment?: string;
   course_recommendations: CourseRec[];
   youtube_videos?: any[];
@@ -281,7 +275,6 @@ const UserRecommendPage = () => {
               // Preserve scalar values - only update if defined
               overall_match_pct: partial_result.overall_match_pct ?? prev?.overall_match_pct,
               potential_match_pct: partial_result.potential_match_pct ?? prev?.potential_match_pct,
-              salary_growth_pct: partial_result.salary_growth_pct ?? prev?.salary_growth_pct,
               overall_assessment: partial_result.overall_assessment || prev?.overall_assessment,
               jd_context: partial_result.jd_context || prev?.jd_context,
               market_sentiment: partial_result.market_sentiment || prev?.market_sentiment,
@@ -294,9 +287,20 @@ const UserRecommendPage = () => {
 
         if (status === "completed") {
           console.log("[RECOMMEND] Analysis completed!");
+          const finalResult = result as GapResult;
+          
+          // Check for logical failure
+          if (finalResult && finalResult.status === "failed") {
+            console.error("[RECOMMEND] Analysis reported logical failure:", finalResult.overall_assessment);
+            setError(finalResult.overall_assessment || t("analysis_failed"));
+            setIsProcessing(false);
+            setLoading(false);
+            clearInterval(interval);
+            return;
+          }
+
           // Merge final result with existing partial data to avoid losing anything
           setGapResult(prev => {
-            const finalResult = result as GapResult;
             return {
               ...prev,
               ...finalResult,
@@ -321,7 +325,6 @@ const UserRecommendPage = () => {
               // Preserve scalar values - only update if defined
               overall_match_pct: finalResult.overall_match_pct ?? prev?.overall_match_pct,
               potential_match_pct: finalResult.potential_match_pct ?? prev?.potential_match_pct,
-              salary_growth_pct: finalResult.salary_growth_pct ?? prev?.salary_growth_pct,
               overall_assessment: finalResult.overall_assessment || prev?.overall_assessment,
               jd_context: finalResult.jd_context || prev?.jd_context,
               market_sentiment: finalResult.market_sentiment || prev?.market_sentiment,
@@ -332,11 +335,16 @@ const UserRecommendPage = () => {
           clearInterval(interval);
         } else if (status === "failed") {
           console.error("[RECOMMEND] Analysis task failed");
+          setError(t("analysis_failed"));
           setIsProcessing(false);
           clearInterval(interval);
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error("[RECOMMEND] Polling error:", e);
+        const detail = e.response?.data?.detail || e.message;
+        setError(typeof detail === 'string' ? detail : t("analysis_failed"));
+        setIsProcessing(false);
+        clearInterval(interval);
       }
     }, 4000);
 
@@ -442,7 +450,7 @@ const UserRecommendPage = () => {
   const lowGaps = skill_gaps.filter((g) => g.severity?.toUpperCase() === "LOW");
 
   const hasImpactData = skill_gaps.length > 0 && skill_gaps.some(g => 
-    g.match_impact !== undefined || g.salary_impact !== undefined
+    g.match_impact !== undefined || g.market_demand !== undefined
   );
 
   const totalHours = course_recommendations.reduce((s, c) => s + (c.duration_hours || 0), 0);
@@ -626,7 +634,7 @@ const UserRecommendPage = () => {
             </div>
           </div>
 
-          {(!!gapResult.potential_match_pct || !!gapResult.salary_growth_pct) ? (
+          {!!gapResult.potential_match_pct ? (
             <div className={styles.growthForecast}>
               <div className={styles.growthItem}>
                 <div className={styles.growthLabel}>
@@ -640,15 +648,6 @@ const UserRecommendPage = () => {
                   </span>
                 </div>
               </div>
-              <div className={styles.growthItem}>
-                <div className={styles.growthLabel}>
-                  <TrendingUp size={14} className="text-success" />
-                  {t("dash_salary_boost")}
-                </div>
-                <div className={styles.growthValue}>
-                  {Number(gapResult.salary_growth_pct || 0) > 0 ? '+' : ''}{formatPercent(gapResult.salary_growth_pct || 0)}
-                </div>
-              </div>
               {gapResult.market_sentiment && (
                 <div className={styles.marketInsight}>
                   <Sparkles size={14} className="text-warning" />
@@ -659,7 +658,6 @@ const UserRecommendPage = () => {
           ) : isProcessing ? (
             <div className={styles.growthForecast}>
               <div className={cn(styles.skeleton, styles.skeletonText)} style={{ height: '3rem', marginBottom: '0.75rem' }} />
-              <div className={cn(styles.skeleton, styles.skeletonText)} style={{ height: '3rem' }} />
             </div>
           ) : null}
         </div>
@@ -779,11 +777,11 @@ const UserRecommendPage = () => {
                            return html;
                          }
                        },
-                      legend: { 
-                        data: [t('demand_score'), t('match_impact'), t('salary_impact')], 
-                        textStyle: { color: chartTextColor, fontSize: 10 }, 
-                        top: 0 
-                      },
+                       legend: { 
+                         data: [t('demand_score'), t('match_impact')], 
+                         textStyle: { color: chartTextColor, fontSize: 10 }, 
+                         top: 0 
+                       },
                       grid: { left: '3%', right: '4%', bottom: '3%', top: '40px', containLabel: true },
                       xAxis: { type: 'value', max: 100, axisLabel: { color: chartTextColor, fontSize: 10 }, splitLine: { lineStyle: { color: chartSplitLineColor } } },
                       yAxis: { 
@@ -792,38 +790,28 @@ const UserRecommendPage = () => {
                         axisLabel: { color: chartTextColor, fontSize: 11, width: 100, overflow: 'truncate' }, 
                         axisLine: { lineStyle: { color: chartAxisColor } } 
                       },
-                      series: [
-                        { 
-                          name: t('demand_score'), 
-                          type: 'bar', 
-                          data: sortedGapsForChart.map(g => g.market_demand || 0).reverse(), 
-                          itemStyle: { 
-                            color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#f59e0b' }, { offset: 1, color: '#fbbf24' }] }, 
-                            borderRadius: [0, 4, 4, 0] 
-                          }, 
-                          barWidth: '20%' 
-                        },
-                        { 
-                          name: t('match_impact'), 
-                          type: 'bar', 
-                          data: sortedGapsForChart.map(g => parseFloat(formatNumber(g.match_impact || 0))).reverse(), 
-                          itemStyle: { 
-                            color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#4f46e5' }, { offset: 1, color: '#0ea5e9' }] }, 
-                            borderRadius: [0, 4, 4, 0] 
-                          }, 
-                          barWidth: '20%' 
-                        },
-                        { 
-                          name: t('salary_impact'), 
-                          type: 'bar', 
-                          data: sortedGapsForChart.map(g => parseFloat(formatNumber(g.salary_impact || 0))).reverse(), 
-                          itemStyle: { 
-                            color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#34d399' }] }, 
-                            borderRadius: [0, 4, 4, 0] 
-                          }, 
-                          barWidth: '20%' 
-                        }
-                      ]
+                       series: [
+                         { 
+                           name: t('demand_score'), 
+                           type: 'bar', 
+                           data: sortedGapsForChart.map(g => g.market_demand || 0).reverse(), 
+                           itemStyle: { 
+                             color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#f59e0b' }, { offset: 1, color: '#fbbf24' }] }, 
+                             borderRadius: [0, 4, 4, 0] 
+                           }, 
+                           barWidth: '20%' 
+                         },
+                         { 
+                           name: t('match_impact'), 
+                           type: 'bar', 
+                           data: sortedGapsForChart.map(g => parseFloat(formatNumber(g.match_impact || 0))).reverse(), 
+                           itemStyle: { 
+                             color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#4f46e5' }, { offset: 1, color: '#0ea5e9' }] }, 
+                             borderRadius: [0, 4, 4, 0] 
+                           }, 
+                           barWidth: '20%' 
+                         }
+                       ]
                     }}
                     style={{ height: '100%', width: '100%' }}
                     opts={{ renderer: 'svg' }}
@@ -854,10 +842,9 @@ const UserRecommendPage = () => {
                   {gap.gap_type && <span className={styles.gapType}>{gap.gap_type}</span>}
                   {gap.is_critical && <span className={styles.criticalTag}>{t('critical')}</span>}
                 </div>
-                {(!!gap.match_impact || !!gap.salary_impact) && (
+                {!!gap.match_impact && (
                   <div className={styles.gapImpact}>
-                    {!!gap.match_impact && <span className={styles.impactBadge} style={{ background: primaryColor10, color: primaryColor }}><Target size={12} /> {gap.match_impact > 0 ? '+' : ''}{formatNumber(gap.match_impact)}% {t('match')}</span>}
-                    {!!gap.salary_impact && <span className={styles.impactBadge} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}><TrendingUp size={12} /> {gap.salary_impact > 0 ? '+' : ''}{formatNumber(gap.salary_impact)}% {t('salary_text')}</span>}
+                    <span className={styles.impactBadge} style={{ background: primaryColor10, color: primaryColor }}><Target size={12} /> {gap.match_impact > 0 ? '+' : ''}{formatNumber(gap.match_impact)}% {t('match')}</span>
                   </div>
                 )}
                 {gap.learning_path && <div className={styles.gapLearningPath}><Sparkles size={12} className={styles.pathIcon} /><p>{gap.learning_path}</p></div>}

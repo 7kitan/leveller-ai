@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from shared.database import get_db, init_db
 from shared.models import Job, SystemSetting, UserRole
 from shared.config_utils import config_manager
-from shared.llm_utils import get_embedding, build_job_embedding_context, normalize_location
+from shared.llm_utils import normalize_location
 from shared.ai_service import AI_REGISTRY
 from shared.scrapers.topcv import TopCVScraper
 from pydantic import BaseModel, Field
@@ -23,7 +23,6 @@ import json
 import logging
 import re
 import traceback
-import struct
 from worker.celery_app import celery_app
 
 app = FastAPI(title="JD Service")
@@ -33,9 +32,6 @@ async def startup_event():
     init_db()
 
 logger = logging.getLogger("jd_service")
-
-# Feature flag
-USE_VECTOR_SEARCH = os.getenv("JD_USE_VECTOR_SEARCH", "true").lower() == "true"
 
 
 # â”€â”€â”€ Pydantic Schemas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -318,59 +314,12 @@ def search_jobs(
     offset: int = Query(0, ge=0),
 ):
     """
-    Hybrid job search: pgvector semantic + ILIKE text + filters.
-    Spec 1.8: Lá»c theo Ä‘á»‹a Ä‘iá»ƒm, má»©c lÆ°Æ¡ng, loáº¡i cÃ´ng viá»‡c.
-
-    Priority:
-    1. Náº¿u cÃ³ q (query): pgvector similarity search
-    2. Náº¿u khÃ´ng cÃ³ q: ILIKE text search
-    3. Ãp dá»¥ng táº¥t cáº£ filters
+    Job search with text matching + filters.
+    Spec 1.8: Filter by location, salary, employment type.
     """
     base_query = db.query(Job).filter(Job.status == "active")
 
-    results = []
-    similarity_scores = {}
-
-    if q and USE_VECTOR_SEARCH:
-        # â”€â”€ pgvector semantic search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        # Reset any aborted transaction before vector query
-        try:
-            db.rollback()
-        except Exception:
-            pass
-
-        job_vector = get_embedding(q)
-        if job_vector:
-            vec_query = text("""
-                SELECT id,
-                       1 - (vector <=> :vec) as similarity
-                FROM jobs
-                WHERE status = 'active'
-                  AND vector IS NOT NULL
-                ORDER BY vector <=> :vec
-                LIMIT 200
-            """)
-            try:
-                vec_results = db.execute(vec_query, {"vec": job_vector}).fetchall()
-                vec_job_ids = {str(r.id): float(r.similarity) for r in vec_results}
-                # BUG-014 FIX: Populate similarity_scores dict so it can be used later
-                similarity_scores = vec_job_ids.copy()
-            except Exception as e:
-                db.rollback()
-                # BUG-011 FIX: Log error and fallback to text search automatically
-                logger.error(f"[job search] pgvector query failed: {e}. Falling back to text search.")
-                vec_job_ids = {}
-                similarity_scores = {}
-
-            if vec_job_ids:
-                base_query = base_query.filter(
-                    Job.id.in_([uuid.UUID(k) for k in vec_job_ids.keys()])
-                )
-            else:
-                # BUG-011 FIX: If vector search failed or returned no results, continue with text search
-                logger.info(f"[job search] Vector search returned no results, using text search fallback")
-
-    # â”€â”€ Text search fallback / supplement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Text search ──────────────────────────────────────────────────────────
     if q:
         q_like = f"%{q}%"
         text_filter = or_(
@@ -420,19 +369,7 @@ def search_jobs(
     total = base_query.count()
     jobs = base_query.order_by(Job.created_at.desc()).offset(offset).limit(limit).all()
 
-    # Attach similarity scores if vector search was used
-    for job in jobs:
-        sim = similarity_scores.get(str(job.id)) if q and USE_VECTOR_SEARCH else None
-        results.append(_job_to_response(job, similarity=sim))
-
-    # Sort by similarity if vector search results
-    if q and USE_VECTOR_SEARCH and similarity_scores:
-        results.sort(
-            key=lambda x: (
-                similarity_scores.get(str(x["id"]), 0) if x.get("similarity") else 0
-            ),
-            reverse=True,
-        )
+    results = [_job_to_response(job) for job in jobs]
 
     return {
         "items": results,
@@ -558,20 +495,6 @@ def admin_create_job(job_in: JobCreate, request: Request, db: Session = Depends(
     location_normalized = normalize_location(job_in.location_raw or "")
     logger.info(f"[MANUAL JOB] Location normalized: '{job_in.location_raw}' → '{location_normalized}'")
 
-    # Generate Embedding - ONLY from requirements + job_description (NO title, location, company)
-    # Strategy: Vector search matches on skills/requirements, SQL filters on location/title
-    embedding_ctx = build_job_embedding_context(
-        requirements=job_in.raw_text,  # Manual jobs use raw_text as requirements
-        extracted_skills=None,
-        job_description=None
-    )
-    
-    if not embedding_ctx:
-        logger.warning(f"[MANUAL JOB] No content for embedding, using fallback")
-        embedding_ctx = f"Manual job posting. Content: {job_in.raw_text[:200] if job_in.raw_text else 'N/A'}"
-    
-    vector = get_embedding(embedding_ctx, log_cost=True)
-
     new_job = Job(
         source_id=source_id,
         title_raw=job_in.title_raw,
@@ -584,9 +507,7 @@ def admin_create_job(job_in: JobCreate, request: Request, db: Session = Depends(
         location_raw=job_in.location_raw,
         location_normalized=location_normalized,
         employment_type=job_in.employment_type,
-        status="active",
-        embedding_context=embedding_ctx,
-        vector=vector
+        status="active"
     )
     db.add(new_job)
     db.commit()
@@ -839,24 +760,6 @@ def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = D
             logger.info(f"[BULK IMPORT] Skipping existing job: {source_id}")
             continue
 
-        # Generate Embedding - ONLY from requirements field
-        title = job_in.title_raw
-        company = job_in.company_name or "Unknown"
-        location = job_in.location_raw or ""
-        requirements = job_in.requirements or ""
-        
-        if requirements:
-            # Primary: Use only requirements (most relevant for matching)
-            embedding_ctx = f"Job: {title} at {company}. Location: {location}. Requirements: {requirements}"
-        else:
-            # Fallback: Use title and location only if no requirements
-            embedding_ctx = f"Job: {title} at {company}. Location: {location}."
-            logger.warning(f"[BULK IMPORT] No requirements found for {source_id}, using minimal context")
-        
-        # Generate embedding with cost logging
-        logger.info(f"[BULK IMPORT] Generating embedding for {source_id}...")
-        vector = get_embedding(embedding_ctx, log_cost=True)
-        
         job = Job(
             source_id=source_id,
             title_raw=job_in.title_raw,
@@ -874,10 +777,7 @@ def admin_bulk_create_jobs(req: JobBulkCreate, request: Request, db: Session = D
             job_description=job_in.job_description,
             requirements=job_in.requirements,
             benefits=job_in.benefits,
-            # Embedding
-            status="active",
-            embedding_context=embedding_ctx,
-            vector=vector
+            status="active"
         )
         db.add(job)
         new_jobs_count += 1
@@ -926,8 +826,8 @@ def get_export_info(request: Request, db: Session = Depends(get_db)):
     total = db.query(Job).filter(Job.status == "active").count()
     
     # Estimate size (rough calculation)
-    # Average job: ~10KB (text + vector)
-    avg_size_kb = 10
+    # Average job: ~5KB (text only, no vectors)
+    avg_size_kb = 5
     total_size_mb = (total * avg_size_kb) / 1024
     
     # Recommend parts to keep each part under 20MB
@@ -953,7 +853,7 @@ async def admin_export_jobs(
     part: Optional[int] = Query(None, description="Part number (for reference)")
 ):
     """
-    Admin only: Export jobs with vectors for backup/migration.
+    Admin only: Export jobs for backup/migration.
     
     Use /jd/admin/export-info first to plan your export.
     Supports pagination for splitting large exports into parts.
@@ -966,50 +866,9 @@ async def admin_export_jobs(
     
     jobs = query.all()
     
-    # Convert to export format with vectors as lists
+    # Convert to export format (no vectors)
     export_data = []
     for job in jobs:
-        # Handle pgvector conversion properly
-        if job.vector is None:
-            vector_list = []
-        elif isinstance(job.vector, list):
-            vector_list = job.vector
-        elif hasattr(job.vector, 'tolist'):
-            # numpy array or similar
-            vector_list = job.vector.tolist()
-        elif isinstance(job.vector, memoryview):
-            # pgvector often returns memoryview
-            try:
-                import struct
-                # Convert memoryview to bytes, then unpack as floats
-                vector_bytes = bytes(job.vector)
-                vector_list = list(struct.unpack(f'{len(vector_bytes)//4}f', vector_bytes))
-            except Exception as e:
-                logging.error(f"Failed to convert memoryview vector for job {job.id}: {e}")
-                vector_list = []
-        elif isinstance(job.vector, bytes):
-            # Handle bytes representation
-            try:
-                import struct
-                vector_list = list(struct.unpack(f'{len(job.vector)//4}f', job.vector))
-            except Exception as e:
-                logging.error(f"Failed to convert bytes vector for job {job.id}: {e}")
-                vector_list = []
-        elif isinstance(job.vector, str):
-            # Handle string representation like "[1.0, 2.0, 3.0]"
-            try:
-                vector_list = json.loads(job.vector)
-            except Exception as e:
-                logging.error(f"Failed to parse string vector for job {job.id}: {e}")
-                vector_list = []
-        else:
-            # Last resort: try iteration
-            try:
-                vector_list = [float(x) for x in job.vector]
-            except (TypeError, ValueError) as e:
-                logging.error(f"Failed to convert vector for job {job.id} (type: {type(job.vector)}): {e}")
-                vector_list = []
-        
         export_data.append({
             "id": str(job.id),
             "source_id": job.source_id,
@@ -1031,8 +890,6 @@ async def admin_export_jobs(
             "location_normalized": job.location_normalized,
             "location_district": job.location_district,
             "status": job.status,
-            "embedding_context": job.embedding_context,
-            "vector": vector_list,
             "has_insurance": job.has_insurance,
             "has_13th_month": job.has_13th_month,
             "remote_friendly": job.remote_friendly,
@@ -1065,7 +922,7 @@ def admin_import_jobs_full(
     request: Request,
     db: Session = Depends(get_db)
 ):
-    """Admin only: Import jobs with pre-computed vectors (skip embedding generation)."""
+    """Admin only: Import jobs for backup/restore (no vector generation)."""
     if request.headers.get("X-User-Role") != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
@@ -1088,7 +945,7 @@ def admin_import_jobs_full(
             # Use provided ID or generate new one
             job_id = job_req.id if job_req.id else uuid.uuid4()
 
-            # Create job with provided vector (no embedding generation)
+            # Create job without vector
             new_job = Job(
                 id=job_id,
                 source_id=job_req.source_id,
@@ -1110,8 +967,6 @@ def admin_import_jobs_full(
                 location_normalized=job_req.location_normalized,
                 location_district=job_req.location_district,
                 status=job_req.status,
-                embedding_context=job_req.embedding_context,
-                vector=job_req.vector,  # Use pre-computed vector
                 has_insurance=job_req.has_insurance,
                 has_13th_month=job_req.has_13th_month,
                 remote_friendly=job_req.remote_friendly,
@@ -1153,14 +1008,13 @@ def admin_import_jobs_full(
             logger.error(f"[IMPORT FULL] Failed to trigger skill extraction: {e}")
     
     return {
-        "status": "success",
-        "imported_count": len(imported),
-        "skipped_count": len(skipped),
-        "error_count": len(errors),
+        "imported": len(imported),
+        "skipped": len(skipped),
+        "errors": len(errors),
         "imported_ids": imported,
-        "skipped": skipped,
-        "errors": errors,
-        "extraction_queued": len(jobs_need_extraction)
+        "skipped_details": skipped,
+        "error_details": errors,
+        "skill_extraction_queued": len(jobs_need_extraction)
     }
 
 

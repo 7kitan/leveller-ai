@@ -286,7 +286,7 @@ const UserDashboard = () => {
             )}
 
             {/* Growth Forecast Section */}
-            {(marketData?.potential_match_pct > 0 || marketData?.salary_growth_pct > 0) && (
+            {marketData?.potential_match_pct > 0 && (
               <div className={styles.forecastSection}>
                 <div className={styles.forecastDivider} />
                 <div className={styles.forecastGrid}>
@@ -300,15 +300,6 @@ const UserDashboard = () => {
                       <span className={styles.growthBadge}>
                         +{formatPercent(marketData.potential_match_pct - (marketData.market_fit_pct || 0))}
                       </span>
-                    </div>
-                  </div>
-                  <div className={styles.forecastItem}>
-                    <div className={styles.forecastLabel}>
-                      <TrendingUp size={14} className="text-success" />
-                      {t("dash_salary_boost")}
-                    </div>
-                    <div className={styles.forecastValue}>
-                      +{formatPercent(marketData.salary_growth_pct)}
                     </div>
                   </div>
                 </div>

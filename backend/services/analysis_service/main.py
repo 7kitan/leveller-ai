@@ -181,6 +181,11 @@ async def start_gap_analysis(
             detail=f"CV chưa hoàn tất phân tích (status={cv.status}). Vui lòng đợi CV được xử lý xong.",
         )
 
+    # ── Check Daily Quota (Unified QuotaManager) ──────────────────
+    user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     # ── CACHE CHECK: Return cached analysis if available ──────────────────
     # Only cache when job_id is provided (not jd_text - custom JD can't be cached reliably)
     if not req.force and req.job_id:
@@ -209,8 +214,9 @@ async def start_gap_analysis(
                     f"  match_score   : {cached_analysis.match_score}"
                 )
                 
-                # Return cached result with metadata
-                result = cached_analysis.result_json or {}
+                # Normalize result to handle old format
+                from services.analysis_service.result_normalizer import normalize_analysis_result
+                result = normalize_analysis_result(cached_analysis.result_json or {})
                 result["analysis_id"] = str(cached_analysis.id)
                 result["is_cached"] = True
                 result["cached_at"] = cached_analysis.created_at.isoformat()
@@ -220,6 +226,19 @@ async def start_gap_analysis(
                     UserFeedback.analysis_id == str(cached_analysis.id)
                 ).first() is not None
                 result["has_feedback"] = has_fb
+                
+                # UPDATE: Ensure user's last_analysis_id points to this cached record
+                user.last_analysis_id = cached_analysis.id
+                db.commit() # COMMIT IMMEDIATELY to ensure it's in DB
+                
+                # Also trigger market fit update to ensure dashboard is fresh
+                try:
+                    from services.analysis_service.market_fit_service import update_user_market_fit
+                    # Since this is an async route, we can await it directly
+                    await update_user_market_fit(user.id, db, cv_id=req.cv_id)
+                    logger.info(f"[CACHE HIT] Persisted last_analysis_id ({cached_analysis.id}) and refreshed Market Fit")
+                except Exception as mf_err:
+                    logger.warning(f"[CACHE HIT] Failed to refresh Market Fit: {mf_err}")
                 
                 return {
                     "task_id": None,
@@ -239,10 +258,6 @@ async def start_gap_analysis(
     from shared.config_utils import config_manager
     from shared.quota_manager import quota_manager
     from shared.llm_utils import extract_skills_from_requirements
-    
-    user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
 
     # ── CLASSIFY JOB TYPE (for custom JD text) ──────────────────
     # If user provides custom JD text, classify it first to reject non-tech jobs
@@ -354,11 +369,21 @@ async def get_task_status(task_id: str, db: Session = Depends(get_db)):
 
     if res.ready():
         result = res.result
-        if isinstance(result, dict) and "error" in result:
-            logger.error(
-                f"[ANALYSIS STATUS] task FAILED — task_id={task_id} error={result['error']}"
-            )
-            raise HTTPException(status_code=500, detail=result["error"])
+        if isinstance(result, dict):
+            if "error" in result:
+                logger.error(
+                    f"[ANALYSIS STATUS] task FAILED — task_id={task_id} error={result['error']}"
+                )
+                raise HTTPException(status_code=500, detail=result["error"])
+            
+            # Detect logical failures returned from orchestrator (e.g. quota exceeded)
+            if result.get("status") == "failed":
+                error_msg = result.get("overall_assessment") or "Analysis failed."
+                if result.get("notes"):
+                    error_msg += f" Details: {', '.join(result['notes'])}"
+                
+                logger.error(f"[ANALYSIS STATUS] Task reported logical failure: {error_msg}")
+                raise HTTPException(status_code=500, detail=error_msg)
 
         # Enrich result with impact calculations (same as /user/latest)
         if isinstance(result, dict):
@@ -368,17 +393,16 @@ async def get_task_status(task_id: str, db: Session = Depends(get_db)):
             
             if skill_gaps and job_id:
                 try:
-                    potential_match, salary_growth, enriched_gaps = calculate_skill_impact(
+                    potential_match, enriched_gaps = calculate_skill_impact(
                         skill_gaps=skill_gaps,
                         job_id=str(job_id),
                         current_match_pct=current_match,
                         db=db
                     )
                     
-                    # Update result with calculated values
+                    # Update result with calculated values (NO SALARY)
                     result["potential_match_pct"] = round(potential_match, 1)
-                    result["salary_growth_pct"] = round(salary_growth, 1)
-                    result["skill_gaps"] = enriched_gaps  # Now includes match_impact & salary_impact
+                    result["skill_gaps"] = enriched_gaps  # Now includes match_impact & market_demand
                     
                     # Calculate market sentiment from DB data
                     if not result.get("market_sentiment"):
@@ -386,7 +410,7 @@ async def get_task_status(task_id: str, db: Session = Depends(get_db)):
                         
                     logger.info(
                         f"[ANALYSIS STATUS] Enriched with impact data: "
-                        f"potential={potential_match}%, salary_growth={salary_growth}%"
+                        f"potential={potential_match}%"
                     )
                 except Exception as e:
                     logger.warning(f"[ANALYSIS STATUS] Failed to calculate impact: {e}")
@@ -441,43 +465,57 @@ async def register_notification(task_id: str, request: Request):
 @app.get("/analysis/user/latest")
 async def get_latest_analysis(request: Request, db: Session = Depends(get_db)):
     """Lấy kết quả analysis gần nhất của user."""
+    from services.analysis_service.result_normalizer import normalize_analysis_result
+    
     user_id = request.headers.get("X-User-ID")
     if not user_id:
         raise HTTPException(status_code=401, detail="User not authenticated")
 
-    analysis = (
-        db.query(UserAnalysis)
-        .filter(UserAnalysis.user_id == uuid.UUID(user_id))
-        .order_by(UserAnalysis.created_at.desc())
-        .first()
-    )
+    user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    analysis = None
+    if user.last_analysis_id:
+        analysis = db.query(UserAnalysis).filter(
+            UserAnalysis.id == user.last_analysis_id,
+            UserAnalysis.user_id == user.id
+        ).first()
+
+    if not analysis:
+        analysis = (
+            db.query(UserAnalysis)
+            .filter(UserAnalysis.user_id == uuid.UUID(user_id))
+            .order_by(UserAnalysis.created_at.desc())
+            .first()
+        )
 
     if not analysis:
         return None
 
-    # Inject cv_id and job_id into the result for frontend redirection/auto-loading
-    result = analysis.result_json or {}
+    # Normalize result to handle old format (llm_overall_match_pct -> overall_match_pct)
+    result = normalize_analysis_result(analysis.result_json or {})
+    
     if isinstance(result, dict):
         result["cv_id"] = str(analysis.cv_id)
         result["job_id"] = str(analysis.job_id) if analysis.job_id else None
         
-        # Calculate growth metrics using DB data (NEW ALGORITHM)
+        # Calculate growth metrics using DB data (NO SALARY)
         skill_gaps = result.get("skill_gaps") or []
         current_match = float(result.get("overall_match_pct") or 0)
         
         if skill_gaps and analysis.job_id:
             try:
-                potential_match, salary_growth, enriched_gaps = calculate_skill_impact(
+                potential_match, enriched_gaps = calculate_skill_impact(
                     skill_gaps=skill_gaps,
                     job_id=str(analysis.job_id),
                     current_match_pct=current_match,
                     db=db
                 )
                 
-                # Update result with calculated values
+                # Update result with calculated values (NO SALARY)
                 result["potential_match_pct"] = round(potential_match, 1)
-                result["salary_growth_pct"] = round(salary_growth, 1)
-                result["skill_gaps"] = enriched_gaps  # Now includes match_impact & salary_impact
+                result["skill_gaps"] = enriched_gaps  # Now includes match_impact & market_demand
                 
                 # Calculate market sentiment from DB data
                 if not result.get("market_sentiment"):
@@ -485,7 +523,7 @@ async def get_latest_analysis(request: Request, db: Session = Depends(get_db)):
                     
                 logger.info(
                     f"Growth calculated from DB: potential={potential_match}%, "
-                    f"salary={salary_growth}%, sentiment={result['market_sentiment']}"
+                    f"sentiment={result['market_sentiment']}"
                 )
             except Exception as e:
                 logger.error(f"Error calculating growth metrics: {e}", exc_info=True)
@@ -494,7 +532,6 @@ async def get_latest_analysis(request: Request, db: Session = Depends(get_db)):
                 if course_count > 0:
                     import math
                     result["potential_match_pct"] = min(98, current_match + math.log2(course_count + 1) * 6.5)
-                    result["salary_growth_pct"] = min(35, math.log2(course_count + 1) * 5.5 + 5)
                     result["market_sentiment"] = "Ổn định"
 
         # Check if user already provided feedback for this specific analysis record
@@ -527,6 +564,8 @@ async def get_user_analysis_history(
         .all()
     )
 
+    from services.analysis_service.result_normalizer import normalize_analysis_result
+    
     return [
         {
             "id": str(a.id),
@@ -535,12 +574,12 @@ async def get_user_analysis_history(
             "match_score": a.match_score,
             "created_at": a.created_at.isoformat() if a.created_at else None,
             "overall_match_pct": (
-                a.result_json.get("overall_match_pct")
+                normalize_analysis_result(a.result_json).get("overall_match_pct")
                 if a.result_json and isinstance(a.result_json, dict)
                 else None
             ),
             "overall_assessment": (
-                a.result_json.get("overall_assessment")
+                normalize_analysis_result(a.result_json).get("overall_assessment")
                 if a.result_json and isinstance(a.result_json, dict)
                 else None
             ),
@@ -572,7 +611,8 @@ async def get_cv_analysis(cv_id: str, request: Request, db: Session = Depends(ge
             detail="No analysis found for this CV. Start a new analysis.",
         )
 
-    return analysis.result_json or {}
+    from services.analysis_service.result_normalizer import normalize_analysis_result
+    return normalize_analysis_result(analysis.result_json or {})
 
 
 @app.get("/analysis/recommendations")
@@ -1002,6 +1042,8 @@ async def simulate_boost(
         raise HTTPException(status_code=404, detail="No base analysis found to simulate boost")
 
     from shared.models import Course, Skill
+    from services.analysis_service.result_normalizer import normalize_analysis_result
+    
     courses = db.query(Course).filter(Course.id.in_(req.selected_course_ids)).all()
     
     # Lấy tất cả skills/tags từ các khóa học được chọn
@@ -1015,8 +1057,8 @@ async def simulate_boost(
     skill_entities = db.query(Skill).filter(Skill.name.in_(list(boost_skills))).all()
     skill_to_cat = {s.name.lower(): s.category for s in skill_entities}
 
-    # Duyệt qua các gap trong analysis hiện tại và giả lập lấp đầy
-    result = latest.result_json.copy()
+    # Normalize result to handle old format, then copy
+    result = normalize_analysis_result(latest.result_json).copy()
     gaps = result.get("skill_gaps", [])
     
     virtual_gaps = []

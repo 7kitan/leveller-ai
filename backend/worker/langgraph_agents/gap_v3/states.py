@@ -76,12 +76,10 @@ class GapAnalysisResult(TypedDict, total=False):
     overall_assessment: str
     strengths: List[str]
     weaknesses: List[str]
-    skill_gaps: List[SkillGap]
+    skill_gaps: List[SkillGap]  # Sorted by priority (severity, is_critical, estimated_months)
     gap_summary: GapSummary
     transferable_insights: List[str]
     jd_context: str
-    # ── Optimized: top_gaps inline (no separate LLM call) ─────────────────────
-    top_gaps: List[SkillGap]  # TOP 3 prioritized gaps (merged from gap_analysis)
 
 
 class CourseRecommendation(TypedDict, total=False):

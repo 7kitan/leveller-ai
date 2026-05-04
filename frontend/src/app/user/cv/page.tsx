@@ -26,6 +26,7 @@ import {
   ArrowLeft,
   X,
   Layers,
+  Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import styles from "./user-cv.module.css";
@@ -38,6 +39,7 @@ import { DebouncedInput } from "@/components/common/DebouncedInput";
 import PageHeader from "@/components/common/PageHeader";
 import PageContainer from "@/components/common/PageContainer";
 import { CVPreview } from "@/components/cv/CVPreview";
+import { ScanningOverlay } from "@/components/cv/ScanningOverlay";
 
 const POLLING_INTERVAL = 5000;
 
@@ -75,7 +77,7 @@ interface ParsedCV {
 }
 
 const SENIORITY_LEVELS = ["Junior", "Mid-level", "Senior", "Expert", "Unknown"];
-const SKILL_LEVELS = ["Junior", "Mid-level", "Senior", "Expert"];
+const SKILL_LEVELS = ["Junior", "Mid-level", "Senior", "Expert", "Unknown"];
 
 const UserCVPage = () => {
   const { token } = useAuth();
@@ -98,8 +100,11 @@ const UserCVPage = () => {
   const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
   const [analysisContext, setAnalysisContext] = useState<any>(null);
   const [realTimeName, setRealTimeName] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [cvToDelete, setCvToDelete] = useState<string | null>(null);
 
   const getSeniorityLabel = (val: string) => {
+    if (!val) return t("cv_level_unknown");
     switch (val) {
       case "Junior": return t("cv_level_junior");
       case "Mid-level": return t("cv_level_mid");
@@ -109,6 +114,35 @@ const UserCVPage = () => {
       default: return val;
     }
   };
+
+  const normalizeParsedData = useCallback((data: ParsedCV): ParsedCV => {
+    if (!data || !data.skills) return data;
+    
+    const normalizedSkills = data.skills.map(skill => {
+      const yrs = skill.experience_years || 0;
+      let level = skill.level;
+      
+      // Auto-suggest level if missing or Unknown
+      if (!level || level === "Unknown") {
+        if (yrs >= 10) level = "Expert";
+        else if (yrs >= 5) level = "Senior";
+        else if (yrs >= 2) level = "Mid-level";
+        else level = "Junior";
+      }
+      
+      return {
+        ...skill,
+        experience_years: yrs,
+        level: level
+      };
+    });
+    
+    return {
+      ...data,
+      skills: normalizedSkills,
+      seniority: data.seniority || "Unknown"
+    };
+  }, [t]);
 
   const fetchHistory = async () => {
     try {
@@ -125,7 +159,7 @@ const UserCVPage = () => {
     setSelectedHistoryId(cvId);
     try {
       const resp = await api.get(`cv/${cvId}`);
-      setParsedData(resp.data);
+      setParsedData(normalizeParsedData(resp.data));
       setStatus("viewing");
     } catch (err) {
       console.error("Auto-load CV detail error:", err);
@@ -282,7 +316,7 @@ const UserCVPage = () => {
       const normalizedSkills = (parsedData.skills || []).map(skill => {
         let cat = skill.category || t('uncategorized');
         const lowerCat = cat.toLowerCase().trim();
-        if (lowerCat === t('cat_technical').toLowerCase() || lowerCat === "công nghệ") {
+        if (lowerCat === t('cat_technical').toLowerCase() || lowerCat === "cÃ´ng nghá»‡") {
           cat = "Technology";
         }
         return { ...skill, category: cat };
@@ -352,7 +386,7 @@ const UserCVPage = () => {
       const { parser_id, cv_id, status: uploadStatus, result: inlineResult, is_duplicate } = resp.data;
 
       if (is_duplicate && uploadStatus === "completed" && inlineResult) {
-        setParsedData(inlineResult);
+        setParsedData(normalizeParsedData(inlineResult));
         setStatus("viewing");
         fetchHistory();
         return;
@@ -360,7 +394,7 @@ const UserCVPage = () => {
 
       if (uploadStatus === "completed") {
         const detailResp = await api.get(`cv/${cv_id}`);
-        setParsedData(detailResp.data);
+        setParsedData(normalizeParsedData(detailResp.data));
         setStatus("viewing");
         fetchHistory();
       } else if (parser_id) {
@@ -380,10 +414,10 @@ const UserCVPage = () => {
         const { status: taskStatus, result, error_message } = resp.data;
         if (taskStatus === "completed") {
           clearInterval(interval);
-          if (result) setParsedData(result);
+          if (result) setParsedData(normalizeParsedData(result));
           else {
             const detailResp = await api.get(`cv/${cvId}`);
-            setParsedData(detailResp.data);
+            setParsedData(normalizeParsedData(detailResp.data));
           }
           setStatus("viewing");
           fetchHistory();
@@ -421,6 +455,33 @@ const UserCVPage = () => {
     }
     if (item.status !== "completed") return;
     handleLoadSpecificCV(item.id);
+  };
+
+  const handleDeleteCV = async (cvId: string) => {
+    try {
+      await api.delete(`cv/${cvId}`);
+      showSuccess(t("cv_delete_success"));
+      fetchHistory();
+      
+      // If the deleted CV is currently being viewed, go back to idle
+      if (parsedData?.id === cvId) {
+        handleBack();
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || t("error");
+      showError(msg);
+    } finally {
+      setShowDeleteModal(false);
+      setCvToDelete(null);
+    }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, cvId: string) => {
+    console.log("Delete clicked for CV:", cvId);
+    e.preventDefault();
+    e.stopPropagation();
+    setCvToDelete(cvId);
+    setShowDeleteModal(true);
   };
 
   const handleBack = () => {
@@ -467,7 +528,7 @@ const UserCVPage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        {/* ── Smart Suggestions Banner ───────────────────────────────── */}
+        {/* â”€â”€ Smart Suggestions Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {filteredSuggestions.length > 0 && parsedData.id === analysisContext?.cv_id && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -506,7 +567,7 @@ const UserCVPage = () => {
           </motion.div>
         )}
 
-        {/* ── Result Header ───────────────────────────────────────────── */}
+        {/* â”€â”€ Result Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className={styles.resultHeader}>
           {parsedData.is_ocr && !parsedData.is_verified && (
             <div className={styles.verificationBanner}>
@@ -623,7 +684,7 @@ const UserCVPage = () => {
           )}
         </div>
 
-        {/* ── Skills Matrix ───────────────────────────────────────────── */}
+        {/* â”€â”€ Skills Matrix â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className={styles.matrixPanel}>
           <div className={styles.matrixTitle}>
             <Layers size={20} className={styles.matrixTitleIcon} />
@@ -789,44 +850,15 @@ const UserCVPage = () => {
           </button>
         </div>
 
-        {/* ── Rerun Confirmation Modal ───────────────────────────────── */}
-        <Modal
-          isOpen={showRerunModal}
-          onClose={() => setShowRerunModal(false)}
-          title={t("cv_update_success")}
-          maxWidth="500px"
-        >
-          <div className={styles.modalBodyContent}>
-            <div className={styles.modalIconBox}>
-              <Zap size={32} className={styles.modalZap} />
-            </div>
-            <p className={styles.modalDescription}>
-              {t("cv_rerun_desc").replace('{title}', analysisContext?.jd_title || t("selected_job"))}
-            </p>
-            <div className={styles.modalFooterActions}>
-              <button onClick={() => setShowRerunModal(false)} className={styles.modalCancelBtn}>
-                {t("later")}
-              </button>
-              <button
-                onClick={() => {
-                  setShowRerunModal(false);
-                  handleRerunAnalysis();
-                }}
-                className={styles.modalConfirmBtn}
-              >
-                {t("rerun_now")}
-                <ArrowRight size={16} />
-              </button>
-            </div>
-          </div>
-        </Modal>
       </motion.div>
     );
   }, [
     status,
     parsedData, 
     saving, 
-    showRerunModal, 
+    showRerunModal,
+    showDeleteModal,
+    cvToDelete,
     filteredSuggestions, 
     analysisContext, 
     handleSaveMatrix, 
@@ -840,6 +872,7 @@ const UserCVPage = () => {
     handleUpdateCert, 
     handleUpdateBasic,
     handleRerunAnalysis,
+    handleDeleteCV,
     t,
     sc,
     seniorityColor,
@@ -848,7 +881,8 @@ const UserCVPage = () => {
     handleAddSuggestedSkill
   ]);
 
-  if (status === "processing") {
+
+  if (status === "processing" && !file) {
     return (
       <PageContainer>
         <div className={styles.processingPanel}>
@@ -935,9 +969,15 @@ const UserCVPage = () => {
           <div className={styles.uploadZone}>
             <div className={styles.uploadPanel}>
               <div className={styles.uploadGlow} />
-              {showPreview && file ? (
+              {(showPreview || status === "uploading") && file ? (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={styles.previewWrapper}>
-                  <CVPreview file={file} onConfirm={() => { setShowPreview(false); handleUpload(); }} onCancel={() => { setShowPreview(false); setFile(null); }} />
+                  <ScanningOverlay status={status} />
+                  <CVPreview 
+                    file={file} 
+                    onConfirm={handleUpload} 
+                    onCancel={() => { setShowPreview(false); setFile(null); setStatus("idle"); }} 
+                    isProcessing={status === "uploading" || status === "processing"}
+                  />
                 </motion.div>
               ) : (
                 <>
@@ -975,16 +1015,36 @@ const UserCVPage = () => {
             <div className={styles.historyList}>
               {history.length > 0 ? (
                 history.map((item) => (
-                  <div key={item.id} onClick={() => handleHistoryClick(item)} className={cn(styles.historyItem, (item.status === "completed" || item.status === "failed") ? styles.historyItemClickable : styles.historyItemDisabled, selectedHistoryId === item.id && styles.historyItemActive)}>
-                    <div className={styles.historyIcon}><FileText size={20} /></div>
-                    <div className={styles.historyInfo}>
-                      <div className={styles.historyName}>{item.full_name || item.file_name || t("cv_candidate_name_placeholder")}</div>
-                      <div className={styles.historyMeta}>{new Date(item.created_at).toLocaleDateString(language === 'vi' ? "vi-VN" : "en-US")}</div>
+                  <div key={item.id} className={cn(styles.historyItem, (item.status === "completed" || item.status === "failed") ? styles.historyItemClickable : styles.historyItemDisabled, selectedHistoryId === item.id && styles.historyItemActive)}>
+                    <div 
+                      onClick={() => handleHistoryClick(item)}
+                      className={styles.historyClickableArea}
+                    >
+                      <div className={styles.historyIcon}><FileText size={20} /></div>
+                      <div className={styles.historyItemContent}>
+                        <div className={styles.historyFileName}>{item.full_name || item.file_name || t("cv_candidate_name_placeholder")}</div>
+                        <div className={styles.historyDate}>
+                          <Calendar size={14} />
+                          {new Date(item.created_at).toLocaleDateString(language === 'vi' ? "vi-VN" : "en-US")}
+                        </div>
+                      </div>
                     </div>
-                    <div className={cn(styles.historyStatus, styles[item.status])}>
-                      {item.status === "completed" && <CheckCircle2 size={16} />}
-                      {item.status === "processing" && <Loader2 size={16} className={styles.animateSpin} />}
-                      {item.status === "failed" && <AlertCircle size={16} />}
+                    <div className={styles.historyActions}>
+                      <div className={cn(styles.historyStatus, styles[item.status])}>
+                        {item.status === "completed" && <CheckCircle2 size={16} />}
+                        {item.status === "processing" && <Loader2 size={16} className={styles.animateSpin} />}
+                        {item.status === "failed" && <AlertCircle size={16} />}
+                      </div>
+                      {item.status === "completed" && (
+                        <button
+                          onClick={(e) => handleDeleteClick(e, item.id)}
+                          className={styles.historyDeleteBtn}
+                          title={t("cv_delete")}
+                          type="button"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))
@@ -994,6 +1054,67 @@ const UserCVPage = () => {
             </div>
           </div>
         </div>
+
+        {/* -- Global Modals -- */}
+        <Modal
+          isOpen={showRerunModal}
+          onClose={() => setShowRerunModal(false)}
+          title={t('cv_update_success')}
+          maxWidth='500px'
+        >
+          <div className={styles.modalBodyContent}>
+            <div className={styles.modalIconBox}>
+              <Zap size={32} className={styles.modalZap} />
+            </div>
+            <p className={styles.modalDescription}>
+              {t('cv_rerun_desc').replace('{title}', analysisContext?.jd_title || t('selected_job'))}
+            </p>
+            <div className={styles.modalFooterActions}>
+              <button onClick={() => setShowRerunModal(false)} className={styles.modalCancelBtn}>
+                {t('later')}
+              </button>
+              <button
+                onClick={() => {
+                  setShowRerunModal(false);
+                  handleRerunAnalysis();
+                }}
+                className={styles.modalConfirmBtn}
+              >
+                {t('rerun_now')}
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          title={t('cv_delete_confirm_title')}
+          maxWidth='500px'
+        >
+          <div className={styles.modalBodyContent}>
+            <div className={cn(styles.modalIconBox, styles.modalIconBoxDanger)}>
+              <Trash2 size={32} />
+            </div>
+            <p className={styles.modalDescription}>
+              {t('cv_delete_confirm_desc')}
+            </p>
+            <div className={styles.modalFooterActions}>
+              <button onClick={() => setShowDeleteModal(false)} className={styles.modalCancelBtn}>
+                {t('cancel')}
+              </button>
+              <button
+                onClick={() => cvToDelete && handleDeleteCV(cvToDelete)}
+                className={styles.modalDeleteBtn}
+              >
+                <Trash2 size={16} />
+                {t('cv_delete')}
+              </button>
+            </div>
+          </div>
+        </Modal>
+
       </PageContainer>
     </AuthGuard>
   );

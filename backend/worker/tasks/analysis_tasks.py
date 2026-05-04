@@ -8,8 +8,11 @@ from datetime import datetime
 from worker.celery_app import celery_app
 from shared.database import SessionLocal
 from services.analysis_service.gap_calculator import GapCalculator
-from shared.models import UserAnalysis, Job
+from shared.models import UserAnalysis, Job, UserCV, User
 from shared.system_logger import system_logger
+from shared.email_utils import notify_gap_analysis_complete
+from services.analysis_service.market_fit_service import update_user_market_fit
+from worker.langgraph_agents.gap_v3.orchestrator import run_gap_analysis_v3
 
 logger = logging.getLogger("analysis_worker")
 
@@ -91,7 +94,6 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
         # ── STEP 1: Validate CV ───────────────────────────────────────────────
         self.update_state(state='PROGRESS', meta={'message': 'Đang đọc và xác thực dữ liệu CV...', 'percent': 15})
         logger.info(f"[ANALYSIS STEP 1/4] Validate CV | cv_id={cv_id}")
-        from shared.models import UserCV
 
         cv = (
             db.query(UserCV)
@@ -259,10 +261,6 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
 
         if USE_LLM_GAP_AGENT:
             try:
-                from worker.langgraph_agents.gap_v3.orchestrator import (
-                    run_gap_analysis_v3,
-                )
-
                 logger.info(
                     "[ANALYSIS STEP 3] Invoking run_gap_analysis_v3 orchestrator..."
                 )
@@ -325,11 +323,18 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
                 logger.error(
                     f"[ANALYSIS STEP 3] Gap v3 failed: {agent_err}", exc_info=True
                 )
-                logger.info("[ANALYSIS STEP 3] Falling back to legacy engine...")
-                report = _fallback_to_legacy(
-                    calculator, user_id, cv_id, requirements, loop
-                )
+                # No longer falling back to legacy as it produces inconsistent results.
+                # Report failure to user.
+                report = {
+                    "overall_match_pct": 0,
+                    "overall_assessment": f"Lỗi phân tích: {str(agent_err)}",
+                    "status": "failed",
+                    "notes": [f"ERROR: Gap v3 orchestrator failed - {str(agent_err)}"]
+                }
         else:
+            # This branch is for when USE_LLM_GAP_AGENT is False.
+            # If the user explicitly disabled the new agent, we can still use legacy,
+            # but for production stability, we prefer the new one.
             logger.info("[ANALYSIS STEP 3] Running legacy AdvancedGapEngine...")
             report = loop.run_until_complete(
                 calculator.calculate_gap_v2(user_id, cv_id, requirements)
@@ -340,104 +345,78 @@ def run_gap_analysis(self, user_id: str, cv_id: str, job_id: str = None, jd_text
 
         # ── STEP 4: Persist to DB ──────────────────────────────────────────────
         self.update_state(state='PROGRESS', meta={'message': 'Đang tổng hợp lộ trình và lưu kết quả...', 'percent': 90})
-        logger.info(f"[ANALYSIS STEP 4/4] Persist to UserAnalysis table")
-        job_uuid = None
-        if job_id:
-            try:
-                job_uuid = uuid.UUID(job_id)
-            except (ValueError, TypeError):
-                logger.warning(
-                    f"[ANALYSIS STEP 4] Invalid job_id={job_id!r} — setting to NULL"
-                )
-
-        new_analysis = UserAnalysis(
-            id=uuid.uuid4(),
-            user_id=uuid.UUID(user_id),
-            cv_id=uuid.UUID(cv_id),
-            job_id=job_uuid,
-            match_score=report.get("overall_match_pct", 0) or 0,
-            result_json=report,
-            created_at=datetime.now(),
-        )
-        db.add(new_analysis)
-        db.flush()  # Force INSERT execution so the ID exists for the User relation
-
-        # Update User's last_analysis_id for persistent state
-        from shared.models import User
-        from services.analysis_service.market_fit_service import update_user_market_fit
-
-        user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
-        if user:
-            user.last_analysis_id = new_analysis.id
-            logger.info(f"[ANALYSIS STEP 4] Updated User {user_id} with last_analysis_id={new_analysis.id}")
-            
-            # ── TRIGGER MARKET FIT UPDATE ──────────────────────────────────────
-            # Mỗi khi phân tích gap xong, tính lại market fit để Dashboard luôn mới
-            try:
-                # Chạy đồng bộ trong worker vì đây là background task rồi
-                loop = asyncio.get_event_loop()
-                loop.run_until_complete(update_user_market_fit(user.id, db))
-                logger.info(f"[ANALYSIS STEP 4] ✓ Market Fit updated for user {user_id}")
-            except Exception as mf_err:
-                logger.error(f"[ANALYSIS STEP 4] Failed to update market fit: {mf_err}")
-
-        db.commit()
-
-        total_elapsed = time.monotonic() - t0
-        logger.info(
-            f"\n" + "=" * 60 + "\n"
-            f"[ANALYSIS TASK] SUCCESS | cv_id={cv_id} | total={total_elapsed:.1f}s\n"
-            f"  match_score  : {report.get('overall_match_pct')}%\n"
-            f"  skill_gaps   : {len(report.get('skill_gaps', []))}\n"
-            f"  courses      : {len(report.get('recommended_courses', []))}\n"
-            f"  gap_context  : {jd_context}\n" + "=" * 60
-        )
         
-        # LOG: Analysis completed successfully (important event)
-        system_logger.info(
-            "Analysis",
-            f"Gap analysis completed",
-            {
-                "user_id": user_id,
-                "cv_id": cv_id,
-                "job_id": job_id,
-                "analysis_id": str(new_analysis.id),
-                "match_score": report.get('overall_match_pct', 0),
-                "skill_gaps_count": len(report.get('skill_gaps', [])),
-                "courses_count": len(report.get('recommended_courses', [])),
-                "duration_sec": round(total_elapsed, 2)
-            }
-        )
-        
-        # ── Send Email Notification ──────────────────────────────────────────
-        try:
-            from shared.email_utils import notify_gap_analysis_complete
-            
-            if user and user.email:
-                # Get job title if available
-                job_title = None
-                if job_id:
-                    job = db.query(Job).filter(Job.id == uuid.UUID(job_id)).first()
-                    if job:
-                        job_title = job.title_raw
+        # [FIX] Do not persist if analysis failed
+        if isinstance(report, dict) and report.get("status") == "failed":
+            logger.warning(
+                f"[ANALYSIS STEP 4] Analysis FAILED according to report status. SKIPPING DB persistence.\n"
+                f"  Notes: {report.get('notes')}\n"
+                f"  Assessment: {report.get('overall_assessment')}"
+            )
+        else:
+            logger.info(f"[ANALYSIS STEP 4/4] Persist to UserAnalysis table")
+            job_uuid = None
+            if job_id:
+                try:
+                    job_uuid = uuid.UUID(job_id)
+                except (ValueError, TypeError):
+                    logger.warning(
+                        f"[ANALYSIS STEP 4] Invalid job_id={job_id!r} — setting to NULL"
+                    )
+
+            new_analysis = UserAnalysis(
+                id=uuid.uuid4(),
+                user_id=uuid.UUID(user_id),
+                cv_id=uuid.UUID(cv_id),
+                job_id=job_uuid,
+                match_score=report.get("overall_match_pct", 0) or 0,
+                result_json=report,
+                created_at=datetime.now(),
+            )
+            db.add(new_analysis)
+            db.flush()  # Force INSERT execution so the ID exists for the User relation
+
+            # Update User's last_analysis_id for persistent state
+            user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
+            if user:
+                user.last_analysis_id = new_analysis.id
+                logger.info(f"[ANALYSIS STEP 4] Updated User {user_id} with last_analysis_id={new_analysis.id}")
                 
-                notify_gap_analysis_complete(
-                    user_email=user.email,
-                    match_score=round(report.get('overall_match_pct', 0), 1),
-                    skill_gaps_count=len(report.get('skill_gaps', [])),
-                    courses_count=len(report.get('recommended_courses', [])),
-                    cv_name=cv.full_name or user.email.split('@')[0],
-                    job_title=job_title
-                )
-                logger.info(f"[ANALYSIS STEP 4] ✓ Gap analysis email notification sent to {user.email}")
-        except Exception as email_err:
-            logger.warning(f"[ANALYSIS STEP 4] Failed to send gap analysis email: {email_err}")
-        
-        # Ensure cv_id and job_id are in the report for frontend redirection
-        if isinstance(report, dict):
-            report["cv_id"] = str(cv_id)
-            report["job_id"] = str(job_id) if job_id else None
-            report["analysis_id"] = str(new_analysis.id)
+                # ── TRIGGER MARKET FIT UPDATE ──────────────────────────────────────
+                try:
+                    loop = asyncio.get_event_loop()
+                    loop.run_until_complete(update_user_market_fit(user.id, db, cv_id=uuid.UUID(cv_id)))
+                    logger.info(f"[ANALYSIS STEP 4] ✓ Market Fit updated for user {user_id} using CV {cv_id}")
+                except Exception as mf_err:
+                    logger.error(f"[ANALYSIS STEP 4] Failed to update market fit: {mf_err}")
+
+            db.commit()
+
+            # ── Send Email Notification ──────────────────────────────────────────
+            try:
+                if user and user.email:
+                    # Get job title if available
+                    job_title = None
+                    if job_id:
+                        job = db.query(Job).filter(Job.id == uuid.UUID(job_id)).first()
+                        if job:
+                            job_title = job.title_raw
+                    
+                    notify_gap_analysis_complete(
+                        user_email=user.email,
+                        match_score=round(report.get('overall_match_pct', 0), 1),
+                        skill_gaps_count=len(report.get('skill_gaps', [])),
+                        courses_count=len(report.get('recommended_courses', [])),
+                        cv_name=cv.full_name or user.email.split('@')[0],
+                        job_title=job_title
+                    )
+                    logger.info(f"[ANALYSIS STEP 4] ✓ Gap analysis email notification sent to {user.email}")
+            except Exception as email_err:
+                logger.warning(f"[ANALYSIS STEP 4] Failed to send gap analysis email: {email_err}")
+            
+            # Add analysis_id to report if persisted
+            if isinstance(report, dict):
+                report["analysis_id"] = str(new_analysis.id)
             report["is_cached"] = False # This was a fresh computation
 
         return report
