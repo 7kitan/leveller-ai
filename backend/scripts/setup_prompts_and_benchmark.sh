@@ -29,12 +29,14 @@ NC='\033[0m' # No Color
 # Determine environment (default: dev)
 ENVIRONMENT="${1:-dev}"
 
-# Load .env file
+# Load .env file safely
 if [ -f "$(dirname "$0")/../.env" ]; then
-    export $(grep -v '^#' "$(dirname "$0")/../.env" | xargs)
-    log_success ".env file loaded"
+    set -a  # Auto-export all variables
+    source "$(dirname "$0")/../.env"
+    set +a  # Disable auto-export
+    echo -e "${GREEN}[SUCCESS]${NC} .env file loaded"
 else
-    log_warning ".env file not found, using defaults"
+    echo -e "${YELLOW}[WARNING]${NC} .env file not found, using defaults"
 fi
 
 # Configuration based on environment
