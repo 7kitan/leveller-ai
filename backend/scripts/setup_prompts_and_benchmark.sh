@@ -210,15 +210,16 @@ main() {
     fi
     echo ""
     
-    # Step 3: Populate initial prompts
-    log_info "Step 3/5: Populate prompt templates"
+    # Step 3: Populate initial prompts (OPTIONAL - Skip for manual admin setup)
+    log_info "Step 3/5: Populate prompt templates (optional)"
     PROMPT_COUNT=$(count_prompts)
-    if [ "$PROMPT_COUNT" -ge 5 ]; then
-        log_warning "Found $PROMPT_COUNT active prompts, skipping population"
+    if [ "$PROMPT_COUNT" -ge 1 ]; then
+        log_warning "Found $PROMPT_COUNT prompts, skipping auto-population"
+        log_info "Admins can create prompts manually via UI at /admin/prompts"
     else
-        run_sql_file "$MIGRATIONS_DIR/001_setup_prompts.sql" "Populate initial prompts"
-        PROMPT_COUNT=$(count_prompts)
-        log_success "Loaded $PROMPT_COUNT active prompts"
+        log_info "No prompts found. Admins should create prompts via UI."
+        log_info "6 metadata templates available: cv_parsing, gap_analysis, gap_analysis_merged,"
+        log_info "course_recommendation, jd_parsing, roadmap_building"
     fi
     echo ""
     

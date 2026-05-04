@@ -137,25 +137,17 @@ async def list_categories(
     session = Depends(get_db)
 ):
     """
-    Get metadata for all active prompts.
-    Frontend can derive categories from metadata.category.
-    
-    This endpoint is named /categories for backward compatibility,
-    but returns full metadata (categories can be extracted from it).
+    List all available prompt categories with metadata.
+    Returns hardcoded metadata definitions - DB can be empty.
+    Admins use this to know what categories are available for creating prompts.
     """
     try:
-        # Get metadata for all prompts (including inactive ones for admin UI)
-        metadata_query = text("""
-            SELECT DISTINCT category, name, parameters, admin_notes
-            FROM prompt_templates
-            ORDER BY category
-        """)
-        metadata_result = session.execute(metadata_query).fetchall()
-        
-        # Build metadata map
+        # Hardcoded metadata - serves as schema/contract
         metadata_map = {
             "cv_parsing": {
+                "name": "CV Parsing",
                 "description": "Parse CV from raw text and extract structured information",
+                "parameters": ["masked_text", "current_date"],
                 "parameter_descriptions": {
                     "masked_text": "CV text with PII masked (emails, phones, addresses)",
                     "current_date": "Current date in YYYY-MM-DD format for date calculations"
@@ -163,7 +155,9 @@ async def list_categories(
                 "example_usage": "Used in CV upload flow to extract skills, experience, education"
             },
             "gap_analysis": {
+                "name": "Gap Analysis (Path A)",
                 "description": "Analyze skill gaps between candidate CV and job requirements (pre-parsed)",
+                "parameters": ["job_title", "requirements_json", "cv_json_str"],
                 "parameter_descriptions": {
                     "job_title": "Job title from the job posting",
                     "requirements_json": "JSON string of pre-parsed job requirements",
@@ -172,7 +166,9 @@ async def list_categories(
                 "example_usage": "Used when both CV and JD are already parsed"
             },
             "gap_analysis_merged": {
+                "name": "Gap Analysis (Path B - Merged)",
                 "description": "Extract JD requirements and perform gap analysis in one call",
+                "parameters": ["jd_text", "cv_text"],
                 "parameter_descriptions": {
                     "jd_text": "Raw job description text",
                     "cv_text": "JSON string of parsed CV data"
@@ -180,7 +176,9 @@ async def list_categories(
                 "example_usage": "Used when JD is raw text and needs extraction first"
             },
             "course_recommendation": {
+                "name": "Course Recommendation + Roadmap",
                 "description": "Select courses and build learning roadmap based on skill gaps",
+                "parameters": ["gaps_context", "candidates_context", "yt_context"],
                 "parameter_descriptions": {
                     "gaps_context": "JSON string of skill gaps to address",
                     "candidates_context": "JSON string of available paid courses",
@@ -189,46 +187,39 @@ async def list_categories(
                 "example_usage": "Used after gap analysis to recommend learning resources"
             },
             "jd_parsing": {
-                "description": "Extract structured requirements from job description (standalone)",
+                "name": "JD Parsing (Standalone)",
+                "description": "Extract structured requirements from job description",
+                "parameters": ["jd_text"],
                 "parameter_descriptions": {
                     "jd_text": "Raw job description text"
                 },
                 "example_usage": "Used in benchmark or standalone JD analysis"
             },
             "roadmap_building": {
-                "description": "Build personalized learning roadmap from selected courses (legacy/standalone)",
+                "name": "Roadmap Building (Standalone)",
+                "description": "Build personalized learning roadmap from selected courses",
+                "parameters": ["selected_courses", "skill_gaps", "target_role"],
                 "parameter_descriptions": {
                     "selected_courses": "JSON string of selected courses",
                     "skill_gaps": "JSON string of skill gaps to address",
                     "target_role": "Target job role/title"
                 },
-                "example_usage": "Legacy function - currently integrated into course_recommendation. Can be used standalone if needed."
+                "example_usage": "Standalone roadmap generation (can also use course_recommendation for combined flow)"
             }
         }
         
-        # Build metadata list
+        # Return all 6 metadata definitions
         metadata_list = []
-        for row in metadata_result:
-            category = row[0]
-            name = row[1]
-            parameters = row[2] if isinstance(row[2], list) else json.loads(row[2] or "[]")
-            
-            meta = metadata_map.get(category, {
-                "description": f"Prompt for {category}",
-                "parameter_descriptions": {p: f"Parameter {p}" for p in parameters},
-                "example_usage": None
-            })
-            
+        for category, meta in metadata_map.items():
             metadata_list.append(PromptMetadata(
                 category=category,
-                name=name,
+                name=meta["name"],
                 description=meta["description"],
-                parameters=parameters,
+                parameters=meta["parameters"],
                 parameter_descriptions=meta["parameter_descriptions"],
                 example_usage=meta.get("example_usage")
             ))
         
-        # Return metadata only (frontend derives categories)
         return metadata_list
         
     except Exception as e:
