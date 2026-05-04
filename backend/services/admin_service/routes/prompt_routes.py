@@ -266,7 +266,7 @@ async def get_prompt(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/", response_model=PromptTemplateResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=PromptTemplateResponse, status_code=status.HTTP_201_CREATED)
 async def create_prompt(
     prompt: PromptTemplateCreate,
     current_user = Depends(get_current_admin_user),
