@@ -50,7 +50,7 @@ class BenchmarkService:
             # 2. Iterate Test Cases
             for idx, case in enumerate(test_set.test_cases, 1):
                 logger.info(f"[BENCHMARK] Session {session.id}: Running test case {idx}/{cases_count}")
-                result = await self._run_test_case(case, model_config, session.id)
+                result = await self._run_test_case(case, model_config, session.id, user_id=user_id)
                 
                 if result.status == "success":
                     total_score += (result.score or 0.0)
@@ -74,7 +74,7 @@ class BenchmarkService:
             self.db.commit()
             raise
 
-    async def _run_test_case(self, case: LLMTestCase, model_config: Dict[str, str], session_id: uuid.UUID):
+    async def _run_test_case(self, case: LLMTestCase, model_config: Dict[str, str], session_id: uuid.UUID, user_id: str = None):
         """
         Run a single test case within the benchmark context.
         """
@@ -86,7 +86,7 @@ class BenchmarkService:
         try:
             # 1. Execute the flow based on test_set.flow_type
             flow_type = case.test_set.flow_type
-            actual_output = await self._execute_flow(flow_type, case.input_data, model_config)
+            actual_output = await self._execute_flow(flow_type, case.input_data, model_config, user_id=user_id)
             
             latency = int((time.monotonic() - t0) * 1000)
             
@@ -95,7 +95,8 @@ class BenchmarkService:
                 actual_output=actual_output, 
                 reference_output=case.reference_output, 
                 flow_type=flow_type,
-                model_config=model_config  # Pass model_config for judge models
+                model_config=model_config,  # Pass model_config for judge models
+                user_id=user_id
             )
             
             # 3. Gather intercepted LLM call metrics
@@ -143,7 +144,7 @@ class BenchmarkService:
             is_benchmark_active.reset(active_token)
             benchmark_data.reset(data_token)
 
-    async def _execute_flow(self, flow_type: str, input_data: Dict, model_config: Dict):
+    async def _execute_flow(self, flow_type: str, input_data: Dict, model_config: Dict, user_id: str = None):
         """
         Dispatches to the correct LangGraph flow based on flow_type.
         
@@ -163,7 +164,7 @@ class BenchmarkService:
             if not cv_id:
                 raise ValueError("cv_id is required for cv_parsing_v3 flow")
                 
-            result = await run_cv_parsing_pipeline(cv_id=cv_id, user_id="00000000-0000-0000-0000-000000000000", db=self.db)
+            result = await run_cv_parsing_pipeline(cv_id=cv_id, user_id=user_id or "00000000-0000-0000-0000-000000000000", db=self.db)
             return result
             
         elif flow_type == "jd_parsing":
@@ -203,7 +204,7 @@ class BenchmarkService:
                 raise ValueError("cv_id and job_id are required for gap_analysis_from_requirements flow")
             
             # Assumes CV is already parsed and JD requirements are already extracted
-            result = await run_gap_analysis_v3(cv_id=cv_id, job_id=job_id, user_id="00000000-0000-0000-0000-000000000000", db=self.db)
+            result = await run_gap_analysis_v3(cv_id=cv_id, job_id=job_id, user_id=user_id or "00000000-0000-0000-0000-000000000000", db=self.db)
             return result
             
         elif flow_type == "gap_analysis_merged" or flow_type == "full_cv_to_gap":
@@ -219,10 +220,10 @@ class BenchmarkService:
                 raise ValueError("cv_id and job_id are required for gap_analysis_merged flow")
 
             # Run CV parsing (uses existing parsed data if available)
-            await run_cv_parsing_pipeline(cv_id=cv_id, user_id="00000000-0000-0000-0000-000000000000", db=self.db)
+            await run_cv_parsing_pipeline(cv_id=cv_id, user_id=user_id or "00000000-0000-0000-0000-000000000000", db=self.db)
             
             # Run Gap Analysis
-            result = await run_gap_analysis_v3(cv_id=cv_id, job_id=job_id, user_id="00000000-0000-0000-0000-000000000000", db=self.db)
+            result = await run_gap_analysis_v3(cv_id=cv_id, job_id=job_id, user_id=user_id or "00000000-0000-0000-0000-000000000000", db=self.db)
             return result
             
         elif flow_type == "course_recommendation":
@@ -246,7 +247,7 @@ class BenchmarkService:
             f"gap_analysis_merged, full_cv_to_gap, course_recommendation"
         )
 
-    async def _evaluate(self, actual_output: Any, reference_output: Any, flow_type: str, model_config: Dict) -> Dict:
+    async def _evaluate(self, actual_output: Any, reference_output: Any, flow_type: str, model_config: Dict, user_id: str = None) -> Dict:
         """
         Evaluates the quality of the actual output compared to the reference.
         Uses real LLM judge models to score the output.
@@ -259,13 +260,13 @@ class BenchmarkService:
         evaluation_strategy = model_config.get("evaluation_strategy", "single_judge")
         
         if evaluation_strategy == "dual_judge":
-            return await self._evaluate_dual_judge(actual_output, reference_output, flow_type, model_config)
+            return await self._evaluate_dual_judge(actual_output, reference_output, flow_type, model_config, user_id=user_id)
         elif evaluation_strategy == "ensemble":
-            return await self._evaluate_ensemble(actual_output, reference_output, flow_type, model_config)
+            return await self._evaluate_ensemble(actual_output, reference_output, flow_type, model_config, user_id=user_id)
         else:  # single_judge
-            return await self._evaluate_single_judge(actual_output, reference_output, flow_type, model_config)
+            return await self._evaluate_single_judge(actual_output, reference_output, flow_type, model_config, user_id=user_id)
     
-    async def _evaluate_single_judge(self, actual_output: Any, reference_output: Any, flow_type: str, model_config: Dict) -> Dict:
+    async def _evaluate_single_judge(self, actual_output: Any, reference_output: Any, flow_type: str, model_config: Dict, user_id: str = None) -> Dict:
         """Single judge evaluation using CORE ai_service (not internal llm_helpers)"""
         judge_model = model_config.get("judge_model", "gpt-4o")
         
@@ -283,7 +284,7 @@ class BenchmarkService:
                 json_mode=True,
                 temperature=0.0,
                 call_name=f"benchmark_judge_{flow_type}",
-                user_id="00000000-0000-0000-0000-000000000000"
+                user_id=user_id or "00000000-0000-0000-0000-000000000000"
             )
             
             if not response:
@@ -317,7 +318,7 @@ class BenchmarkService:
             "metrics": metrics
         }
     
-    async def _evaluate_dual_judge(self, actual_output: Any, reference_output: Any, flow_type: str, model_config: Dict) -> Dict:
+    async def _evaluate_dual_judge(self, actual_output: Any, reference_output: Any, flow_type: str, model_config: Dict, user_id: str = None) -> Dict:
         """Dual judge evaluation with two models using CORE ai_service"""
         judge_primary = model_config.get("judge_model_primary", "gpt-4o")
         judge_secondary = model_config.get("judge_model_secondary", "claude-3-5-sonnet-20241022")
@@ -340,7 +341,7 @@ class BenchmarkService:
                     json_mode=True,
                     temperature=0.0,
                     call_name=f"benchmark_judge_{judge_name}_{flow_type}",
-                    user_id="00000000-0000-0000-0000-000000000000"
+                    user_id=user_id or "00000000-0000-0000-0000-000000000000"
                 )
                 if not response:
                     return None
@@ -433,7 +434,7 @@ class BenchmarkService:
             }
         }
     
-    async def _evaluate_ensemble(self, actual_output: Any, reference_output: Any, flow_type: str, model_config: Dict) -> Dict:
+    async def _evaluate_ensemble(self, actual_output: Any, reference_output: Any, flow_type: str, model_config: Dict, user_id: str = None) -> Dict:
         """Ensemble evaluation with multiple weighted judges using CORE ai_service"""
         judge_models = model_config.get("judge_models", [
             {"model": "gpt-4o", "weight": 0.5},
@@ -457,7 +458,7 @@ class BenchmarkService:
                     json_mode=True,
                     temperature=0.0,
                     call_name=f"benchmark_judge_{judge_name}_{flow_type}",
-                    user_id="00000000-0000-0000-0000-000000000000"
+                    user_id=user_id or "00000000-0000-0000-0000-000000000000"
                 )
                 if not response:
                     return None
