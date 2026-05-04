@@ -21,6 +21,7 @@ from ..utils.llm_helpers import llm_json_completion
 from ..config import get_vector_sim_threshold
 from shared.config_utils import config_manager
 from shared.youtube_service import youtube_service
+from shared.prompt_manager import get_prompt
 
 logger = logging.getLogger("course_agent_v3")
 
@@ -348,55 +349,74 @@ async def _llm_select_courses_and_roadmap_unified(
         })
     yt_context = _json.dumps(yt_json, ensure_ascii=False, indent=2)
 
-    prompt = (
-        "You are a Senior Learning Path Advisor. Select the best resources (paid courses + free YouTube) and build a career roadmap.\n\n"
-        "## GAP CONTEXT:\n" + gaps_context + "\n\n"
-        "## PAID COURSE CANDIDATES:\n" + candidates_context + "\n\n"
-        "## FREE YOUTUBE CANDIDATES:\n" + yt_context + "\n\n"
-        "## MISSION:\n"
-        "1. SELECT RESOURCES: For each gap, evaluate if there are truly relevant resources.\n"
-        "   - STRICT TECHNICAL MATCHING: Only select a course if it SPECIFICALLY teaches the gap skill.\n"
-        "   - DO NOT suggest Node.js for Golang. DO NOT suggest Python for Java.\n"
-        "   - If the candidates list for a gap only contains irrelevant skills, set course_id to null.\n"
-        "   - It is BETTER to return NO course than to return a WRONG course.\n"
-        "   - CRITICAL: Check the title and skills list carefully. If 'Golang' is the gap but the course title is 'Node.js', it is a REJECT.\n"
-        "   - STRICT REASONING: The 'selection_reason' MUST explain WHY this resource teaches the specific gap skill.\n"
-        "   - Selection reason must be in Vietnamese.\n"
-        "2. BUILD ROADMAP: Create a personalized learning roadmap in Vietnamese.\n"
-        "   - Only include gaps that have at least one relevant resource.\n"
-        "   - Group resources by learning stage (Stage 1: fundamentals → Stage 2: intermediate → Stage 3: advanced)\n"
-        "   - Use English for skill names, Vietnamese for descriptions\n"
-        "   - Each stage: focus skill, duration_weeks, milestones\n\n"
-        "## OUTPUT JSON SCHEMA:\n"
-        "{\n"
-        '  "selected_courses": [\n'
-        '    {\n'
-        '      "course_id": "standard_course_id_here or null if no relevant course",\n'
-        '      "video_id": "youtube_video_id_here or null if no relevant video",\n'
-        '      "gap_skills": ["skill1"],\n'
-        '      "selection_reason": "Explain WHY this resource teaches the gap skill (Vietnamese)",\n'
-        '      "stage": 1\n'
-        '    }\n'
-        '  ],\n'
-        '  "career_roadmap": {\n'
-        '    "stages": [\n'
-        '      {\n'
-        '        "stage": 1,\n'
-        '        "focus": "skill name in English",\n'
-        '        "duration_weeks": 4,\n'
-        '        "skills_acquired": ["..."],\n'
-        '        "courses_taken": ["course titles or video titles"],\n'
-        '        "milestones": [{"week": 1, "milestone": "..."}]\n'
-        '      }\n'
-        '    ],\n'
-        '    "total_weeks": 12,\n'
-        '    "total_hours": 40,\n'
-        '    "summary": "Vietnamese summary"\n'
-        '  }\n'
-        "}\n\n"
-        "IMPORTANT: If a gap has no relevant resources, you can skip it entirely from selected_courses.\n"
-        "Return ONLY valid JSON."
-    )
+    # ── Get prompt from prompt manager ──────────────────────────────────────────
+    try:
+        prompt_text, llm_config = get_prompt(
+            'course_recommendation',
+            gaps_context=gaps_context,
+            candidates_context=candidates_context,
+            yt_context=yt_context
+        )
+        
+        if not prompt_text:
+            raise ValueError("Prompt manager returned empty prompt")
+            
+        logger.info("[COURSE] Using managed prompt: course_recommendation")
+        
+    except Exception as e:
+        logger.warning(f"[COURSE] Failed to load managed prompt, using fallback: {e}")
+        
+        # Fallback to hardcoded prompt
+        llm_config = {"temperature": 0.6, "max_tokens": 3000}
+        prompt_text = (
+            "You are a Senior Learning Path Advisor. Select the best resources (paid courses + free YouTube) and build a career roadmap.\n\n"
+            "## GAP CONTEXT:\n" + gaps_context + "\n\n"
+            "## PAID COURSE CANDIDATES:\n" + candidates_context + "\n\n"
+            "## FREE YOUTUBE CANDIDATES:\n" + yt_context + "\n\n"
+            "## MISSION:\n"
+            "1. SELECT RESOURCES: For each gap, evaluate if there are truly relevant resources.\n"
+            "   - STRICT TECHNICAL MATCHING: Only select a course if it SPECIFICALLY teaches the gap skill.\n"
+            "   - DO NOT suggest Node.js for Golang. DO NOT suggest Python for Java.\n"
+            "   - If the candidates list for a gap only contains irrelevant skills, set course_id to null.\n"
+            "   - It is BETTER to return NO course than to return a WRONG course.\n"
+            "   - CRITICAL: Check the title and skills list carefully. If 'Golang' is the gap but the course title is 'Node.js', it is a REJECT.\n"
+            "   - STRICT REASONING: The 'selection_reason' MUST explain WHY this resource teaches the specific gap skill.\n"
+            "   - Selection reason must be in Vietnamese.\n"
+            "2. BUILD ROADMAP: Create a personalized learning roadmap in Vietnamese.\n"
+            "   - Only include gaps that have at least one relevant resource.\n"
+            "   - Group resources by learning stage (Stage 1: fundamentals → Stage 2: intermediate → Stage 3: advanced)\n"
+            "   - Use English for skill names, Vietnamese for descriptions\n"
+            "   - Each stage: focus skill, duration_weeks, milestones\n\n"
+            "## OUTPUT JSON SCHEMA:\n"
+            "{\n"
+            '  "selected_courses": [\n'
+            '    {\n'
+            '      "course_id": "standard_course_id_here or null if no relevant course",\n'
+            '      "video_id": "youtube_video_id_here or null if no relevant video",\n'
+            '      "gap_skills": ["skill1"],\n'
+            '      "selection_reason": "Explain WHY this resource teaches the gap skill (Vietnamese)",\n'
+            '      "stage": 1\n'
+            '    }\n'
+            '  ],\n'
+            '  "career_roadmap": {\n'
+            '    "stages": [\n'
+            '      {\n'
+            '        "stage": 1,\n'
+            '        "focus": "skill name in English",\n'
+            '        "duration_weeks": 4,\n'
+            '        "skills_acquired": ["..."],\n'
+            '        "courses_taken": ["course titles or video titles"],\n'
+            '        "milestones": [{"week": 1, "milestone": "..."}]\n'
+            '      }\n'
+            '    ],\n'
+            '    "total_weeks": 12,\n'
+            '    "total_hours": 40,\n'
+            '    "summary": "Vietnamese summary"\n'
+            '  }\n'
+            "}\n\n"
+            "IMPORTANT: If a gap has no relevant resources, you can skip it entirely from selected_courses.\n"
+            "Return ONLY valid JSON."
+        )
 
     logger.info(
         f"\n{'═' * 70}\n"
@@ -404,16 +424,19 @@ async def _llm_select_courses_and_roadmap_unified(
         f"           │ gaps_count   : {len(gaps)}\n"
         f"           │ candidates  : {len(all_candidates)}\n"
         f"           │ jd_context  : {jd_context or '(none)'}\n"
+        f"           │ llm_config  : {llm_config}\n"
         f"           └─────────\n"
         f"[LLM DATA] PROMPT (first 2000 chars):\n"
-        f"{_indent_data(prompt[:2000])}\n"
+        f"{_indent_data(prompt_text[:2000])}\n"
         f"{'═' * 70}\n"
     )
 
     # user_id is passed from node to llm_json_completion
+    temperature = llm_config.get("temperature", 0.6) if llm_config else 0.6
     result = await llm_json_completion(
-        prompt=prompt,
+        prompt=prompt_text,
         context=jd_context,
+        temperature=temperature,
         call_name="select_courses_and_roadmap_unified",
         user_id=user_id
     )

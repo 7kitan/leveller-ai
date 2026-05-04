@@ -37,26 +37,52 @@ async def _llm_build_roadmap(
     courses_str: str,
     user_id: Optional[str] = None
 ) -> Dict[str, Any]:
-    """Gọi LLM để tạo career roadmap JSON."""
+    """
+    LEGACY: Gọi LLM để tạo career roadmap JSON.
+    NOTE: Currently integrated into course_recommendation_llm_node.
+    This function kept for potential standalone use.
+    """
     from ..utils.llm_helpers import llm_json_completion
+    from shared.prompt_manager import get_prompt
 
-    prompt = (
-        "Build a personalized learning roadmap (in Vietnamese). "
-        "Use English for skill names.\n\n"
-        "## Skill gaps (prioritized):\n" + gaps_str + "\n\n"
-        "## Recommended courses:\n" + courses_str + "\n\n"
-        "Output JSON:\n"
-        '{"stages": [{"stage": 1, "focus": "...", "duration_weeks": 4, '
-        '"skills_acquired": [...], "courses_taken": [...], '
-        '"milestones": [{"week": 1, "milestone": "..."}], '
-        '"total_weeks": 0, "total_hours": 0, "summary": "..."}'
-        "}"
-    )
+    # ── Get prompt from prompt manager ──────────────────────────────────────
+    try:
+        prompt, llm_config = get_prompt(
+            'roadmap_building',
+            selected_courses=courses_str,
+            skill_gaps=gaps_str,
+            target_role="Target Role"  # TODO: Pass actual target role if available
+        )
+        
+        if not prompt:
+            raise ValueError("Prompt manager returned empty prompt")
+            
+        logger.info("[ROADMAP] Using managed prompt: roadmap_building")
+        
+    except Exception as e:
+        logger.warning(f"[ROADMAP] Failed to load managed prompt, using fallback: {e}")
+        
+        # Fallback to hardcoded prompt
+        llm_config = {"temperature": 0.6, "max_tokens": 3000}
+        prompt = (
+            "Build a personalized learning roadmap (in Vietnamese). "
+            "Use English for skill names.\n\n"
+            "## Skill gaps (prioritized):\n" + gaps_str + "\n\n"
+            "## Recommended courses:\n" + courses_str + "\n\n"
+            "Output JSON:\n"
+            '{"stages": [{"stage": 1, "focus": "...", "duration_weeks": 4, '
+            '"skills_acquired": [...], "courses_taken": [...], '
+            '"milestones": [{"week": 1, "milestone": "..."}], '
+            '"total_weeks": 0, "total_hours": 0, "summary": "..."}'
+            "}"
+        )
 
     logger.info(f"[STEP 5/LLM] Calling LLM | prompt_chars={len(prompt)}")
 
+    temperature = llm_config.get("temperature", 0.6) if llm_config else 0.6
     result = await llm_json_completion(
         prompt=prompt,
+        temperature=temperature,
         call_name="build_roadmap",
         user_id=user_id
     )

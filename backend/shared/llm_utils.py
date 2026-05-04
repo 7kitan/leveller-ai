@@ -36,23 +36,8 @@ def calculate_embedding_cost(token_count: int, model: str = "text-embedding-3-sm
     cost_per_million = EMBEDDING_COSTS.get(model, 0.02)
     return (token_count / 1_000_000) * cost_per_million
 
-# ─── Mapping & Configuration ──────────────────────────────────────────────────
-
-# Mapping từ Model ID sang Provider
-MODEL_PROVIDER_MAP = {
-    # Google Gemini
-    "gemini-1.5-pro": "google",
-    "gemini-1.5-flash": "google",
-    # OpenAI
-    "gpt-4o": "openai",
-    "gpt-4o-mini": "openai",
-    "gpt-4-turbo": "openai",
-    # Anthropic
-    "claude-3-5-sonnet": "anthropic",
-    "claude-3-5-haiku": "anthropic",
-    "claude-3-haiku": "anthropic",
-    "claude-3-opus": "anthropic",
-}
+# Note: MODEL_PROVIDER_MAP has been moved to shared.ai_service.registry.AI_REGISTRY
+# for better maintainability and metadata support.
 
 # ─── Clients Factory ─────────────────────────────────────────────────────────
 
@@ -64,7 +49,9 @@ class LLMFactory:
 
     @classmethod
     def get_provider(cls, model_name: str) -> str:
-        return MODEL_PROVIDER_MAP.get(model_name, "openai")
+        from shared.ai_service.registry import get_model_info
+        info = get_model_info(model_name)
+        return info.provider if info else "openai"
 
     @classmethod
     def get_openai_client(cls):
@@ -207,7 +194,8 @@ def get_chat_completion(
     model: Optional[str] = None,
     model_key: str = "career_advisor_model",
     call_name: str = "chat_completion",
-    user_id: Optional[str] = None
+    user_id: Optional[str] = None,
+    temperature: float = 0.1
 ) -> Optional[str]:
     """
     [LEGACY] Wrapper for the new AI Service completion core.
@@ -223,7 +211,8 @@ def get_chat_completion(
         model=model,
         model_key=m_key,
         call_name=call_name,
-        user_id=user_id
+        user_id=user_id,
+        temperature=temperature
     )
 
 # ─── Utility Functions ───────────────────────────────────────────────────────
@@ -595,7 +584,26 @@ def extract_skills_from_requirements(requirements_text: str, model_key: str = "a
         logger.warning("[SKILL EXTRACT] Requirements text too short, skipping extraction")
         return None
     
-    prompt = f"""Analyze this job requirements and perform TWO tasks:
+    # ── Get prompt from prompt manager ──────────────────────────────────────
+    try:
+        from shared.prompt_manager import get_prompt
+        
+        prompt, llm_config = get_prompt(
+            'jd_parsing',
+            jd_text=requirements_text
+        )
+        
+        if not prompt:
+            raise ValueError("Prompt manager returned empty prompt")
+            
+        logger.info("[JD_PARSE] Using managed prompt: jd_parsing")
+        
+    except Exception as e:
+        logger.warning(f"[JD_PARSE] Failed to load managed prompt, using fallback: {e}")
+        
+        # Fallback to hardcoded prompt
+        llm_config = {"temperature": 0.5, "max_tokens": 2500}
+        prompt = f"""Analyze this job requirements and perform TWO tasks:
 
 TASK 1: Classify if this is a TECH job
 TASK 2: If TECH job, extract technical skills
@@ -761,20 +769,21 @@ If NON-TECH:
   "skills": []
 }}
 """
-
-    system_prompt = "You are a technical recruiter expert at analyzing job requirements and extracting structured skill data. Always return valid JSON."
     
     try:
         logger.info(f"[SKILL EXTRACT] Extracting skills from {len(requirements_text)} chars of requirements...")
         system_logger.info("AI_SKILL_EXTRACT", f"Starting skill extraction ({len(requirements_text)} chars)")
         
+        # Extract temperature from llm_config (default 0.1 if not specified)
+        temperature = llm_config.get("temperature", 0.1) if llm_config else 0.1
+        
         response = get_chat_completion(
             prompt=prompt,
-            system_prompt=system_prompt,
             json_mode=True,
             model_key=model_key,
             call_name="extract_skills",
-            user_id=user_id
+            user_id=user_id,
+            temperature=temperature
         )
         
         # DEBUG: Log raw response

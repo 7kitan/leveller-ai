@@ -425,3 +425,77 @@ class YouTubeVideoSkill(Base):
     )
     skill_name = Column(String(100), nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ─── LLM Benchmarking Extension Tables ────────────────────────────────────────
+
+class LLMTestSet(Base):
+    __tablename__ = "llm_test_sets"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(200), nullable=False)
+    description = Column(Text)
+    flow_type = Column(String(100), index=True)  # e.g., 'cv_parsing_v3', 'gap_analysis_v3'
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    is_active = Column(Boolean, default=True)
+
+    test_cases = relationship("LLMTestCase", back_populates="test_set", cascade="all, delete-orphan")
+
+
+class LLMTestCase(Base):
+    __tablename__ = "llm_test_cases"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    test_set_id = Column(UUID(as_uuid=True), ForeignKey("llm_test_sets.id", ondelete="CASCADE"), nullable=False)
+    
+    input_data = Column(JSON, nullable=False)  # e.g., {"raw_text": "...", "cv_id": "..."}
+    reference_output = Column(JSON)           # Ground truth JSON or text
+    test_metadata = Column("metadata", JSON)  # Optional metadata for tagging/filtering (renamed to avoid SQLAlchemy conflict)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    test_set = relationship("LLMTestSet", back_populates="test_cases")
+
+
+class LLMBenchmarkSession(Base):
+    __tablename__ = "llm_benchmark_sessions"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    test_set_id = Column(UUID(as_uuid=True), ForeignKey("llm_test_sets.id", ondelete="SET NULL"), nullable=True)
+    
+    model_config = Column(JSON, nullable=False)  # e.g., {"parsing_model": "gpt-4o", "judge_model": "gpt-4o"}
+    status = Column(String(20), default="running")  # running, completed, failed
+    
+    overall_score = Column(Float)
+    total_latency_ms = Column(Integer)
+    total_tokens = Column(Integer)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    completed_at = Column(DateTime(timezone=True))
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    test_set = relationship("LLMTestSet")
+    results = relationship("LLMBenchmarkResult", back_populates="session", cascade="all, delete-orphan")
+
+
+class LLMBenchmarkResult(Base):
+    __tablename__ = "llm_benchmark_results"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    session_id = Column(UUID(as_uuid=True), ForeignKey("llm_benchmark_sessions.id", ondelete="CASCADE"), nullable=False)
+    test_case_id = Column(UUID(as_uuid=True), ForeignKey("llm_test_cases.id", ondelete="SET NULL"), nullable=True)
+    
+    actual_output = Column(JSON)
+    score = Column(Float)     # 0.0 to 1.0
+    metrics = Column(JSON)    # {faithfulness: 0.8, relevancy: 0.9, ...}
+    
+    latency_ms = Column(Integer)
+    prompt_tokens = Column(Integer)
+    completion_tokens = Column(Integer)
+    
+    status = Column(String(20)) # success, error
+    error_message = Column(Text)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    session = relationship("LLMBenchmarkSession", back_populates="results")

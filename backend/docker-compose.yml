@@ -264,6 +264,15 @@ services:
     networks: *id005
     container_name: advisor_worker_email
     command: celery -A worker.celery_app worker -Q email --loglevel=info --logfile=/app/logs/worker_email.log --concurrency=${WORKER_EMAIL_CONCURRENCY:-2}
+  worker_benchmark:
+    build: *id001
+    env_file: .env
+    environment: *id002
+    volumes: *id003
+    depends_on: *id004
+    networks: *id005
+    container_name: advisor_worker_benchmark
+    command: celery -A worker.celery_app worker -Q benchmark --loglevel=info --logfile=/app/logs/worker_benchmark.log --concurrency=1
   celery_beat:
     build: *id001
     env_file: .env

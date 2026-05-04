@@ -27,7 +27,8 @@ import {
   Video,
   Shield,
   Tag,
-  Clock
+  Clock,
+  FileCode
 } from "lucide-react";
 
 import styles from "./sidebar.module.css";
@@ -44,8 +45,10 @@ const MENU_ITEMS = {
     {key: "nav_feedback",  icon: MessageSquare,   path: "/admin/feedback" },
     {key: "nav_blocked_ips", icon: Shield,        path: "/admin/blocked-ips" },
     {key: "nav_profile",   icon: UserCircle,      path: "/admin/profile" },
+    { key: "nav_prompts",   icon: FileCode,        path: "/admin/prompts" },
     { key: "nav_settings",  icon: Settings,        path: "/admin/settings" },
     { key: "nav_system_logs", icon: Activity,      path: "/admin/system-logs" },
+    { key: "nav_benchmarks",  icon: Activity,      path: "/admin/benchmarks" },
     { key: "nav_youtube",   icon: Video,         path: "/admin/youtube" },
     { key: "nav_taxonomy",  icon: Tag,           path: "/admin/taxonomy" },
     { key: "nav_pending_skills", icon: Clock,    path: "/admin/taxonomy/pending" },

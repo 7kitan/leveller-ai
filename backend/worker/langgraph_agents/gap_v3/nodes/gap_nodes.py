@@ -14,6 +14,7 @@ from typing import Dict, Any, Optional, List
 
 from ..states import GapAnalysisStateV3, GapAnalysisResult
 from ..utils.llm_helpers import llm_json_completion
+from shared.prompt_manager import get_prompt
 
 
 logger = logging.getLogger("gap_analysis_v3")
@@ -341,21 +342,31 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
         reqs_json_str = json.dumps(pre_jd_requirements, ensure_ascii=False, indent=2)
         target_lang = "English" if state.get("lang") == "en" else "Vietnamese"
         
-        prompt = _build_gap_only_prompt(cv_json_str, reqs_json_str, job_title, language=target_lang)
-        system = (
-            "You are a Senior Career Match Analyst. Analyze the candidate's CV "
-            "against the structured job requirements JSON provided. "
-            "Perform step-by-step reasoning (Chain of Thought) before outputting the final JSON. "
-            "Write assessment and learning paths in " + target_lang + ". "
-            "Keep technical skill names in English."
-        )
+        # ── Get prompt from prompt manager ──────────────────────────────────────
+        try:
+            prompt, llm_config = get_prompt(
+                'gap_analysis',
+                job_title=job_title,
+                requirements_json=reqs_json_str,
+                cv_json_str=cv_json_str
+            )
+            
+            if not prompt:
+                raise ValueError("Prompt manager returned empty prompt")
+                
+            logger.info("[GAP_A] Using managed prompt: gap_analysis")
+            
+        except Exception as e:
+            logger.warning(f"[GAP_A] Failed to load managed prompt, using fallback: {e}")
+            llm_config = {"temperature": 0.4, "max_tokens": 4000}
+            prompt = _build_gap_only_prompt(cv_json_str, reqs_json_str, job_title, language=target_lang)
 
         user_id = state.get("user_id")
+        temperature = llm_config.get("temperature", 0.1) if llm_config else 0.1
         result = await llm_json_completion(
             prompt=prompt,
             context=jd_context,
-            system_prompt=system,
-            temperature=0.1,
+            temperature=temperature,
             call_name="gap_analysis_from_requirements",
             user_id=user_id
         )
@@ -468,20 +479,30 @@ async def gap_analysis_llm_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3
             f"[STEP 3/PATH_B] Calling Combined LLM | jd_chars={len(jd_text)} | cv_json_chars={len(cv_json_str)} | lang={target_lang}"
         )
 
-        prompt = _build_merged_gap_prompt(cv_json_str, jd_text, language=target_lang)
-        system = (
-            "You are a Senior Career Match Analyst. Conduct a thorough JD extraction and "
-            "holistic gap analysis using Chain of Thought reasoning. "
-            "Write assessment and learning paths in " + target_lang + ". "
-            "Keep technical skill names in English."
-        )
+        # ── Get prompt from prompt manager ──────────────────────────────────────
+        try:
+            prompt, llm_config = get_prompt(
+                'gap_analysis_merged',
+                jd_text=jd_text,
+                cv_text=cv_json_str
+            )
+            
+            if not prompt:
+                raise ValueError("Prompt manager returned empty prompt")
+                
+            logger.info("[GAP_B] Using managed prompt: gap_analysis_merged")
+            
+        except Exception as e:
+            logger.warning(f"[GAP_B] Failed to load managed prompt, using fallback: {e}")
+            llm_config = {"temperature": 0.4, "max_tokens": 5000}
+            prompt = _build_merged_gap_prompt(cv_json_str, jd_text, language=target_lang)
 
         user_id = state.get("user_id")
+        temperature = llm_config.get("temperature", 0.1) if llm_config else 0.1
         result = await llm_json_completion(
             prompt=prompt,
             context=jd_context,
-            system_prompt=system,
-            temperature=0.1,
+            temperature=temperature,
             call_name="gap_analysis_combined",
             user_id=user_id
         )

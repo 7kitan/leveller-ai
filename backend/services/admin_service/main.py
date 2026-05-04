@@ -17,6 +17,28 @@ import json
 app = FastAPI(title="Admin Service")
 logger = logging.getLogger("admin_service")
 
+# Import and include prompt management routes
+from services.admin_service.routes.prompt_routes import router as prompt_router
+app.include_router(prompt_router)
+
+# ============================================================================
+# BENCHMARK EXTENSION (Optional - Can be disabled in production)
+# ============================================================================
+# Import and include benchmark routes ONLY if enabled
+ENABLE_BENCHMARK = config_manager.get_setting("ENABLE_BENCHMARK", default=True, cast=bool)
+
+if ENABLE_BENCHMARK:
+    try:
+        from services.admin_service.routes.benchmark_routes import router as benchmark_router
+        app.include_router(benchmark_router)
+        logger.info("[ADMIN] ✅ Benchmark extension ENABLED - Routes registered")
+    except ImportError as e:
+        logger.warning(f"[ADMIN] Benchmark routes extension not found: {e}")
+    except Exception as e:
+        logger.error(f"[ADMIN] Error registering benchmark routes: {e}")
+else:
+    logger.info("[ADMIN] ⚠️ Benchmark extension DISABLED - Skipping route registration")
+
 # System settings that should be synced to Redis for gateway access
 # These use special "system:" prefix for gateway middleware
 GATEWAY_SETTINGS = {"MAINTENANCE_MODE", "MAINTENANCE_DURATION"}
@@ -75,6 +97,14 @@ def load_settings_to_redis():
         
     except Exception as e:
         logger.error(f"[ADMIN] Failed to load settings to Redis: {e}")
+    
+    # Initialize prompt manager and load active prompts
+    try:
+        from shared.prompt_manager import init_prompt_manager
+        init_prompt_manager(config_cache, SessionLocal)
+        logger.info("[ADMIN] Prompt manager initialized and prompts loaded to Redis")
+    except Exception as e:
+        logger.error(f"[ADMIN] Failed to initialize prompt manager: {e}")
 
 # --- Pydantic Schemas ---
 

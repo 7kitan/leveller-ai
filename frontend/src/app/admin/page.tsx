@@ -17,7 +17,8 @@ import {
   Zap,
   Settings,
   Activity,
-  Video
+  Video,
+  BarChart3
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -111,6 +112,13 @@ const AdminDashboard = () => {
       icon: Video, 
       path: "/admin/youtube",
       color: "#ef4444"
+    },
+    { 
+      title: t("admin_benchmarks_title"), 
+      desc: t("admin_benchmarks_subtitle"), 
+      icon: BarChart3, 
+      path: "/admin/benchmarks",
+      color: "#8b5cf6"
     }
   ];
 

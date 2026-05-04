@@ -17,6 +17,7 @@ from shared.models import UserCV, UserSkillProfile, Skill, UserWorkExperience
 import json
 from shared.redis_client import result_cache
 from shared.config_utils import config_manager
+from shared.prompt_manager import get_prompt
 
 logger = logging.getLogger("cv_parsing_v3")
 
@@ -213,14 +214,19 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
             
             logger.info(f"[STEP 1] ✓ DOCX SUCCESS | text_len={len(raw_text)}")
             
-            # Save to DB for caching
-            cv_record.raw_text = raw_text
+            # SECURITY: Mask PII before saving to database (GDPR compliance)
+            logger.info("[STEP 1] Masking PII before saving to database...")
+            masked_text = mask_pii(raw_text)
+            logger.info(f"[STEP 1] PII masked | before={len(raw_text)} chars | after={len(masked_text)} chars")
+            
+            # Save masked text to DB for caching
+            cv_record.raw_text = masked_text
             cv_record.is_ocr = False
             db.commit()
             
             return {
                 **state,
-                "raw_text": raw_text,
+                "raw_text": masked_text,
                 "is_ocr": False,
                 "status": "text_extracted",
                 "file_path": file_path,
@@ -244,9 +250,15 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
                 f"[STEP 1] ✓ CHANDRA SUCCESS | text_len={len(raw_text)} | "
                 f"is_ocr={is_ocr}"
             )
+            
+            # SECURITY: Mask PII before returning (GDPR compliance)
+            logger.info("[STEP 1] Masking PII from Chandra OCR result...")
+            masked_text = mask_pii(raw_text)
+            logger.info(f"[STEP 1] PII masked | before={len(raw_text)} chars | after={len(masked_text)} chars")
+            
             return {
                 **state,
-                "raw_text": raw_text,
+                "raw_text": masked_text,
                 "is_ocr": is_ocr,
                 "status": "text_extracted",
                 "file_path": file_path,
@@ -345,14 +357,19 @@ async def extract_text_node(state: CVParsingState) -> CVParsingState:
             "status": "failed",
         }
 
+    # SECURITY: Mask PII before saving/returning (GDPR compliance)
+    logger.info("[STEP 1] Masking PII from extracted text...")
+    masked_text = mask_pii(raw_text)
+    logger.info(f"[STEP 1] PII masked | before={len(raw_text)} chars | after={len(masked_text)} chars")
+
     logger.info(
         f"[STEP 1] ✓ SUCCESS | is_ocr={is_ocr} | "
-        f"extracted={len(raw_text)} chars | cv_id={cv_id_str}\n"
+        f"extracted={len(masked_text)} chars (PII masked) | cv_id={cv_id_str}\n"
         f"{'─' * 50}"
     )
     return {
         **state,
-        "raw_text": raw_text,
+        "raw_text": masked_text,
         "is_ocr": is_ocr,
         "status": "text_extracted",
     }
@@ -389,18 +406,30 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
         )
         return {**state, "error": "Raw text too short or empty", "status": "failed"}
 
-    # BUG-003 FIX: PII Masking is now MANDATORY for GDPR compliance
-    # Removed ENABLE_PII_MASKING flag - always mask PII before sending to LLM
-    logger.info("[STEP 2] Masking PII before sending to LLM (MANDATORY for GDPR compliance)...")
-    masked_text = mask_pii(raw_text)
+    # NOTE: raw_text is already PII-masked from extract_text_node (STEP 1)
+    # No need to mask again - just use it directly
+    logger.info("[STEP 2] Using PII-masked text from STEP 1 (already masked)")
+    masked_text = raw_text
 
-    logger.info(
-        f"[STEP 2] PII masking complete | before={len(raw_text)} chars | "
-        f"after={len(masked_text)} chars"
-    )
-
-    # ── Build prompt ──────────────────────────────────────────────────────────
-    prompt = f"""
+    # ── Get prompt from prompt manager ──────────────────────────────────────────
+    try:
+        prompt_text, llm_config = get_prompt(
+            'cv_parsing',
+            masked_text=masked_text,
+            current_date=current_date
+        )
+        
+        if not prompt_text:
+            raise ValueError("Prompt manager returned empty prompt")
+            
+        logger.info("[CV_PARSE] Using managed prompt: cv_parsing")
+        
+    except Exception as e:
+        logger.warning(f"[CV_PARSE] Failed to load managed prompt, using fallback: {e}")
+        
+        # Fallback to hardcoded prompt
+        llm_config = {"temperature": 0.3, "max_tokens": 4000}
+        prompt_text = f"""
     SYSTEM ROLE:
     You are a Precision HR Data Architect. Your task is to:
     1. Validate if the uploaded text is a Curriculum Vitae (CV) or Resume.
@@ -495,13 +524,15 @@ async def llm_parse_cv_node(state: CVParsingState) -> CVParsingState:
 
     logger.info(
         f"[STEP 2] Calling LLM: model={LLM_MODEL} | "
-        f"input chars={len(prompt)} | is_ocr={is_ocr}"
+        f"input chars={len(prompt_text)} | is_ocr={is_ocr} | llm_config={llm_config}"
     )
     t_llm = __import__("time").monotonic()
     user_id = state.get("user_id")
+    temperature = llm_config.get("temperature", 0.3) if llm_config else 0.3
     result = await llm_json_completion(
-        prompt, 
+        prompt_text, 
         context=f"is_ocr={is_ocr}", 
+        temperature=temperature,
         model_key="cv_parsing_model",
         user_id=user_id
     )
