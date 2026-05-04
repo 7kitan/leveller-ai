@@ -26,8 +26,19 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Determine environment (default: dev)
-ENVIRONMENT="${1:-dev}"
+# Auto-detect environment or use parameter
+if [ -n "$1" ]; then
+    ENVIRONMENT="$1"
+else
+    # Auto-detect based on running containers
+    if docker ps --format "{{.Names}}" | grep -q "advisor_db_prod"; then
+        ENVIRONMENT="prod"
+        echo -e "${BLUE}[INFO]${NC} Auto-detected production environment"
+    else
+        ENVIRONMENT="dev"
+        echo -e "${BLUE}[INFO]${NC} Auto-detected development environment"
+    fi
+fi
 
 # Load .env file safely (handle special characters and quotes)
 if [ -f "$(dirname "$0")/../.env" ]; then
