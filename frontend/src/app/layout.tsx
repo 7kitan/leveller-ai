@@ -21,7 +21,7 @@ const googleSans = Google_Sans({
 
 
 export const metadata: Metadata = {
-  title: "Lumix AI - Skill Mapping & Career Roadmaps",
+  title: "Leveller AI - Skill Mapping & Career Roadmaps",
   description: "Bridge the gap between your skills and your dream job with AI-powered career roadmaps.",
 };
 

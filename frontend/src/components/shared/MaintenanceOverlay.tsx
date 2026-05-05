@@ -72,7 +72,7 @@ export default function MaintenanceOverlay() {
           <div className={styles.footer}>
             <div className={styles.contact}>
               <Mail size={16} />
-              <span>support@lumix.ai</span>
+              <span>support@leveller.ai</span>
             </div>
             <button 
               className={styles.refreshBtn}

@@ -93,7 +93,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
         {showChrome && (
           <footer className={styles.footer}>
-            &copy; 2026 Lumix AI &bull; Career Nexus &bull; V6.5
+            &copy; 2026 Leveller AI &bull; Career Nexus &bull; V6.5
           </footer>
         )}
       </div>

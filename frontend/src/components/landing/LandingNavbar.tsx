@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import Logo from "@/components/shared/Logo";
 import styles from "./landing-navbar.module.css";
 
 /* ========================================
@@ -105,7 +106,9 @@ export default function LandingNavbar() {
       transition={{ duration: NAV_ANIMATION.duration, ease: NAV_ANIMATION.ease }}
     >
       <div className={styles.nav}>
-        <Link href="/" className={styles.navLogo}>LUMIX AI</Link>
+        <Link href="/" className={styles.navLogo}>
+          <Logo size="sm" />
+        </Link>
         
         {/* Desktop Links */}
         <div className={styles.navLinks}>
