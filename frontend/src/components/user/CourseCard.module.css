@@ -51,9 +51,7 @@
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
-  font-size: var(--font-size-small);
-  font-weight: 700;
-  color: var(--color-text-muted);
+  font-weight: var(--font-weight-bold)
 }
 
 .platformName {
@@ -72,7 +70,7 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: 0.75rem;
   font-size: var(--font-size-base);
-  font-weight: 700;
+  font-weight: var(--font-weight-normal);
   color: var(--color-text-muted);
 }
 
@@ -99,7 +97,7 @@
 }
 
 .matchScoreValue {
-  color: #10b981;
+  color: var(--color-green-500);
   font-weight: 900;
   font-size: var(--font-size-medium);
 }
@@ -108,7 +106,6 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: var(--font-size-small);
   font-weight: 900;
   color: var(--color-primary);
   text-decoration: none;

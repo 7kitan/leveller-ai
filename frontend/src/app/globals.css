@@ -462,12 +462,6 @@
     }
 
     /* UI Element Font Scale */
-    .font-micro {
-        font-size: var(--font-size-small);
-        letter-spacing: 0.05em;
-
-        font-weight: 700;
-    }
 
     .font-meta {
         font-size: var(--font-size-small);
