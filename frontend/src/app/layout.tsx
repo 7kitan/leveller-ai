@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Google_Sans_Flex, Google_Sans } from "next/font/google";
-import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -24,21 +23,6 @@ const googleSans = Google_Sans({
   variable: "--font-google-sans",
 });
 
-const product_sans = localFont({
-  src: [
-    {
-      path: "../fonts/Product Sans Regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../fonts/Product Sans Bold.otf",
-      weight: "700",
-      style: "bold",
-    },
-  ],
-  variable: "--font-product-sans",
-});
 
 export const metadata: Metadata = {
   title: "Lumix AI - Skill Mapping & Career Roadmaps",
@@ -51,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${product_sans.variable} ${googleSansFlex.variable} ${googleSans.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${spaceGrotesk.variable} ${googleSansFlex.variable} ${googleSans.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <LanguageProvider>
           <DynamicHtmlLang />
