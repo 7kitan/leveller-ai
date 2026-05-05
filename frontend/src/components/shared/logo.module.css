@@ -1,7 +1,9 @@
+
+
 .container {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .logoWrapper {
@@ -18,8 +20,9 @@
 }
 
 .brandText {
-  font-family: var(--font-display);
-  font-weight: var(--font-weight-bold);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-medium);
+  font-weight: var(--font-weight-medium);
   letter-spacing: -0.04em;
   display: flex;
   align-items: baseline;
@@ -37,6 +40,20 @@
 }
 
 /* Size variants */
+.sidebar {
+  gap: 10px;
+}
+
+.sidebar .logoWrapper {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+}
+
+.sidebar .brandText {
+  font-size: var(--font-size-medium);
+}
+
 .sm .logoWrapper {
   width: 32px;
   height: 32px;
