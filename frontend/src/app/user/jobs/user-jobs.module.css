@@ -50,7 +50,7 @@
   gap: 0.375rem;
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
-  font-size: var(--font-size-caption);
+  font-size: var(--font-size-small);
   font-weight: 700;
   color: var(--color-text-muted);
   width: fit-content;

@@ -228,7 +228,7 @@
 .attemptsBadge {
   padding: 0.25rem 0.625rem;
   border-radius: 12px;
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 600;
 }
 

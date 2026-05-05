@@ -249,7 +249,7 @@
 .badge {
   background: #10b981;
   color: white;
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 600;
   padding: 0.25rem 0.75rem;
   border-radius: 12px;

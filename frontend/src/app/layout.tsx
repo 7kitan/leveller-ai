@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
-import localFont from "next/font/local";
+import { Space_Grotesk, Google_Sans_Flex, Google_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -9,26 +8,21 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { AlertProvider } from "@/context/AlertContext";
 import DynamicHtmlLang from "@/components/shared/DynamicHtmlLang";
 
-const spaceGrotesk = Space_Grotesk({ 
-  subsets: ["latin"], 
-  variable: "--font-space-grotesk" 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
 });
 
-const lato = localFont({
-  src: [
-    {
-      path: "../fonts/Lato Regular.ttf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../fonts/Lato Bold.ttf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  variable: "--font-lato",
+const googleSansFlex = Google_Sans_Flex({
+  subsets: ["latin"],
+  variable: "--font-google-sans-flex",
 });
+
+const googleSans = Google_Sans({
+  subsets: ["latin"],
+  variable: "--font-google-sans",
+});
+
 
 export const metadata: Metadata = {
   title: "Lumix AI - Skill Mapping & Career Roadmaps",
@@ -41,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${lato.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${spaceGrotesk.variable} ${googleSansFlex.variable} ${googleSans.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <LanguageProvider>
           <DynamicHtmlLang />

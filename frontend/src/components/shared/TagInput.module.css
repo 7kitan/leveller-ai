@@ -140,7 +140,7 @@
 }
 
 .dropdownCategory {
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   color: var(--text-secondary);
   padding: 0.125rem 0.5rem;
   background: var(--bg-secondary);
@@ -157,7 +157,7 @@
 }
 
 .dropdownHint {
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   color: var(--text-secondary);
   font-style: italic;
 }
@@ -179,7 +179,7 @@
 
 .helperText {
   margin-top: 0.5rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   color: var(--text-secondary);
   line-height: 1.4;
 }

@@ -101,7 +101,7 @@
 }
 
 .badgeLabel {
-  font-size: var(--font-size-caption);
+  font-size: var(--font-size-small);
   font-weight: 700;
   color: var(--color-text-muted);
   opacity: 0.7;

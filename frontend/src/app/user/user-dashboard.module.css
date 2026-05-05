@@ -151,7 +151,7 @@
 @media (min-width: 1024px) {
   .trendsCard { grid-column: span 12; }
   .statsSection { grid-column: span 8; }
-  /* Adjust CV section to fit if needed, but currently it's span 4 + 8 = 12. 
+  /* Adjust CV section to fit if needed, but currently it's span 4 + 8 = 12.
      If we add another card, we might need a new row or adjust spans.
      Let's make CV span 12 on mobile, and in a row with Stats+Trends on desktop.
   */
@@ -535,8 +535,8 @@
 
 .barFill {
   height: 100%;
-  background: linear-gradient(90deg, 
-    var(--color-primary), 
+  background: linear-gradient(90deg,
+    var(--color-primary),
     color-mix(in srgb, var(--color-primary) 80%, var(--color-success))
   );
   border-radius: 99px;
@@ -552,8 +552,8 @@
   left: 0;
   right: 0;
   height: 50%;
-  background: linear-gradient(180deg, 
-    color-mix(in srgb, white 20%, transparent), 
+  background: linear-gradient(180deg,
+    color-mix(in srgb, white 20%, transparent),
     transparent
   );
   border-radius: 99px 99px 0 0;
@@ -707,9 +707,8 @@
 
 
 
-/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-   MOBILE RESPONSIVE (max-width: 768px)
-   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
+/*
+   MOBILE RESPONSIVE (max-width: 768px)*/
 
 @media (max-width: 768px) {
   /* Bento Grid */

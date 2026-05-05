@@ -63,7 +63,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, index = 0 }) => {
 
       <div className={styles.courseFooterActions}>
         <div className={styles.matchScoreLabel}>
-          <span className="font-micro">{t("dash_match_score")}</span>
+          <span >{t("dash_match_score")}</span>
           <span className={styles.matchScoreValue}>{course.match}</span>
         </div>
         {course.url && (
@@ -77,7 +77,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, index = 0 }) => {
           </a>
         )}
       </div>
-    </motion.div>
+    </motion.div >
   );
 };
 
