@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Space_Grotesk, Google_Sans_Flex, Google_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
@@ -9,25 +9,35 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { AlertProvider } from "@/context/AlertContext";
 import DynamicHtmlLang from "@/components/shared/DynamicHtmlLang";
 
-const spaceGrotesk = Space_Grotesk({ 
-  subsets: ["latin"], 
-  variable: "--font-space-grotesk" 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
 });
 
-const lato = localFont({
+const googleSansFlex = Google_Sans_Flex({
+  subsets: ["latin"],
+  variable: "--font-google-sans-flex",
+});
+
+const googleSans = Google_Sans({
+  subsets: ["latin"],
+  variable: "--font-google-sans",
+});
+
+const product_sans = localFont({
   src: [
     {
-      path: "../fonts/Lato Regular.ttf",
+      path: "../fonts/Product Sans Regular.otf",
       weight: "400",
       style: "normal",
     },
     {
-      path: "../fonts/Lato Bold.ttf",
+      path: "../fonts/Product Sans Bold.otf",
       weight: "700",
-      style: "normal",
+      style: "bold",
     },
   ],
-  variable: "--font-lato",
+  variable: "--font-product-sans",
 });
 
 export const metadata: Metadata = {
@@ -41,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${lato.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${spaceGrotesk.variable} ${product_sans.variable} ${googleSansFlex.variable} ${googleSans.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <LanguageProvider>
           <DynamicHtmlLang />
