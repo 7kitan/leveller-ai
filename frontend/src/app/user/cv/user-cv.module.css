@@ -306,16 +306,81 @@
   gap: 1rem;
 }
 
-.historyItem { position: relative; display: flex; align-items: center; padding: 1.25rem 4.5rem 1.25rem 1.5rem; background-color: var(--color-bg-elevated); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-md); transition: all 0.4s ease; margin-bottom: 1rem; overflow: visible; }
-.historyItem:hover { transform: translateY(-4px) scale(1.01); border-color: var(--color-primary); box-shadow: 0 12px 30px color-mix(in srgb, var(--color-primary) 10%, transparent); background: linear-gradient(to right, var(--color-bg-elevated), color-mix(in srgb, var(--color-primary) 2%, transparent)); }
-.historyItemClickable { cursor: pointer; }
-.historyItemDisabled { opacity: 0.6; cursor: not-allowed; }
-.historyItemActive { border-color: var(--color-primary); background: linear-gradient(to right, color-mix(in srgb, var(--color-primary) 5%, transparent), var(--color-bg-elevated)); box-shadow: 0 10px 25px color-mix(in srgb, var(--color-primary) 10%, transparent); }
-.historyMainContent { flex: 1; display: flex; align-items: center; cursor: pointer; min-width: 0; }
-.historyActions { position: absolute; right: 1.25rem; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 0.75rem; z-index: 1000; }
-.historyDeleteBtn { display: flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; background-color: transparent; border: none; border-radius: var(--radius-md); color: var(--color-error); cursor: pointer; transition: all 0.3s ease; pointer-events: auto !important; }
-.historyDeleteBtn:hover { background-color: color-mix(in srgb, var(--color-error) 10%, transparent) !important; transform: scale(1.1); color: var(--color-error) !important; }
-.pointerEventsNone { pointer-events: none; }
+.historyItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  transition: all 0.4s ease;
+  margin-bottom: 1rem;
+  overflow: visible;
+  gap: 1rem;
+}
+
+.historyItem:hover {
+  transform: translateY(-4px) scale(1.01);
+  border-color: var(--color-primary);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  background: linear-gradient(to right, var(--color-bg-elevated), color-mix(in srgb, var(--color-primary) 2%, transparent));
+}
+
+.historyItemClickable {
+  cursor: pointer;
+}
+
+.historyItemDisabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.historyItemActive {
+  border-color: var(--color-primary);
+  background: linear-gradient(to right, color-mix(in srgb, var(--color-primary) 5%, transparent), var(--color-bg-elevated));
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.historyClickableArea {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.historyActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.historyDeleteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  pointer-events: auto !important;
+}
+
+.historyDeleteBtn:hover {
+  background-color: color-mix(in srgb, var(--color-error) 10%, transparent) !important;
+  transform: scale(1.1);
+  color: var(--color-error) !important;
+}
+
+.pointerEventsNone {
+  pointer-events: none;
+}
 
 .historyIcon {
   width: 3.5rem;
@@ -348,13 +413,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  margin-left: 1.5rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
   min-width: 0; /* Prevent overflow */
 }
 
 .historyFileName {
-  font-size: 1.1rem;
-  font-weight: 800;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -367,8 +433,6 @@
 }
 
 .historyDate {
-  font-size: 0.85rem;
-  font-weight: 600;
   color: var(--color-text-muted);
   display: flex;
   align-items: center;
@@ -2523,7 +2587,7 @@
   margin: 0 auto;
 }
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Mobile Optimization Overrides ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+/* Mobile Optimization Overrides */
 @media (max-width: 768px) {
   .pageRoot {
     gap: 2rem;
@@ -2783,12 +2847,12 @@
     justify-content: center;
     width: 100%;
   }
-  
+
   .historyItem {
     padding: 1rem;
     gap: 1rem;
   }
-  
+
   .historyIcon {
     width: 2.5rem;
     height: 2.5rem;
@@ -2840,4 +2904,3 @@
   box-shadow: 0 15px 35px color-mix(in srgb, var(--color-error) 40%, transparent);
   background: color-mix(in srgb, var(--color-error) 90%, black);
 }
-
