@@ -92,13 +92,97 @@ if ($TableExists -eq "t") {
 Write-Host "Setting up prompts..." -ForegroundColor Yellow
 Run-Migration (Join-Path $MigrationsDir "001_setup_prompts.sql")
 
+# Check if core tables exist
+Write-Host "Checking core tables..." -ForegroundColor Yellow
+if ($Environment -eq "prod") {
+    $env:PGPASSWORD = $POSTGRES_PASSWORD
+    $CoreExists = & psql -h $DbHost -p $DbPort -U $DbUser -d $DbName -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users');"
+} else {
+    $CoreExists = docker exec advisor_db psql -U $DbUser -d $DbName -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users');"
+}
+
+if ($CoreExists -eq "t") {
+    Write-Host "✓ Core tables exist" -ForegroundColor Green
+    Write-Host "Skipping core table creation..." -ForegroundColor Yellow
+    Write-Host ""
+} else {
+    Write-Host "✗ Core tables do not exist" -ForegroundColor Yellow
+    Write-Host "Creating core tables..." -ForegroundColor Yellow
+    Write-Host ""
+    
+    Run-Migration (Join-Path $MigrationsDir "003_create_core_tables.sql")
+}
+
+# Check if relationship tables exist
+Write-Host "Checking relationship tables..." -ForegroundColor Yellow
+if ($Environment -eq "prod") {
+    $env:PGPASSWORD = $POSTGRES_PASSWORD
+    $RelExists = & psql -h $DbHost -p $DbPort -U $DbUser -d $DbName -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'job_skill_requirement');"
+} else {
+    $RelExists = docker exec advisor_db psql -U $DbUser -d $DbName -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'job_skill_requirement');"
+}
+
+if ($RelExists -eq "t") {
+    Write-Host "✓ Relationship tables exist" -ForegroundColor Green
+    Write-Host "Skipping relationship table creation..." -ForegroundColor Yellow
+    Write-Host ""
+} else {
+    Write-Host "✗ Relationship tables do not exist" -ForegroundColor Yellow
+    Write-Host "Creating relationship tables..." -ForegroundColor Yellow
+    Write-Host ""
+    
+    Run-Migration (Join-Path $MigrationsDir "004_create_relationship_tables.sql")
+}
+
+# Check if feedback/logging tables exist
+Write-Host "Checking feedback and logging tables..." -ForegroundColor Yellow
+if ($Environment -eq "prod") {
+    $env:PGPASSWORD = $POSTGRES_PASSWORD
+    $LogExists = & psql -h $DbHost -p $DbPort -U $DbUser -d $DbName -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'llm_logs');"
+} else {
+    $LogExists = docker exec advisor_db psql -U $DbUser -d $DbName -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'llm_logs');"
+}
+
+if ($LogExists -eq "t") {
+    Write-Host "✓ Feedback and logging tables exist" -ForegroundColor Green
+    Write-Host "Skipping feedback/logging table creation..." -ForegroundColor Yellow
+    Write-Host ""
+} else {
+    Write-Host "✗ Feedback and logging tables do not exist" -ForegroundColor Yellow
+    Write-Host "Creating feedback and logging tables..." -ForegroundColor Yellow
+    Write-Host ""
+    
+    Run-Migration (Join-Path $MigrationsDir "005_create_feedback_logging_tables.sql")
+}
+
+# Check if course/market tables exist
+Write-Host "Checking course and market tables..." -ForegroundColor Yellow
+if ($Environment -eq "prod") {
+    $env:PGPASSWORD = $POSTGRES_PASSWORD
+    $CourseExists = & psql -h $DbHost -p $DbPort -U $DbUser -d $DbName -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'courses');"
+} else {
+    $CourseExists = docker exec advisor_db psql -U $DbUser -d $DbName -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'courses');"
+}
+
+if ($CourseExists -eq "t") {
+    Write-Host "✓ Course and market tables exist" -ForegroundColor Green
+    Write-Host "Skipping course/market table creation..." -ForegroundColor Yellow
+    Write-Host ""
+} else {
+    Write-Host "✗ Course and market tables do not exist" -ForegroundColor Yellow
+    Write-Host "Creating course and market tables..." -ForegroundColor Yellow
+    Write-Host ""
+    
+    Run-Migration (Join-Path $MigrationsDir "006_create_course_market_tables.sql")
+}
+
 # Check if benchmark tables exist
 Write-Host "Checking benchmark tables..." -ForegroundColor Yellow
 if ($Environment -eq "prod") {
     $env:PGPASSWORD = $POSTGRES_PASSWORD
-    $BenchmarkExists = & psql -h $DbHost -p $DbPort -U $DbUser -d $DbName -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'lm_test_sets');"
+    $BenchmarkExists = & psql -h $DbHost -p $DbPort -U $DbUser -d $DbName -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'llm_test_sets');"
 } else {
-    $BenchmarkExists = docker exec advisor_db psql -U $DbUser -d $DbName -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'lm_test_sets');"
+    $BenchmarkExists = docker exec advisor_db psql -U $DbUser -d $DbName -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'llm_test_sets');"
 }
 
 if ($BenchmarkExists -eq "t") {
@@ -131,18 +215,22 @@ if ($Environment -eq "prod") {
 }
 
 Write-Host ""
-Write-Host "2. Benchmark Tables:" -ForegroundColor Cyan
+Write-Host "2. All Tables:" -ForegroundColor Cyan
 if ($Environment -eq "prod") {
     $env:PGPASSWORD = $POSTGRES_PASSWORD
-    & psql -h $DbHost -p $DbPort -U $DbUser -d $DbName -c "SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'lm_%' ORDER BY table_name;"
+    & psql -h $DbHost -p $DbPort -U $DbUser -d $DbName -c "SELECT table_name, (SELECT COUNT(*) FROM information_schema.columns WHERE table_name = t.table_name) as columns FROM information_schema.tables t WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name;"
 } else {
-    docker exec advisor_db psql -U $DbUser -d $DbName -c "SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'lm_%' ORDER BY table_name;"
+    docker exec advisor_db psql -U $DbUser -d $DbName -c "SELECT table_name, (SELECT COUNT(*) FROM information_schema.columns WHERE table_name = t.table_name) as columns FROM information_schema.tables t WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name;"
 }
 
 Write-Host ""
 Write-Host "==========================================" -ForegroundColor Cyan
+Write-Host "Setup Complete!" -ForegroundColor Green
+Write-Host "==========================================" -ForegroundColor Cyan
+Write-Host ""
 Write-Host "Next Steps:" -ForegroundColor Yellow
-Write-Host "1. Restart services: docker-compose restart admin_service worker" -ForegroundColor White
-Write-Host "2. Reload cache: curl -X POST http://localhost:8000/admin/prompts/reload" -ForegroundColor White
-Write-Host "3. Test prompts via Admin UI: http://localhost:3000/admin/prompts" -ForegroundColor White
+Write-Host "1. Seed skills: python scripts/seed_data.py" -ForegroundColor White
+Write-Host "2. Restart services: docker-compose restart" -ForegroundColor White
+Write-Host "3. Reload cache: curl -X POST http://localhost:8000/admin/prompts/reload" -ForegroundColor White
+Write-Host "4. Test Admin UI: http://localhost:3000/admin/prompts" -ForegroundColor White
 Write-Host "==========================================" -ForegroundColor Cyan
