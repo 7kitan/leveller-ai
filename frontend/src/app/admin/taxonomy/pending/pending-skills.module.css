@@ -74,7 +74,7 @@
 .th {
   padding: 0.875rem 1rem;
   text-align: left;
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -122,7 +122,7 @@
   background: var(--primary-color);
   color: white;
   border-radius: 0.25rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 500;
 }
 
@@ -506,7 +506,7 @@
 }
 
 .skillOptionCategory {
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   color: var(--text-secondary);
   padding: 0.125rem 0.5rem;
   background: var(--bg-secondary);
