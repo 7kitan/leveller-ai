@@ -1,4 +1,5 @@
 -- Migration 002: Create benchmark tables
+
 -- Run this AFTER 000_create_prompt_schema.sql
 
 -- =============================================================================
@@ -15,6 +16,7 @@ CREATE TABLE IF NOT EXISTS llm_test_sets (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
 
 CREATE INDEX IF NOT EXISTS idx_llm_test_sets_flow_type ON llm_test_sets(flow_type);
 CREATE INDEX IF NOT EXISTS idx_llm_test_sets_is_active ON llm_test_sets(is_active);
