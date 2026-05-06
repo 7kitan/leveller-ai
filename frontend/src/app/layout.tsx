@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Google_Sans_Flex, Google_Sans } from "next/font/google";
+import { Space_Grotesk, Google_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -13,10 +13,6 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
 });
 
-const googleSansFlex = Google_Sans_Flex({
-  subsets: ["latin"],
-  variable: "--font-google-sans-flex",
-});
 
 const googleSans = Google_Sans({
   subsets: ["latin"],
@@ -25,7 +21,7 @@ const googleSans = Google_Sans({
 
 
 export const metadata: Metadata = {
-  title: "Lumix AI - Skill Mapping & Career Roadmaps",
+  title: "Leveller AI - Skill Mapping & Career Roadmaps",
   description: "Bridge the gap between your skills and your dream job with AI-powered career roadmaps.",
 };
 
@@ -35,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${googleSansFlex.variable} ${googleSans.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${spaceGrotesk.variable} ${googleSans.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <LanguageProvider>
           <DynamicHtmlLang />

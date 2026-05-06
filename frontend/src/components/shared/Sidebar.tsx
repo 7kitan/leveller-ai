@@ -32,39 +32,40 @@ import {
 } from "lucide-react";
 
 import styles from "./sidebar.module.css";
+import Logo from "./Logo";
 
 const MENU_ITEMS = {
   admin: [
     { key: "nav_dashboard", icon: LayoutDashboard, path: "/admin" },
-    { key: "nav_users",     icon: UserCircle,      path: "/admin/users" },
-    { key: "nav_cv",        icon: FileText,        path: "/admin/cvs" },
-    { key: "nav_courses",   icon: BookOpen,        path: "/admin/courses" },
-    { key: "nav_jobs",      icon: Layers,          path: "/admin/jobs" },
-    { key: "nav_market",    icon: TrendingUp,      path: "/admin/market" },
-    {key: "nav_monitor",   icon: LineChart,       path: "/admin/ai-usage" },
-    {key: "nav_feedback",  icon: MessageSquare,   path: "/admin/feedback" },
-    {key: "nav_blocked_ips", icon: Shield,        path: "/admin/blocked-ips" },
-    {key: "nav_profile",   icon: UserCircle,      path: "/admin/profile" },
-    { key: "nav_prompts",   icon: FileCode,        path: "/admin/prompts" },
-    { key: "nav_settings",  icon: Settings,        path: "/admin/settings" },
-    { key: "nav_system_logs", icon: Activity,      path: "/admin/system-logs" },
-    { key: "nav_benchmarks",  icon: Activity,      path: "/admin/benchmarks" },
-    { key: "nav_youtube",   icon: Video,         path: "/admin/youtube" },
-    { key: "nav_taxonomy",  icon: Tag,           path: "/admin/taxonomy" },
-    { key: "nav_pending_skills", icon: Clock,    path: "/admin/taxonomy/pending" },
+    { key: "nav_users", icon: UserCircle, path: "/admin/users" },
+    { key: "nav_cv", icon: FileText, path: "/admin/cvs" },
+    { key: "nav_courses", icon: BookOpen, path: "/admin/courses" },
+    { key: "nav_jobs", icon: Layers, path: "/admin/jobs" },
+    { key: "nav_market", icon: TrendingUp, path: "/admin/market" },
+    { key: "nav_monitor", icon: LineChart, path: "/admin/ai-usage" },
+    { key: "nav_feedback", icon: MessageSquare, path: "/admin/feedback" },
+    { key: "nav_blocked_ips", icon: Shield, path: "/admin/blocked-ips" },
+    { key: "nav_profile", icon: UserCircle, path: "/admin/profile" },
+    { key: "nav_prompts", icon: FileCode, path: "/admin/prompts" },
+    { key: "nav_settings", icon: Settings, path: "/admin/settings" },
+    { key: "nav_system_logs", icon: Activity, path: "/admin/system-logs" },
+    { key: "nav_benchmarks", icon: Activity, path: "/admin/benchmarks" },
+    { key: "nav_youtube", icon: Video, path: "/admin/youtube" },
+    { key: "nav_taxonomy", icon: Tag, path: "/admin/taxonomy" },
+    { key: "nav_pending_skills", icon: Clock, path: "/admin/taxonomy/pending" },
   ],
   user: [
-    { key: "nav_dashboard",   icon: LayoutDashboard, path: "/user" },
-    { key: "nav_jobs",        icon: Search,          path: "/user/jobs" },
-    { key: "nav_cv",          icon: FileText,        path: "/user/cv" },
-    { key: "nav_analysis",    icon: LineChart,      path: "/user/analysis" },
-    { key: "nav_recommend",   icon: Zap,             path: "/user/recommend" },
+    { key: "nav_dashboard", icon: LayoutDashboard, path: "/user" },
+    { key: "nav_jobs", icon: Search, path: "/user/jobs" },
+    { key: "nav_cv", icon: FileText, path: "/user/cv" },
+    { key: "nav_analysis", icon: LineChart, path: "/user/analysis" },
+    { key: "nav_recommend", icon: Zap, path: "/user/recommend" },
   ],
   student: [
-    { key: "nav_roadmap",      icon: TrendingUp,     path: "/student" },
-    { key: "nav_skills",       icon: GraduationCap,   path: "/student/skills" },
-    { key: "nav_courses",      icon: BookOpen,        path: "/student/courses" },
-    { key: "nav_profile",      icon: UserCircle,     path: "/student/profile" },
+    { key: "nav_roadmap", icon: TrendingUp, path: "/student" },
+    { key: "nav_skills", icon: GraduationCap, path: "/student/skills" },
+    { key: "nav_courses", icon: BookOpen, path: "/student/courses" },
+    { key: "nav_profile", icon: UserCircle, path: "/student/profile" },
   ],
 };
 
@@ -103,10 +104,14 @@ export default function Sidebar({
   const isMini = isCollapsed && !isMobileOpen;
 
   return (
-    <aside 
+    <aside
       className={`${styles.sidebar} ${isMini ? styles.collapsed : ""} ${isMobileOpen ? styles.mobileOpen : ""}`}
       onClick={() => isMini && toggleSidebar?.()}
     >
+      <div className={styles.sidebarLogo}>
+        <Logo size="sidebar" className="logo-text" />
+      </div>
+
       <button className={styles.collapseToggle} onClick={(e) => { e.stopPropagation(); toggleSidebar?.(); }} title={isMini ? "Open sidebar" : "Close sidebar"}>
         {isMini ? <PanelRight size={20} /> : <PanelLeft size={20} />}
       </button>
@@ -114,7 +119,7 @@ export default function Sidebar({
       {isMobileOpen && (
         <button className={styles.mobileClose} onClick={() => setIsMobileOpen?.(false)}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
       )}
@@ -142,6 +147,6 @@ export default function Sidebar({
         })}
       </nav>
 
-      </aside>
+    </aside>
   );
 }

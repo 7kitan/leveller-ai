@@ -44,7 +44,7 @@ export default function LandingPage() {
       },
       vision: {
         heading: "Tầm nhìn & Sứ mệnh",
-        text: "Chúng tôi tin rằng tương lai được xây dựng từ những kết nối thông minh. Lumix AI không chỉ là công cụ, mà là một hệ sinh thái tri thức giúp bạn xóa bỏ mọi giới hạn.",
+        text: "Chúng tôi tin rằng tương lai được xây dựng từ những kết nối thông minh. Leveller AI không chỉ là công cụ, mà là một hệ sinh thái tri thức giúp bạn xóa bỏ mọi giới hạn.",
         subtext: "Với công nghệ AI tiên tiến và Knowledge Graph, chúng tôi tạo ra cầu nối giữa kỹ năng hiện tại và cơ hội tương lai của bạn.",
         accurate: "Chính xác",
         accurateDesc: "AI phân tích sâu để đưa ra đánh giá chính xác nhất",
@@ -85,7 +85,7 @@ export default function LandingPage() {
         stayUpdated: "Cập nhật tin tức",
         newsletter: "Nhận tin tức và cập nhật mới nhất được gửi đến hộp thư của bạn.",
         emailPlaceholder: "Nhập email của bạn",
-        copyright: "© 2026 Lumix AI. Tất cả quyền được bảo lưu.",
+        copyright: "© 2026 Leveller AI. Tất cả quyền được bảo lưu.",
         privacy: "Chính sách bảo mật",
         terms: "Điều khoản dịch vụ",
         cookies: "Chính sách Cookie",
@@ -118,7 +118,7 @@ export default function LandingPage() {
       },
       vision: {
         heading: "Vision & Mission",
-        text: "We believe the future is built from intelligent connections. Lumix AI is not just a tool, but a knowledge ecosystem that helps you break through all limitations.",
+        text: "We believe the future is built from intelligent connections. Leveller AI is not just a tool, but a knowledge ecosystem that helps you break through all limitations.",
         subtext: "With advanced AI technology and Knowledge Graph, we create a bridge between your current skills and future opportunities.",
         accurate: "Accurate",
         accurateDesc: "Deep AI analysis for the most precise assessment",
@@ -159,7 +159,7 @@ export default function LandingPage() {
         stayUpdated: "Stay updated",
         newsletter: "Get the latest news and updates delivered to your inbox.",
         emailPlaceholder: "Enter your email",
-        copyright: "© 2026 Lumix AI. All rights reserved.",
+        copyright: "© 2026 Leveller AI. All rights reserved.",
         privacy: "Privacy Policy",
         terms: "Terms of Service",
         cookies: "Cookie Policy",
@@ -466,7 +466,7 @@ export default function LandingPage() {
           <div className={styles.testimonialsGrid}>
             {[
               {
-                quote: "Lumix AI helped me identify skill gaps I didn't even know I had. Within 3 months, I landed my dream job at a top tech company.",
+                quote: "Leveller AI helped me identify skill gaps I didn't even know I had. Within 3 months, I landed my dream job at a top tech company.",
                 author: "Nguyễn Văn A",
                 role: "Software Engineer",
                 company: "Tech Corp",
@@ -480,7 +480,7 @@ export default function LandingPage() {
                 rating: 5
               },
               {
-                quote: "As a career switcher, Lumix AI gave me the confidence and direction I needed. The skill gap analysis was incredibly detailed.",
+                quote: "As a career switcher, Leveller AI gave me the confidence and direction I needed. The skill gap analysis was incredibly detailed.",
                 author: "Lê Văn C",
                 role: "Product Manager",
                 company: "Startup XYZ",

@@ -5,6 +5,7 @@ import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
+import { Copyright } from "lucide-react";
 
 const AuthGuard = dynamic(() => import("@/components/auth/AuthGuard"), { ssr: false });
 
@@ -93,7 +94,8 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
         {showChrome && (
           <footer className={styles.footer}>
-            &copy; 2026 Lumix AI &bull; Career Nexus &bull; V6.5
+            <Copyright size={16} className="mr-1.5" />
+            2026 Leveller AI
           </footer>
         )}
       </div>

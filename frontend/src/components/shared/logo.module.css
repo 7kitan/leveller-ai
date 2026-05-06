@@ -1,0 +1,82 @@
+
+
+.container {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logoWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logoSvg {
+  width: 100%;
+  height: auto;
+  fill: var(--color-text-primary);
+}
+
+.brandText {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.04em;
+  display: flex;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+.name {
+  color: var(--color-text-primary);
+}
+
+.suffix {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  margin-left: 2px;
+}
+
+/* Size variants */
+.sidebar {
+  gap: 10px;
+}
+
+.sidebar .logoWrapper {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+}
+
+.sidebar .brandText {
+  font-size: var(--font-size-medium);
+}
+
+.sm .logoWrapper {
+  width: 32px;
+  height: 32px;
+}
+
+.sm .brandText {
+  font-size: 1.5rem;
+}
+
+.md .logoWrapper {
+  width: 56px;
+  height: 56px;
+}
+
+.md .brandText {
+  font-size: 3rem;
+}
+
+.lg .logoWrapper {
+  width: 72px;
+  height: 72px;
+}
+
+.lg .brandText {
+  font-size: 4rem;
+}

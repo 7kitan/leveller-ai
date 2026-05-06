@@ -10,8 +10,8 @@
 }
 
 @media (max-width: 1024px) {
-  .sidebar { 
-    transform: translateX(-100%); 
+  .sidebar {
+    transform: translateX(-100%);
     z-index: 1100;
   }
 }
@@ -30,6 +30,33 @@
   border-color: rgba(255, 255, 255, 0.05);
 }
 
+.sidebarLogo {
+  @apply flex items-center gap-3.5 px-4;
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  height: 32px;
+  transition: all 350ms ease-out;
+}
+
+.collapsed .sidebarLogo {
+  justify-content: flex-start;
+}
+
+.sidebarLogo :global(.logo-text) {
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 400ms ease-out;
+}
+
+.collapsed .sidebarLogo :global(.logo-text) {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease-out;
+}
+
 .collapseToggle {
   @apply h-8 w-8 rounded-lg flex items-center justify-center text-black hover:bg-black/10;
   position: absolute;
@@ -43,8 +70,6 @@
   transition: right 600ms ease-out;
 }
 
-[data-theme="dark"] .collapsed .collapseToggle {
-}
 
 [data-theme="dark"] .collapseToggle {
   @apply text-white hover:bg-white/10;
@@ -143,10 +168,8 @@
 }
 
 .icon {
-  @apply flex-shrink-0;
+  @apply shrink-0;
   opacity: 0.7;
 }
 
 .active .icon { opacity: 1; }
-
-

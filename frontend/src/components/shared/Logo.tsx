@@ -1,0 +1,25 @@
+import React from "react";
+import styles from "./logo.module.css";
+import { cn } from "@/lib/utils";
+
+interface LogoProps {
+  size?: "sidebar" | "sm" | "md" | "lg";
+  className?: string;
+}
+
+export default function Logo({ size = "md", className }: LogoProps) {
+  return (
+    <div className={cn(styles.container, size && styles[size], className)}>
+      <div className={styles.logoWrapper}>
+        <svg className={styles.logoSvg} viewBox="-5.0 -10.0 110.0 135.0" xmlns="http://www.w3.org/2000/svg">
+          <path d="m98 40.914v-13.414c0-1.1367-0.64062-2.1758-1.6562-2.6836l-45-22.5c-0.84375-0.42188-1.8398-0.42188-2.6836 0l-45 22.5c-1.0195 0.50781-1.6602 1.5469-1.6602 2.6836v13.414c0 1.1367 0.64062 2.1758 1.6562 2.6836l12.801 6.3984-12.801 6.3984c-1.0156 0.51172-1.6562 1.5547-1.6562 2.6914v13.414c0 1.1367 0.64062 2.1758 1.6562 2.6836l45 22.5c0.84375 0.42188 1.8398 0.42188 2.6836 0l45-22.5c1.0195-0.50781 1.6602-1.5469 1.6602-2.6836v-13.414c0-1.1367-0.64062-2.1758-1.6562-2.6836l-12.805-6.4023 12.801-6.3984c1.0195-0.50781 1.6602-1.5469 1.6602-2.6875zm-48-32.559 38.293 19.145-38.293 19.145-38.293-19.145zm-42 30.707v-6.707l39 19.5v6.707zm39 51.082-39-19.5v-6.707l39 19.5zm45-19.5-39 19.5v-6.707l39-19.5zm-3.707-11.559-38.293 19.145-38.293-19.145 11.461-5.7305 25.488 12.746c0.84375 0.42188 1.8398 0.42188 2.6836 0l25.492-12.746zm3.707-20.023-39 19.5v-6.707l39-19.5z" />
+        </svg>
+      </div>
+
+      <div className={styles.brandText}>
+        <span className={styles.name}>leveller</span>
+        <span className={styles.suffix}>.ai</span>
+      </div>
+    </div>
+  );
+}
