@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Script to replace Lumix with Leveller across the codebase
+# Script to replace Leveller.ai with Leveller across the codebase
 
-echo "🔍 Searching for 'Lumix' instances..."
+echo "🔍 Searching for 'Leveller.ai' instances..."
 
-# Find all relevant files and replace Lumix with Leveller
-find /Users/kitan/dev/build-078/frontend/src -type f \( -name "*.tsx" -o -name "*.ts" -o -name "*.json" -o -name "*.md" \) -exec sed -i '' 's/Lumix/Leveller/g' {} +
+# Find all relevant files and replace Leveller.ai with Leveller
+find /Users/kitan/dev/build-078/frontend/src -type f \( -name "*.tsx" -o -name "*.ts" -o -name "*.json" -o -name "*.md" \) -exec sed -i '' 's/Leveller.ai/Leveller/g' {} +
 
 # Also replace in lowercase for email addresses
-find /Users/kitan/dev/build-078/frontend/src -type f \( -name "*.tsx" -o -name "*.ts" -o -name "*.json" -o -name "*.md" \) -exec sed -i '' 's/lumix/leveller/g' {} +
+find /Users/kitan/dev/build-078/frontend/src -type f \( -name "*.tsx" -o -name "*.ts" -o -name "*.json" -o -name "*.md" \) -exec sed -i '' 's/Leveller.ai/leveller/g' {} +
 
 echo "✅ Replacement complete!"
 echo ""

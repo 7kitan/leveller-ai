@@ -10,7 +10,7 @@ def clear_lockout():
         # The prefix is "advisor:"
         prefix = "advisor:"
         ips = ["127.0.0.1", "172.20.0.1"]
-        emails = ["admin@lumix.ai", "admin@example.com"]
+        emails = ["admin@leveller.ai", "admin@example.com"]
         
         for ip in ips:
             keys = [f"{prefix}lockout:{ip}", f"{prefix}login_attempts_ip:{ip}"]

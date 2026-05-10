@@ -107,7 +107,7 @@ export const translations = {
 
     // Maintenance Overlay
     maintenance_title: "Chúng tôi đang bảo trì hệ thống",
-    maintenance_subtitle: "Leveller AI đang được nâng cấp để mang lại trải nghiệm tốt nhất cho định hướng sự nghiệp của bạn.",
+    maintenance_subtitle: "Leveller.ai đang được nâng cấp để mang lại trải nghiệm tốt nhất cho định hướng sự nghiệp của bạn.",
     maintenance_duration_label: "Thời gian dự kiến",
     maintenance_data_safe_label: "Dữ liệu an toàn",
     maintenance_data_safe_value: "Toàn bộ CV & phân tích được bảo mật",
@@ -1144,7 +1144,7 @@ export const translations = {
     landing_stats_support: "Hỗ trợ AI",
     
     landing_vision_heading: "Tầm nhìn & Sứ mệnh",
-    landing_vision_text: "Chúng tôi tin rằng tương lai được xây dựng từ những kết nối thông minh. Leveller AI không chỉ là một công cụ, mà là một hệ sinh thái tri thức giúp bạn bứt phá mọi giới hạn.",
+    landing_vision_text: "Chúng tôi tin rằng tương lai được xây dựng từ những kết nối thông minh. Leveller.ai không chỉ là một công cụ, mà là một hệ sinh thái tri thức giúp bạn bứt phá mọi giới hạn.",
     landing_vision_subtext: "Với công nghệ AI tiên tiến và Knowledge Graph, chúng tôi tạo ra nhịp cầu giữa kỹ năng hiện tại và cơ hội tương lai của bạn.",
     landing_vision_accurate: "Chính xác",
     landing_vision_accurate_desc: "Phân tích sâu bằng AI để có đánh giá sát thực nhất",
@@ -1181,7 +1181,7 @@ export const translations = {
     landing_footer_stay_updated: "Cập nhật mới nhất",
     landing_footer_newsletter: "Nhận tin tức và cập nhật mới nhất trực tiếp vào hộp thư của bạn.",
     landing_footer_email_placeholder: "Nhập email của bạn",
-    landing_footer_copyright: "© 2026 Leveller AI. Bảo lưu mọi quyền.",
+    landing_footer_copyright: "© 2026 Leveller.ai. Bảo lưu mọi quyền.",
     landing_footer_privacy: "Chính sách bảo mật",
     landing_footer_terms: "Điều khoản dịch vụ",
     landing_footer_cookies: "Chính sách cookie",
@@ -1208,7 +1208,7 @@ export const translations = {
     placeholder_api_key: "sk-...",
     placeholder_proxy_list: "107.150.110.153:4157:user1:pass1&#10;108.160.120.154:4158:user2:pass2&#10;or comma-separated",
     placeholder_smtp_host: "smtp.gmail.com",
-    placeholder_smtp_from: "Leveller AI <noreply@leveller.ai>",
+    placeholder_smtp_from: "Leveller.ai <noreply@leveller.ai>",
     placeholder_course_platform: "e.g. Coursera, Udemy",
     placeholder_course_provider: "e.g. Google, IBM",
     placeholder_course_source: "e.g. coursera",
@@ -1350,7 +1350,7 @@ export const translations = {
 
     // Maintenance Overlay
     maintenance_title: "System Maintenance",
-    maintenance_subtitle: "Leveller AI is being upgraded to bring the best experience for your career guidance.",
+    maintenance_subtitle: "Leveller.ai is being upgraded to bring the best experience for your career guidance.",
     maintenance_duration_label: "Estimated Duration",
     maintenance_data_safe_label: "Data is Safe",
     maintenance_data_safe_value: "All CVs & analysis are secured",
@@ -1757,7 +1757,7 @@ export const translations = {
 
     // Student Dashboard
     student_empty_title: "THE GENOME WAITS.",
-    student_empty_sub: "Your career path is hidden. Let Leveller AI decode your skill set and map your future now.",
+    student_empty_sub: "Your career path is hidden. Let Leveller.ai decode your skill set and map your future now.",
     student_step_upload: "Upload CV",
     student_step_gap: "AI Gap Assessment",
     student_step_roadmap: "Get Roadmap",
@@ -2295,7 +2295,7 @@ export const translations = {
     placeholder_api_key: "sk-...",
     placeholder_proxy_list: "107.150.110.153:4157:user1:pass1&#10;108.160.120.154:4158:user2:pass2&#10;or comma-separated",
     placeholder_smtp_host: "smtp.gmail.com",
-    placeholder_smtp_from: "Leveller AI <noreply@leveller.ai>",
+    placeholder_smtp_from: "Leveller.ai <noreply@leveller.ai>",
     placeholder_course_platform: "e.g. Coursera, Udemy",
     placeholder_course_provider: "e.g. Google, IBM",
     placeholder_course_source: "e.g. coursera",
@@ -2410,7 +2410,7 @@ export const translations = {
     landing_stats_support: "AI Support",
     
     landing_vision_heading: "Vision & Mission",
-    landing_vision_text: "We believe the future is built from intelligent connections. Leveller AI is not just a tool, but a knowledge ecosystem that helps you break through all limitations.",
+    landing_vision_text: "We believe the future is built from intelligent connections. Leveller.ai is not just a tool, but a knowledge ecosystem that helps you break through all limitations.",
     landing_vision_subtext: "With advanced AI technology and Knowledge Graph, we create a bridge between your current skills and future opportunities.",
     landing_vision_accurate: "Accurate",
     landing_vision_accurate_desc: "Deep AI analysis for the most precise assessment",
@@ -2447,7 +2447,7 @@ export const translations = {
     landing_footer_stay_updated: "Stay updated",
     landing_footer_newsletter: "Get the latest news and updates delivered to your inbox.",
     landing_footer_email_placeholder: "Enter your email",
-    landing_footer_copyright: "© 2026 Leveller AI. All rights reserved.",
+    landing_footer_copyright: "© 2026 Leveller.ai. All rights reserved.",
     landing_footer_privacy: "Privacy Policy",
     landing_footer_terms: "Terms of Service",
     landing_footer_cookies: "Cookie Policy",

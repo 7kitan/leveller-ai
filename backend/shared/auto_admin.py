@@ -29,7 +29,7 @@ def ensure_admin_exists(db: Session):
             return True
         
         # No admin found - create default admin
-        admin_email = os.getenv("DEFAULT_ADMIN_EMAIL", "admin@lumix.ai")
+        admin_email = os.getenv("DEFAULT_ADMIN_EMAIL", "admin@leveller.ai")
         admin_password = os.getenv("DEFAULT_ADMIN_PASSWORD", "Admin@123")
         admin_name = os.getenv("DEFAULT_ADMIN_NAME", "System Administrator")
         

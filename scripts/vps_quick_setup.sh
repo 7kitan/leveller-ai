@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # VPS Quick Setup Script
-# Tự động cài đặt và cấu hình VPS Ubuntu 22.04 cho Lumix AI
+# Tự động cài đặt và cấu hình VPS Ubuntu 22.04 cho Leveller.ai
 # =============================================================================
 
 set -e
@@ -13,7 +13,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}  Lumix AI - VPS Quick Setup${NC}"
+echo -e "${GREEN}  Leveller.ai - VPS Quick Setup${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
 

@@ -28,7 +28,7 @@ def create_test_users(count=10):
         hashed_pw = get_password_hash(password)
         
         for i in range(1, count + 1):
-            email = f"testuser_{i}@lumix.ai"
+            email = f"testuser_{i}@leveller.ai"
             user = db.query(User).filter(User.email == email).first()
             if not user:
                 print(f"Creating user {email}...")

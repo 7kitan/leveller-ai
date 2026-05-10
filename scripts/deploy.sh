@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# Deployment Script for Lumix AI
+# Deployment Script for Leveller.ai
 # Deploys backend and frontend services
 # =============================================================================
 
@@ -18,7 +18,7 @@ PROJECT_DIR="${PROJECT_DIR:-/opt/k109}"
 BACKUP_DIR="${BACKUP_DIR:-$HOME/backups}"
 
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  Lumix AI - Deployment Script${NC}"
+echo -e "${BLUE}  Leveller.ai - Deployment Script${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 

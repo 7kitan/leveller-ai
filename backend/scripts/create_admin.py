@@ -63,7 +63,7 @@ def create_admin(email, password, full_name="System Admin"):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Create an administrative user.")
-    parser.add_argument("--email", default="admin@lumix.ai", help="Admin email")
+    parser.add_argument("--email", default="admin@Leveller.ai", help="Admin email")
     parser.add_argument("--password", default="Admin@123", help="Admin password")
     parser.add_argument("--name", default="System Admin", help="Admin full name")
     

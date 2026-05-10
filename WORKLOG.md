@@ -254,11 +254,31 @@ Ghi lại các quyết định kỹ thuật, phân công, và brainstorming củ
 
 ---
 
-## Sprint 3 — 21/04 → 27/04/2026
+### [ADR-7] Tái cấu trúc và Chuẩn hóa Tài liệu (Documentation Restructuring) — 11/05/2026
 
-(Các công việc chi tiết đã được chuyển vào hệ thống quản lý task hoặc JOURNAL.md)
+**Bối cảnh:** Tài liệu dự án bị phân tán ở nhiều file MD khác nhau trong `backend/` và thư mục gốc, gây khó khăn cho việc cài đặt và nắm bắt kiến trúc.
+
+**Các lựa chọn đã xem xét:**
+- **Option A - Giữ nguyên**: Dễ gây nhầm lẫn cho người mới.
+- **Option B - Hợp nhất toàn bộ vào README**: Khiến file README quá dài và khó theo dõi.
+- **Option C - Tách biệt theo vai trò (User/Dev/Architecture)**: Chuyên nghiệp, dễ quản lý và cập nhật.
+
+**Quyết định:** Chọn Option C. Tạo mới `ARCHITECTURE.md` và `SETUP_GUIDE.md` bằng tiếng Việt làm tài liệu chính. Rút gọn `README.md` làm trang điều hướng.
+
+**Hệ quả:** 
+- Người dùng dễ dàng tìm thấy thông tin cần thiết.
+- Dễ dàng bảo trì tài liệu khi hệ thống thay đổi.
+- Xóa bỏ các file cũ dư thừa để làm sạch codebase.
 
 ---
 
+## Sprint 4 — 28/04 → 11/05/2026
+
+| Task | Người làm | Deadline | Trạng thái |
+|---|---|---|---|
+| Tái cấu trúc hệ thống Docs | Bách | 11/05 | ✅ Xong |
+| Tối ưu hóa UI/UX Dashboard | Kiệt | 05/05 | ✅ Xong |
+| Refactor Analysis Engine v7.0 | Bách | 08/05 | ✅ Xong |
+| Viết Unit Tests cho Recommender | Kiệt | 10/05 | ✅ Xong |
 
 ---

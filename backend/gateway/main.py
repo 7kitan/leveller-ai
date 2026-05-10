@@ -1,5 +1,5 @@
 """
-API Gateway - Cổng vào chính của hệ thống Lumix AI
+API Gateway - Cổng vào chính của hệ thống Leveller.ai
 
 Module này đóng vai trò là reverse proxy, điều hướng tất cả requests từ frontend
 đến các microservices phía sau. Nó cũng xử lý:
@@ -8,7 +8,7 @@ Module này đóng vai trò là reverse proxy, điều hướng tất cả reque
 - CORS (Cross-Origin Resource Sharing)
 - Header injection (inject user info vào requests)
 
-Author: Lumix AI Team
+Author: Leveller.ai Team
 Date: 2026-04-25
 # CRITICAL: Force rebuild to ensure code sync
 """
@@ -304,7 +304,7 @@ async def root():
     Returns:
         dict: Message xác nhận gateway đang chạy
     """
-    return {"message": "AI Career Advisor Gateway is operational"}
+    return {"message": "Leveller.ai Gateway is operational"}
 
 @app.get("/health")
 async def health_check():

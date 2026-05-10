@@ -26,8 +26,8 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def check_and_create_user():
     db = SessionLocal()
     try:
-        # 1. Check admin@lumix.ai
-        email = "admin@lumix.ai"
+        # 1. Check admin@leveller.ai
+        email = "admin@leveller.ai"
         password = "Admin@123"
         user = db.query(User).filter(User.email == email).first()
         

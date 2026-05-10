@@ -14,7 +14,7 @@ NC='\033[0m'
 PROJECT_DIR="${PROJECT_DIR:-/opt/k109}"
 
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  Lumix AI - Health Check${NC}"
+echo -e "${BLUE}  Leveller.ai - Health Check${NC}"
 echo -e "${BLUE}  $(date '+%Y-%m-%d %H:%M:%S')${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""

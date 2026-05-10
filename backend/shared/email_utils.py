@@ -63,7 +63,7 @@ def notify_queue_delay(user_email: str, queue_pos: int):
         <p>Phân tích của bạn đã được đưa vào hàng đợi và sẽ hoàn thành trong giây lát. Chúng tôi sẽ cập nhật trạng thái ngay khi có kết quả.</p>
         <p>Cảm ơn bạn đã kiên nhẫn!</p>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-        <p style="font-size: 12px; color: #666;">Đây là email tự động từ hệ thống Lumix AI.</p>
+        <p style="font-size: 12px; color: #666;">Đây là email tự động từ hệ thống Leveller.ai.</p>
     </div>
     """
     return send_email(user_email, subject, body, is_html=True)
@@ -72,12 +72,12 @@ def send_password_reset_email(user_email: str, reset_link: str):
     """
     Send password reset link to user.
     """
-    subject = "Đặt lại mật khẩu - Lumix AI Advisor"
+    subject = "Đặt lại mật khẩu - Leveller.ai Advisor"
     body = f"""
     <div style="font-family: sans-serif; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #f8fafc; max-width: 500px; margin: auto;">
         <h2 style="color: #6366f1; text-align: center; margin-bottom: 24px;">Đặt lại mật khẩu</h2>
         <p>Chào bạn,</p>
-        <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản Lumix AI của bạn. Vui lòng nhấn vào nút bên dưới để tiến hành thay đổi mật khẩu:</p>
+        <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản Leveller.ai của bạn. Vui lòng nhấn vào nút bên dưới để tiến hành thay đổi mật khẩu:</p>
         
         <div style="text-align: center; margin: 32px 0;">
             <a href="{reset_link}" style="background-color: #6366f1; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
@@ -88,7 +88,7 @@ def send_password_reset_email(user_email: str, reset_link: str):
         <p style="font-size: 14px; color: #64748b;">Nếu bạn không yêu cầu thay đổi mật khẩu, bạn có thể bỏ qua email này. Liên kết sẽ hết hạn trong vòng 1 giờ.</p>
         
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-        <p style="font-size: 12px; color: #94a3b8; text-align: center;">Lumix AI Advisor - Hệ thống tư vấn lộ trình nghề nghiệp AI</p>
+        <p style="font-size: 12px; color: #94a3b8; text-align: center;">Leveller.ai Advisor - Hệ thống tư vấn lộ trình nghề nghiệp AI</p>
     </div>
     """
     return send_email(user_email, subject, body, is_html=True)
@@ -106,7 +106,7 @@ def notify_cv_parsing_complete(user_email: str, cv_name: str, experience_years: 
         logger.info(f"[EMAIL] CV completion notification disabled for {user_email}")
         return False
     
-    subject = "✓ CV của bạn đã được phân tích xong - Lumix AI"
+    subject = "✓ CV của bạn đã được phân tích xong - Leveller.ai"
     
     exp_text = f"{experience_years} năm kinh nghiệm" if experience_years else "Chưa xác định kinh nghiệm"
     view_link = f"{frontend_url or os.getenv('FRONTEND_URL', 'http://localhost:3000')}/user/cv"
@@ -132,7 +132,7 @@ def notify_cv_parsing_complete(user_email: str, cv_name: str, experience_years: 
         </div>
         
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-        <p style="font-size: 12px; color: #94a3b8; text-align: center;">Lumix AI Advisor - Hệ thống tư vấn lộ trình nghề nghiệp AI</p>
+        <p style="font-size: 12px; color: #94a3b8; text-align: center;">Leveller.ai Advisor - Hệ thống tư vấn lộ trình nghề nghiệp AI</p>
     </div>
     """
     return send_email(user_email, subject, body, is_html=True)
@@ -150,7 +150,7 @@ def notify_gap_analysis_complete(user_email: str, match_score: float, skill_gaps
         logger.info(f"[EMAIL] Gap analysis completion notification disabled for {user_email}")
         return False
     
-    subject = f"✓ Kết quả phân tích Gap: {match_score}% phù hợp - Lumix AI"
+    subject = f"✓ Kết quả phân tích Gap: {match_score}% phù hợp - Leveller.ai"
     
     match_color = "#10b981" if match_score >= 70 else "#f59e0b" if match_score >= 50 else "#ef4444"
     match_emoji = "🎉" if match_score >= 70 else "💪" if match_score >= 50 else "📚"
@@ -185,7 +185,7 @@ def notify_gap_analysis_complete(user_email: str, match_score: float, skill_gaps
         </div>
         
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-        <p style="font-size: 12px; color: #94a3b8; text-align: center;">Lumix AI Advisor - Hệ thống tư vấn lộ trình nghề nghiệp AI</p>
+        <p style="font-size: 12px; color: #94a3b8; text-align: center;">Leveller.ai Advisor - Hệ thống tư vấn lộ trình nghề nghiệp AI</p>
     </div>
     """
     return send_email(user_email, subject, body, is_html=True)

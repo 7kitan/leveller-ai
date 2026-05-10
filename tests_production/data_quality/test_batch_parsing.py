@@ -13,7 +13,7 @@ REPORT_FILE = "parsing_report.json"
 
 # Thông tin đăng nhập mặc định
 ADMIN_CREDENTIALS = {
-    "email": "admin@lumix.ai",
+    "email": "admin@leveller.ai",
     "password": "Admin@123"
 }
 

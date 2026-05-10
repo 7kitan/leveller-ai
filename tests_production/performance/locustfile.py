@@ -4,12 +4,12 @@ import itertools
 
 # Pool of test accounts - mỗi user ảo sẽ lấy 1 account riêng
 TEST_ACCOUNTS = [
-    {"email": f"testuser_{i}@lumix.ai", "password": "Password@123"}
+    {"email": f"testuser_{i}@leveller.ai", "password": "Password@123"}
     for i in range(1, 11)
 ]
 _account_cycle = itertools.cycle(TEST_ACCOUNTS)
 
-class LumixUser(HttpUser):
+class LevellerUser(HttpUser):
     wait_time = between(1, 3)
     token = None
 

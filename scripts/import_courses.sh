@@ -17,7 +17,7 @@ PROJECT_DIR="${PROJECT_DIR:-/opt/k109}"
 DATASET_DIR="$PROJECT_DIR/dataset"
 
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  Lumix AI - Course Import${NC}"
+echo -e "${BLUE}  Leveller.ai - Course Import${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 

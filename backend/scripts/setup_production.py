@@ -138,7 +138,7 @@ def create_admin_user():
     logger.info("=" * 70)
     
     try:
-        admin_email = os.getenv("DEFAULT_ADMIN_EMAIL", "admin@lumix.ai")
+        admin_email = os.getenv("DEFAULT_ADMIN_EMAIL", "admin@Leveller.ai")
         admin_pass = os.getenv("DEFAULT_ADMIN_PASSWORD", "Admin@123")
         admin_name = os.getenv("DEFAULT_ADMIN_NAME", "System Admin")
         
