@@ -35,14 +35,16 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
   const { t } = useLanguage();
   const router = useRouter();
 
+  const isDebug = process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true';
+
   const isFormValid = useMemo(() => {
     const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     const isPasswordValid = password.length >= 8;
     const isNameValid = isLogin || (fullName.trim().length >= 2);
-    const isCaptchaValid = !showCaptcha || !!captchaToken;
+    const isCaptchaValid = isDebug || !showCaptcha || !!captchaToken;
     
     return isEmailValid && isPasswordValid && isNameValid && isCaptchaValid;
-  }, [email, password, fullName, isLogin, showCaptcha, captchaToken, t]);
+  }, [email, password, fullName, isLogin, showCaptcha, captchaToken, t, isDebug]);
 
   useEffect(() => {
     const checkCaptchaStatus = async () => {
@@ -81,7 +83,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
       setCaptchaToken("");
       recaptchaRef.current?.reset();
       
-      if (err.response?.headers?.['x-requires-captcha'] === 'true') {
+      if (err.response?.headers?.['x-requires-captcha'] === 'true' && !isDebug) {
         setShowCaptcha(true);
         setError(t("recaptcha_required"));
       } else {
@@ -171,7 +173,7 @@ export default function AuthForm({ initialMode = "login" }: AuthFormProps) {
             </div>
           )}
 
-          {(showCaptcha || !isLogin) && (
+          {((showCaptcha || !isLogin) && !isDebug) && (
             <div className="mb-4 flex justify-center">
               <ReCAPTCHA
                 ref={recaptchaRef}

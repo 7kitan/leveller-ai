@@ -35,11 +35,18 @@ from slowapi.errors import RateLimitExceeded
 
 logger = setup_logger("auth_service", log_file="auth.log")
 
+# Environment mode
+ENVIRONMENT = os.getenv("ENVIRONMENT", "production").lower()
 # Google reCAPTCHA Secret Key
 RECAPTCHA_SECRET_KEY = os.getenv("GOOGLE_RECAPTCHA_SECRET_KEY")
 
 async def verify_google_captcha(token: str):
     """Verify Google reCAPTCHA v2/v3 token."""
+    # SKIP CAPTCHA IN DEVELOPMENT MODE
+    if ENVIRONMENT == "development" or os.getenv("DEBUG", "false").lower() == "true":
+        logger.info(f"CAPTCHA: Skipping verification in {ENVIRONMENT} mode")
+        return True
+        
     if not RECAPTCHA_SECRET_KEY:
         logger.error("SECURITY ALERT: GOOGLE_RECAPTCHA_SECRET_KEY not set. Cannot verify captcha. Failing securely.")
         return False
@@ -130,13 +137,15 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 @app.post("/auth/forgot-password")
 @limiter.limit("5/minute")
 async def forgot_password(req: ForgotPasswordRequest, request: Request, db: Session = Depends(get_db)):
-    # Verify Captcha
-    if not req.captcha_token:
-        raise HTTPException(status_code=400, detail="Captcha required", headers={"X-Requires-Captcha": "true"})
-    
-    is_valid = await verify_google_captcha(req.captcha_token)
-    if not is_valid:
-        raise HTTPException(status_code=400, detail="Invalid Captcha. Please try again.")
+    # Verify Captcha (except in development)
+    is_dev = ENVIRONMENT == "development" or os.getenv("DEBUG", "false").lower() == "true"
+    if not is_dev:
+        if not req.captcha_token:
+            raise HTTPException(status_code=400, detail="Captcha required", headers={"X-Requires-Captcha": "true"})
+        
+        is_valid = await verify_google_captcha(req.captcha_token)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail="Invalid Captcha. Please try again.")
 
     user = db.query(User).filter(User.email == req.email).first()
     if not user:
@@ -229,20 +238,25 @@ async def register(
     if reg_count > 5:
         raise HTTPException(status_code=429, detail="Too many registrations from this IP. Please try again in 24 hours.")
 
-    # 2. Always require Captcha for Register
-    if not user_in.captcha_token:
-        raise HTTPException(status_code=400, detail="Captcha required for registration", headers={"X-Requires-Captcha": "true"})
+    # 2. Always require Captcha for Register (except in development)
+    is_dev = ENVIRONMENT == "development" or os.getenv("DEBUG", "false").lower() == "true"
     
-    is_valid = await verify_google_captcha(user_in.captcha_token)
-    if not is_valid:
-        raise HTTPException(status_code=400, detail="Invalid Captcha. Please try again.")
+    if not is_dev:
+        if not user_in.captcha_token:
+            raise HTTPException(status_code=400, detail="Captcha required for registration", headers={"X-Requires-Captcha": "true"})
+        
+        is_valid = await verify_google_captcha(user_in.captcha_token)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail="Invalid Captcha. Please try again.")
 
-    db_user = db.query(User).filter(User.email == user_in.email).first()
+    # SECURITY: Normalize email to lowercase
+    email_lower = user_in.email.lower().strip()
+    db_user = db.query(User).filter(User.email == email_lower).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
     new_user = User(
-        email=user_in.email,
+        email=email_lower,
         hashed_password=get_password_hash(user_in.password),
         full_name=user_in.full_name,
         role=UserRole.USER,
@@ -306,6 +320,10 @@ async def get_captcha_status(request: Request):
     ip_addr = get_client_ip(request)
     ip_attempt_key = f"login_attempts_ip:{ip_addr}"
     
+    is_dev = ENVIRONMENT == "development" or os.getenv("DEBUG", "false").lower() == "true"
+    if is_dev:
+        return {"requires_captcha": False}
+
     attempts = auth_cache.get(ip_attempt_key)
     # If there is at least 1 failed attempt, require captcha for the next one
     requires_captcha = int(attempts) >= 1 if attempts else False
@@ -340,7 +358,9 @@ async def login(
         raise HTTPException(status_code=403, detail="Too many failed attempts. Your IP has been locked for 24 hours.")
 
     # SECURITY FIX: Check for Captcha (from 2nd attempt for better protection)
-    if max_attempts >= 2:
+    is_dev = ENVIRONMENT == "development" or os.getenv("DEBUG", "false").lower() == "true"
+    
+    if max_attempts >= 2 and not is_dev:
         if not user_in.captcha_token:
             raise HTTPException(status_code=400, detail="Captcha required", headers={"X-Requires-Captcha": "true"})
         
@@ -348,13 +368,15 @@ async def login(
         if not is_valid:
             raise HTTPException(status_code=400, detail="Invalid Captcha. Please try again.")
 
-    user = db.query(User).filter(User.email == user_in.email).first()
+    # SECURITY: Normalize email to lowercase for case-insensitive matching
+    email_lower = user_in.email.lower().strip()
+    user = db.query(User).filter(User.email == email_lower).first()
 
     if not user or not verify_password(user_in.password, user.hashed_password):
         headers = {"X-Attempts-Left": str(5 - max_attempts)}
         # If this is the 1st failure, the next attempt will be the 2nd one (max_attempts >= 2), 
         # so we notify the client to show captcha now to avoid a "wasted" attempt.
-        if max_attempts >= 1:
+        if max_attempts >= 1 and not is_dev:
             headers["X-Requires-Captcha"] = "true"
         
         # LOG: Failed login attempt (security monitoring)

@@ -68,7 +68,10 @@ async def auth_middleware(request: Request, call_next):
         "/market/trending-skills",   # Public market data - trending skills
         "/market/overview",          # Public market data - overview
         "/market/compare",           # Public market data - skill comparison
-        "/analysis/market-stats"     # Public market data - legacy endpoint
+        "/analysis/market-stats",    # Public market data - legacy endpoint
+        "/docs",                     # FastAPI documentation
+        "/openapi.json",             # OpenAPI schema
+        "/redoc"                     # ReDoc documentation
     ]
     
     path = request.url.path
@@ -77,9 +80,10 @@ async def auth_middleware(request: Request, call_next):
         if not path:
             path = "/"
 
-    # Allow all health endpoints (gateway + all services)
+    # Allow all health endpoints and documentation
     is_health_endpoint = path.endswith("/health") or path == "/health"
-    is_public = path == "/" or is_health_endpoint or any(path.startswith(p) for p in public_paths)
+    is_docs_endpoint = any(path.endswith(p) for p in ["/docs", "/openapi.json", "/redoc"])
+    is_public = path == "/" or is_health_endpoint or is_docs_endpoint or any(path.startswith(p) for p in public_paths)
     
     # Preflight requests should always pass
     if request.method == "OPTIONS":

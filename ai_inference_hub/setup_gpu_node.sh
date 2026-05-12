@@ -21,7 +21,11 @@ pip install --upgrade pip
 echo "📦 Installing Python dependencies (GPU)..."
 pip install -r requirements_gpu.txt
 
-# 5. Configuration (Env variables)
+# 5. Setup Chandra OCR 2 (Pre-download weights)
+echo "🤖 Setting up Chandra OCR 2..."
+python setup_chandra.py
+
+# 6. Configuration (Env variables)
 if [ ! -f .env ]; then
     echo "⚙️ Creating .env template. Please edit it with your credentials."
     mkdir -p models_cache

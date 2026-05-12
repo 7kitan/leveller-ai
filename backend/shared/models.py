@@ -499,3 +499,26 @@ class LLMBenchmarkResult(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     session = relationship("LLMBenchmarkSession", back_populates="results")
+
+
+class PendingSkill(Base):
+    __tablename__ = "pending_skills"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    skill_name = Column(String(200), nullable=False, index=True)
+    source = Column(String(100)) # e.g. "youtube_parsing", "user_suggestion"
+    suggested_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    suggested_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    status = Column(String(20), default="pending", index=True) # pending, approved, rejected, merged
+    
+    reviewed_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    reviewed_at = Column(DateTime(timezone=True))
+    
+    merged_into = Column(UUID(as_uuid=True), ForeignKey("skills.id", ondelete="SET NULL"), nullable=True)
+    notes = Column(Text)
+    metadata_col = Column("metadata", JSON) # Renamed to avoid conflicts if any
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+

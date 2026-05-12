@@ -79,6 +79,12 @@ Hệ thống sử dụng **LiteLLM** làm lớp trừu tượng (Abstraction Lay
 -   **Automatic Fallback**: Tự động chuyển đổi sang model dự phòng nếu model chính bị lỗi hoặc hết hạn mức (Quota).
 -   **Quota Management**: Kiểm soát lượng token tiêu thụ theo từng người dùng trong ngày.
 
+### 6.2. AI Inference Hub (Chandra Engine)
+Đây là service chuyên biệt xử lý các tác vụ AI nặng (Heavy Lifting):
+-   **Multimodal OCR**: Sử dụng các model thị giác máy tính (Computer Vision) để đọc hiểu CV từ mọi định dạng (PDF, PNG, JPG, Docx).
+-   **Layout Analysis**: Phân tích cấu trúc tài liệu để đảm bảo trích xuất đúng thông tin theo từng khối (Kinh nghiệm, Kỹ năng, Học vấn).
+-   **Standalone Service**: Chạy độc lập trên port 8080 để tối ưu hóa tài nguyên GPU/CPU tách biệt với API Gateway.
+
 ### 6.2. Worker & Queue System (Celery)
 Hệ thống phân tách tác vụ qua các Queue riêng biệt để tối ưu hiệu suất:
 -   **`analysis` queue**: Xử lý tính toán Gap Analysis v3 (LangGraph Orchestrator).
@@ -86,15 +92,30 @@ Hệ thống phân tách tác vụ qua các Queue riêng biệt để tối ưu 
 -   **`market_stats` queue**: Chạy các tác vụ Crawler (TopCV, Coursera) và tính toán thống kê thị trường hàng ngày.
 -   **`benchmark` queue**: Đánh giá hiệu suất và độ chính xác của các model AI.
 
-### 6.3. Sơ Đồ Kiến Trúc (Mermaid Diagram)
+### 6.3. Sơ Đồ Kiến Trúc (Architecture Diagrams)
+
+#### A. Sơ đồ tổng quát (General Architecture)
+Sơ đồ này mô tả các thành phần cốt lõi của hệ thống theo yêu cầu của BTC:
+
+```mermaid
+graph LR
+    User((User)) --> FE[Frontend]
+    FE <--> BE[Backend/API]
+    BE <--> DB[(Database)]
+    BE <--> AI[AI Agent/LLM]
+    AI <--> Ext[External Services]
+```
+
+#### B. Sơ đồ chi tiết (Technical Deep-Dive)
+Chi tiết các dịch vụ và cơ sở hạ tầng thực tế:
 
 ```mermaid
 graph TD
-    User((Người dùng))
-    Web[Next.js Frontend]
-    Gateway[API Gateway]
+    User((User))
+    Web[Frontend - Next.js]
+    Gateway[Backend/API - FastAPI]
     
-    subgraph "Backend Microservices"
+    subgraph "Core Microservices"
         AuthSvc[Auth Service]
         CVSvc[CV Service]
         JDSvc[JD Service]
@@ -117,17 +138,23 @@ graph TD
         end
     end
     
-    subgraph "AI Core (LiteLLM)"
+    subgraph "AI Inference Hub"
+        Chandra[Chandra OCR Engine]
+    end
+
+    subgraph "AI Agent/LLM (LiteLLM)"
         LiteLLM[LiteLLM Routing]
-        OpenAI[OpenAI / GPT-5.5]
-        Gemini[Google / Gemini 3.1]
-        Anthropic[Anthropic / Claude 3.5]
-        Groq[Groq / Llama 3.3]
+        Models[OpenAI, Gemini, Claude]
     end
     
-    subgraph "Storage Layer"
+    subgraph "Database Layer"
         Postgres[(PostgreSQL + pgvector)]
-        Redis[(Redis Cache / Prompt DB)]
+        Redis[(Redis Cache)]
+    end
+    
+    subgraph "External Services"
+        Ext_C[Coursera]
+        Ext_T[TopCV]
     end
 
     User <--> Web
@@ -145,17 +172,17 @@ graph TD
     Broker --> Q_Crawler --> W_Crawler
     
     W_Anal -- "LangGraph Flow" --> LiteLLM
-    W_CV -- "OCR + LLM" --> LiteLLM
+    W_CV -- "Send Image/PDF" --> Chandra
+    Chandra -- "OCR Result" --> W_CV
+    W_CV -- "Refine JSON" --> LiteLLM
     W_Crawler -- "Skill Extraction" --> LiteLLM
     
-    LiteLLM --> OpenAI
-    LiteLLM --> Gemini
-    LiteLLM --> Anthropic
-    LiteLLM --> Groq
+    LiteLLM --> Models
     
     W_Anal <--> Postgres
     W_Crawler <--> Postgres
-    W_Crawler -- "Scrape" --> External[Coursera / TopCV]
+    W_Crawler -- "Scrape" --> Ext_C
+    W_Crawler -- "Scrape" --> Ext_T
     
     W_Anal <--> Redis
     W_Crawler <--> Redis

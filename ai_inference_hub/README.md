@@ -36,6 +36,9 @@ source venv/bin/activate
 # Install dependencies
 pip install --upgrade pip
 pip install -r requirements_ai.txt
+
+# IMPORTANT: Download Chandra OCR 2 weights & verify setup
+python setup_chandra.py
 ```
 
 ### 3. Environment Variables

@@ -29,6 +29,7 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def create_admin(email, password, full_name="System Admin"):
+    email = email.lower().strip()
     db = SessionLocal()
     try:
         # Check if user exists

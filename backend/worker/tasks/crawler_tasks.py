@@ -8,7 +8,7 @@ from shared.scrapers.coursera import scrape_coursera_course
 from shared.scrapers.topcv import TopCVScraper
 from shared.database import SessionLocal
 from shared.models import Job, SystemSetting, Course
-from shared.llm_utils import normalize_location
+from shared.llm_utils import normalize_location, get_embedding
 from shared.skill_extraction import extract_and_save_job_skills
 from shared.system_logger import system_logger
 
@@ -56,8 +56,8 @@ def crawl_course_task(url: str, auto_save: bool = False):
                     
                     context = (
                         f"PLATFORM: {platform}. TITLE: {title}. PROVIDER: {provider}. "
-                        f"DESCRIPTION: {description}. MODULES: {', '.join(modules)}. "
-                        f"SKILLS: {', '.join(skills)}. OUTCOMES: {', '.join(outcomes)}."
+                        f"DESCRIPTION: {description}. MODULES: {', '.join([str(m) for m in modules])}. "
+                        f"SKILLS: {', '.join([str(s) for s in skills])}. OUTCOMES: {', '.join([str(o) for o in outcomes])}."
                     )
                     
                     # Generate embedding

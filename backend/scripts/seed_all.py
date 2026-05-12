@@ -51,7 +51,11 @@ def main():
             else:
                 abs_dataset_dir = rel_dataset_dir
                 
-            source_path = os.path.join(abs_dataset_dir, 'coursera_links.txt')
+            source_path = os.path.join(abs_dataset_dir, 'coursera_tech_urls.txt')
+            
+            # Fallback for legacy name if tech_urls doesn't exist
+            if not os.path.exists(source_path):
+                source_path = os.path.join(abs_dataset_dir, 'coursera_links.txt')
             
             # If explicit link file doesn't exist, try just the dir name (as fallback if env points to file)
             if not os.path.exists(source_path) and os.path.exists(abs_dataset_dir) and os.path.isfile(abs_dataset_dir):

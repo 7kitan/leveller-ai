@@ -53,7 +53,14 @@ npm install
 
 ## 3. Khởi Tạo Database & Admin
 
-Chạy script sau để tạo bảng và tài khoản Admin mặc định:
+Bạn có thể chạy script trực tiếp trên máy host (nếu đã cài đủ dependencies) hoặc chạy thông qua Docker (Khuyên dùng):
+
+**Cách 1: Chạy qua Docker (Không cần cài Python local)**
+```bash
+docker exec -it advisor_worker_crawler python scripts/setup_db.py
+```
+
+**Cách 2: Chạy trực tiếp trên Host**
 ```bash
 # Tại backend/
 python scripts/setup_db.py
@@ -65,27 +72,17 @@ python scripts/setup_db.py
 
 ## 4. Hướng Dẫn Nạp Dữ Liệu (Seed Data)
 
-Hệ thống cần dữ liệu Khóa học (Courses) và Công việc (Jobs) để thực hiện gợi ý.
-
 ### A. Nạp Khóa Học (Courses)
-Dữ liệu mẫu từ Coursera (hơn 3000 khóa học) có thể được nạp bằng 2 cách:
-
-1.  **Qua CLI (Khuyên dùng)**:
-    ```bash
-    python scripts/seed_all.py --force
-    ```
-2.  **Qua Admin Dashboard**:
-    - Truy cập: `http://localhost:3000/admin/courses/import`
-    - Upload file `dataset/coursera_tech_urls.txt`.
-    - Nhấn **"Crawl All"** để bắt đầu thu thập dữ liệu.
+Nên chạy qua Docker để đảm bảo môi trường đồng nhất:
+```bash
+docker exec -it advisor_worker_crawler python scripts/seed_all.py
+```
 
 ### B. Nạp Công Việc (Jobs)
-Cào dữ liệu thực tế từ TopCV để có danh sách công việc mới nhất:
-
-1.  **Lệnh thủ công**:
-    ```bash
-    python -c "from worker.celery_app import celery_app; celery_app.send_task('worker.tasks.crawler_tasks.crawl_topcv_jobs_task', args=[20], kwargs={'force': True})"
-    ```
+Kích hoạt đợt cào dữ liệu từ TopCV:
+```bash
+docker exec -it advisor_worker_crawler celery -A worker.celery_app call worker.tasks.crawler_tasks.crawl_topcv_jobs_task --args='[20, true]'
+```
 2.  **Qua Admin UI**:
     - Vào **Jobs Manager** -> Nhấn **Trigger TopCV Crawl**.
 
