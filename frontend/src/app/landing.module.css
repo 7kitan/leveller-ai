@@ -905,6 +905,7 @@
   align-items: center;
   justify-content: center;
   min-height: 400px;
+  overflow: hidden;
 }
 
 @media (min-width: 834px) {
@@ -914,14 +915,14 @@
 }
 
 .screenshotPlaceholder {
-  width: 100%;
+  width: 150%;
   height: 100%;
   min-height: 400px;
   background-color: var(--color-bg-elevated);
-  border-radius: 24px;
-  border: 2px dashed color-mix(in srgb, var(--color-text-primary) 20%, transparent);
+  border-radius: 0;
+  border: none;
   background-size: cover;
-  background-position: center;
+  background-position: left center;
   display: flex;
   align-items: center;
   justify-content: center;
