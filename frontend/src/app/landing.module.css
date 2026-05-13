@@ -1275,9 +1275,11 @@
   position: absolute;
   bottom: 40px;
   left: 50%;
+  right: 50%;
   transform: translateX(-50%);
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   color: var(--color-text-secondary);
   font-size: var(--font-size-small);
@@ -1293,6 +1295,8 @@
 .scrollHintText {
   font-weight: 500;
   letter-spacing: 0.5px;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .sectionHeading {
