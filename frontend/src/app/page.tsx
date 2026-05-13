@@ -106,8 +106,8 @@ export default function LandingPage() {
          target1Desc: "Giúp nhà tuyển dụng phân biệt rõ ràng: core requirements vs. trainable skills. Giảm keyword overload trong JD và tạo incentive cho ứng viên showcase artifact thực tế — portfolio, project, bằng chứng công việc.",
          target2: "Inspire Confidence on Both Sides",
          target2Desc: "Ứng viên biết chính xác khi nào sẵn sàng. Nhà tuyển dụng biết ứng viên có thể đóng góp ngay. Không còn bất bình đẳng thông tin — cả hai bên đều tự tin và thống nhất.",
-         target3: "Build a Skilled Tech Workforce",
-         target3Desc: "Bằng cách tối ưu hóa thời gian học tập từ 6-12 tháng xuống 2-3 tháng, chúng tôi giúp hàng triệu người nhanh chóng trở thành kỹ sư, nhà phân tích, và chuyên gia công nghệ mà thị trường cần."
+          target3: "Build a Skilled Tech Workforce",
+          target3Desc: "Bằng cách tối ưu hóa thời gian học tập từ 6-12 tháng xuống 2-3 tháng, chúng tôi giúp hàng triệu người sẵn sàng để bước vào thị trường công nghệ — có nền tảng vững chắc để học hỏi, phát triển, và nắm bắt cơ hội sự nghiệp."
        },
        cta: {
          heading: "Sẵn Sàng Mở Khóa Tiềm Năng?",
@@ -258,8 +258,8 @@ export default function LandingPage() {
          target1Desc: "Help employers distinguish core requirements from trainable skills. Reduce keyword overload in job descriptions and create incentives for candidates to showcase real artifacts — portfolios, projects, and proof of work.",
          target2: "Inspire Confidence on Both Sides",
          target2Desc: "Candidates know exactly when they're ready. Employers know candidates can contribute immediately. No more information asymmetry — both sides are confident and aligned.",
-         target3: "Build a Skilled Tech Workforce",
-         target3Desc: "By optimizing learning time from 6-12 months down to 2-3 months, we help millions quickly become the engineers, analysts, and tech experts the market needs."
+          target3: "Build a Skilled Tech Workforce",
+          target3Desc: "By optimizing learning time from 6-12 months down to 2-3 months, we help millions get ready to enter the tech market — with a solid foundation to learn, grow, and seize career opportunities."
        },
        cta: {
          heading: "Ready to Unlock Your Potential?",
