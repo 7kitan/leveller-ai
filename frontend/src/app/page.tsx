@@ -70,17 +70,17 @@ export default function LandingPage() {
         step3: "Nhận Kết Quả",
         step3Desc: "Xem Match Score, recommended courses, salary data từ TopCV"
       },
-      impact: {
-        heading: "Tác Động & Giá Trị",
-        title: "Tối Ưu Hóa Thời Gian Học Tập",
-        description: "Leveller.ai không chỉ chỉ ra gap, mà còn tối ưu hóa thời gian học tập để ứng viên có thể đóng góp ngay và mở khóa cơ hội.",
-        metric1: "Giảm 60-70% thời gian chuẩn bị",
-        metric1Desc: "Từ 6-12 tháng xuống còn 2-3 tháng",
-        metric2: "Skill Transferability",
-        metric2Desc: "Nhận diện kỹ năng liên quan và chỉ ra những gì bạn đã có thể transfer",
-        metric3: "Prioritized Learning Path",
-        metric3Desc: "Mỗi khóa học được gợi ý dựa trên mức độ ảnh hưởng đến vị trí mục tiêu"
-      },
+       impact: {
+         heading: "Tác Động & Giá Trị",
+         title: "Tối Ưu Hóa Thời Gian Học Tập",
+         description: "Leveller.ai không chỉ chỉ ra gap, mà còn tối ưu hóa thời gian học tập để ứng viên có thể đóng góp ngay và mở khóa cơ hội.",
+         metric1: "Prioritized Skill Roadmap",
+         metric1Desc: "Thay vì học 25 keywords, hệ thống chỉ ra 5-6 kỹ năng core cần học trước. Kết quả: giảm 60-70% thời gian chuẩn bị, từ 6-12 tháng xuống còn 2-3 tháng",
+         metric2: "Skill Transferability & Strength Leverage",
+         metric2Desc: "Hệ thống nhận diện kỹ năng liên quan và chỉ ra những gì bạn đã có thể transfer. Vue.js → React (1-2 tuần), Python → JavaScript (nhanh hơn vì core concepts), Excel → SQL (Finance/Marketing đã có nền tảng tư duy)",
+         metric3: "Prioritized Learning Path",
+         metric3Desc: "Mỗi khóa học được gợi ý dựa trên mức độ ảnh hưởng đến vị trí mục tiêu. Ứng viên không phải 'bắt đầu từ đầu' và có thể tối ưu hóa lộ trình học tập"
+       },
        roadmap: {
          heading: "Tầm Nhìn Tương Lai",
          title: "Career Intelligence Ecosystem",
@@ -211,17 +211,17 @@ export default function LandingPage() {
         step3: "Get Results",
         step3Desc: "See Match Score, recommended courses, salary data from TopCV"
       },
-      impact: {
-        heading: "Impact & Value",
-        title: "Optimize Learning Time",
-        description: "Leveller.ai not only identifies gaps but optimizes learning time so you can contribute immediately and unlock opportunities.",
-        metric1: "Reduce preparation time by 60-70%",
-        metric1Desc: "From 6-12 months down to 2-3 months",
-        metric2: "Skill Transferability",
-        metric2Desc: "Identify related skills and what you can already transfer",
-        metric3: "Prioritized Learning Path",
-        metric3Desc: "Each course recommended based on impact to your target role"
-      },
+       impact: {
+         heading: "Impact & Value",
+         title: "Optimize Learning Time",
+         description: "Leveller.ai not only identifies gaps but optimizes learning time so you can contribute immediately and unlock opportunities.",
+         metric1: "Prioritized Skill Roadmap",
+         metric1Desc: "Instead of learning 25 keywords, the system identifies 5-6 core skills to learn first. Result: reduce preparation time by 60-70%, from 6-12 months down to 2-3 months",
+         metric2: "Skill Transferability & Strength Leverage",
+         metric2Desc: "The system identifies related skills and what you can already transfer. Vue.js → React (1-2 weeks), Python → JavaScript (faster due to core concepts), Excel → SQL (Finance/Marketing professionals already have foundational thinking)",
+         metric3: "Prioritized Learning Path",
+         metric3Desc: "Each course is recommended based on its impact to your target role. You don't have to 'start from scratch' and can optimize your learning roadmap"
+       },
        roadmap: {
          heading: "Future Vision",
          title: "Career Intelligence Ecosystem",
