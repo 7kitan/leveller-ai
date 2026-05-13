@@ -905,7 +905,6 @@
   align-items: center;
   justify-content: center;
   min-height: 400px;
-  overflow: hidden;
 }
 
 @media (min-width: 834px) {

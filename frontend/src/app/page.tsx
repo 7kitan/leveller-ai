@@ -495,54 +495,41 @@ export default function LandingPage() {
         </section>
       </div>
 
-      {/* Impact Section */}
-      <div className={styles.sectionWrapper}>
-        <section className={styles.section}>
-          <div className={styles.twoColumnLayout}>
-            <motion.div
-              className={styles.columnText}
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <h2 className={styles.sectionHeading}>{currentLang.impact.heading}</h2>
-              <h3 className={styles.columnSubtitle}>{currentLang.impact.title}</h3>
-              <p className={styles.columnDescription}>{currentLang.impact.description}</p>
-              
-              <div className={styles.metricsGrid}>
-                {[
-                  { title: currentLang.impact.metric1, desc: currentLang.impact.metric1Desc },
-                  { title: currentLang.impact.metric2, desc: currentLang.impact.metric2Desc },
-                  { title: currentLang.impact.metric3, desc: currentLang.impact.metric3Desc }
-                ].map((metric, idx) => (
-                  <motion.div
-                    key={idx}
-                    className={styles.metricItem}
-                    initial={{ opacity: 0, y: 15 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: idx * 0.1 }}
-                  >
-                    <h4 className={styles.metricTitle}>{metric.title}</h4>
-                    <p className={styles.metricDesc}>{metric.desc}</p>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div
-              className={styles.columnScreenshot}
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <div className={styles.screenshotPlaceholder} style={{ backgroundImage: 'url(/images/impact-screenshot.png)' }} />
-            </motion.div>
-          </div>
-        </section>
-      </div>
+       {/* Impact Section */}
+       <div className={styles.sectionWrapper}>
+         <section className={styles.section}>
+           <motion.div
+             initial={{ opacity: 0, y: 20 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true }}
+             transition={{ duration: 0.8 }}
+           >
+             <h2 className={styles.sectionHeading}>{currentLang.impact.heading}</h2>
+             <h3 className={styles.columnSubtitle}>{currentLang.impact.title}</h3>
+             <p className={styles.columnDescription}>{currentLang.impact.description}</p>
+             
+             <div className={styles.metricsGrid}>
+               {[
+                 { title: currentLang.impact.metric1, desc: currentLang.impact.metric1Desc },
+                 { title: currentLang.impact.metric2, desc: currentLang.impact.metric2Desc },
+                 { title: currentLang.impact.metric3, desc: currentLang.impact.metric3Desc }
+               ].map((metric, idx) => (
+                 <motion.div
+                   key={idx}
+                   className={styles.metricItem}
+                   initial={{ opacity: 0, y: 15 }}
+                   whileInView={{ opacity: 1, y: 0 }}
+                   viewport={{ once: true }}
+                   transition={{ duration: 0.6, delay: idx * 0.1 }}
+                 >
+                   <h4 className={styles.metricTitle}>{metric.title}</h4>
+                   <p className={styles.metricDesc}>{metric.desc}</p>
+                 </motion.div>
+               ))}
+             </div>
+           </motion.div>
+         </section>
+       </div>
 
        {/* Roadmap Section */}
        <div className={styles.sectionWrapper}>
