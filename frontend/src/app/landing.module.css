@@ -7,9 +7,14 @@
   color: var(--color-text-primary);
   overflow-x: hidden;
   overflow-y: scroll;
-  scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   font-family: var(--font-sans);
+}
+
+@media (min-width: 1024px) {
+  .pageRoot {
+    scroll-snap-type: y mandatory;
+  }
 }
 
 /* --- Section Wrappers --- */
@@ -18,11 +23,16 @@
   height: 100vh;
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .sectionWrapper {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
 }
 
 .bgUnified {
