@@ -2,8 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import { 
-  Target, 
+import {
+  Target,
   Cpu,
   GraduationCap,
   ChevronRight,
@@ -36,31 +36,31 @@ export default function LandingPage() {
         getStarted: "Bắt đầu ngay",
         learnMore: "Tìm hiểu thêm"
       },
-       problem: {
-         heading: "Vấn đề & Nỗi Đau Thị Trường",
-         title: "Thiếu một bản đồ phát triển rõ ràng",
-         description: "Nhu cầu học tập công nghệ ở Việt Nam là cực lớn — thị trường EdTech đã đạt 1.1 tỷ USD vào 2025, và người Việt đăng ký các khóa học MOOC kỹ thuật đạt top 3 thế giới. Tuy nhiên, vấn đề lớn nhất không phải thiếu tài liệu học tập, mà là thiếu một lộ trình phát triển rõ ràng.",
-         pain1: "28% nhân sự IT là những người 'trái ngành' từ Marketing, Sales chuyển sang — phải tự đọc JD thủ công, học tràn lan, không có lộ trình liên kết",
-         pain2: "Job Descriptions quá tải keyword — một JD Junior Backend liệt kê 25+ kỹ năng, nhưng công ty chỉ cần 5-6 core. Ứng viên không biết cái nào bắt buộc vs 'nice-to-have'",
-         pain3: "Kết quả: học lâu hơn cần thiết (6-12 tháng thay vì 2-3), cơ hội bị bỏ lỡ, động lực giảm, tiềm năng không được khai thác"
-       },
-       solution: {
-         heading: "Giải Pháp & Công Nghệ",
-         title: "Phân Tích CV & JD Thông Minh",
-         description: "Chỉ với thao tác tải lên CV và vị trí công việc mong muốn, trong vòng vài phút, Leveller.ai sẽ chỉ ra chính xác những kỹ năng high-impact mà bạn cần.",
-         feature1: "Multi-modal CV Parsing",
-         feature1Desc: "Xử lý CV dưới mọi hình thức — PDF, ảnh chụp, hoặc bản quét — nhờ OCR Engine và LangGraph Orchestrator",
-         feature2: "Auto Skill Level Inference",
-         feature2Desc: "Tự động suy luận mức độ thành thạo dựa trên mô tả công việc, thời gian làm việc, và bối cảnh kinh nghiệm",
-         feature3: "Vector Semantic Search",
-         feature3Desc: "Chuyển đổi kỹ năng thành vector 1536 chiều sử dụng pgvector trên PostgreSQL để tìm kiếm ngữ nghĩa",
-         feature4: "Real-time Job Market Crawling",
-         feature4Desc: "Liên tục cào dữ liệu từ TopCV và các nguồn job listings khác để đảm bảo Gap Analysis dựa trên nhu cầu thị trường thực tế",
-         feature5: "Multi-Platform Course Recommendations",
-         feature5Desc: "Gợi ý khóa học từ Coursera, YouTube và các nền tảng khác với truy cập trực tiếp để tối ưu hóa thời gian học tập",
-         feature6: "Match Score & Salary Impact",
-         feature6Desc: "Tự động tính toán Match Score và Salary Impact dựa trên dữ liệu thị trường thực tế để giúp ứng viên hiểu rõ giá trị của mỗi kỹ năng"
-       },
+      problem: {
+        heading: "Vấn đề & Nỗi Đau Thị Trường",
+        title: "Thiếu một bản đồ phát triển rõ ràng",
+        description: "Nhu cầu học tập công nghệ ở Việt Nam là cực lớn — thị trường EdTech đã đạt 1.1 tỷ USD vào 2025, và số lượng người Việt đăng ký các khóa học MOOC kỹ thuật đạt top 3 thế giới. Tuy nhiên, vấn đề lớn nhất không phải thiếu tài liệu học tập, mà là thiếu một lộ trình phát triển rõ ràng.",
+        pain1: "28% nhân sự IT là những người 'trái ngành' từ Marketing, Sales chuyển sang — phải tự đọc JD thủ công, học tràn lan, không có lộ trình liên kết",
+        pain2: "Job Descriptions quá tải keyword — một JD Junior Backend liệt kê 25+ kỹ năng, nhưng công ty chỉ cần 5-6 core. Ứng viên không biết cái nào bắt buộc vs 'nice-to-have'",
+        pain3: "Kết quả: học lâu hơn cần thiết (6-12 tháng thay vì 2-3), cơ hội bị bỏ lỡ, động lực giảm, tiềm năng không được khai thác"
+      },
+      solution: {
+        heading: "Giải Pháp & Công Nghệ",
+        title: "Phân Tích CV & JD Thông Minh",
+        description: "Chỉ với thao tác tải lên CV và vị trí công việc mong muốn, trong vòng vài phút, Leveller.ai sẽ chỉ ra chính xác những kỹ năng high-impact mà bạn cần.",
+        feature1: "Multi-modal CV Parsing",
+        feature1Desc: "Xử lý CV dưới mọi hình thức — PDF, ảnh chụp, hoặc bản quét — nhờ OCR Engine và LangGraph Orchestrator",
+        feature2: "Auto Skill Level Inference",
+        feature2Desc: "Tự động suy luận mức độ thành thạo dựa trên mô tả công việc, thời gian làm việc, và bối cảnh kinh nghiệm",
+        feature3: "Vector Semantic Search",
+        feature3Desc: "Chuyển đổi kỹ năng thành vector 1536 chiều sử dụng pgvector trên PostgreSQL để tìm kiếm ngữ nghĩa",
+        feature4: "Real-time Job Market Crawling",
+        feature4Desc: "Liên tục cào dữ liệu từ TopCV và các nguồn job listings khác để đảm bảo Gap Analysis dựa trên nhu cầu thị trường thực tế",
+        feature5: "Multi-Platform Course Recommendations",
+        feature5Desc: "Gợi ý khóa học từ Coursera, YouTube và các nền tảng khác với truy cập trực tiếp để tối ưu hóa thời gian học tập",
+        feature6: "Match Score & Salary Impact",
+        feature6Desc: "Tự động tính toán Match Score và Salary Impact dựa trên dữ liệu thị trường thực tế để giúp ứng viên hiểu rõ giá trị của mỗi kỹ năng"
+      },
       userSteps: {
         heading: "Quy Trình Sử Dụng",
         step1: "Tải CV lên",
@@ -70,50 +70,50 @@ export default function LandingPage() {
         step3: "Nhận Kết Quả",
         step3Desc: "Xem Match Score, recommended courses, salary data từ TopCV"
       },
-        impact: {
-          heading: "Tác Động & Giá Trị",
-          title: "Tối Ưu Hóa Thời Gian Học Tập",
-          description: "Leveller.ai không chỉ chỉ ra gap, mà còn tối ưu hóa thời gian học tập để ứng viên có thể đóng góp ngay và mở khóa cơ hội.",
-          metric1: "Prioritized Skill Roadmap",
-          metric1Desc: "Thay vì học 25 keywords, hệ thống chỉ ra 5-6 kỹ năng core cần học trước. Kết quả: giảm 60-70% thời gian chuẩn bị, từ 6-12 tháng xuống còn 2-3 tháng",
-          metric2: "Skill Transferability & Strength Leverage",
-          metric2Desc: "Hệ thống nhận diện kỹ năng liên quan và chỉ ra những gì bạn đã có thể transfer. Vue.js → React (1-2 tuần), Excel → SQL (ứng viên từ Finance/Marketing đã có nền tảng tư duy)",
-          metric3: "Prioritized Learning Path",
-          metric3Desc: "Mỗi khóa học được gợi ý dựa trên mức độ ảnh hưởng đến vị trí mục tiêu. Ứng viên không phải 'bắt đầu từ đầu' và có thể tối ưu hóa lộ trình học tập"
-        },
-       roadmap: {
-         heading: "Tầm Nhìn Tương Lai",
-         title: "Career Intelligence Ecosystem",
-         description: "Chúng tôi đang xây dựng một hệ sinh thái giúp mở khóa tiềm năng cho hàng triệu người.",
-         feature1: "AI CV Suggester",
-         feature1Desc: "Tự động gợi ý cách hiệu chỉnh CV để tăng Match Score với công việc mục tiêu",
-         feature2: "Artifact Builder Guide",
-         feature2Desc: "Hướng dẫn xây dựng portfolio, project, hoặc bằng chứng thực tế để showcase kỹ năng",
-         feature3: "Interview Preparation",
-         feature3Desc: "Gợi ý các câu hỏi phỏng vấn có khả năng cao và cách trả lời tối ưu",
-         feature4: "Real-time Opportunity Matching",
-         feature4Desc: "Nhận thông báo khi có công việc mới phù hợp với lộ trình học tập của bạn",
-         feature5: "Employer Integration",
-         feature5Desc: "Giúp nhà tuyển dụng hiểu rõ hơn về ứng viên — mức độ sẵn sàng thực tế và tiềm năng phát triển",
-         feature6: "Semantic Skill Graph",
-         feature6Desc: "Xây dựng đồ thị kỹ năng ngữ nghĩa từ dữ liệu tập thể — càng nhiều người sử dụng, càng chính xác các gợi ý"
-       },
-       targets: {
-         heading: "Ba Mục Tiêu Của Chúng Tôi",
-         title: "Xây Dựng Tương Lai của Career Intelligence",
-         description: "Chúng tôi đang tạo ra ba hiệu ứng liên kết để biến đổi thị trường việc làm công nghệ.",
-         target1: "Cultivate Accuracy in the Tech Job Market",
-         target1Desc: "Giúp nhà tuyển dụng phân biệt rõ ràng: core requirements vs. trainable skills. Giảm keyword overload trong JD và tạo incentive cho ứng viên showcase artifact thực tế — portfolio, project, bằng chứng công việc.",
-         target2: "Inspire Confidence on Both Sides",
-         target2Desc: "Ứng viên biết chính xác khi nào sẵn sàng. Nhà tuyển dụng biết ứng viên có thể đóng góp ngay. Không còn bất bình đẳng thông tin — cả hai bên đều tự tin và thống nhất.",
-          target3: "Build a Skilled Tech Workforce",
-          target3Desc: "Bằng cách tối ưu hóa thời gian học tập từ 6-12 tháng xuống 2-3 tháng, chúng tôi giúp hàng triệu người sẵn sàng để bước vào thị trường công nghệ — có nền tảng vững chắc để học hỏi, phát triển, và nắm bắt cơ hội sự nghiệp."
-       },
-       cta: {
-         heading: "Sẵn Sàng Mở Khóa Tiềm Năng?",
-         description: "Tham gia hàng triệu người đang sử dụng Leveller.ai để tối ưu hóa lộ trình sự nghiệp của họ.",
-         button: "Bắt Đầu Ngay"
-       },
+      impact: {
+        heading: "Tác Động & Giá Trị",
+        title: "Tối Ưu Hóa Thời Gian Học Tập",
+        description: "Leveller.ai không chỉ chỉ ra gap, mà còn tối ưu hóa thời gian học tập để ứng viên có thể đóng góp ngay và mở khóa cơ hội.",
+        metric1: "Prioritized Skill Roadmap",
+        metric1Desc: "Thay vì học 25 keywords, hệ thống chỉ ra 5-6 kỹ năng core cần học trước. Kết quả: giảm 60-70% thời gian chuẩn bị, từ 6-12 tháng xuống còn 2-3 tháng",
+        metric2: "Skill Transferability & Strength Leverage",
+        metric2Desc: "Hệ thống nhận diện kỹ năng liên quan và chỉ ra những gì bạn đã có thể transfer. Vue.js → React (1-2 tuần), Excel → SQL (ứng viên từ Finance/Marketing đã có nền tảng tư duy)",
+        metric3: "Prioritized Learning Path",
+        metric3Desc: "Mỗi khóa học được gợi ý dựa trên mức độ ảnh hưởng đến vị trí mục tiêu. Ứng viên không phải 'bắt đầu từ đầu' và có thể tối ưu hóa lộ trình học tập"
+      },
+      roadmap: {
+        heading: "Tầm Nhìn Tương Lai",
+        title: "Career Intelligence Ecosystem",
+        description: "Chúng tôi đang xây dựng một hệ sinh thái giúp mở khóa tiềm năng cho hàng triệu người.",
+        feature1: "AI CV Suggester",
+        feature1Desc: "Tự động gợi ý cách hiệu chỉnh CV để tăng Match Score với công việc mục tiêu",
+        feature2: "Artifact Builder Guide",
+        feature2Desc: "Hướng dẫn xây dựng portfolio, project, hoặc bằng chứng thực tế để showcase kỹ năng",
+        feature3: "Interview Preparation",
+        feature3Desc: "Gợi ý các câu hỏi phỏng vấn có khả năng cao và cách trả lời tối ưu",
+        feature4: "Real-time Opportunity Matching",
+        feature4Desc: "Nhận thông báo khi có công việc mới phù hợp với lộ trình học tập của bạn",
+        feature5: "Employer Integration",
+        feature5Desc: "Giúp nhà tuyển dụng hiểu rõ hơn về ứng viên — mức độ sẵn sàng thực tế và tiềm năng phát triển",
+        feature6: "Semantic Skill Graph",
+        feature6Desc: "Xây dựng đồ thị kỹ năng ngữ nghĩa từ dữ liệu tập thể — càng nhiều người sử dụng, càng chính xác các gợi ý"
+      },
+      targets: {
+        heading: "Ba Mục Tiêu Của Chúng Tôi",
+        title: "Xây Dựng Tương Lai của Career Intelligence",
+        description: "Chúng tôi đang tạo ra ba hiệu ứng liên kết để biến đổi thị trường việc làm công nghệ.",
+        target1: "Cultivate Accuracy in the Tech Job Market",
+        target1Desc: "Giúp nhà tuyển dụng phân biệt rõ ràng: core requirements vs. trainable skills. Giảm keyword overload trong JD và tạo incentive cho ứng viên showcase artifact thực tế — portfolio, project, bằng chứng công việc.",
+        target2: "Inspire Confidence on Both Sides",
+        target2Desc: "Ứng viên biết chính xác khi nào sẵn sàng. Nhà tuyển dụng biết ứng viên có thể đóng góp ngay. Không còn bất bình đẳng thông tin — cả hai bên đều tự tin và thống nhất.",
+        target3: "Build a Skilled Tech Workforce",
+        target3Desc: "Bằng cách tối ưu hóa thời gian học tập từ 6-12 tháng xuống 2-3 tháng, chúng tôi giúp hàng triệu người sẵn sàng để bước vào thị trường công nghệ — có nền tảng vững chắc để học hỏi, phát triển, và nắm bắt cơ hội sự nghiệp."
+      },
+      cta: {
+        heading: "Sẵn Sàng Mở Khóa Tiềm Năng?",
+        description: "Tham gia hàng triệu người đang sử dụng Leveller.ai để tối ưu hóa lộ trình sự nghiệp của họ.",
+        button: "Bắt Đầu Ngay"
+      },
       vision: {
         heading: "Tầm nhìn & Sứ mệnh",
         text: "Chúng tôi tin rằng tương lai được xây dựng từ những kết nối thông minh. Leveller AI không chỉ là công cụ, mà là một hệ sinh thái tri thức giúp bạn xóa bỏ mọi giới hạn.",
@@ -188,31 +188,31 @@ export default function LandingPage() {
         companies: "Companies",
         support: "AI Support"
       },
-       problem: {
-         heading: "The Problem & Market Pain",
-         title: "Lack of a clear development roadmap",
-          description: "The demand for tech learning in Vietnam is massive — the EdTech market reached $1.1B in 2025, and Vietnamese learners are top 3 in terms of signups. Yet the biggest problem isn't lack of learning materials, but lack of a clear development roadmap.",
-         pain1: "28% of IT professionals are 'career changers' from Marketing, Sales — forced to manually read JDs, learn haphazardly, with no connected roadmap",
-         pain2: "Job Descriptions are keyword-overloaded — a Junior Backend JD lists 25+ skills, but companies only need 5-6 core. Applicants don't know what's required vs 'nice-to-have'",
-         pain3: "Result: learning takes 6-12 months instead of 2-3, missed opportunities, reduced motivation, untapped potential"
-       },
-       solution: {
-         heading: "Solution & Technology",
-         title: "Smart CV & Job Description Analysis",
-         description: "With just uploading your CV and desired job position, within minutes, Leveller.ai identifies exactly which high-impact skills you need.",
-         feature1: "Multi-modal CV Parsing",
-         feature1Desc: "Process CVs in any format — PDF, photos, or scans — using OCR Engine and LangGraph Orchestrator",
-         feature2: "Auto Skill Level Inference",
-         feature2Desc: "Automatically infer proficiency levels based on job descriptions, work duration, and experience context",
-         feature3: "Vector Semantic Search",
-         feature3Desc: "Convert skills to 1536-dimensional vectors using pgvector on PostgreSQL for semantic search",
-         feature4: "Real-time Job Market Crawling",
-         feature4Desc: "Continuously crawl data from TopCV and job listings to ensure Gap Analysis based on real market demand",
-         feature5: "Multi-Platform Course Recommendations",
-         feature5Desc: "Recommend courses from Coursera, YouTube and other platforms with direct access to optimize learning time",
-         feature6: "Match Score & Salary Impact",
-         feature6Desc: "Automatically calculate Match Score and Salary Impact based on real market data to help candidates understand skill value"
-       },
+      problem: {
+        heading: "The Problem & Market Pain",
+        title: "Lack of a clear development roadmap",
+        description: "The demand for tech learning in Vietnam is massive — the EdTech market reached $1.1B in 2025, and Vietnamese learners are top 3 in terms of signups to technical MOOC courses. Yet the biggest problem isn't lack of learning materials, but lack of a clear development roadmap.",
+        pain1: "28% of IT professionals are 'career changers' from Marketing, Sales — forced to manually read JDs, learn haphazardly, with no connected roadmap",
+        pain2: "Job Descriptions are keyword-overloaded — a Junior Backend JD lists 25+ skills, but companies only need 5-6 core. Applicants don't know what's required vs 'nice-to-have'",
+        pain3: "Result: learning takes 6-12 months instead of 2-3, missed opportunities, reduced motivation, untapped potential"
+      },
+      solution: {
+        heading: "Solution & Technology",
+        title: "Smart CV & Job Description Analysis",
+        description: "With just uploading your CV and desired job position, within minutes, Leveller.ai identifies exactly which high-impact skills you need.",
+        feature1: "Multi-modal CV Parsing",
+        feature1Desc: "Process CVs in any format — PDF, photos, or scans — using OCR Engine and LangGraph Orchestrator",
+        feature2: "Auto Skill Level Inference",
+        feature2Desc: "Automatically infer proficiency levels based on job descriptions, work duration, and experience context",
+        feature3: "Vector Semantic Search",
+        feature3Desc: "Convert skills to 1536-dimensional vectors using pgvector on PostgreSQL for semantic search",
+        feature4: "Real-time Job Market Crawling",
+        feature4Desc: "Continuously crawl data from TopCV and job listings to ensure Gap Analysis based on real market demand",
+        feature5: "Multi-Platform Course Recommendations",
+        feature5Desc: "Recommend courses from Coursera, YouTube and other platforms with direct access to optimize learning time",
+        feature6: "Match Score & Salary Impact",
+        feature6Desc: "Automatically calculate Match Score and Salary Impact based on real market data to help candidates understand skill value"
+      },
       userSteps: {
         heading: "How It Works",
         step1: "Upload CV",
@@ -222,50 +222,50 @@ export default function LandingPage() {
         step3: "Get Results",
         step3Desc: "See Match Score, recommended courses, salary data from TopCV"
       },
-       impact: {
-         heading: "Impact & Value",
-         title: "Optimize Learning Time",
-         description: "Leveller.ai not only identifies gaps but optimizes learning time so you can contribute immediately and unlock opportunities.",
-         metric1: "Prioritized Skill Roadmap",
-         metric1Desc: "Instead of learning 25 keywords, the system identifies 5-6 core skills to learn first. Result: reduce preparation time by 60-70%, from 6-12 months down to 2-3 months",
-         metric2: "Skill Transferability & Strength Leverage",
-         metric2Desc: "The system identifies related skills and what you can already transfer. Vue.js → React (1-2 weeks), Excel → SQL (Finance/Marketing professionals already have foundational thinking)",
-         metric3: "Prioritized Learning Path",
-         metric3Desc: "Each course is recommended based on its impact to your target role. You don't have to 'start from scratch' and can optimize your learning roadmap"
-       },
-       roadmap: {
-         heading: "Future Vision",
-         title: "Career Intelligence Ecosystem",
-         description: "We're building an ecosystem to unlock potential for millions of people.",
-         feature1: "AI CV Suggester",
-         feature1Desc: "Automatically suggest CV improvements to increase Match Score with target job",
-         feature2: "Artifact Builder Guide",
-         feature2Desc: "Guide building portfolio, projects, or real-world proof of skills to showcase expertise",
-         feature3: "Interview Preparation",
-         feature3Desc: "Suggest likely interview questions and optimal answers based on gap analysis",
-         feature4: "Real-time Opportunity Matching",
-         feature4Desc: "Get notified when new jobs match your learning roadmap — seize opportunities proactively",
-         feature5: "Employer Integration",
-         feature5Desc: "Help employers understand candidates better — real readiness level and development potential",
-         feature6: "Semantic Skill Graph",
-         feature6Desc: "Build semantic skill graph from collective data — more users means more accurate recommendations"
-       },
-       targets: {
-         heading: "Our Three Targets",
-         title: "Building the Future of Career Intelligence",
-         description: "We're creating three interconnected effects to transform the tech job market.",
-         target1: "Cultivate Accuracy in the Tech Job Market",
-         target1Desc: "Help employers distinguish core requirements from trainable skills. Reduce keyword overload in job descriptions and create incentives for candidates to showcase real artifacts — portfolios, projects, and proof of work.",
-         target2: "Inspire Confidence on Both Sides",
-         target2Desc: "Candidates know exactly when they're ready. Employers know candidates can contribute immediately. No more information asymmetry — both sides are confident and aligned.",
-          target3: "Build a Skilled Tech Workforce",
-          target3Desc: "By optimizing learning time from 6-12 months down to 2-3 months, we help millions get ready to enter the tech market — with a solid foundation to learn, grow, and seize career opportunities."
-       },
-       cta: {
-         heading: "Ready to Unlock Your Potential?",
-         description: "Join millions using Leveller.ai to optimize their career path.",
-         button: "Get Started"
-       },
+      impact: {
+        heading: "Impact & Value",
+        title: "Optimize Learning Time",
+        description: "Leveller.ai not only identifies gaps but optimizes learning time so you can contribute immediately and unlock opportunities.",
+        metric1: "Prioritized Skill Roadmap",
+        metric1Desc: "Instead of learning 25 keywords, the system identifies 5-6 core skills to learn first. Result: reduce preparation time by 60-70%, from 6-12 months down to 2-3 months",
+        metric2: "Skill Transferability & Strength Leverage",
+        metric2Desc: "The system identifies related skills and what you can already transfer. Vue.js → React (1-2 weeks), Excel → SQL (Finance/Marketing professionals already have foundational thinking)",
+        metric3: "Prioritized Learning Path",
+        metric3Desc: "Each course is recommended based on its impact to your target role. You don't have to 'start from scratch' and can optimize your learning roadmap"
+      },
+      roadmap: {
+        heading: "Future Vision",
+        title: "Career Intelligence Ecosystem",
+        description: "We're building an ecosystem to unlock potential for millions of people.",
+        feature1: "AI CV Suggester",
+        feature1Desc: "Automatically suggest CV improvements to increase Match Score with target job",
+        feature2: "Artifact Builder Guide",
+        feature2Desc: "Guide building portfolio, projects, or real-world proof of skills to showcase expertise",
+        feature3: "Interview Preparation",
+        feature3Desc: "Suggest likely interview questions and optimal answers based on gap analysis",
+        feature4: "Real-time Opportunity Matching",
+        feature4Desc: "Get notified when new jobs match your learning roadmap — seize opportunities proactively",
+        feature5: "Employer Integration",
+        feature5Desc: "Help employers understand candidates better — real readiness level and development potential",
+        feature6: "Semantic Skill Graph",
+        feature6Desc: "Build semantic skill graph from collective data — more users means more accurate recommendations"
+      },
+      targets: {
+        heading: "Our Three Targets",
+        title: "Building the Future of Career Intelligence",
+        description: "We're creating three interconnected effects to transform the tech job market.",
+        target1: "Cultivate Accuracy in the Tech Job Market",
+        target1Desc: "Help employers distinguish core requirements from trainable skills. Reduce keyword overload in job descriptions and create incentives for candidates to showcase real artifacts — portfolios, projects, and proof of work.",
+        target2: "Inspire Confidence on Both Sides",
+        target2Desc: "Candidates know exactly when they're ready. Employers know candidates can contribute immediately. No more information asymmetry — both sides are confident and aligned.",
+        target3: "Build a Skilled Tech Workforce",
+        target3Desc: "By optimizing learning time from 6-12 months down to 2-3 months, we help millions get ready to enter the tech market — with a solid foundation to learn, grow, and seize career opportunities."
+      },
+      cta: {
+        heading: "Ready to Unlock Your Potential?",
+        description: "Join millions using Leveller.ai to optimize their career path.",
+        button: "Get Started"
+      },
       vision: {
         heading: "Vision & Mission",
         text: "We believe the future is built from intelligent connections. Leveller AI is not just a tool, but a knowledge ecosystem that helps you break through all limitations.",
@@ -341,11 +341,11 @@ export default function LandingPage() {
         <section className={styles.heroSection}>
           {/* Background Image with Blur */}
           <div className={styles.heroBackground} />
-          
+
           {/* Animated Gradient Overlay */}
           <div className={styles.heroGradient} />
-          
-          <motion.div 
+
+          <motion.div
             className={styles.heroContent}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -379,19 +379,19 @@ export default function LandingPage() {
         </section>
       </div>
 
-       {/* Problem/Pain Points Section */}
-       <div className={styles.sectionWrapper}>
-         <section className={styles.section}>
-           <div className={styles.centeredText}>
-             <motion.div
-               initial={{ opacity: 0, y: 20 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               transition={{ duration: 0.8 }}
-             >
-               <h2 className={styles.sectionHeading}>{currentLang.problem.heading}</h2>
-             </motion.div>
-           </div>
+      {/* Problem/Pain Points Section */}
+      <div className={styles.sectionWrapper}>
+        <section className={styles.section}>
+          <div className={styles.centeredText}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className={styles.sectionHeading}>{currentLang.problem.heading}</h2>
+            </motion.div>
+          </div>
 
           <motion.div
             className={styles.problemContent}
@@ -407,63 +407,63 @@ export default function LandingPage() {
                 currentLang.problem.pain2,
                 currentLang.problem.pain3
               ].map((pain, idx) => (
-                 <motion.div
-                   key={idx}
-                   className={styles.painPoint}
-                   initial={{ opacity: 0, x: -20 }}
-                   whileInView={{ opacity: 1, x: 0 }}
-                   viewport={{ once: true }}
-                   transition={{ duration: 0.6, delay: idx * 0.15 }}
-                 >
-                   <p>{pain}</p>
-                 </motion.div>
+                <motion.div
+                  key={idx}
+                  className={styles.painPoint}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: idx * 0.15 }}
+                >
+                  <p>{pain}</p>
+                </motion.div>
               ))}
             </div>
           </motion.div>
         </section>
       </div>
 
-       {/* Solution Technology Features Section */}
-       <div className={styles.sectionWrapper}>
-         <section className={styles.section}>
-           <motion.div
-             initial={{ opacity: 0, y: 20 }}
-             whileInView={{ opacity: 1, y: 0 }}
-             viewport={{ once: true }}
-             transition={{ duration: 0.8 }}
-           >
-             <h2 className={styles.sectionHeading}>{currentLang.solution.heading}</h2>
-             <h3 className={styles.columnSubtitle}>{currentLang.solution.title}</h3>
-             <p className={styles.columnDescription}>{currentLang.solution.description}</p>
-             
-             <div className={styles.featuresList}>
-               {[
-                 { title: currentLang.solution.feature1, desc: currentLang.solution.feature1Desc },
-                 { title: currentLang.solution.feature2, desc: currentLang.solution.feature2Desc },
-                 { title: currentLang.solution.feature3, desc: currentLang.solution.feature3Desc },
-                 { title: currentLang.solution.feature4, desc: currentLang.solution.feature4Desc },
-                 { title: currentLang.solution.feature5, desc: currentLang.solution.feature5Desc },
-                 { title: currentLang.solution.feature6, desc: currentLang.solution.feature6Desc }
-               ].map((feature, idx) => (
-                 <motion.div
-                   key={idx}
-                   className={styles.featureItem}
-                   initial={{ opacity: 0, y: 15 }}
-                   whileInView={{ opacity: 1, y: 0 }}
-                   viewport={{ once: true }}
-                   transition={{ duration: 0.6, delay: idx * 0.1 }}
-                 >
-                   <div className={styles.featureNumber}>{idx + 1}</div>
-                   <div>
-                     <h4 className={styles.featureTitle}>{feature.title}</h4>
-                     <p className={styles.featureDesc}>{feature.desc}</p>
-                   </div>
-                 </motion.div>
-               ))}
-             </div>
-           </motion.div>
-         </section>
-       </div>
+      {/* Solution Technology Features Section */}
+      <div className={styles.sectionWrapper}>
+        <section className={styles.section}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className={styles.sectionHeading}>{currentLang.solution.heading}</h2>
+            <h3 className={styles.columnSubtitle}>{currentLang.solution.title}</h3>
+            <p className={styles.columnDescription}>{currentLang.solution.description}</p>
+
+            <div className={styles.featuresList}>
+              {[
+                { title: currentLang.solution.feature1, desc: currentLang.solution.feature1Desc },
+                { title: currentLang.solution.feature2, desc: currentLang.solution.feature2Desc },
+                { title: currentLang.solution.feature3, desc: currentLang.solution.feature3Desc },
+                { title: currentLang.solution.feature4, desc: currentLang.solution.feature4Desc },
+                { title: currentLang.solution.feature5, desc: currentLang.solution.feature5Desc },
+                { title: currentLang.solution.feature6, desc: currentLang.solution.feature6Desc }
+              ].map((feature, idx) => (
+                <motion.div
+                  key={idx}
+                  className={styles.featureItem}
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: idx * 0.1 }}
+                >
+                  <div className={styles.featureNumber}>{idx + 1}</div>
+                  <div>
+                    <h4 className={styles.featureTitle}>{feature.title}</h4>
+                    <p className={styles.featureDesc}>{feature.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </section>
+      </div>
 
       {/* User Steps Section */}
       <div className={styles.sectionWrapper}>
@@ -477,7 +477,7 @@ export default function LandingPage() {
               transition={{ duration: 0.8 }}
             >
               <h2 className={styles.sectionHeading}>{currentLang.userSteps.heading}</h2>
-              
+
               <div className={styles.stepsGrid}>
                 {[
                   { step: '01', title: currentLang.userSteps.step1, desc: currentLang.userSteps.step1Desc },
@@ -500,133 +500,133 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-             <motion.div
-               className={styles.columnScreenshot}
-               initial={{ opacity: 0, x: -30 }}
-               whileInView={{ opacity: 1, x: 0 }}
-               viewport={{ once: true }}
-               transition={{ duration: 0.8 }}
-             >
-               <div className={styles.screenshotPlaceholder} style={{ backgroundImage: 'url(/images/dashboard.png)' }} />
-             </motion.div>
+            <motion.div
+              className={styles.columnScreenshot}
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className={styles.screenshotPlaceholder} style={{ backgroundImage: 'url(/images/dashboard.png)' }} />
+            </motion.div>
           </div>
         </section>
       </div>
 
-       {/* Impact Section */}
-       <div className={styles.sectionWrapper}>
-         <section className={styles.section}>
-           <motion.div
-             initial={{ opacity: 0, y: 20 }}
-             whileInView={{ opacity: 1, y: 0 }}
-             viewport={{ once: true }}
-             transition={{ duration: 0.8 }}
-           >
-             <h2 className={styles.sectionHeading}>{currentLang.impact.heading}</h2>
-             <h3 className={styles.columnSubtitle}>{currentLang.impact.title}</h3>
-             <p className={styles.columnDescription}>{currentLang.impact.description}</p>
-             
-             <div className={styles.metricsGrid}>
-               {[
-                 { title: currentLang.impact.metric1, desc: currentLang.impact.metric1Desc },
-                 { title: currentLang.impact.metric2, desc: currentLang.impact.metric2Desc },
-                 { title: currentLang.impact.metric3, desc: currentLang.impact.metric3Desc }
-               ].map((metric, idx) => (
-                 <motion.div
-                   key={idx}
-                   className={styles.metricItem}
-                   initial={{ opacity: 0, y: 15 }}
-                   whileInView={{ opacity: 1, y: 0 }}
-                   viewport={{ once: true }}
-                   transition={{ duration: 0.6, delay: idx * 0.1 }}
-                 >
-                   <h4 className={styles.metricTitle}>{metric.title}</h4>
-                   <p className={styles.metricDesc}>{metric.desc}</p>
-                 </motion.div>
-               ))}
-             </div>
-           </motion.div>
-         </section>
-       </div>
+      {/* Impact Section */}
+      <div className={styles.sectionWrapper}>
+        <section className={styles.section}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className={styles.sectionHeading}>{currentLang.impact.heading}</h2>
+            <h3 className={styles.columnSubtitle}>{currentLang.impact.title}</h3>
+            <p className={styles.columnDescription}>{currentLang.impact.description}</p>
 
-       {/* Roadmap Section */}
-       <div className={styles.sectionWrapper}>
-         <section className={styles.section}>
-           <motion.div
-             initial={{ opacity: 0, y: 20 }}
-             whileInView={{ opacity: 1, y: 0 }}
-             viewport={{ once: true }}
-             transition={{ duration: 0.8 }}
-           >
-             <h2 className={styles.sectionHeading}>{currentLang.roadmap.heading}</h2>
-             <h3 className={styles.columnSubtitle}>{currentLang.roadmap.title}</h3>
-             <p className={styles.columnDescription}>{currentLang.roadmap.description}</p>
-             
-             <div className={styles.roadmapFeatures}>
-               {[
-                 { title: currentLang.roadmap.feature1, desc: currentLang.roadmap.feature1Desc },
-                 { title: currentLang.roadmap.feature2, desc: currentLang.roadmap.feature2Desc },
-                 { title: currentLang.roadmap.feature3, desc: currentLang.roadmap.feature3Desc },
-                 { title: currentLang.roadmap.feature4, desc: currentLang.roadmap.feature4Desc },
-                 { title: currentLang.roadmap.feature5, desc: currentLang.roadmap.feature5Desc },
-                 { title: currentLang.roadmap.feature6, desc: currentLang.roadmap.feature6Desc }
-               ].map((feature, idx) => (
-                 <motion.div
-                   key={idx}
-                   className={styles.roadmapItem}
-                   initial={{ opacity: 0, y: 15 }}
-                   whileInView={{ opacity: 1, y: 0 }}
-                   viewport={{ once: true }}
-                   transition={{ duration: 0.6, delay: idx * 0.1 }}
-                 >
-                   <div>
-                     <h4 className={styles.roadmapTitle}>{feature.title}</h4>
-                     <p className={styles.roadmapDesc}>{feature.desc}</p>
-                   </div>
-                 </motion.div>
-               ))}
-             </div>
-           </motion.div>
-         </section>
-        </div>
+            <div className={styles.metricsGrid}>
+              {[
+                { title: currentLang.impact.metric1, desc: currentLang.impact.metric1Desc },
+                { title: currentLang.impact.metric2, desc: currentLang.impact.metric2Desc },
+                { title: currentLang.impact.metric3, desc: currentLang.impact.metric3Desc }
+              ].map((metric, idx) => (
+                <motion.div
+                  key={idx}
+                  className={styles.metricItem}
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: idx * 0.1 }}
+                >
+                  <h4 className={styles.metricTitle}>{metric.title}</h4>
+                  <p className={styles.metricDesc}>{metric.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </section>
+      </div>
 
-        {/* Targets Section */}
-        <div className={styles.sectionWrapper}>
-          <section className={styles.section}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <h2 className={styles.sectionHeading}>{currentLang.targets.heading}</h2>
-              <h3 className={styles.columnSubtitle}>{currentLang.targets.title}</h3>
-              <p className={styles.columnDescription}>{currentLang.targets.description}</p>
-              
-              <div className={styles.targetsGrid}>
-                {[
-                  { title: currentLang.targets.target1, desc: currentLang.targets.target1Desc },
-                  { title: currentLang.targets.target2, desc: currentLang.targets.target2Desc },
-                  { title: currentLang.targets.target3, desc: currentLang.targets.target3Desc }
-                ].map((target, idx) => (
-                  <motion.div
-                    key={idx}
-                    className={styles.targetItem}
-                    initial={{ opacity: 0, y: 15 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: idx * 0.1 }}
-                  >
-                    <h4 className={styles.targetTitle}>{target.title}</h4>
-                    <p className={styles.targetDesc}>{target.desc}</p>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </section>
-        </div>
+      {/* Roadmap Section */}
+      <div className={styles.sectionWrapper}>
+        <section className={styles.section}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className={styles.sectionHeading}>{currentLang.roadmap.heading}</h2>
+            <h3 className={styles.columnSubtitle}>{currentLang.roadmap.title}</h3>
+            <p className={styles.columnDescription}>{currentLang.roadmap.description}</p>
 
-       {/* CTA Section */}
+            <div className={styles.roadmapFeatures}>
+              {[
+                { title: currentLang.roadmap.feature1, desc: currentLang.roadmap.feature1Desc },
+                { title: currentLang.roadmap.feature2, desc: currentLang.roadmap.feature2Desc },
+                { title: currentLang.roadmap.feature3, desc: currentLang.roadmap.feature3Desc },
+                { title: currentLang.roadmap.feature4, desc: currentLang.roadmap.feature4Desc },
+                { title: currentLang.roadmap.feature5, desc: currentLang.roadmap.feature5Desc },
+                { title: currentLang.roadmap.feature6, desc: currentLang.roadmap.feature6Desc }
+              ].map((feature, idx) => (
+                <motion.div
+                  key={idx}
+                  className={styles.roadmapItem}
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: idx * 0.1 }}
+                >
+                  <div>
+                    <h4 className={styles.roadmapTitle}>{feature.title}</h4>
+                    <p className={styles.roadmapDesc}>{feature.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </section>
+      </div>
+
+      {/* Targets Section */}
+      <div className={styles.sectionWrapper}>
+        <section className={styles.section}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className={styles.sectionHeading}>{currentLang.targets.heading}</h2>
+            <h3 className={styles.columnSubtitle}>{currentLang.targets.title}</h3>
+            <p className={styles.columnDescription}>{currentLang.targets.description}</p>
+
+            <div className={styles.targetsGrid}>
+              {[
+                { title: currentLang.targets.target1, desc: currentLang.targets.target1Desc },
+                { title: currentLang.targets.target2, desc: currentLang.targets.target2Desc },
+                { title: currentLang.targets.target3, desc: currentLang.targets.target3Desc }
+              ].map((target, idx) => (
+                <motion.div
+                  key={idx}
+                  className={styles.targetItem}
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: idx * 0.1 }}
+                >
+                  <h4 className={styles.targetTitle}>{target.title}</h4>
+                  <p className={styles.targetDesc}>{target.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </section>
+      </div>
+
+      {/* CTA Section */}
       <div className={styles.sectionWrapper}>
         <section className={styles.section}>
           <motion.div
@@ -699,18 +699,18 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <div className={styles.authorName}>{testimonial.author}</div>
-                     <div className={styles.authorRole}>
-                       {testimonial.role} at {testimonial.company}
-                     </div>
-                   </div>
-                 </div>
-               </motion.div>
-             ))}
-           </div>
-         </section>
-       </div>
+                    <div className={styles.authorRole}>
+                      {testimonial.role} at {testimonial.company}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      </div>
 
-       {/* Enhanced Footer */}
+      {/* Enhanced Footer */}
       <div className={styles.sectionWrapper}>
         <footer className={styles.richFooter}>
           <div className={styles.footerContent}>
@@ -745,8 +745,8 @@ export default function LandingPage() {
                   {currentLang.footer.newsletter}
                 </p>
                 <div className={styles.newsletterForm}>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     placeholder={currentLang.footer.emailPlaceholder}
                     className={styles.newsletterInput}
                   />
@@ -773,5 +773,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-
