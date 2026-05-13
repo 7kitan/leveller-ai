@@ -44,17 +44,23 @@ export default function LandingPage() {
         pain2: "Không biết kỹ năng nào là bắt buộc vs 'nice-to-have'",
         pain3: "Cơ hội bị bỏ lỡ, động lực giảm"
       },
-      solution: {
-        heading: "Giải Pháp & Công Nghệ",
-        title: "Phân Tích CV & JD Thông Minh",
-        description: "Chỉ với thao tác tải lên CV và vị trí công việc mong muốn, trong vòng vài phút, Leveller.ai sẽ chỉ ra chính xác những kỹ năng high-impact mà bạn cần.",
-        feature1: "Multi-modal CV Parsing",
-        feature1Desc: "Xử lý CV dưới mọi hình thức — PDF, ảnh chụp, hoặc bản quét — nhờ OCR Engine và LangGraph Orchestrator",
-        feature2: "Auto Skill Level Inference",
-        feature2Desc: "Tự động suy luận mức độ thành thạo dựa trên mô tả công việc, thời gian làm việc, và bối cảnh kinh nghiệm",
-        feature3: "Vector Semantic Search",
-        feature3Desc: "Chuyển đổi kỹ năng thành vector 1536 chiều sử dụng pgvector trên PostgreSQL để tìm kiếm ngữ nghĩa"
-      },
+       solution: {
+         heading: "Giải Pháp & Công Nghệ",
+         title: "Phân Tích CV & JD Thông Minh",
+         description: "Chỉ với thao tác tải lên CV và vị trí công việc mong muốn, trong vòng vài phút, Leveller.ai sẽ chỉ ra chính xác những kỹ năng high-impact mà bạn cần.",
+         feature1: "Multi-modal CV Parsing",
+         feature1Desc: "Xử lý CV dưới mọi hình thức — PDF, ảnh chụp, hoặc bản quét — nhờ OCR Engine và LangGraph Orchestrator",
+         feature2: "Auto Skill Level Inference",
+         feature2Desc: "Tự động suy luận mức độ thành thạo dựa trên mô tả công việc, thời gian làm việc, và bối cảnh kinh nghiệm",
+         feature3: "Vector Semantic Search",
+         feature3Desc: "Chuyển đổi kỹ năng thành vector 1536 chiều sử dụng pgvector trên PostgreSQL để tìm kiếm ngữ nghĩa",
+         feature4: "Real-time Job Market Crawling",
+         feature4Desc: "Liên tục cào dữ liệu từ TopCV và các nguồn job listings khác để đảm bảo Gap Analysis dựa trên nhu cầu thị trường thực tế",
+         feature5: "Multi-Platform Course Recommendations",
+         feature5Desc: "Gợi ý khóa học từ Coursera, YouTube và các nền tảng khác với truy cập trực tiếp để tối ưu hóa thời gian học tập",
+         feature6: "Match Score & Salary Impact",
+         feature6Desc: "Tự động tính toán Match Score và Salary Impact dựa trên dữ liệu thị trường thực tế để giúp ứng viên hiểu rõ giá trị của mỗi kỹ năng"
+       },
       userSteps: {
         heading: "Quy Trình Sử Dụng",
         step1: "Tải CV lên",
@@ -75,17 +81,23 @@ export default function LandingPage() {
         metric3: "Prioritized Learning Path",
         metric3Desc: "Mỗi khóa học được gợi ý dựa trên mức độ ảnh hưởng đến vị trí mục tiêu"
       },
-      roadmap: {
-        heading: "Tầm Nhìn Tương Lai",
-        title: "Career Intelligence Ecosystem",
-        description: "Chúng tôi đang xây dựng một hệ sinh thái giúp mở khóa tiềm năng cho hàng triệu người.",
-        feature1: "AI CV Suggester",
-        feature1Desc: "Tự động gợi ý cách hiệu chỉnh CV để tăng Match Score",
-        feature2: "Artifact Builder Guide",
-        feature2Desc: "Hướng dẫn xây dựng portfolio, project, hoặc bằng chứng thực tế",
-        feature3: "Interview Preparation",
-        feature3Desc: "Gợi ý các câu hỏi phỏng vấn có khả năng cao và cách trả lời tối ưu"
-      },
+       roadmap: {
+         heading: "Tầm Nhìn Tương Lai",
+         title: "Career Intelligence Ecosystem",
+         description: "Chúng tôi đang xây dựng một hệ sinh thái giúp mở khóa tiềm năng cho hàng triệu người.",
+         feature1: "AI CV Suggester",
+         feature1Desc: "Tự động gợi ý cách hiệu chỉnh CV để tăng Match Score với công việc mục tiêu",
+         feature2: "Artifact Builder Guide",
+         feature2Desc: "Hướng dẫn xây dựng portfolio, project, hoặc bằng chứng thực tế để showcase kỹ năng",
+         feature3: "Interview Preparation",
+         feature3Desc: "Gợi ý các câu hỏi phỏng vấn có khả năng cao và cách trả lời tối ưu",
+         feature4: "Real-time Opportunity Matching",
+         feature4Desc: "Nhận thông báo khi có công việc mới phù hợp với lộ trình học tập của bạn",
+         feature5: "Employer Integration",
+         feature5Desc: "Giúp nhà tuyển dụng hiểu rõ hơn về ứng viên — mức độ sẵn sàng thực tế và tiềm năng phát triển",
+         feature6: "Semantic Skill Graph",
+         feature6Desc: "Xây dựng đồ thị kỹ năng ngữ nghĩa từ dữ liệu tập thể — càng nhiều người sử dụng, càng chính xác các gợi ý"
+       },
       cta: {
         heading: "Sẵn Sàng Mở Khóa Tiềm Năng?",
         description: "Tham gia hàng triệu người đang sử dụng Leveller.ai để tối ưu hóa lộ trình sự nghiệp của họ.",
@@ -173,17 +185,23 @@ export default function LandingPage() {
         pain2: "Don't know which skills are required vs 'nice-to-have'",
         pain3: "Missed opportunities, reduced motivation"
       },
-      solution: {
-        heading: "Solution & Technology",
-        title: "Smart CV & Job Description Analysis",
-        description: "With just uploading your CV and desired job position, within minutes, Leveller.ai identifies exactly which high-impact skills you need.",
-        feature1: "Multi-modal CV Parsing",
-        feature1Desc: "Process CVs in any format — PDF, photos, or scans — using OCR Engine and LangGraph Orchestrator",
-        feature2: "Auto Skill Level Inference",
-        feature2Desc: "Automatically infer proficiency levels based on job descriptions, work duration, and experience context",
-        feature3: "Vector Semantic Search",
-        feature3Desc: "Convert skills to 1536-dimensional vectors using pgvector on PostgreSQL for semantic search"
-      },
+       solution: {
+         heading: "Solution & Technology",
+         title: "Smart CV & Job Description Analysis",
+         description: "With just uploading your CV and desired job position, within minutes, Leveller.ai identifies exactly which high-impact skills you need.",
+         feature1: "Multi-modal CV Parsing",
+         feature1Desc: "Process CVs in any format — PDF, photos, or scans — using OCR Engine and LangGraph Orchestrator",
+         feature2: "Auto Skill Level Inference",
+         feature2Desc: "Automatically infer proficiency levels based on job descriptions, work duration, and experience context",
+         feature3: "Vector Semantic Search",
+         feature3Desc: "Convert skills to 1536-dimensional vectors using pgvector on PostgreSQL for semantic search",
+         feature4: "Real-time Job Market Crawling",
+         feature4Desc: "Continuously crawl data from TopCV and job listings to ensure Gap Analysis based on real market demand",
+         feature5: "Multi-Platform Course Recommendations",
+         feature5Desc: "Recommend courses from Coursera, YouTube and other platforms with direct access to optimize learning time",
+         feature6: "Match Score & Salary Impact",
+         feature6Desc: "Automatically calculate Match Score and Salary Impact based on real market data to help candidates understand skill value"
+       },
       userSteps: {
         heading: "How It Works",
         step1: "Upload CV",
@@ -204,17 +222,23 @@ export default function LandingPage() {
         metric3: "Prioritized Learning Path",
         metric3Desc: "Each course recommended based on impact to your target role"
       },
-      roadmap: {
-        heading: "Future Vision",
-        title: "Career Intelligence Ecosystem",
-        description: "We're building an ecosystem to unlock potential for millions of people.",
-        feature1: "AI CV Suggester",
-        feature1Desc: "Automatically suggest CV improvements to increase Match Score",
-        feature2: "Artifact Builder Guide",
-        feature2Desc: "Guide building portfolio, projects, or real-world proof of skills",
-        feature3: "Interview Preparation",
-        feature3Desc: "Suggest likely interview questions and optimal answers"
-      },
+       roadmap: {
+         heading: "Future Vision",
+         title: "Career Intelligence Ecosystem",
+         description: "We're building an ecosystem to unlock potential for millions of people.",
+         feature1: "AI CV Suggester",
+         feature1Desc: "Automatically suggest CV improvements to increase Match Score with target job",
+         feature2: "Artifact Builder Guide",
+         feature2Desc: "Guide building portfolio, projects, or real-world proof of skills to showcase expertise",
+         feature3: "Interview Preparation",
+         feature3Desc: "Suggest likely interview questions and optimal answers based on gap analysis",
+         feature4: "Real-time Opportunity Matching",
+         feature4Desc: "Get notified when new jobs match your learning roadmap — seize opportunities proactively",
+         feature5: "Employer Integration",
+         feature5Desc: "Help employers understand candidates better — real readiness level and development potential",
+         feature6: "Semantic Skill Graph",
+         feature6Desc: "Build semantic skill graph from collective data — more users means more accurate recommendations"
+       },
       cta: {
         heading: "Ready to Unlock Your Potential?",
         description: "Join millions using Leveller.ai to optimize their career path.",
@@ -381,57 +405,47 @@ export default function LandingPage() {
         </section>
       </div>
 
-      {/* Solution Technology Features Section */}
-      <div className={styles.sectionWrapper}>
-        <section className={styles.section}>
-          <div className={styles.twoColumnLayout}>
-            <motion.div
-              className={styles.columnText}
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <h2 className={styles.sectionHeading}>{currentLang.solution.heading}</h2>
-              <h3 className={styles.columnSubtitle}>{currentLang.solution.title}</h3>
-              <p className={styles.columnDescription}>{currentLang.solution.description}</p>
-              
-              <div className={styles.featuresList}>
-                {[
-                  { title: currentLang.solution.feature1, desc: currentLang.solution.feature1Desc },
-                  { title: currentLang.solution.feature2, desc: currentLang.solution.feature2Desc },
-                  { title: currentLang.solution.feature3, desc: currentLang.solution.feature3Desc }
-                ].map((feature, idx) => (
-                  <motion.div
-                    key={idx}
-                    className={styles.featureItem}
-                    initial={{ opacity: 0, y: 15 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: idx * 0.1 }}
-                  >
-                    <div className={styles.featureNumber}>{idx + 1}</div>
-                    <div>
-                      <h4 className={styles.featureTitle}>{feature.title}</h4>
-                      <p className={styles.featureDesc}>{feature.desc}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div
-              className={styles.columnScreenshot}
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <div className={styles.screenshotPlaceholder} style={{ backgroundImage: 'url(/images/solution-screenshot.png)' }} />
-            </motion.div>
-          </div>
-        </section>
-      </div>
+       {/* Solution Technology Features Section */}
+       <div className={styles.sectionWrapper}>
+         <section className={styles.section}>
+           <motion.div
+             initial={{ opacity: 0, y: 20 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true }}
+             transition={{ duration: 0.8 }}
+           >
+             <h2 className={styles.sectionHeading}>{currentLang.solution.heading}</h2>
+             <h3 className={styles.columnSubtitle}>{currentLang.solution.title}</h3>
+             <p className={styles.columnDescription}>{currentLang.solution.description}</p>
+             
+             <div className={styles.featuresList}>
+               {[
+                 { title: currentLang.solution.feature1, desc: currentLang.solution.feature1Desc },
+                 { title: currentLang.solution.feature2, desc: currentLang.solution.feature2Desc },
+                 { title: currentLang.solution.feature3, desc: currentLang.solution.feature3Desc },
+                 { title: currentLang.solution.feature4, desc: currentLang.solution.feature4Desc },
+                 { title: currentLang.solution.feature5, desc: currentLang.solution.feature5Desc },
+                 { title: currentLang.solution.feature6, desc: currentLang.solution.feature6Desc }
+               ].map((feature, idx) => (
+                 <motion.div
+                   key={idx}
+                   className={styles.featureItem}
+                   initial={{ opacity: 0, y: 15 }}
+                   whileInView={{ opacity: 1, y: 0 }}
+                   viewport={{ once: true }}
+                   transition={{ duration: 0.6, delay: idx * 0.1 }}
+                 >
+                   <div className={styles.featureNumber}>{idx + 1}</div>
+                   <div>
+                     <h4 className={styles.featureTitle}>{feature.title}</h4>
+                     <p className={styles.featureDesc}>{feature.desc}</p>
+                   </div>
+                 </motion.div>
+               ))}
+             </div>
+           </motion.div>
+         </section>
+       </div>
 
       {/* User Steps Section */}
       <div className={styles.sectionWrapper}>
@@ -530,57 +544,46 @@ export default function LandingPage() {
         </section>
       </div>
 
-      {/* Roadmap Section */}
-      <div className={styles.sectionWrapper}>
-        <section className={styles.section}>
-          <div className={styles.twoColumnLayout} style={{ flexDirection: 'row-reverse' }}>
-            <motion.div
-              className={styles.columnText}
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <h2 className={styles.sectionHeading}>{currentLang.roadmap.heading}</h2>
-              <h3 className={styles.columnSubtitle}>{currentLang.roadmap.title}</h3>
-              <p className={styles.columnDescription}>{currentLang.roadmap.description}</p>
-              
-              <div className={styles.roadmapFeatures}>
-                {[
-                  { title: currentLang.roadmap.feature1, desc: currentLang.roadmap.feature1Desc },
-                  { title: currentLang.roadmap.feature2, desc: currentLang.roadmap.feature2Desc },
-                  { title: currentLang.roadmap.feature3, desc: currentLang.roadmap.feature3Desc }
-                ].map((feature, idx) => (
-                  <motion.div
-                    key={idx}
-                    className={styles.roadmapItem}
-                    initial={{ opacity: 0, y: 15 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: idx * 0.1 }}
-                  >
-                    <div className={styles.roadmapIcon}>🚀</div>
-                    <div>
-                      <h4 className={styles.roadmapTitle}>{feature.title}</h4>
-                      <p className={styles.roadmapDesc}>{feature.desc}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div
-              className={styles.columnScreenshot}
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <div className={styles.screenshotPlaceholder} style={{ backgroundImage: 'url(/images/roadmap-screenshot.png)' }} />
-            </motion.div>
-          </div>
-        </section>
-      </div>
+       {/* Roadmap Section */}
+       <div className={styles.sectionWrapper}>
+         <section className={styles.section}>
+           <motion.div
+             initial={{ opacity: 0, y: 20 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true }}
+             transition={{ duration: 0.8 }}
+           >
+             <h2 className={styles.sectionHeading}>{currentLang.roadmap.heading}</h2>
+             <h3 className={styles.columnSubtitle}>{currentLang.roadmap.title}</h3>
+             <p className={styles.columnDescription}>{currentLang.roadmap.description}</p>
+             
+             <div className={styles.roadmapFeatures}>
+               {[
+                 { title: currentLang.roadmap.feature1, desc: currentLang.roadmap.feature1Desc },
+                 { title: currentLang.roadmap.feature2, desc: currentLang.roadmap.feature2Desc },
+                 { title: currentLang.roadmap.feature3, desc: currentLang.roadmap.feature3Desc },
+                 { title: currentLang.roadmap.feature4, desc: currentLang.roadmap.feature4Desc },
+                 { title: currentLang.roadmap.feature5, desc: currentLang.roadmap.feature5Desc },
+                 { title: currentLang.roadmap.feature6, desc: currentLang.roadmap.feature6Desc }
+               ].map((feature, idx) => (
+                 <motion.div
+                   key={idx}
+                   className={styles.roadmapItem}
+                   initial={{ opacity: 0, y: 15 }}
+                   whileInView={{ opacity: 1, y: 0 }}
+                   viewport={{ once: true }}
+                   transition={{ duration: 0.6, delay: idx * 0.1 }}
+                 >
+                   <div>
+                     <h4 className={styles.roadmapTitle}>{feature.title}</h4>
+                     <p className={styles.roadmapDesc}>{feature.desc}</p>
+                   </div>
+                 </motion.div>
+               ))}
+             </div>
+           </motion.div>
+         </section>
+       </div>
 
       {/* CTA Section */}
       <div className={styles.sectionWrapper}>

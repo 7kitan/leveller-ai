@@ -940,28 +940,48 @@
 
 /* --- Features List --- */
 .featuresList {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 24px;
   margin-top: 32px;
 }
 
+@media (min-width: 640px) {
+  .featuresList {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .featuresList {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 .featureItem {
   display: flex;
+  flex-direction: column;
   gap: 16px;
-  padding: 20px;
+  padding: 24px;
   background: var(--color-bg-elevated);
   border-radius: 16px;
   border: 1px solid color-mix(in srgb, var(--color-text-primary) 4%, transparent);
+  transition: all 0.3s ease;
+}
+
+.featureItem:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--color-secondary) 30%, transparent);
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--color-text-primary) 5%, transparent);
 }
 
 .featureNumber {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   background: var(--color-primary);
   color: var(--color-text-inverse);
-  border-radius: 50%;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1061,24 +1081,49 @@
 
 /* --- Roadmap Features --- */
 .roadmapFeatures {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 24px;
   margin-top: 32px;
 }
 
+@media (min-width: 640px) {
+  .roadmapFeatures {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .roadmapFeatures {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 .roadmapItem {
   display: flex;
+  flex-direction: column;
   gap: 16px;
-  padding: 20px;
+  padding: 24px;
   background: var(--color-bg-elevated);
   border-radius: 16px;
   border: 1px solid color-mix(in srgb, var(--color-text-primary) 4%, transparent);
+  transition: all 0.3s ease;
+}
+
+.roadmapItem:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--color-secondary) 30%, transparent);
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--color-text-primary) 5%, transparent);
 }
 
 .roadmapIcon {
   flex-shrink: 0;
-  font-size: 28px;
+  font-size: 32px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .roadmapTitle {
