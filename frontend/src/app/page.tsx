@@ -357,22 +357,19 @@ export default function LandingPage() {
         </section>
       </div>
 
-      {/* Problem/Pain Points Section */}
-      <div className={styles.sectionWrapper}>
-        <section className={styles.section}>
-          <div className={styles.centeredText}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <h2 className={styles.sectionHeading}>{currentLang.problem.heading}</h2>
-              <p className={styles.sectionSubheading}>
-                {currentLang.problem.title}
-              </p>
-            </motion.div>
-          </div>
+       {/* Problem/Pain Points Section */}
+       <div className={styles.sectionWrapper}>
+         <section className={styles.section}>
+           <div className={styles.centeredText}>
+             <motion.div
+               initial={{ opacity: 0, y: 20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               transition={{ duration: 0.8 }}
+             >
+               <h2 className={styles.sectionHeading}>{currentLang.problem.heading}</h2>
+             </motion.div>
+           </div>
 
           <motion.div
             className={styles.problemContent}
@@ -388,17 +385,16 @@ export default function LandingPage() {
                 currentLang.problem.pain2,
                 currentLang.problem.pain3
               ].map((pain, idx) => (
-                <motion.div
-                  key={idx}
-                  className={styles.painPoint}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: idx * 0.15 }}
-                >
-                  <div className={styles.painPointIcon}>⚠️</div>
-                  <p>{pain}</p>
-                </motion.div>
+                 <motion.div
+                   key={idx}
+                   className={styles.painPoint}
+                   initial={{ opacity: 0, x: -20 }}
+                   whileInView={{ opacity: 1, x: 0 }}
+                   viewport={{ once: true }}
+                   transition={{ duration: 0.6, delay: idx * 0.15 }}
+                 >
+                   <p>{pain}</p>
+                 </motion.div>
               ))}
             </div>
           </motion.div>
