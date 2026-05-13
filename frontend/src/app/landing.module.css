@@ -920,7 +920,7 @@
   min-height: 400px;
   background-color: var(--color-bg-elevated);
   border-radius: 0;
-  border: none;
+  border: 1px solid var(--color-border-subtle);
   background-size: cover;
   background-position: left center;
   display: flex;
