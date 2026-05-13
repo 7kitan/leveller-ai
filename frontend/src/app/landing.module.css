@@ -1194,6 +1194,56 @@
   line-height: 1.6;
 }
 
+/* --- Targets Grid --- */
+.targetsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 32px;
+}
+
+@media (min-width: 640px) {
+  .targetsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .targetsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.targetItem {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: var(--color-bg-elevated);
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--color-text-primary) 4%, transparent);
+  transition: all 0.3s ease;
+}
+
+.targetItem:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--color-secondary) 30%, transparent);
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--color-text-primary) 5%, transparent);
+}
+
+.targetTitle {
+  font-size: var(--font-size-medium);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+.targetDesc {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
 /* --- CTA Section --- */
 .ctaContent {
   text-align: center;

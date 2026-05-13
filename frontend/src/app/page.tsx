@@ -98,11 +98,22 @@ export default function LandingPage() {
          feature6: "Semantic Skill Graph",
          feature6Desc: "Xây dựng đồ thị kỹ năng ngữ nghĩa từ dữ liệu tập thể — càng nhiều người sử dụng, càng chính xác các gợi ý"
        },
-      cta: {
-        heading: "Sẵn Sàng Mở Khóa Tiềm Năng?",
-        description: "Tham gia hàng triệu người đang sử dụng Leveller.ai để tối ưu hóa lộ trình sự nghiệp của họ.",
-        button: "Bắt Đầu Ngay"
-      },
+       targets: {
+         heading: "Ba Mục Tiêu Của Chúng Tôi",
+         title: "Xây Dựng Tương Lai của Career Intelligence",
+         description: "Chúng tôi đang tạo ra ba hiệu ứng liên kết để biến đổi thị trường việc làm công nghệ.",
+         target1: "Cultivate Accuracy in the Tech Job Market",
+         target1Desc: "Giúp nhà tuyển dụng phân biệt rõ ràng: core requirements vs. trainable skills. Giảm keyword overload trong JD và tạo incentive cho ứng viên showcase artifact thực tế — portfolio, project, bằng chứng công việc.",
+         target2: "Inspire Confidence on Both Sides",
+         target2Desc: "Ứng viên biết chính xác khi nào sẵn sàng. Nhà tuyển dụng biết ứng viên có thể đóng góp ngay. Không còn bất bình đẳng thông tin — cả hai bên đều tự tin và thống nhất.",
+         target3: "Build a Skilled Tech Workforce",
+         target3Desc: "Bằng cách tối ưu hóa thời gian học tập từ 6-12 tháng xuống 2-3 tháng, chúng tôi giúp hàng triệu người nhanh chóng trở thành kỹ sư, nhà phân tích, và chuyên gia công nghệ mà thị trường cần."
+       },
+       cta: {
+         heading: "Sẵn Sàng Mở Khóa Tiềm Năng?",
+         description: "Tham gia hàng triệu người đang sử dụng Leveller.ai để tối ưu hóa lộ trình sự nghiệp của họ.",
+         button: "Bắt Đầu Ngay"
+       },
       vision: {
         heading: "Tầm nhìn & Sứ mệnh",
         text: "Chúng tôi tin rằng tương lai được xây dựng từ những kết nối thông minh. Leveller AI không chỉ là công cụ, mà là một hệ sinh thái tri thức giúp bạn xóa bỏ mọi giới hạn.",
@@ -239,11 +250,22 @@ export default function LandingPage() {
          feature6: "Semantic Skill Graph",
          feature6Desc: "Build semantic skill graph from collective data — more users means more accurate recommendations"
        },
-      cta: {
-        heading: "Ready to Unlock Your Potential?",
-        description: "Join millions using Leveller.ai to optimize their career path.",
-        button: "Get Started"
-      },
+       targets: {
+         heading: "Our Three Targets",
+         title: "Building the Future of Career Intelligence",
+         description: "We're creating three interconnected effects to transform the tech job market.",
+         target1: "Cultivate Accuracy in the Tech Job Market",
+         target1Desc: "Help employers distinguish core requirements from trainable skills. Reduce keyword overload in job descriptions and create incentives for candidates to showcase real artifacts — portfolios, projects, and proof of work.",
+         target2: "Inspire Confidence on Both Sides",
+         target2Desc: "Candidates know exactly when they're ready. Employers know candidates can contribute immediately. No more information asymmetry — both sides are confident and aligned.",
+         target3: "Build a Skilled Tech Workforce",
+         target3Desc: "By optimizing learning time from 6-12 months down to 2-3 months, we help millions quickly become the engineers, analysts, and tech experts the market needs."
+       },
+       cta: {
+         heading: "Ready to Unlock Your Potential?",
+         description: "Join millions using Leveller.ai to optimize their career path.",
+         button: "Get Started"
+       },
       vision: {
         heading: "Vision & Mission",
         text: "We believe the future is built from intelligent connections. Leveller AI is not just a tool, but a knowledge ecosystem that helps you break through all limitations.",
@@ -566,9 +588,45 @@ export default function LandingPage() {
              </div>
            </motion.div>
          </section>
-       </div>
+        </div>
 
-      {/* CTA Section */}
+        {/* Targets Section */}
+        <div className={styles.sectionWrapper}>
+          <section className={styles.section}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className={styles.sectionHeading}>{currentLang.targets.heading}</h2>
+              <h3 className={styles.columnSubtitle}>{currentLang.targets.title}</h3>
+              <p className={styles.columnDescription}>{currentLang.targets.description}</p>
+              
+              <div className={styles.targetsGrid}>
+                {[
+                  { title: currentLang.targets.target1, desc: currentLang.targets.target1Desc },
+                  { title: currentLang.targets.target2, desc: currentLang.targets.target2Desc },
+                  { title: currentLang.targets.target3, desc: currentLang.targets.target3Desc }
+                ].map((target, idx) => (
+                  <motion.div
+                    key={idx}
+                    className={styles.targetItem}
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: idx * 0.1 }}
+                  >
+                    <h4 className={styles.targetTitle}>{target.title}</h4>
+                    <p className={styles.targetDesc}>{target.desc}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </section>
+        </div>
+
+       {/* CTA Section */}
       <div className={styles.sectionWrapper}>
         <section className={styles.section}>
           <motion.div
