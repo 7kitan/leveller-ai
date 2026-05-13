@@ -36,14 +36,14 @@ export default function LandingPage() {
         getStarted: "Bắt đầu ngay",
         learnMore: "Tìm hiểu thêm"
       },
-      problem: {
-        heading: "Vấn đề & Nỗi Đau Thị Trường",
-        title: "Ứng viên bị mất phương hướng",
-        description: "Khoảng 28% nhân sự IT hiện nay là những người 'trái ngành'. Họ phải tự đọc JD thủ công, học tràn lan, không có lộ trình liên kết. Một JD cho vị trí Junior Backend có thể liệt kê 25+ kỹ năng, nhưng thực tế công ty chỉ cần 5-6 kỹ năng core.",
-        pain1: "Học lâu hơn cần thiết (6-12 tháng thay vì 2-3 tháng)",
-        pain2: "Không biết kỹ năng nào là bắt buộc vs 'nice-to-have'",
-        pain3: "Cơ hội bị bỏ lỡ, động lực giảm"
-      },
+       problem: {
+         heading: "Vấn đề & Nỗi Đau Thị Trường",
+         title: "Thiếu một bản đồ phát triển rõ ràng",
+         description: "Nhu cầu học tập công nghệ ở Việt Nam là cực lớn — thị trường EdTech đã đạt 1.1 tỷ USD vào 2025, và người Việt đăng ký các khóa học MOOC kỹ thuật đạt top 3 thế giới. Tuy nhiên, vấn đề lớn nhất không phải thiếu tài liệu học tập, mà là thiếu một lộ trình phát triển rõ ràng.",
+         pain1: "28% nhân sự IT là những người 'trái ngành' từ Marketing, Sales chuyển sang — phải tự đọc JD thủ công, học tràn lan, không có lộ trình liên kết",
+         pain2: "Job Descriptions quá tải keyword — một JD Junior Backend liệt kê 25+ kỹ năng, nhưng công ty chỉ cần 5-6 core. Ứng viên không biết cái nào bắt buộc vs 'nice-to-have'",
+         pain3: "Kết quả: học lâu hơn cần thiết (6-12 tháng thay vì 2-3), cơ hội bị bỏ lỡ, động lực giảm, tiềm năng không được khai thác"
+       },
        solution: {
          heading: "Giải Pháp & Công Nghệ",
          title: "Phân Tích CV & JD Thông Minh",
@@ -177,14 +177,14 @@ export default function LandingPage() {
         companies: "Companies",
         support: "AI Support"
       },
-      problem: {
-        heading: "The Problem & Market Pain",
-        title: "Applicants are lost",
-        description: "About 28% of IT professionals today are 'career changers'. They must manually read job descriptions, learn haphazardly, with no connected roadmap. A Junior Backend JD can list 25+ skills, but companies really only need 5-6 core skills.",
-        pain1: "Learning takes longer than necessary (6-12 months instead of 2-3)",
-        pain2: "Don't know which skills are required vs 'nice-to-have'",
-        pain3: "Missed opportunities, reduced motivation"
-      },
+       problem: {
+         heading: "The Problem & Market Pain",
+         title: "Lack of a clear development roadmap",
+         description: "The demand for tech learning in Vietnam is massive — the EdTech market reached $1.1B in 2025, and Vietnamese learners rank top 3 globally for technical MOOC courses. Yet the biggest problem isn't lack of learning materials, but lack of a clear development roadmap.",
+         pain1: "28% of IT professionals are 'career changers' from Marketing, Sales — forced to manually read JDs, learn haphazardly, with no connected roadmap",
+         pain2: "Job Descriptions are keyword-overloaded — a Junior Backend JD lists 25+ skills, but companies only need 5-6 core. Applicants don't know what's required vs 'nice-to-have'",
+         pain3: "Result: learning takes 6-12 months instead of 2-3, missed opportunities, reduced motivation, untapped potential"
+       },
        solution: {
          heading: "Solution & Technology",
          title: "Smart CV & Job Description Analysis",
