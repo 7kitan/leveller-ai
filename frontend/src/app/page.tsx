@@ -191,7 +191,7 @@ export default function LandingPage() {
        problem: {
          heading: "The Problem & Market Pain",
          title: "Lack of a clear development roadmap",
-         description: "The demand for tech learning in Vietnam is massive — the EdTech market reached $1.1B in 2025, and Vietnamese learners rank top 3 globally for technical MOOC courses. Yet the biggest problem isn't lack of learning materials, but lack of a clear development roadmap.",
+          description: "The demand for tech learning in Vietnam is massive — the EdTech market reached $1.1B in 2025, and Vietnamese learners are top 3 in terms of signups. Yet the biggest problem isn't lack of learning materials, but lack of a clear development roadmap.",
          pain1: "28% of IT professionals are 'career changers' from Marketing, Sales — forced to manually read JDs, learn haphazardly, with no connected roadmap",
          pain2: "Job Descriptions are keyword-overloaded — a Junior Backend JD lists 25+ skills, but companies only need 5-6 core. Applicants don't know what's required vs 'nice-to-have'",
          pain3: "Result: learning takes 6-12 months instead of 2-3, missed opportunities, reduced motivation, untapped potential"
