@@ -36,11 +36,60 @@ export default function LandingPage() {
         getStarted: "Bắt đầu ngay",
         learnMore: "Tìm hiểu thêm"
       },
-      stats: {
-        cvs: "CV Đã Phân Tích",
-        accuracy: "Độ Chính Xác",
-        companies: "Công Ty",
-        support: "Hỗ Trợ AI"
+      problem: {
+        heading: "Vấn đề & Nỗi Đau Thị Trường",
+        title: "Ứng viên bị mất phương hướng",
+        description: "Khoảng 28% nhân sự IT hiện nay là những người 'trái ngành'. Họ phải tự đọc JD thủ công, học tràn lan, không có lộ trình liên kết. Một JD cho vị trí Junior Backend có thể liệt kê 25+ kỹ năng, nhưng thực tế công ty chỉ cần 5-6 kỹ năng core.",
+        pain1: "Học lâu hơn cần thiết (6-12 tháng thay vì 2-3 tháng)",
+        pain2: "Không biết kỹ năng nào là bắt buộc vs 'nice-to-have'",
+        pain3: "Cơ hội bị bỏ lỡ, động lực giảm"
+      },
+      solution: {
+        heading: "Giải Pháp & Công Nghệ",
+        title: "Phân Tích CV & JD Thông Minh",
+        description: "Chỉ với thao tác tải lên CV và vị trí công việc mong muốn, trong vòng vài phút, Leveller.ai sẽ chỉ ra chính xác những kỹ năng high-impact mà bạn cần.",
+        feature1: "Multi-modal CV Parsing",
+        feature1Desc: "Xử lý CV dưới mọi hình thức — PDF, ảnh chụp, hoặc bản quét — nhờ OCR Engine và LangGraph Orchestrator",
+        feature2: "Auto Skill Level Inference",
+        feature2Desc: "Tự động suy luận mức độ thành thạo dựa trên mô tả công việc, thời gian làm việc, và bối cảnh kinh nghiệm",
+        feature3: "Vector Semantic Search",
+        feature3Desc: "Chuyển đổi kỹ năng thành vector 1536 chiều sử dụng pgvector trên PostgreSQL để tìm kiếm ngữ nghĩa"
+      },
+      userSteps: {
+        heading: "Quy Trình Sử Dụng",
+        step1: "Tải CV lên",
+        step1Desc: "Upload CV ảnh hoặc PDF → Hệ thống phân tích OCR + extracted skills",
+        step2: "Chọn Vị Trí",
+        step2Desc: "Select job position (e.g., Junior Backend) → Show Skill Gap Map",
+        step3: "Nhận Kết Quả",
+        step3Desc: "Xem Match Score, recommended courses, salary data từ TopCV"
+      },
+      impact: {
+        heading: "Tác Động & Giá Trị",
+        title: "Tối Ưu Hóa Thời Gian Học Tập",
+        description: "Leveller.ai không chỉ chỉ ra gap, mà còn tối ưu hóa thời gian học tập để ứng viên có thể đóng góp ngay và mở khóa cơ hội.",
+        metric1: "Giảm 60-70% thời gian chuẩn bị",
+        metric1Desc: "Từ 6-12 tháng xuống còn 2-3 tháng",
+        metric2: "Skill Transferability",
+        metric2Desc: "Nhận diện kỹ năng liên quan và chỉ ra những gì bạn đã có thể transfer",
+        metric3: "Prioritized Learning Path",
+        metric3Desc: "Mỗi khóa học được gợi ý dựa trên mức độ ảnh hưởng đến vị trí mục tiêu"
+      },
+      roadmap: {
+        heading: "Tầm Nhìn Tương Lai",
+        title: "Career Intelligence Ecosystem",
+        description: "Chúng tôi đang xây dựng một hệ sinh thái giúp mở khóa tiềm năng cho hàng triệu người.",
+        feature1: "AI CV Suggester",
+        feature1Desc: "Tự động gợi ý cách hiệu chỉnh CV để tăng Match Score",
+        feature2: "Artifact Builder Guide",
+        feature2Desc: "Hướng dẫn xây dựng portfolio, project, hoặc bằng chứng thực tế",
+        feature3: "Interview Preparation",
+        feature3Desc: "Gợi ý các câu hỏi phỏng vấn có khả năng cao và cách trả lời tối ưu"
+      },
+      cta: {
+        heading: "Sẵn Sàng Mở Khóa Tiềm Năng?",
+        description: "Tham gia hàng triệu người đang sử dụng Leveller.ai để tối ưu hóa lộ trình sự nghiệp của họ.",
+        button: "Bắt Đầu Ngay"
       },
       vision: {
         heading: "Tầm nhìn & Sứ mệnh",
@@ -115,6 +164,61 @@ export default function LandingPage() {
         accuracy: "Match Accuracy",
         companies: "Companies",
         support: "AI Support"
+      },
+      problem: {
+        heading: "The Problem & Market Pain",
+        title: "Applicants are lost",
+        description: "About 28% of IT professionals today are 'career changers'. They must manually read job descriptions, learn haphazardly, with no connected roadmap. A Junior Backend JD can list 25+ skills, but companies really only need 5-6 core skills.",
+        pain1: "Learning takes longer than necessary (6-12 months instead of 2-3)",
+        pain2: "Don't know which skills are required vs 'nice-to-have'",
+        pain3: "Missed opportunities, reduced motivation"
+      },
+      solution: {
+        heading: "Solution & Technology",
+        title: "Smart CV & Job Description Analysis",
+        description: "With just uploading your CV and desired job position, within minutes, Leveller.ai identifies exactly which high-impact skills you need.",
+        feature1: "Multi-modal CV Parsing",
+        feature1Desc: "Process CVs in any format — PDF, photos, or scans — using OCR Engine and LangGraph Orchestrator",
+        feature2: "Auto Skill Level Inference",
+        feature2Desc: "Automatically infer proficiency levels based on job descriptions, work duration, and experience context",
+        feature3: "Vector Semantic Search",
+        feature3Desc: "Convert skills to 1536-dimensional vectors using pgvector on PostgreSQL for semantic search"
+      },
+      userSteps: {
+        heading: "How It Works",
+        step1: "Upload CV",
+        step1Desc: "Upload CV image or PDF → System analyzes OCR + extracted skills",
+        step2: "Select Position",
+        step2Desc: "Select job position (e.g., Junior Backend) → View Skill Gap Map",
+        step3: "Get Results",
+        step3Desc: "See Match Score, recommended courses, salary data from TopCV"
+      },
+      impact: {
+        heading: "Impact & Value",
+        title: "Optimize Learning Time",
+        description: "Leveller.ai not only identifies gaps but optimizes learning time so you can contribute immediately and unlock opportunities.",
+        metric1: "Reduce preparation time by 60-70%",
+        metric1Desc: "From 6-12 months down to 2-3 months",
+        metric2: "Skill Transferability",
+        metric2Desc: "Identify related skills and what you can already transfer",
+        metric3: "Prioritized Learning Path",
+        metric3Desc: "Each course recommended based on impact to your target role"
+      },
+      roadmap: {
+        heading: "Future Vision",
+        title: "Career Intelligence Ecosystem",
+        description: "We're building an ecosystem to unlock potential for millions of people.",
+        feature1: "AI CV Suggester",
+        feature1Desc: "Automatically suggest CV improvements to increase Match Score",
+        feature2: "Artifact Builder Guide",
+        feature2Desc: "Guide building portfolio, projects, or real-world proof of skills",
+        feature3: "Interview Preparation",
+        feature3Desc: "Suggest likely interview questions and optimal answers"
+      },
+      cta: {
+        heading: "Ready to Unlock Your Potential?",
+        description: "Join millions using Leveller.ai to optimize their career path.",
+        button: "Get Started"
       },
       vision: {
         heading: "Vision & Mission",
@@ -216,244 +320,288 @@ export default function LandingPage() {
               </Link>
             </div>
           </motion.div>
-        </section>
-      </div>
 
-      {/* Statistics Section - Social Proof */}
-      <div id="stats" className={styles.sectionWrapper}>
-        <section className={styles.statsSection}>
-          <motion.div 
-            className={styles.statsGrid}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, staggerChildren: 0.1 }}
-          >
-            {[
-              { value: "10,000+", label: currentLang.stats.cvs },
-              { value: "95%", label: currentLang.stats.accuracy },
-              { value: "500+", label: currentLang.stats.companies },
-              { value: "24/7", label: currentLang.stats.support }
-            ].map((stat, idx) => (
-              <motion.div 
-                key={idx}
-                className={styles.statItem}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-              >
-                <h3 className={styles.statValue}>{stat.value}</h3>
-                <p className={styles.statLabel}>{stat.label}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </section>
-      </div>
-
-      {/* Philosophy Section - Light Informational */}
-      <div id="philosophy" className={styles.sectionWrapper}>
-        <section className={styles.section}>
+          {/* Scroll Hint */}
           <motion.div
-            className={styles.visionSection}
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.5 }}
+            className={styles.scrollHint}
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
           >
-            <div className={styles.visionContent}>
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-              >
-                <h2 className={styles.visionHeading}>
-                  {currentLang.vision.heading}
-                </h2>
-                <div className={styles.visionDivider} />
-                <p className={styles.visionText}>
-                  {currentLang.vision.text}
-                </p>
-                <p className={styles.visionSubtext}>
-                  {currentLang.vision.subtext}
-                </p>
-              </motion.div>
-              
-              <motion.div 
-                className={styles.visionStats}
-                initial={{ opacity: 0, x: 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                <div className={styles.visionStatItem}>
-                  <div className={styles.visionStatIcon}>🎯</div>
-                  <h4>{currentLang.vision.accurate}</h4>
-                  <p>{currentLang.vision.accurateDesc}</p>
-                </div>
-                <div className={styles.visionStatItem}>
-                  <div className={styles.visionStatIcon}>⚡</div>
-                  <h4>{currentLang.vision.fast}</h4>
-                  <p>{currentLang.vision.fastDesc}</p>
-                </div>
-                <div className={styles.visionStatItem}>
-                  <div className={styles.visionStatIcon}>🚀</div>
-                  <h4>{currentLang.vision.effective}</h4>
-                  <p>{currentLang.vision.effectiveDesc}</p>
-                </div>
-              </motion.div>
-            </div>
+            <div className={styles.scrollHintText}>Scroll to explore</div>
+            <ChevronRight size={20} style={{ transform: 'rotate(90deg)' }} />
           </motion.div>
         </section>
       </div>
 
-      {/* How It Works Section - Dark with Visual Flow */}
-      <div id="how-it-works" className={styles.sectionWrapper}>
+      {/* Problem/Pain Points Section */}
+      <div className={styles.sectionWrapper}>
         <section className={styles.section}>
           <div className={styles.centeredText}>
-            <h2 className={styles.sectionHeading}>{currentLang.howItWorks.heading}</h2>
-            <p className={styles.sectionSubheading}>
-              {currentLang.howItWorks.subheading}
-            </p>
-          </div>
-
-          <div className={styles.howItWorksGrid}>
-            {[
-              {
-                icon: Upload,
-                step: "01",
-                title: currentLang.howItWorks.step1,
-                description: currentLang.howItWorks.step1Desc
-              },
-              {
-                icon: Sparkles,
-                step: "02",
-                title: currentLang.howItWorks.step2,
-                description: currentLang.howItWorks.step2Desc
-              },
-              {
-                icon: TrendingUp,
-                step: "03",
-                title: currentLang.howItWorks.step3,
-                description: currentLang.howItWorks.step3Desc
-              }
-            ].map((item, idx) => (
-              <React.Fragment key={idx}>
-                <motion.div
-                  className={styles.howItWorksStep}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ duration: 0.6, delay: idx * 0.2 }}
-                >
-                  <div className={styles.stepIconWrapper}>
-                    <item.icon className={styles.stepIcon} />
-                  </div>
-                  <div className={styles.stepNumber}>{item.step}</div>
-                  <h3 className={styles.stepTitle}>{item.title}</h3>
-                  <p className={styles.stepDescription}>{item.description}</p>
-                </motion.div>
-                
-                {idx < 2 && (
-                  <motion.div 
-                    className={styles.stepArrow}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: idx * 0.2 + 0.3 }}
-                  >
-                    <ArrowRight size={24} />
-                  </motion.div>
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      {/* Feature Bento Grid - Dark Immersive */}
-      <div id="features" className={styles.sectionWrapper}>
-        <section className={styles.section}>
-          <div className={styles.featuresHeader}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <h2 className={styles.sectionHeading}>{currentLang.features.heading}</h2>
-              <p className={styles.featuresSubheading}>
-                {currentLang.features.subheading}
+              <h2 className={styles.sectionHeading}>{currentLang.problem.heading}</h2>
+              <p className={styles.sectionSubheading}>
+                {currentLang.problem.title}
               </p>
             </motion.div>
           </div>
-          
-          <div className={styles.bentoContainer}>
-            {/* Professionals Card - Large */}
-            <motion.div 
-              className={`${styles.bentoItem} ${styles.bentoLarge}`}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
+
+          <motion.div
+            className={styles.problemContent}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <p className={styles.problemDescription}>{currentLang.problem.description}</p>
+            <div className={styles.painPointsGrid}>
+              {[
+                currentLang.problem.pain1,
+                currentLang.problem.pain2,
+                currentLang.problem.pain3
+              ].map((pain, idx) => (
+                <motion.div
+                  key={idx}
+                  className={styles.painPoint}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: idx * 0.15 }}
+                >
+                  <div className={styles.painPointIcon}>⚠️</div>
+                  <p>{pain}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </section>
+      </div>
+
+      {/* Solution Technology Features Section */}
+      <div className={styles.sectionWrapper}>
+        <section className={styles.section}>
+          <div className={styles.twoColumnLayout}>
+            <motion.div
+              className={styles.columnText}
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <div>
-                <Cpu className={styles.bentoIcon} />
-                <h3 className={styles.bentoTitle}>{currentLang.features.professionals}</h3>
-                <p className={styles.bentoDesc}>
-                  {currentLang.features.professionalsDesc}
-                </p>
+              <h2 className={styles.sectionHeading}>{currentLang.solution.heading}</h2>
+              <h3 className={styles.columnSubtitle}>{currentLang.solution.title}</h3>
+              <p className={styles.columnDescription}>{currentLang.solution.description}</p>
+              
+              <div className={styles.featuresList}>
+                {[
+                  { title: currentLang.solution.feature1, desc: currentLang.solution.feature1Desc },
+                  { title: currentLang.solution.feature2, desc: currentLang.solution.feature2Desc },
+                  { title: currentLang.solution.feature3, desc: currentLang.solution.feature3Desc }
+                ].map((feature, idx) => (
+                  <motion.div
+                    key={idx}
+                    className={styles.featureItem}
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: idx * 0.1 }}
+                  >
+                    <div className={styles.featureNumber}>{idx + 1}</div>
+                    <div>
+                      <h4 className={styles.featureTitle}>{feature.title}</h4>
+                      <p className={styles.featureDesc}>{feature.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
-              <Link href="/auth/login" className={styles.secondaryBtn}>
-                {currentLang.features.learnMore} <ChevronRight size={16} />
-              </Link>
             </motion.div>
 
-            {/* Applicants Card */}
-            <motion.div 
-              className={styles.bentoItem}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, delay: 0.1 }}
+            <motion.div
+              className={styles.columnScreenshot}
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
             >
-              <div>
-                <Target className={styles.bentoIcon} />
-                <h3 className={styles.bentoTitle}>{currentLang.features.applicants}</h3>
-                <p className={styles.bentoDesc}>
-                  {currentLang.features.applicantsDesc}
-                </p>
-              </div>
-              <Link href="/auth/login" className={styles.secondaryBtn}>
-                {currentLang.features.learnMore} <ChevronRight size={16} />
-              </Link>
-            </motion.div>
-
-            {/* Students Card */}
-            <motion.div 
-              className={styles.bentoItem}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <div>
-                <GraduationCap className={styles.bentoIcon} />
-                <h3 className={styles.bentoTitle}>{currentLang.features.students}</h3>
-                <p className={styles.bentoDesc}>
-                  {currentLang.features.studentsDesc}
-                </p>
-              </div>
-              <Link href="/auth/login" className={styles.secondaryBtn}>
-                {currentLang.features.learnMore} <ChevronRight size={16} />
-              </Link>
+              <div className={styles.screenshotPlaceholder} style={{ backgroundImage: 'url(/images/solution-screenshot.png)' }} />
             </motion.div>
           </div>
         </section>
       </div>
 
-      {/* Testimonials Section - Light */}
+      {/* User Steps Section */}
+      <div className={styles.sectionWrapper}>
+        <section className={styles.section}>
+          <div className={styles.twoColumnLayout} style={{ flexDirection: 'row-reverse' }}>
+            <motion.div
+              className={styles.columnText}
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className={styles.sectionHeading}>{currentLang.userSteps.heading}</h2>
+              
+              <div className={styles.stepsGrid}>
+                {[
+                  { step: '01', title: currentLang.userSteps.step1, desc: currentLang.userSteps.step1Desc },
+                  { step: '02', title: currentLang.userSteps.step2, desc: currentLang.userSteps.step2Desc },
+                  { step: '03', title: currentLang.userSteps.step3, desc: currentLang.userSteps.step3Desc }
+                ].map((item, idx) => (
+                  <motion.div
+                    key={idx}
+                    className={styles.stepCard}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: idx * 0.15 }}
+                  >
+                    <div className={styles.stepNumber}>{item.step}</div>
+                    <h4 className={styles.stepCardTitle}>{item.title}</h4>
+                    <p className={styles.stepCardDesc}>{item.desc}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              className={styles.columnScreenshot}
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className={styles.screenshotPlaceholder} style={{ backgroundImage: 'url(/images/steps-screenshot.png)' }} />
+            </motion.div>
+          </div>
+        </section>
+      </div>
+
+      {/* Impact Section */}
+      <div className={styles.sectionWrapper}>
+        <section className={styles.section}>
+          <div className={styles.twoColumnLayout}>
+            <motion.div
+              className={styles.columnText}
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className={styles.sectionHeading}>{currentLang.impact.heading}</h2>
+              <h3 className={styles.columnSubtitle}>{currentLang.impact.title}</h3>
+              <p className={styles.columnDescription}>{currentLang.impact.description}</p>
+              
+              <div className={styles.metricsGrid}>
+                {[
+                  { title: currentLang.impact.metric1, desc: currentLang.impact.metric1Desc },
+                  { title: currentLang.impact.metric2, desc: currentLang.impact.metric2Desc },
+                  { title: currentLang.impact.metric3, desc: currentLang.impact.metric3Desc }
+                ].map((metric, idx) => (
+                  <motion.div
+                    key={idx}
+                    className={styles.metricItem}
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: idx * 0.1 }}
+                  >
+                    <h4 className={styles.metricTitle}>{metric.title}</h4>
+                    <p className={styles.metricDesc}>{metric.desc}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              className={styles.columnScreenshot}
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className={styles.screenshotPlaceholder} style={{ backgroundImage: 'url(/images/impact-screenshot.png)' }} />
+            </motion.div>
+          </div>
+        </section>
+      </div>
+
+      {/* Roadmap Section */}
+      <div className={styles.sectionWrapper}>
+        <section className={styles.section}>
+          <div className={styles.twoColumnLayout} style={{ flexDirection: 'row-reverse' }}>
+            <motion.div
+              className={styles.columnText}
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className={styles.sectionHeading}>{currentLang.roadmap.heading}</h2>
+              <h3 className={styles.columnSubtitle}>{currentLang.roadmap.title}</h3>
+              <p className={styles.columnDescription}>{currentLang.roadmap.description}</p>
+              
+              <div className={styles.roadmapFeatures}>
+                {[
+                  { title: currentLang.roadmap.feature1, desc: currentLang.roadmap.feature1Desc },
+                  { title: currentLang.roadmap.feature2, desc: currentLang.roadmap.feature2Desc },
+                  { title: currentLang.roadmap.feature3, desc: currentLang.roadmap.feature3Desc }
+                ].map((feature, idx) => (
+                  <motion.div
+                    key={idx}
+                    className={styles.roadmapItem}
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: idx * 0.1 }}
+                  >
+                    <div className={styles.roadmapIcon}>🚀</div>
+                    <div>
+                      <h4 className={styles.roadmapTitle}>{feature.title}</h4>
+                      <p className={styles.roadmapDesc}>{feature.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              className={styles.columnScreenshot}
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className={styles.screenshotPlaceholder} style={{ backgroundImage: 'url(/images/roadmap-screenshot.png)' }} />
+            </motion.div>
+          </div>
+        </section>
+      </div>
+
+      {/* CTA Section */}
+      <div className={styles.sectionWrapper}>
+        <section className={styles.section}>
+          <motion.div
+            className={styles.ctaContent}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className={styles.ctaHeading}>{currentLang.cta.heading}</h2>
+            <p className={styles.ctaDescription}>{currentLang.cta.description}</p>
+            <Link href="/auth/register" className={styles.primaryBtn}>
+              {currentLang.cta.button}
+            </Link>
+          </motion.div>
+        </section>
+      </div>
+
+      {/* Features Section - Testimonials */}
       <div id="testimonials" className={styles.sectionWrapper}>
         <section className={styles.section}>
           <div className={styles.centeredText}>
@@ -507,18 +655,18 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <div className={styles.authorName}>{testimonial.author}</div>
-                    <div className={styles.authorRole}>
-                      {testimonial.role} at {testimonial.company}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-      </div>
+                     <div className={styles.authorRole}>
+                       {testimonial.role} at {testimonial.company}
+                     </div>
+                   </div>
+                 </div>
+               </motion.div>
+             ))}
+           </div>
+         </section>
+       </div>
 
-      {/* Enhanced Footer */}
+       {/* Enhanced Footer */}
       <div className={styles.sectionWrapper}>
         <footer className={styles.richFooter}>
           <div className={styles.footerContent}>
