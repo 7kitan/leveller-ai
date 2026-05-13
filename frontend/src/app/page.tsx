@@ -482,15 +482,15 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            <motion.div
-              className={styles.columnScreenshot}
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <div className={styles.screenshotPlaceholder} style={{ backgroundImage: 'url(/images/steps-screenshot.png)' }} />
-            </motion.div>
+             <motion.div
+               className={styles.columnScreenshot}
+               initial={{ opacity: 0, x: -30 }}
+               whileInView={{ opacity: 1, x: 0 }}
+               viewport={{ once: true }}
+               transition={{ duration: 0.8 }}
+             >
+               <div className={styles.screenshotPlaceholder} style={{ backgroundImage: 'url(/images/dashboard.png)' }} />
+             </motion.div>
           </div>
         </section>
       </div>
