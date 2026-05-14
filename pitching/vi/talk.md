@@ -4,9 +4,9 @@
 
 ## SLIDE 0: MỘT DÒNG — 30s
 
-> Định vị: Chống ATS — tín hiệu thật từ cả hai phía.
+> Định vị: Tín hiệu thật từ cả hai phía.
 
-Xin chào. Chúng tôi là **Leveller.ai** — nền tảng chống ATS.
+Xin chào. Chúng tôi là **Leveller.ai**.
 
 Với ứng viên: "Hệ thống cũ nói 'bạn không phù hợp.' Chúng tôi nói 'bạn sắp đến rồi.'"
 

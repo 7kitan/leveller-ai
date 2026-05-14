@@ -1,6 +1,6 @@
 # LEVELLER.AI — SLIDE THAM KHẢO
 
-> Định vị: Chống ATS — tín hiệu thật từ cả hai phía.
+> Định vị: Tín hiệu thật từ cả hai phía.
 > Ứng viên: "Hệ thống cũ nói 'bạn không phù hợp.' Chúng tôi nói 'bạn sắp đến rồi.'"
 > Nhà tuyển dụng: "Hệ thống cũ lọc theo những gì ứng viên thiếu. Chúng tôi cho bạn biết ai sẵn sàng."
 
@@ -8,9 +8,9 @@
 
 ## SLIDE 1: MỞ ĐẦU
 
-**Leveller.ai** — nền tảng chống ATS.
+**Leveller.ai** — tín hiệu thật từ cả hai phía.
 
-Thị trường chạy bằng keyword noise, không phải skill truth. Chúng tôi thay thế keyword bingo bằng sự sẵn sàng thực tế.
+Hệ thống cũ chạy bằng keyword noise, không phải skill truth. Chúng tôi thay thế keyword bingo bằng sự sẵn sàng thực tế.
 
 **Tên gọi:**
 - Levelling Up — lộ trình học tập chính xác

@@ -8,13 +8,13 @@
 |---|---|
 | **User-facing** | "Old systems say 'you don't fit.' We say 'you're this close.'" |
 | **Employer-facing** | "Old systems filter by what candidates lack. We show you who's ready — and who's a training investment away." |
-| **Core positioning** | The anti-ATS: real signal on both sides of the table. |
+| **Core positioning** | Real signal on both sides of the table. |
 
 ---
 
 ## 1. OPENING: MISSION & BELIEF
 
-Good morning. We're **Leveller.ai** — the anti-ATS.
+Good morning. We're **Leveller.ai**.
 
 **Our belief:** Old systems run on keyword noise, not skill truth. Candidates game their CVs to match bloated JDs. Employers sift through keyword-rich, skill-poor applicants. Both sides lose.
 

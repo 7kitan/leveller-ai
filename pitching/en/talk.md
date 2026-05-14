@@ -4,9 +4,9 @@
 
 ## SLIDE 0: ONE-LINER — 30s
 
-> Core positioning: The anti-ATS: real signal on both sides of the table.
+> Core positioning: Real signal on both sides of the table.
 
-Good morning. We're **Leveller.ai** — the anti-ATS. Let me start with two truths about today's job market.
+Good morning. We're **Leveller.ai**. Let me start with two truths about today's job market.
 
 For candidates: "Old systems say 'you don't fit.' We say 'you're this close.'"
 
