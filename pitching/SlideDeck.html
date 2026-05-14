@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Leveller.ai - Pitch Deck (Light Theme)</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #E8ECEF;
+            /* Nền xám ngoài slide */
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .slide-container {
+            position: relative;
+            width: 1280px;
+            height: 720px;
+            overflow: hidden;
+            background-color: #E6EAEF;
+            /* Nền chính của slide theo ảnh */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+                margin: 0;
+                gap: 0;
+                display: block;
+            }
+
+            .slide-container {
+                box-shadow: none;
+                page-break-after: always;
+                margin: 0;
+            }
+
+            @page {
+                size: 1280px 720px;
+                margin: 0;
+            }
+        }
+
+        @keyframes rotate-slow {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ==========================================
+         SLIDE 1: INTRO
+    =========================================== -->
+    <div class="slide-container">
+        <!-- Decorative Grid Shape -->
+        <div style="position: absolute; left: 0px; top: 0px; width: 1280px; height: 720px; z-index: 1;">
+            <svg height="720" width="1280" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern height="40" id="gridPatternLight1" patternUnits="userSpaceOnUse" width="40">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0, 0, 0, 0.03)" stroke-width="1"></path>
+                    </pattern>
+                </defs>
+                <rect fill="url(#gridPatternLight1)" height="720" width="1280"></rect>
+            </svg>
+        </div>
+
+        <!-- Glowing Accent Shapes (Cloudy Effect like the website) -->
+        <div style="position: absolute; left: -100px; top: -100px; width: 800px; height: 800px; z-index: 1;">
+            <svg height="800" viewBox="0 0 800 800" width="800" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <filter height="150%" id="glowWhite1" width="150%" x="-25%" y="-25%">
+                        <feGaussianBlur stdDeviation="150"></feGaussianBlur>
+                    </filter>
+                </defs>
+                <circle cx="400" cy="400" fill="#FFFFFF" filter="url(#glowWhite1)" opacity="0.8" r="300"></circle>
+            </svg>
+        </div>
+        <div style="position: absolute; left: 680px; top: 120px; width: 600px; height: 600px; z-index: 1;">
+            <svg height="600" viewBox="0 0 600 600" width="600" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <filter height="150%" id="glowBlueLight1" width="150%" x="-25%" y="-25%">
+                        <feGaussianBlur stdDeviation="120"></feGaussianBlur>
+                    </filter>
+                </defs>
+                <circle cx="300" cy="300" fill="#CDE0EE" filter="url(#glowBlueLight1)" opacity="0.6" r="250"></circle>
+            </svg>
+        </div>
+
+        <!-- Text Content -->
+        <div
+            style="position: absolute; left: 80px; top: 215px; width: 800px; height: 80px; z-index: 10; display: flex; align-items: center; gap: 20px;">
+            <svg height="64" style="fill: #1E2A38;" viewBox="-5.0 -10.0 110.0 135.0" width="64"
+                xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="m98 40.914v-13.414c0-1.1367-0.64062-2.1758-1.6562-2.6836l-45-22.5c-0.84375-0.42188-1.8398-0.42188-2.6836 0l-45 22.5c-1.0195 0.50781-1.6602 1.5469-1.6602 2.6836v13.414c0 1.1367 0.64062 2.1758 1.6562 2.6836l12.801 6.3984-12.801 6.3984c-1.0156 0.51172-1.6562 1.5547-1.6562 2.6914v13.414c0 1.1367 0.64062 2.1758 1.6562 2.6836l45 22.5c0.84375 0.42188 1.8398 0.42188-2.6836 0l45-22.5c1.0195-0.50781-1.6602-1.5469 1.6602-2.6836v-13.414c0-1.1367-0.64062-2.1758-1.6562-2.6836l-12.805-6.4023 12.801-6.3984c1.0195-0.50781-1.6602-1.5469 1.6602-2.6875zm-48-32.559 38.293 19.145-38.293 19.145-38.293-19.145zm-42 30.707v-6.707l39 19.5v6.707zm39 51.082-39-19.5v-6.707l39 19.5zm45-19.5-39 19.5v-6.707l39-19.5zm-3.707-11.559-38.293 19.145-38.293-19.145 11.461-5.7305 25.488 12.746c0.84375 0.42188 1.8398 0.42188 2.6836 0l25.492-12.746zm3.707-20.023-39 19.5v-6.707l39-19.5z">
+                </path>
+            </svg>
+            <p
+                style="font-family: 'Space Grotesk', sans-serif; font-size: 58px; font-weight: 700; color: #1E2A38; margin: 0; letter-spacing: -1.5px; line-height: 1;">
+                leveller.ai</p>
+        </div>
+
+        <div style="position: absolute; left: 80px; top: 310px; width: 600px; height: 120px; z-index: 10;">
+            <p
+                style="font-family: 'Space Grotesk', sans-serif; font-size: 38px; font-weight: 600; color: #2D3748; line-height: 1.3; margin: 0;">
+                Nền tảng chống ATS —<br>Tín hiệu thật từ cả hai phía.</p>
+        </div>
+
+        <div style="position: absolute; left: 80px; top: 440px; width: 600px; height: 120px; z-index: 10;">
+            <p
+                style="font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 400; color: #4A5568; line-height: 1.6; margin: 0;">
+                Chúng tôi thay thế "Keyword Bingo" bằng sự sẵn sàng thực tế.<br>
+                <span style="font-weight: 600; color: #5C92B9;">Levelling Up</span> — lộ trình học tập chính xác.<br>
+                <span style="font-weight: 600; color: #5C92B9;">Levelling the Playing Field</span> — xóa bỏ bất bình
+                đẳng thông tin.
+            </p>
+        </div>
+
+        <div style="position: absolute; left: 80px; top: 670px; width: 300px; height: 30px; z-index: 10;">
+            <p
+                style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #718096; margin: 0; letter-spacing: 1px;">
+                01 // MỞ ĐẦU</p>
+        </div>
+
+
+        <!-- Radar Chart Container -->
+        <div
+            style="position: absolute; left: 700px; top: 120px; width: 480px; height: 480px; z-index: 10; background: rgba(255,255,255,0.4); border-radius: 50%; box-shadow: 0 8px 32px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.8); padding: 20px; box-sizing: border-box;">
+            <canvas height="440" id="skillRadarChart" width="440"></canvas>
+        </div>
+    </div>
+
+
+    <!-- ==========================================
+         SLIDE 2: PAIN POINTS
+    =========================================== -->
+    <div class="slide-container">
+        <!-- Grid & Background Glows -->
+        <div style="position: absolute; left: 0px; top: 0px; width: 1280px; height: 720px; z-index: 1;">
+            <svg height="720" width="1280" xmlns="http://www.w3.org/2000/svg">
+                <rect fill="url(#gridPatternLight1)" height="720" width="1280"></rect>
+            </svg>
+        </div>
+        <div style="position: absolute; left: 400px; top: 100px; width: 800px; height: 800px; z-index: 1;">
+            <svg height="800" viewBox="0 0 800 800" width="800" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="400" cy="400" fill="#FFFFFF" filter="url(#glowWhite1)" opacity="0.7" r="350"></circle>
+            </svg>
+        </div>
+
+        <!-- Section Label -->
+        <div style="position: absolute; left: 80px; top: 60px; width: 600px; height: 24px; z-index: 10;">
+            <p
+                style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #718096; margin: 0; letter-spacing: 1.5px; text-transform: uppercase;">
+                02 // VẤN ĐỀ (THE PROBLEM)</p>
+        </div>
+
+        <!-- Main Title -->
+        <div style="position: absolute; left: 80px; top: 95px; width: 800px; height: 110px; z-index: 10;">
+            <p
+                style="font-family: 'Space Grotesk', sans-serif; font-size: 42px; font-weight: 700; color: #1E2A38; margin: 0; line-height: 1.2;">
+                Thị trường chạy bằng <span style="color: #5C92B9;">Keyword Noise</span></p>
+        </div>
+
+        <!-- PAIN POINT 1: CANDIDATES -->
+        <div style="position: absolute; left: 80px; top: 220px; width: 600px; height: 130px; z-index: 1;">
+            <svg height="130" width="600">
+                <rect fill="rgba(255, 255, 255, 0.6)" height="130" rx="16" stroke="rgba(255, 255, 255, 1)"
+                    stroke-width="1.5" width="600" style="filter: drop-shadow(0 4px 12px rgba(0,0,0,0.03));"></rect>
+            </svg>
+        </div>
+        <div
+            style="position: absolute; left: 110px; top: 255px; width: 60px; height: 60px; z-index: 10; display: flex; align-items: center; justify-content: center; background: rgba(92, 146, 185, 0.1); border-radius: 12px; border: 1px solid rgba(92, 146, 185, 0.2);">
+            <i class="fa-solid fa-user-graduate" style="color: #5C92B9; font-size: 26px;"></i>
+        </div>
+        <div style="position: absolute; left: 190px; top: 250px; width: 460px; height: 90px; z-index: 10;">
+            <p
+                style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600; color: #2D3748;">
+                Phía ứng viên: Mù mờ kỹ năng</p>
+            <p
+                style="margin: 6px 0 0 0; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 400; color: #4A5568; line-height: 1.5;">
+                JD yêu cầu 25+ kỹ năng trong khi chỉ cần 5-6 core. Ứng viên mất 6-12 tháng chuẩn bị dù chỉ cần 2-3 tháng
+                tập trung.</p>
+        </div>
+
+        <!-- PAIN POINT 2: EMPLOYERS -->
+        <div style="position: absolute; left: 80px; top: 370px; width: 600px; height: 130px; z-index: 1;">
+            <svg height="130" width="600">
+                <rect fill="rgba(255, 255, 255, 0.6)" height="130" rx="16" stroke="rgba(255, 255, 255, 1)"
+                    stroke-width="1.5" width="600" style="filter: drop-shadow(0 4px 12px rgba(0,0,0,0.03));"></rect>
+            </svg>
+        </div>
+        <div
+            style="position: absolute; left: 110px; top: 405px; width: 60px; height: 60px; z-index: 10; display: flex; align-items: center; justify-content: center; background: rgba(92, 146, 185, 0.1); border-radius: 12px; border: 1px solid rgba(92, 146, 185, 0.2);">
+            <i class="fa-solid fa-building-user" style="color: #5C92B9; font-size: 26px;"></i>
+        </div>
+        <div style="position: absolute; left: 190px; top: 400px; width: 460px; height: 90px; z-index: 10;">
+            <p
+                style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600; color: #2D3748;">
+                Phía tuyển dụng: Lọc sai tài năng</p>
+            <p
+                style="margin: 6px 0 0 0; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 400; color: #4A5568; line-height: 1.5;">
+                ATS lọc chính xác keyword dẫn đến <strong>80% false negatives</strong>. Vue.js bị loại khi cần React, dù
+                chỉ cách nhau 2 tuần sẵn sàng.</p>
+        </div>
+
+        <!-- STAT 1 -->
+        <div style="position: absolute; left: 720px; top: 220px; width: 480px; height: 215px; z-index: 1;">
+            <svg height="215" width="480">
+                <rect fill="rgba(255, 255, 255, 0.4)" height="215" rx="16" stroke="rgba(92, 146, 185, 0.3)"
+                    stroke-width="1.5" width="480"></rect>
+            </svg>
+        </div>
+        <div style="position: absolute; left: 760px; top: 260px; width: 400px; height: 85px; z-index: 10;">
+            <p
+                style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 64px; font-weight: 700; color: #5C92B9; line-height: 1;">
+                28%</p>
+        </div>
+        <div style="position: absolute; left: 760px; top: 350px; width: 400px; height: 80px; z-index: 10;">
+            <p
+                style="margin: 0; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 400; color: #4A5568; line-height: 1.6;">
+                nhân sự IT hiện nay đến từ các <strong style="color: #2D3748; font-weight: 600;">ngành nghề
+                    khác</strong> (Marketing, Sales...). Nhu cầu chuyển đổi cực cao.</p>
+        </div>
+
+        <!-- STAT 2 -->
+        <div style="position: absolute; left: 720px; top: 455px; width: 480px; height: 215px; z-index: 1;">
+            <svg height="215" width="480">
+                <rect fill="rgba(255, 255, 255, 0.4)" height="215" rx="16" stroke="rgba(92, 146, 185, 0.3)"
+                    stroke-width="1.5" width="480"></rect>
+            </svg>
+        </div>
+        <div style="position: absolute; left: 760px; top: 495px; width: 400px; height: 85px; z-index: 10;">
+            <p
+                style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 64px; font-weight: 700; color: #5C92B9; line-height: 1;">
+                $1.1B</p>
+        </div>
+        <div style="position: absolute; left: 760px; top: 585px; width: 400px; height: 80px; z-index: 10;">
+            <p
+                style="margin: 0; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 400; color: #4A5568; line-height: 1.6;">
+                Quy mô thị trường EdTech VN (2025) — <strong style="color: #2D3748; font-weight: 600;">nhu cầu học tập
+                    khổng lồ</strong> nhưng hiệu quả chưa tối ưu.</p>
+        </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         SLIDE 3: GIẢI PHÁP
+    =========================================== -->
+    <div class="slide-container">
+        <!-- Grid & Background Glows -->
+        <div style="position: absolute; left: 0px; top: 0px; width: 1280px; height: 720px; z-index: 1;">
+            <svg height="720" width="1280" xmlns="http://www.w3.org/2000/svg">
+                <rect fill="url(#gridPatternLight1)" height="720" width="1280"></rect>
+            </svg>
+        </div>
+        <div style="position: absolute; left: 600px; top: 110px; width: 600px; height: 600px; z-index: 1;">
+            <svg height="600" viewBox="0 0 600 600" width="600" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="300" cy="300" fill="#FFFFFF" filter="url(#glowWhite1)" opacity="0.8" r="250"></circle>
+            </svg>
+        </div>
+
+        <!-- Section Label -->
+        <div style="position: absolute; left: 80px; top: 60px; width: 600px; height: 24px; z-index: 10;">
+            <p
+                style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #718096; margin: 0; letter-spacing: 1.5px; text-transform: uppercase;">
+                03 // GIẢI PHÁP (THE SOLUTION)</p>
+        </div>
+
+        <!-- Main Title -->
+        <div style="position: absolute; left: 80px; top: 95px; width: 800px; height: 60px; z-index: 10;">
+            <p
+                style="font-family: 'Space Grotesk', sans-serif; font-size: 42px; font-weight: 700; color: #1E2A38; margin: 0; line-height: 1.2;">
+                Hơn cả so khớp: <span style="color: #5C92B9;">Lộ trình sẵn sàng</span></p>
+        </div>
+
+        <!-- 3 LAYERS OF TRANSITION -->
+        <div style="position: absolute; left: 80px; top: 220px; width: 500px; height: 240px; z-index: 10;">
+            <p
+                style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #2D3748; margin: 0 0 15px 0;">
+                Ba lớp chuyển đổi thông minh:</p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div
+                    style="display: flex; align-items: flex-start; gap: 15px; background: rgba(255,255,255,0.6); padding: 12px; border-radius: 12px; border: 1px solid rgba(92,146,185,0.2);">
+                    <div
+                        style="width: 32px; height: 32px; background: #5C92B9; color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 700;">
+                        1</div>
+                    <p style="margin: 0; font-family: 'Inter', sans-serif; font-size: 15px; color: #4A5568;"><strong
+                            style="color: #2D3748;">Cùng danh mục:</strong> Vue.js ↔ React. Chỉ khác cú pháp, tư duy
+                        tương đồng.</p>
+                </div>
+                <div
+                    style="display: flex; align-items: flex-start; gap: 15px; background: rgba(255,255,255,0.6); padding: 12px; border-radius: 12px; border: 1px solid rgba(92,146,185,0.2);">
+                    <div
+                        style="width: 32px; height: 32px; background: #5C92B9; color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 700;">
+                        2</div>
+                    <p style="margin: 0; font-family: 'Inter', sans-serif; font-size: 15px; color: #4A5568;"><strong
+                            style="color: #2D3748;">Liên quan:</strong> Excel → SQL. Cùng tư duy dữ liệu, nâng cấp công
+                        cụ.</p>
+                </div>
+                <div
+                    style="display: flex; align-items: flex-start; gap: 15px; background: rgba(255,255,255,0.6); padding: 12px; border-radius: 12px; border: 1px solid rgba(92,146,185,0.2);">
+                    <div
+                        style="width: 32px; height: 32px; background: #5C92B9; color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 700;">
+                        3</div>
+                    <p style="margin: 0; font-family: 'Inter', sans-serif; font-size: 15px; color: #4A5568;"><strong
+                            style="color: #2D3748;">Chuyên môn:</strong> Sales → Tech. Kỹ năng giao tiếp chuyển đổi trực
+                        tiếp.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPARISON TABLE -->
+        <div
+            style="position: absolute; left: 620px; top: 180px; width: 620px; height: 460px; z-index: 10; background: rgba(255,255,255,0.4); padding: 25px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 20px 40px rgba(0,0,0,0.04); box-sizing: border-box;">
+            <p
+                style="font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 700; color: #5C92B9; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px;">
+                Sự khác biệt cốt lõi:</p>
+            <table
+                style="width: 100%; border-collapse: separate; border-spacing: 0 8px; font-family: 'Inter', sans-serif;">
+                <thead>
+                    <tr>
+                        <th
+                            style="text-align: left; padding: 12px; color: #718096; font-size: 13px; text-transform: uppercase;">
+                            Đặc điểm</th>
+                        <th
+                            style="text-align: center; padding: 12px; background: #F1F5F9; color: #4A5568; font-size: 13px; border-radius: 8px 0 0 0;">
+                            LinkedIn / ATS</th>
+                        <th
+                            style="text-align: center; padding: 12px; background: #5C92B9; color: white; font-size: 13px; border-radius: 0 8px 0 0;">
+                            Leveller</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 12px; font-weight: 600; color: #2D3748; border-bottom: 1px solid #E2E8F0;">
+                            Việc làm</td>
+                        <td
+                            style="padding: 12px; text-align: center; color: #718096; background: rgba(241, 245, 249, 0.5);">
+                            Ghost jobs, hố đen</td>
+                        <td
+                            style="padding: 12px; text-align: center; color: #1E2A38; font-weight: 500; background: rgba(92, 146, 185, 0.1);">
+                            Listings thực tế</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; font-weight: 600; color: #2D3748; border-bottom: 1px solid #E2E8F0;">
+                            Kỹ năng</td>
+                        <td
+                            style="padding: 12px; text-align: center; color: #718096; background: rgba(241, 245, 249, 0.5);">
+                            Tự xưng, endorse</td>
+                        <td
+                            style="padding: 12px; text-align: center; color: #1E2A38; font-weight: 500; background: rgba(92, 146, 185, 0.1);">
+                            AI suy luận bối cảnh</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; font-weight: 600; color: #2D3748; border-bottom: 1px solid #E2E8F0;">
+                            Phản hồi</td>
+                        <td
+                            style="padding: 12px; text-align: center; color: #718096; background: rgba(241, 245, 249, 0.5);">
+                            Im lặng / Từ chối</td>
+                        <td
+                            style="padding: 12px; text-align: center; color: #1E2A38; font-weight: 500; background: rgba(92, 146, 185, 0.1);">
+                            Gap Analysis chi tiết</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; font-weight: 600; color: #2D3748;">Góc nhìn</td>
+                        <td
+                            style="padding: 12px; text-align: center; color: #718096; background: rgba(241, 245, 249, 0.5); border-radius: 0 0 0 8px;">
+                            Keyword density</td>
+                        <td
+                            style="padding: 12px; text-align: center; color: #1E2A38; font-weight: 500; background: rgba(92, 146, 185, 0.1); border-radius: 0 0 8px 0;">
+                            Sẵn sàng thực tế</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- TECH STACK MINI -->
+        <div style="position: absolute; left: 80px; top: 520px; width: 500px; height: 160px; z-index: 10;">
+            <p
+                style="font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: #5C92B9; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px;">
+                Công nghệ lõi:</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <span
+                    style="background: #FFF; padding: 4px 12px; border-radius: 20px; font-size: 13px; color: #4A5568; border: 1px solid #E2E8F0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">OCR
+                    + LangGraph</span>
+                <span
+                    style="background: #FFF; padding: 4px 12px; border-radius: 20px; font-size: 13px; color: #4A5568; border: 1px solid #E2E8F0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">pgvector
+                    (1536 dim)</span>
+                <span
+                    style="background: #FFF; padding: 4px 12px; border-radius: 20px; font-size: 13px; color: #4A5568; border: 1px solid #E2E8F0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">Real-time
+                    Crawling</span>
+                <span
+                    style="background: #FFF; padding: 4px 12px; border-radius: 20px; font-size: 13px; color: #4A5568; border: 1px solid #E2E8F0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">Skill
+                    Level Inference</span>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <div class="slide-container">
+        <!-- Grid & Background Glows -->
+        <div style="position: absolute; left: 0px; top: 0px; width: 1280px; height: 720px; z-index: 1;">
+            <svg height="720" width="1280" xmlns="http://www.w3.org/2000/svg">
+                <rect fill="url(#gridPatternLight1)" height="720" width="1280"></rect>
+            </svg>
+        </div>
+        <div style="position: absolute; left: 80px; top: 60px; width: 600px; height: 24px; z-index: 10;">
+            <p
+                style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #718096; margin: 0; letter-spacing: 1.5px; text-transform: uppercase;">
+                04 // TÁC ĐỘNG (IMPACT)</p>
+        </div>
+        <div style="position: absolute; left: 80px; top: 95px; width: 800px; height: 60px; z-index: 10;">
+            <p
+                style="font-family: 'Space Grotesk', sans-serif; font-size: 42px; font-weight: 700; color: #1E2A38; margin: 0; line-height: 1.2;">
+                Lợi thế vượt trội với <span style="color: #5C92B9;">Leveller</span></p>
+        </div>
+        <div style="position: absolute; left: 80px; top: 200px; width: 1120px; height: 400px; z-index: 10;">
+            <table style="width: 100%; border-collapse: collapse; font-family: 'Inter', sans-serif;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #E2E8F0;">
+                        <th style="text-align: left; padding: 20px; font-size: 18px; color: #718096;">Đặc điểm</th>
+                        <th style="text-align: center; padding: 20px; font-size: 18px; color: #4A5568;">Cách cũ</th>
+                        <th
+                            style="text-align: center; padding: 20px; font-size: 18px; color: #5C92B9; font-weight: 700;">
+                            Leveller</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid #EDF2F7;">
+                        <td style="padding: 25px; font-size: 20px; font-weight: 600; color: #2D3748;">Thời gian chuẩn bị
+                        </td>
+                        <td style="padding: 25px; text-align: center; font-size: 18px; color: #718096;">6-12 tháng</td>
+                        <td
+                            style="padding: 25px; text-align: center; font-size: 22px; color: #1E2A38; font-weight: 700; background: rgba(92, 146, 185, 0.05);">
+                            2-3 tháng (giảm 70%)</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #EDF2F7;">
+                        <td style="padding: 25px; font-size: 20px; font-weight: 600; color: #2D3748;">Số lượng kỹ năng
+                        </td>
+                        <td style="padding: 25px; text-align: center; font-size: 18px; color: #718096;">25+ keywords
+                            overload</td>
+                        <td
+                            style="padding: 25px; text-align: center; font-size: 22px; color: #1E2A38; font-weight: 700; background: rgba(92, 146, 185, 0.05);">
+                            5-6 kỹ năng core</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 25px; font-size: 20px; font-weight: 600; color: #2D3748;">Tài năng ẩn</td>
+                        <td style="padding: 25px; text-align: center; font-size: 18px; color: #718096;">Bị lọc mất bởi
+                            ATS</td>
+                        <td
+                            style="padding: 25px; text-align: center; font-size: 22px; color: #1E2A38; font-weight: 700; background: rgba(92, 146, 185, 0.05);">
+                            Được phát hiện & Bồi dưỡng</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div
+            style="position: absolute; left: 80px; top: 620px; width: 1120px; height: 60px; z-index: 10; text-align: center;">
+            <p style="font-family: 'Inter', sans-serif; font-size: 18px; font-style: italic; color: #4A5568;">"Không
+                phải kỹ năng nào cũng như nhau. Mỗi khóa học dựa trên tác động thực tế."</p>
+        </div>
+    </div>
+
+
+    <!-- ==========================================
+         SLIDE 5: ĐỘNG LỰC
+    =========================================== -->
+    <div class="slide-container">
+        <!-- Grid & Background Glows -->
+        <div style="position: absolute; left: 0px; top: 0px; width: 1280px; height: 720px; z-index: 1;">
+            <svg height="720" width="1280" xmlns="http://www.w3.org/2000/svg">
+                <rect fill="url(#gridPatternLight1)" height="720" width="1280"></rect>
+            </svg>
+        </div>
+        <div style="position: absolute; left: 80px; top: 60px; width: 600px; height: 24px; z-index: 10;">
+            <p
+                style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #718096; margin: 0; letter-spacing: 1.5px; text-transform: uppercase;">
+                05 // ĐỘNG LỰC (MOMENTUM)</p>
+        </div>
+        <div style="position: absolute; left: 80px; top: 95px; width: 800px; height: 60px; z-index: 10;">
+            <p
+                style="font-family: 'Space Grotesk', sans-serif; font-size: 42px; font-weight: 700; color: #1E2A38; margin: 0; line-height: 1.2;">
+                Xây dựng từ <span style="color: #5C92B9;">Nỗi đau thực tế</span></p>
+        </div>
+        <div style="position: absolute; left: 80px; top: 220px; width: 500px; height: 400px; z-index: 10;">
+            <div style="margin-bottom: 40px;">
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: #2D3748; margin-bottom: 10px;">
+                    User-Centric Foundation</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 18px; color: #4A5568; line-height: 1.6;">Người
+                    sáng lập là chính khách hàng, thấu hiểu tường tận rào cản của người trái ngành.</p>
+            </div>
+            <div>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: #2D3748; margin-bottom: 10px;">
+                    Tín hiệu sớm (Early Signals)</p>
+                <ul style="font-family: 'Inter', sans-serif; font-size: 18px; color: #4A5568; line-height: 1.8;">
+                    <li>3 người bạn tải CV ngay lập tức khi nghe ý tưởng.</li>
+                    <li>50+ phỏng vấn sâu với ứng viên.</li>
+                    <li>3 cuộc trò chuyện chiến lược với nhà tuyển dụng.</li>
+                </ul>
+            </div>
+        </div>
+        <div
+            style="position: absolute; left: 650px; top: 180px; width: 550px; height: 450px; z-index: 10; background: rgba(255,255,255,0.4); border-radius: 24px; border: 1px solid rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center;">
+            <i class="fa-solid fa-rocket" style="font-size: 200px; color: #5C92B9; opacity: 0.2;"></i>
+            <div style="position: absolute; text-align: center;">
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 64px; font-weight: 700; color: #1E2A38; margin: 0;">
+                    Market Fit</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 20px; color: #5C92B9; font-weight: 600;">Proven
+                    by Real Interactions</p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==========================================
+         SLIDE 6: MÔ HÌNH KINH DOANH
+    =========================================== -->
+    <div class="slide-container">
+        <!-- Grid & Background Glows -->
+        <div style="position: absolute; left: 0px; top: 0px; width: 1280px; height: 720px; z-index: 1;">
+            <svg height="720" width="1280" xmlns="http://www.w3.org/2000/svg">
+                <rect fill="url(#gridPatternLight1)" height="720" width="1280"></rect>
+            </svg>
+        </div>
+        <div style="position: absolute; left: 80px; top: 60px; width: 600px; height: 24px; z-index: 10;">
+            <p
+                style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #718096; margin: 0; letter-spacing: 1.5px; text-transform: uppercase;">
+                06 // MÔ HÌNH KINH DOANH</p>
+        </div>
+        <div style="position: absolute; left: 80px; top: 95px; width: 800px; height: 60px; z-index: 10;">
+            <p
+                style="font-family: 'Space Grotesk', sans-serif; font-size: 42px; font-weight: 700; color: #1E2A38; margin: 0; line-height: 1.2;">
+                Chiến lược <span style="color: #5C92B9;">Tăng trưởng & Doanh thu</span></p>
+        </div>
+
+        <div
+            style="position: absolute; left: 80px; top: 200px; width: 1120px; height: 320px; z-index: 10; display: flex; gap: 20px;">
+            <!-- Free -->
+            <div
+                style="flex: 1; background: white; padding: 30px; border-radius: 20px; border: 1px solid #E2E8F0; text-align: center;">
+                <p style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #718096;">
+                    Miễn phí</p>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 42px; font-weight: 700; color: #1E2A38; margin: 15px 0;">
+                    0đ</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: #4A5568;">Match score + Tổng quan
+                    gap kỹ năng</p>
+            </div>
+            <!-- One time -->
+            <div
+                style="flex: 1; background: white; padding: 30px; border-radius: 20px; border: 2px solid #5C92B9; text-align: center; transform: scale(1.05); box-shadow: 0 10px 30px rgba(92,146,185,0.1);">
+                <p style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #5C92B9;">
+                    Một lần</p>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 42px; font-weight: 700; color: #1E2A38; margin: 15px 0;">
+                    49k</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: #4A5568;">Lộ trình đầy đủ cho một vị
+                    trí cụ thể</p>
+            </div>
+            <!-- Monthly -->
+            <div
+                style="flex: 1; background: white; padding: 30px; border-radius: 20px; border: 1px solid #E2E8F0; text-align: center;">
+                <p style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #718096;">
+                    Hàng tháng</p>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 42px; font-weight: 700; color: #1E2A38; margin: 15px 0;">
+                    29k</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: #4A5568;">Theo dõi tiến độ, phân
+                    tích nhiều vị trí</p>
+            </div>
+            <!-- Affiliate -->
+            <div
+                style="flex: 1; background: white; padding: 30px; border-radius: 20px; border: 1px solid #E2E8F0; text-align: center;">
+                <p style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #718096;">
+                    Affiliate</p>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 700; color: #1E2A38; margin: 15px 0;">
+                    500k-2M</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: #4A5568;">Hoa hồng khi ứng viên được
+                    tuyển dụng</p>
+            </div>
+        </div>
+
+        <div
+            style="position: absolute; left: 80px; top: 560px; width: 1120px; height: 100px; z-index: 10; background: rgba(92,146,185,0.05); border-radius: 16px; padding: 20px; box-sizing: border-box; display: flex; align-items: center; gap: 20px;">
+            <i class="fa-solid fa-chart-line" style="font-size: 32px; color: #5C92B9;"></i>
+            <p style="font-family: 'Inter', sans-serif; font-size: 16px; color: #4A5568; margin: 0;">
+                <strong style="color: #1E2A38;">Cơ hội tương lai:</strong> Employer talent discovery, API licensing,
+                University partnerships, Corporate L&D, Course affiliate.
+            </p>
+        </div>
+    </div>
+
+
+    <!-- ==========================================
+         SLIDE 7: LỘ TRÌNH
+    =========================================== -->
+    <div class="slide-container">
+        <!-- Grid & Background Glows -->
+        <div style="position: absolute; left: 0px; top: 0px; width: 1280px; height: 720px; z-index: 1;">
+            <svg height="720" width="1280" xmlns="http://www.w3.org/2000/svg">
+                <rect fill="url(#gridPatternLight1)" height="720" width="1280"></rect>
+            </svg>
+        </div>
+        <div style="position: absolute; left: 80px; top: 60px; width: 600px; height: 24px; z-index: 10;">
+            <p
+                style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #718096; margin: 0; letter-spacing: 1.5px; text-transform: uppercase;">
+                07 // LỘ TRÌNH (ROADMAP)</p>
+        </div>
+        <div style="position: absolute; left: 80px; top: 95px; width: 800px; height: 60px; z-index: 10;">
+            <p
+                style="font-family: 'Space Grotesk', sans-serif; font-size: 42px; font-weight: 700; color: #1E2A38; margin: 0; line-height: 1.2;">
+                Hệ sinh thái <span style="color: #5C92B9;">Career Intelligence</span></p>
+        </div>
+
+        <div
+            style="position: absolute; left: 80px; top: 180px; width: 1120px; height: 480px; z-index: 10; display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;">
+            <div
+                style="background: white; padding: 25px; border-radius: 16px; border: 1px solid #EDF2F7; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                <i class="fa-solid fa-wand-magic-sparkles"
+                    style="font-size: 28px; color: #5C92B9; margin-bottom: 15px;"></i>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #2D3748; margin-bottom: 10px;">
+                    AI CV Suggester</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: #4A5568;">Tự động tối ưu hóa CV dựa
+                    trên skill gap.</p>
+            </div>
+            <div
+                style="background: white; padding: 25px; border-radius: 16px; border: 1px solid #EDF2F7; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                <i class="fa-solid fa-layer-group" style="font-size: 28px; color: #5C92B9; margin-bottom: 15px;"></i>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #2D3748; margin-bottom: 10px;">
+                    Artifact Builder</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: #4A5568;">Hướng dẫn xây dựng sản
+                    phẩm/dự án minh chứng năng lực.</p>
+            </div>
+            <div
+                style="background: white; padding: 25px; border-radius: 16px; border: 1px solid #EDF2F7; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                <i class="fa-solid fa-comments" style="font-size: 28px; color: #5C92B9; margin-bottom: 15px;"></i>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #2D3748; margin-bottom: 10px;">
+                    Interview Prep</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: #4A5568;">Luyện phỏng vấn thực tế
+                    theo JD mục tiêu.</p>
+            </div>
+            <div
+                style="background: white; padding: 25px; border-radius: 16px; border: 1px solid #EDF2F7; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                <i class="fa-solid fa-magnifying-glass-chart"
+                    style="font-size: 28px; color: #5C92B9; margin-bottom: 15px;"></i>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #2D3748; margin-bottom: 10px;">
+                    Opportunity Match</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: #4A5568;">Kết nối cơ hội việc làm
+                    theo thời gian thực.</p>
+            </div>
+            <div
+                style="background: white; padding: 25px; border-radius: 16px; border: 1px solid #EDF2F7; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                <i class="fa-solid fa-handshake" style="font-size: 28px; color: #5C92B9; margin-bottom: 15px;"></i>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #2D3748; margin-bottom: 10px;">
+                    Employer Integration</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: #4A5568;">JD thông minh & dữ liệu
+                    ứng viên sẵn sàng.</p>
+            </div>
+            <div
+                style="background: white; padding: 25px; border-radius: 16px; border: 1px solid #EDF2F7; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                <i class="fa-solid fa-network-wired" style="font-size: 28px; color: #5C92B9; margin-bottom: 15px;"></i>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #2D3748; margin-bottom: 10px;">
+                    Semantic Skill Graph</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: #4A5568;">Xây dựng rào cản kỹ thuật
+                    với Neo4j.</p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==========================================
+         SLIDE 8: KẾT LUẬN
+    =========================================== -->
+    <div class="slide-container">
+        <!-- Grid & Background Glows -->
+        <div style="position: absolute; left: 0px; top: 0px; width: 1280px; height: 720px; z-index: 1;">
+            <svg height="720" width="1280" xmlns="http://www.w3.org/2000/svg">
+                <rect fill="url(#gridPatternLight1)" height="720" width="1280"></rect>
+            </svg>
+        </div>
+        <div style="position: absolute; left: 80px; top: 60px; width: 600px; height: 24px; z-index: 10;">
+            <p
+                style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #718096; margin: 0; letter-spacing: 1.5px; text-transform: uppercase;">
+                08 // KẾT LUẬN</p>
+        </div>
+
+        <div style="position: absolute; left: 80px; top: 150px; width: 600px; height: 120px; z-index: 10;">
+            <p
+                style="font-family: 'Space Grotesk', sans-serif; font-size: 48px; font-weight: 700; color: #1E2A38; margin: 0; line-height: 1.2;">
+                Cầu nối giữa ứng viên,<br>doanh nghiệp & <span style="color: #5C92B9;">Sự thật</span></p>
+        </div>
+
+        <div
+            style="position: absolute; left: 80px; top: 320px; width: 1120px; height: 280px; z-index: 10; display: flex; gap: 30px;">
+            <div
+                style="flex: 1; padding: 30px; background: white; border-radius: 20px; border-left: 6px solid #5C92B9; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; color: #2D3748; margin-bottom: 15px;">
+                    Cultivate Accuracy</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 16px; color: #4A5568; line-height: 1.6;">Làm cho
+                    JD có ý nghĩa thực tế. Core vs Trainable.</p>
+            </div>
+            <div
+                style="flex: 1; padding: 30px; background: white; border-radius: 20px; border-left: 6px solid #5C92B9; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; color: #2D3748; margin-bottom: 15px;">
+                    Inspire Confidence</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 16px; color: #4A5568; line-height: 1.6;">Cả hai
+                    phía đều biết rõ sự thật về năng lực & yêu cầu.</p>
+            </div>
+            <div
+                style="flex: 1; padding: 30px; background: white; border-radius: 20px; border-left: 6px solid #5C92B9; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; color: #2D3748; margin-bottom: 15px;">
+                    Skilled Workforce</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 16px; color: #4A5568; line-height: 1.6;">Rút ngắn
+                    thời gian đào tạo từ 12 tháng xuống 2-3 tháng.</p>
+            </div>
+        </div>
+
+        <div
+            style="position: absolute; left: 80px; top: 640px; width: 1120px; height: 40px; z-index: 10; text-align: right;">
+            <p
+                style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: #1E2A38; margin: 0;">
+                leveller.ai</p>
+        </div>
+    </div>
+
+
+    <!-- ==========================================
+         SLIDE 9: TÀI LIỆU THAM KHẢO
+    =========================================== -->
+    <div class="slide-container">
+        <!-- Grid & Background Glows -->
+        <div style="position: absolute; left: 0px; top: 0px; width: 1280px; height: 720px; z-index: 1;">
+            <svg height="720" width="1280" xmlns="http://www.w3.org/2000/svg">
+                <rect fill="url(#gridPatternLight1)" height="720" width="1280"></rect>
+            </svg>
+        </div>
+        <div style="position: absolute; left: 340px; top: 110px; width: 600px; height: 600px; z-index: 1;">
+            <svg height="600" viewBox="0 0 600 600" width="600" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="300" cy="300" fill="#FFFFFF" filter="url(#glowWhite1)" opacity="0.8" r="250"></circle>
+            </svg>
+        </div>
+
+        <!-- Section Label -->
+        <div style="position: absolute; left: 80px; top: 60px; width: 600px; height: 24px; z-index: 10;">
+            <p
+                style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #5C92B9; margin: 0; letter-spacing: 1.5px; text-transform: uppercase;">
+                09 // Tài liệu tham khảo</p>
+        </div>
+
+        <!-- Main Title -->
+        <div style="position: absolute; left: 80px; top: 95px; width: 800px; height: 60px; z-index: 10;">
+            <p
+                style="font-family: 'Space Grotesk', sans-serif; font-size: 42px; font-weight: 700; color: #1E2A38; margin: 0; line-height: 1.2;">
+                Nguồn Dữ Liệu & Nghiên Cứu</p>
+        </div>
+
+        <!-- 4 CARDS -->
+        <div
+            style="position: absolute; left: 80px; top: 220px; width: 1120px; height: 300px; z-index: 10; display: flex; gap: 30px;">
+            <!-- Card 1 -->
+            <div
+                style="flex: 1; background: white; padding: 25px; border-radius: 20px; border: 1px solid rgba(92, 146, 185, 0.2); box-shadow: 0 10px 25px rgba(0,0,0,0.03);">
+                <i class="fa-solid fa-chart-column"
+                    style="color: #5C92B9; font-size: 24px; margin-bottom: 20px; display: block;"></i>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #2D3748; margin: 0 0 15px 0;">
+                    Dữ liệu thị trường</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 14px; color: #4A5568; line-height: 1.6;">IMARC
+                    Group & VietnamWorks IT Report 2025 — phân tích xu hướng ngành IT Việt Nam.</p>
+            </div>
+            <!-- Card 2 -->
+            <div
+                style="flex: 1; background: white; padding: 25px; border-radius: 20px; border: 1px solid rgba(92, 146, 185, 0.2); box-shadow: 0 10px 25px rgba(0,0,0,0.03);">
+                <i class="fa-solid fa-briefcase"
+                    style="color: #5C92B9; font-size: 24px; margin-bottom: 20px; display: block;"></i>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #2D3748; margin: 0 0 15px 0;">
+                    Nguồn tuyển dụng</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 14px; color: #4A5568; line-height: 1.6;">TopCV &
+                    JobsGO 2024–2025 — dữ liệu JD và xu hướng kỹ năng thực tế.</p>
+            </div>
+            <!-- Card 3 -->
+            <div
+                style="flex: 1; background: white; padding: 25px; border-radius: 20px; border: 1px solid rgba(92, 146, 185, 0.2); box-shadow: 0 10px 25px rgba(0,0,0,0.03);">
+                <i class="fa-solid fa-graduation-cap"
+                    style="color: #5C92B9; font-size: 24px; margin-bottom: 20px; display: block;"></i>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #2D3748; margin: 0 0 15px 0;">
+                    Nền tảng đào tạo</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 14px; color: #4A5568; line-height: 1.6;">Phân
+                    tích từ 3,200+ khóa học Coursera để xây dựng bản đồ kỹ năng.</p>
+            </div>
+            <!-- Card 4 -->
+            <div
+                style="flex: 1; background: white; padding: 25px; border-radius: 20px; border: 1px solid rgba(92, 146, 185, 0.2); box-shadow: 0 10px 25px rgba(0,0,0,0.03);">
+                <i class="fa-solid fa-robot"
+                    style="color: #5C92B9; font-size: 24px; margin-bottom: 20px; display: block;"></i>
+                <p
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #2D3748; margin: 0 0 15px 0;">
+                    Công nghệ AI</p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 14px; color: #4A5568; line-height: 1.6;">OpenAI
+                    GPT-4o, Google Gemini, Anthropic Claude — điều phối qua LiteLLM.</p>
+            </div>
+        </div>
+
+        <!-- BOTTOM BANNER -->
+        <div
+            style="position: absolute; left: 80px; top: 580px; width: 1120px; height: 80px; z-index: 10; background: rgba(92, 146, 185, 0.05); border-radius: 16px; display: flex; align-items: center; padding: 0 30px; box-sizing: border-box; gap: 20px; border: 1px solid rgba(92, 146, 185, 0.1);">
+            <i class="fa-solid fa-shield-halved" style="color: #5C92B9; font-size: 24px;"></i>
+            <p style="margin: 0; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 500; color: #1E2A38;">
+                Tất cả dữ liệu được thu thập và xử lý tuân thủ các quy định về quyền riêng tư và sử dụng dữ liệu hiện
+                hành.
+            </p>
+        </div>
+    </div>
+
+
+    <!-- ==========================================
+         SCRIPTS CHO BIỂU ĐỒ RADAR (Slide 1 & 3)
+    =========================================== -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Hàm cấu hình dùng chung cho chart trên nền sáng (tắt animation để in/lưu PDF)
+            const commonChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false, // Bắt buộc false để lưu PDF không bị lỗi
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            color: '#4A5568',
+                            font: { family: "'Inter', sans-serif", size: 13, weight: 500 },
+                            padding: 25,
+                            usePointStyle: true,
+                            boxWidth: 8
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        titleColor: '#1E2A38',
+                        bodyColor: '#4A5568',
+                        titleFont: { family: "'Inter', sans-serif", size: 14, weight: 600 },
+                        bodyFont: { family: "'Inter', sans-serif", size: 13 },
+                        padding: 12,
+                        borderColor: 'rgba(92, 146, 185, 0.3)',
+                        borderWidth: 1,
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }
+                },
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(0, 0, 0, 0.05)' },
+                        grid: { color: 'rgba(0, 0, 0, 0.05)', circular: true },
+                        pointLabels: {
+                            color: '#4A5568',
+                            font: { family: "'Inter', sans-serif", size: 13, weight: 600 },
+                            padding: 15
+                        },
+                        ticks: { display: false, max: 100, min: 0, stepSize: 20 }
+                    }
+                }
+            };
+
+            // Dữ liệu dùng chung
+            const chartData = {
+                labels: ['React.js', 'Python', 'SQL / DB', 'AWS / Cloud', 'Docker', 'Communication'],
+                datasets: [
+                    {
+                        label: 'Market Demand (JD)',
+                        data: [90, 80, 85, 75, 70, 90],
+                        backgroundColor: 'rgba(92, 146, 185, 0.2)', // Xanh lam nhạt mờ
+                        borderColor: '#5C92B9',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#5C92B9',
+                        pointBorderColor: '#FFF',
+                        pointHoverBackgroundColor: '#FFF',
+                        pointHoverBorderColor: '#5C92B9',
+                        fill: true,
+                    },
+                    {
+                        label: 'Your Skills (CV)',
+                        data: [85, 60, 70, 40, 30, 80],
+                        backgroundColor: 'rgba(45, 55, 72, 0.15)', // Xám đen mờ
+                        borderColor: '#2D3748',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#2D3748',
+                        pointBorderColor: '#FFF',
+                        pointHoverBackgroundColor: '#FFF',
+                        pointHoverBorderColor: '#2D3748',
+                        fill: true,
+                    }
+                ]
+            };
+
+            // Khởi tạo Chart Slide 1
+            const ctxIntro = document.getElementById('skillRadarChart').getContext('2d');
+            new Chart(ctxIntro, { type: 'radar', data: chartData, options: commonChartOptions });
+        });
+    </script>
+</body>
+
+</html>
