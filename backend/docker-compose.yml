@@ -90,7 +90,7 @@ services:
     ports:
     - 8000:8000
     env_file: .env
-    command: sh -c "uvicorn gateway.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "uvicorn gateway.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 30"
     volumes:
     - ./data:/app/data
     - ./gateway:/app/gateway
@@ -116,7 +116,7 @@ services:
     - REDIS_HOST=advisor_redis
     - ENVIRONMENT=development
     env_file: .env
-    command: sh -c "uvicorn services.auth_service.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "uvicorn services.auth_service.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 30"
     volumes:
     - ./shared:/app/shared
     - ./services:/app/services
@@ -139,7 +139,7 @@ services:
     - REDIS_HOST=advisor_redis
     - ENVIRONMENT=development
     env_file: .env
-    command: sh -c "uvicorn services.jd_service.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "uvicorn services.jd_service.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 30"
     volumes:
     - ./data:/app/data
     - ./shared:/app/shared
@@ -161,7 +161,7 @@ services:
     - POSTGRES_HOST=advisor_db
     - ENVIRONMENT=development
     env_file: .env
-    command: sh -c "uvicorn services.cv_service.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "uvicorn services.cv_service.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 30"
     volumes:
     - ./data:/app/data
     - ./shared:/app/shared
@@ -183,7 +183,7 @@ services:
     - REDIS_HOST=advisor_redis
     - ENVIRONMENT=development
     env_file: .env
-    command: sh -c "uvicorn services.analysis_service.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "uvicorn services.analysis_service.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 30"
     volumes:
     - ./shared:/app/shared
     - ./services:/app/services
@@ -206,7 +206,7 @@ services:
     - REDIS_HOST=advisor_redis
     - ENVIRONMENT=development
     env_file: .env
-    command: sh -c "uvicorn services.recommender_service.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "uvicorn services.recommender_service.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 30"
     volumes:
     - ./shared:/app/shared
     - ./services:/app/services
@@ -299,7 +299,7 @@ services:
     - ./services:/app/services
     - ./scripts:/app/scripts
     - ./logs:/app/logs
-    command: sh -c "uvicorn services.admin_service.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "uvicorn services.admin_service.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 30"
     depends_on:
       db:
         condition: service_healthy

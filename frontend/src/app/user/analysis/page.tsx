@@ -238,7 +238,7 @@ function AnalysisPageContent() {
       }
 
       const resp = await api.post("analysis/gap", payload);
-      
+
       // If result is already cached, handle it immediately
       if (resp.data.status === "cached" && resp.data.result) {
         console.log(`[ANALYSIS] Cache hit — using pre-computed result`);
@@ -262,14 +262,14 @@ function AnalysisPageContent() {
     } catch (err: any) {
       const detail = err.response?.data?.detail || err.message;
       console.error(`[ANALYSIS] Start failed:`, detail);
-      
+
       // Handle structured error responses (e.g., NON_TECH_JOB)
       if (typeof detail === 'object' && detail !== null) {
         if (detail.error_code === 'NON_TECH_JOB') {
           const message = language === 'vi' ? detail.message : detail.english_message;
           const classification = detail.classification || {};
           const suggestion = detail.suggestion || '';
-          
+
           // Build detailed error message
           let errorMsg = message;
           if (classification.primary_domain) {
@@ -281,7 +281,7 @@ function AnalysisPageContent() {
           if (suggestion) {
             errorMsg += `\n\n${suggestion}`;
           }
-          
+
           setError(errorMsg);
         } else {
           // Other structured errors
@@ -291,7 +291,7 @@ function AnalysisPageContent() {
         // Simple string errors
         setError(String(detail));
       }
-      
+
       setPhase("failed");
     }
   };
@@ -306,7 +306,7 @@ function AnalysisPageContent() {
 
         if (status === "completed") {
           clearInterval(interval);
-          
+
           // Double check for logical failure inside successful response
           const resObj = result as any;
           if (resObj && resObj.status === "failed") {
@@ -360,10 +360,10 @@ function AnalysisPageContent() {
         if (partial_result && partial_result.node === "gap_analysis") {
           // Verify partial result isn't a failure
           if (partial_result.status === "failed") {
-             clearInterval(interval);
-             setError(partial_result.overall_assessment || t("analysis_failed"));
-             setPhase("failed");
-             return;
+            clearInterval(interval);
+            setError(partial_result.overall_assessment || t("analysis_failed"));
+            setPhase("failed");
+            return;
           }
 
           console.log("[ANALYSIS] Gaps are ready! Redirecting early to /user/recommend for progressive loading.");
@@ -378,11 +378,11 @@ function AnalysisPageContent() {
         }
       } catch (err: any) {
         console.error(`[ANALYSIS] poll error:`, err);
-        const isOverload = err.response?.status === 502 || 
-                           err.code === 'ECONNABORTED' || 
-                           err.message?.includes('timeout') ||
-                           err.response?.status === 504;
-        
+        const isOverload = err.response?.status === 502 ||
+          err.code === 'ECONNABORTED' ||
+          err.message?.includes('timeout') ||
+          err.response?.status === 504;
+
         if (isOverload) {
           setShowOverloadModal(true);
         } else {
@@ -699,7 +699,7 @@ function AnalysisPageContent() {
                 const isDone = currentStep > i;
                 const isActive = currentStep === i;
                 const isPending = currentStep < i;
-                
+
                 return (
                   <div
                     key={s.key}
@@ -818,30 +818,30 @@ function AnalysisPageContent() {
             </div>
           </Modal>
 
-        <Modal
-          isOpen={showOverloadModal}
-          onClose={() => setShowOverloadModal(false)}
-          title={t('cv_overload_title')}
-          maxWidth='500px'
-        >
-          <div className={styles.modalBodyContent}>
-            <div className={styles.modalIconBox}>
-              <Clock size={32} style={{ color: 'var(--primary-color)' }} />
+          <Modal
+            isOpen={showOverloadModal}
+            onClose={() => setShowOverloadModal(false)}
+            title={t('cv_overload_title')}
+            maxWidth='500px'
+          >
+            <div className={styles.modalBodyContent}>
+              <div className={styles.modalIconBox}>
+                <Clock size={32} style={{ color: 'var(--primary-color)' }} />
+              </div>
+              <p className={styles.modalDescription}>
+                {t('cv_overload_desc')}
+              </p>
+              <div className={styles.modalFooterActions}>
+                <button
+                  onClick={() => setShowOverloadModal(false)}
+                  className={styles.modalConfirmBtn}
+                  style={{ width: '100%', justifyContent: 'center' }}
+                >
+                  {t('cv_overload_button')}
+                </button>
+              </div>
             </div>
-            <p className={styles.modalDescription}>
-              {t('cv_overload_desc')}
-            </p>
-            <div className={styles.modalFooterActions}>
-              <button
-                onClick={() => setShowOverloadModal(false)}
-                className={styles.modalConfirmBtn}
-                style={{ width: '100%', justifyContent: 'center' }}
-              >
-                {t('cv_overload_button')}
-              </button>
-            </div>
-          </div>
-        </Modal>
+          </Modal>
         </div>
       </PageContainer>
     );

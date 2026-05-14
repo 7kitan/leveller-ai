@@ -209,7 +209,11 @@ async def proxy(service_name: str, path: str, request: Request):
     
     # Kiểm tra service có tồn tại không
     if service_name not in SERVICES:
+        logger.warning(f"[PROXY] Service '{service_name}' not found for path: {path}")
         raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found")
+
+    import time
+    start_time = time.time()
 
     # Xử lý path mapping đặc biệt
     # /user/login -> auth-service/auth/login (vì user endpoints nằm trong auth service)
@@ -250,50 +254,62 @@ async def proxy(service_name: str, path: str, request: Request):
         headers["X-User-Email"] = request.state.user["email"]
         headers["X-User-Role"] = request.state.user.get("role", "user")
 
-    try:
-        # Lấy request body
-        content = await request.body()
-        
-        # Forward request đến service
-        response = await client.request(
-            method=request.method,
-            url=url,
-            headers=headers,
-            content=content,
-            params=dict(request.query_params),
-            timeout=60.0  # Timeout 60 giây
-        )
-        
-        # Lọc bỏ các headers có thể gây conflict
-        # Những headers này do service backend tự generate, không nên forward về client
-        excluded_headers = [
-            "content-length",      # Sẽ được tính lại
-            "transfer-encoding",   # Có thể conflict với proxy
-            "connection",          # Connection-specific
-            "keep-alive",          # Connection-specific
-            "proxy-authenticate",  # Proxy-specific
-            "proxy-authorization", # Proxy-specific
-            "te",                  # Transfer encoding
-            "trailers",            # Chunked transfer
-            "upgrade"              # Protocol upgrade
-        ]
-        # Tạo response rỗng
-        proxy_response = Response(
-            content=response.content,
-            status_code=response.status_code,
-        )
-        
-        # Dùng multi_items() để giữ lại TẤT CẢ các header trùng tên (vd: Set-Cookie)
-        for k, v in response.headers.multi_items():
-            if k.lower() not in excluded_headers:
-                proxy_response.headers.append(k, v)
-                
-        return proxy_response
-    except httpx.RequestError as exc:
-        # Service không available hoặc network error
-        error_msg = f"Service unavailable: {str(exc)}"
-        logger.error(f"[PROXY ERROR] {request.method} {url} | Error: {str(exc)}")
-        raise HTTPException(status_code=502, detail=error_msg)
+    # Retry logic for idempotent requests (GET)
+    max_retries = 3
+    retry_delay = 0.5 # seconds
+    
+    for attempt in range(max_retries):
+        try:
+            # Lấy request body
+            content = await request.body()
+            
+            # Forward request đến service
+            logger.debug(f"[PROXY] Attempt {attempt+1}/{max_retries} | {request.method} {url}")
+            response = await client.request(
+                method=request.method,
+                url=url,
+                headers=headers,
+                content=content,
+                params=dict(request.query_params),
+                timeout=60.0  # Timeout 60 giây
+            )
+            duration = time.time() - start_time
+            logger.info(f"[PROXY] {request.method} {url} | Status: {response.status_code} | Duration: {duration:.3f}s | Attempts: {attempt+1}")
+            
+            # Lọc bỏ các headers có thể gây conflict
+            excluded_headers = [
+                "content-length", "transfer-encoding", "connection", "keep-alive",
+                "proxy-authenticate", "proxy-authorization", "te", "trailers", "upgrade"
+            ]
+            proxy_response = Response(
+                content=response.content,
+                status_code=response.status_code,
+            )
+            for k, v in response.headers.multi_items():
+                if k.lower() not in excluded_headers:
+                    proxy_response.headers.append(k, v)
+            return proxy_response
+
+        except (httpx.RemoteProtocolError, httpx.ConnectError, httpx.ReadError) as exc:
+            # Only retry GET requests or on the first few attempts
+            is_idempotent = request.method in ["GET", "HEAD", "OPTIONS"]
+            if is_idempotent and attempt < max_retries - 1:
+                logger.warning(f"[PROXY RETRY] {request.method} {url} | Attempt {attempt+1} failed: {str(exc)}. Retrying...")
+                import asyncio
+                await asyncio.sleep(retry_delay * (attempt + 1)) # Exponential backoff-ish
+                continue
+            
+            # Final failure or non-idempotent
+            duration = time.time() - start_time
+            logger.error(f"[PROXY ERROR] {request.method} {url} | Error: {str(exc)} | Duration: {duration:.3f}s | Attempts: {attempt+1}")
+            raise HTTPException(status_code=502, detail=f"Service unavailable after {attempt+1} attempts: {str(exc)}")
+            
+        except httpx.RequestError as exc:
+            # General request errors (e.g. timeout) - usually don't retry unless specifically needed
+            duration = time.time() - start_time
+            logger.error(f"[PROXY ERROR] {request.method} {url} | Error Type: {type(exc).__name__} | Error: {str(exc)} | Duration: {duration:.3f}s")
+            raise HTTPException(status_code=502, detail=f"Service unavailable: {str(exc)}")
+
 
 # ============================================================================
 # HEALTH CHECK ENDPOINT

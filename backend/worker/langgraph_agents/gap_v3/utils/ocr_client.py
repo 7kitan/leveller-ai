@@ -45,11 +45,11 @@ class ChandraOCRClient:
         api_url = self.api_url.strip().rstrip('/')
         status_url_base = api_url.rsplit('/', 1)[0]
         
-        logger.info(f"[OCR] Target URL: {api_url}")
-        logger.info(f"[OCR] Sending file to Chandra: {os.path.basename(file_path)}...")
+        logger.info(f"[OCR] Starting OCR process for file: {os.path.basename(file_path)}")
         logger.debug(f"[OCR DEBUG] Full file path: {file_path}")
         logger.debug(f"[OCR DEBUG] Status URL base: {status_url_base}")
         
+
         try:
             # 1. Prepare Base64 Payload
             file_ext = os.path.splitext(file_path)[1].lower()

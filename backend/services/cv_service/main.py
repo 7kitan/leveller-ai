@@ -75,6 +75,8 @@ UPLOAD_DIR = "/app/data/cv_uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 logger = setup_logger("cv_service", log_file="cv.log")
+import os as os_sys
+logger.info(f"CV Service starting up... PID: {os_sys.getpid()}")
 
 
 def calculate_file_hash(file_content: bytes) -> str:
@@ -872,6 +874,7 @@ async def get_cv_status(
     để frontend không cần gọi thêm /cv/{cv_id}.
     """
     task_result = celery_app.AsyncResult(task_id)
+    logger.debug(f"[STATUS] Checking task {task_id} | State: {task_result.status} | CV ID: {cv_id}")
 
     # Translate Celery state → frontend-friendly status
     celery_status = task_result.status
