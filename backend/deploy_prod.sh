@@ -77,8 +77,8 @@ for migration_file in scripts/migrations/*.sql; do
     if [ -f "$migration_file" ]; then
         filename=$(basename "$migration_file")
         echo "Executing $filename..."
-        # Pipe file content directly to psql inside container
-        docker compose -f docker-compose.prod.yml exec -T db psql -U postgres -d career_advisor < "$migration_file" > /dev/null 2>&1
+        # Run migration and show output/errors
+        docker compose -f docker-compose.prod.yml exec -T db psql -U postgres -d career_advisor < "$migration_file"
     fi
 done
 echo -e "${GREEN}✅ All migrations applied${NC}"
