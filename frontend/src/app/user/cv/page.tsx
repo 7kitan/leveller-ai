@@ -102,6 +102,7 @@ const UserCVPage = () => {
   const [realTimeName, setRealTimeName] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [cvToDelete, setCvToDelete] = useState<string | null>(null);
+  const [showOverloadModal, setShowOverloadModal] = useState(false);
 
   const getSeniorityLabel = (val: string) => {
     if (!val) return t("cv_level_unknown");
@@ -401,7 +402,17 @@ const UserCVPage = () => {
         pollStatus(parser_id, cv_id);
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || t("cv_upload_error"));
+      console.error("Upload error:", err);
+      const isOverload = err.response?.status === 502 || 
+                         err.code === 'ECONNABORTED' || 
+                         err.message?.includes('timeout') ||
+                         err.response?.status === 504;
+      
+      if (isOverload) {
+        setShowOverloadModal(true);
+      } else {
+        setError(err.response?.data?.detail || t("cv_upload_error"));
+      }
       setStatus("idle");
     }
   };
@@ -427,7 +438,19 @@ const UserCVPage = () => {
           showError(error_message || t("cv_analysis_error"));
           setStatus("idle");
         }
-      } catch {
+      } catch (err: any) {
+        console.error("Poll status error:", err);
+        const isOverload = err.response?.status === 502 || 
+                           err.code === 'ECONNABORTED' || 
+                           err.message?.includes('timeout') ||
+                           err.response?.status === 504;
+        
+        if (isOverload) {
+          setShowOverloadModal(true);
+        } else {
+          setError(t("cv_analysis_error"));
+        }
+        
         clearInterval(interval);
         setStatus("idle");
       }
@@ -1110,6 +1133,31 @@ const UserCVPage = () => {
               >
                 <Trash2 size={16} />
                 {t('cv_delete')}
+              </button>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={showOverloadModal}
+          onClose={() => setShowOverloadModal(false)}
+          title={t('cv_overload_title')}
+          maxWidth='500px'
+        >
+          <div className={styles.modalBodyContent}>
+            <div className={styles.modalIconBox}>
+              <Clock size={32} className={styles.modalClock} />
+            </div>
+            <p className={styles.modalDescription}>
+              {t('cv_overload_desc')}
+            </p>
+            <div className={styles.modalFooterActions}>
+              <button
+                onClick={() => setShowOverloadModal(false)}
+                className={styles.modalConfirmBtn}
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                {t('cv_overload_button')}
               </button>
             </div>
           </div>

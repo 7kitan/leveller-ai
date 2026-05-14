@@ -19,6 +19,7 @@ import {
   X,
   Target,
   ChevronDown,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import styles from "./user-analysis.module.css";
@@ -102,6 +103,7 @@ function AnalysisPageContent() {
   const [showTimeoutOverlay, setShowTimeoutOverlay] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [processMessage, setProcessMessage] = useState("");
+  const [showOverloadModal, setShowOverloadModal] = useState(false);
 
   const spamMessages = [
     t("analysis_msg_1"),
@@ -376,10 +378,19 @@ function AnalysisPageContent() {
         }
       } catch (err: any) {
         console.error(`[ANALYSIS] poll error:`, err);
+        const isOverload = err.response?.status === 502 || 
+                           err.code === 'ECONNABORTED' || 
+                           err.message?.includes('timeout') ||
+                           err.response?.status === 504;
+        
+        if (isOverload) {
+          setShowOverloadModal(true);
+        } else {
+          const detail = err.response?.data?.detail || err.message;
+          setError(typeof detail === 'string' ? detail : t("analysis_failed"));
+          setPhase("failed");
+        }
         clearInterval(interval);
-        const detail = err.response?.data?.detail || err.message;
-        setError(typeof detail === 'string' ? detail : t("analysis_failed"));
-        setPhase("failed");
       }
     }, POLLING_INTERVAL);
 
@@ -806,6 +817,31 @@ function AnalysisPageContent() {
               </div>
             </div>
           </Modal>
+
+        <Modal
+          isOpen={showOverloadModal}
+          onClose={() => setShowOverloadModal(false)}
+          title={t('cv_overload_title')}
+          maxWidth='500px'
+        >
+          <div className={styles.modalBodyContent}>
+            <div className={styles.modalIconBox}>
+              <Clock size={32} style={{ color: 'var(--primary-color)' }} />
+            </div>
+            <p className={styles.modalDescription}>
+              {t('cv_overload_desc')}
+            </p>
+            <div className={styles.modalFooterActions}>
+              <button
+                onClick={() => setShowOverloadModal(false)}
+                className={styles.modalConfirmBtn}
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                {t('cv_overload_button')}
+              </button>
+            </div>
+          </div>
+        </Modal>
         </div>
       </PageContainer>
     );
