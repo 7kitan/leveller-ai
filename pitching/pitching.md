@@ -3,7 +3,7 @@
 ---
 
 ## 1. MỞ ĐẦU: SỨ MỆNH & NIỀM TIN
-**** Xin chào Ban Giám Khảo. Chúng tôi là **Leveller.ai** — nền tảng upskilling thông minh.
+**** Xin chào Ban Giám Khảo. Chúng tôi là **Leveller.ai**.
 
 **** **Niềm tin của chúng tôi:** Sự nghiệp không phải là hành trình mù mờ. Mỗi ứng viên xứng đáng biết chính xác mình cần học gì, thiếu gì, và bao lâu để sẵn sàng cho công việc mơ ước.
 

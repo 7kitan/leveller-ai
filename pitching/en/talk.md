@@ -1,0 +1,157 @@
+# LEVELLER.AI — TALK SCRIPT (10 MINUTES)
+
+---
+
+## SLIDE 0: ONE-LINER — 30s
+
+> Core positioning: Real signal on both sides of the table.
+
+Good morning. We're **Leveller.ai**. Let me start with two truths about today's job market.
+
+For candidates: "Old systems say 'you don't fit.' We say 'you're this close.'"
+
+For employers: "Old systems filter by what candidates lack. We show you who's ready — and who's a training investment away."
+
+---
+
+## SLIDE 1: OPENING — 45s
+
+Old systems run on keyword noise, not skill truth. Candidates game their CVs to match bloated JDs. Employers sift through keyword-rich, skill-poor applicants. Both sides lose.
+
+**Our name has two meanings:**
+- **Levelling Up** — a precise learning roadmap for every candidate
+- **Levelling the Playing Field** — removing information asymmetry for both sides
+
+We replace keyword bingo with actual readiness.
+
+---
+
+## SLIDE 2: THE PROBLEM — 90s
+
+**Candidate side:**
+Vietnamese learners are top 3 globally in MOOC signups. The EdTech market hit $1.1B in 2025. Yet ~28% of IT professionals are career switchers. They parse JDs listing 25+ skills, not knowing which 5-6 matter. They spend 6-12 months "preparing" when they only need 2-3.
+
+**Employer side:**
+Your ATS is rejecting good candidates. A JD lists 25 keywords → exact match filter → 80% of viable candidates never reach a human. A Vue.js developer applies for a React role. ATS rejects them because "React" isn't on their CV. That candidate is 2 weeks from ready.
+
+**Root cause:** JDs are keyword spam because no one knows which skills *actually* predict success.
+
+---
+
+## SLIDE 3: THE SOLUTION — 2 min
+
+Upload your CV, pick a role. Minutes later, Leveller.ai shows your match score, which skills are missing, and what to learn — with free courses.
+
+**The core insight:** ATS looks at each skill in isolation. We see the links between them.
+
+ATS says: JD needs "React" → CV has "Vue.js" → rejected.
+We say: Vue.js knows components, state, hooks, routing. ~80% of React. **1-2 weeks to ready.**
+
+**Three layers of transferability:**
+- **Same-category** — Vue.js ↔ React, Java ↔ C#. Syntax only.
+- **Adjacent-domain** — Excel → SQL. Different surface, same logic.
+- **Professional leverage** — Sales → tech. Communication transfers directly.
+
+**How we're different:**
+
+| | LinkedIn / ATS | Leveller |
+|---|---|---|
+| Jobs | Ghost jobs, Easy Apply black hole | Market-crawled live listings, match score before applying |
+| Skills | Self-reported endorsements | AI-inferred from work context |
+| Feedback | Silence or rejection | Gap analysis: "65% match. Here's what was missing." |
+
+**Tech stack:** Multi-modal CV parsing (OCR, handles any format), auto skill level inference, vector semantic search (pgvector), real-time market crawling (TopCV), course recommendations (Coursera, YouTube), match score + salary impact.
+
+---
+
+## SLIDE 4: IMPACT — 45s
+
+| | Classic approach | Leveller |
+|---|---|---|
+| Prep time | 6-12 months | 2-3 months (60-70% reduction) |
+| Skills to learn | 25+ keywords | 5-6 core skills |
+| Hidden talent | Filtered out | Surfaced |
+
+Not all skills are equal. Each course is weighted by actual impact on the target role. Stop chasing nice-to-haves. Focus on what gets you hired.
+
+---
+
+## SLIDE 5: TRACTION — 30s
+
+We are the customer. I graduated and faced this firsthand. My teammates have been career switchers themselves. We built this because we lived it.
+
+Early signal: 3 friends uploaded their CVs in minutes and asked "when can I see my match score?" The instinct to check your fit is real.
+
+Next step: 50 user interviews and 3 employer conversations.
+
+---
+
+## SLIDE 6: BUSINESS MODEL — 45s
+
+Users first — graduates and career pivoters. Employer revenue comes after we have a pool.
+
+- **Free:** Match score + gap overview
+- **One-time — 49,000 VND:** Full roadmap for one role. Cheaper than phở.
+- **Monthly — 29,000 VND:** Progress tracking, re-assessment, multiple roles
+- **Job affiliate:** We recommend matched jobs. We earn when you get hired. Aligned incentives.
+
+Future streams: employer talent discovery, API licensing, university partnerships.
+
+---
+
+## SLIDE 7: ROADMAP — 30s
+
+We're building a Career Intelligence Ecosystem:
+
+- AI CV Suggester — auto-adjust CVs
+- Artifact Builder Guide — portfolio, proof of work
+- Interview Preparation — predictive questions
+- Real-time Opportunity Matching — job alerts
+- Employer Integration — smart JD builder + readiness data
+- Semantic Skill Graph — network-effects moat: more users, better recs.
+
+---
+
+## SLIDE 8: CONCLUSION — 45s
+
+**Three effects:**
+
+1. **Cultivate Accuracy** — core vs trainable. JDs that mean something.
+2. **Inspire Confidence** — candidates know when ready. Employers know who can contribute.
+3. **Build a Skilled Workforce** — 12 months → 2-3. Millions entering tech faster.
+
+**Leveller.ai is the bridge** — connecting candidates to opportunities, employers to talent, and both sides to market truth.
+
+---
+
+## DEMO — 3 min
+
+1. **[1 min]** Upload CV → Show OCR parsing + extracted skills
+2. **[1 min]** Select target position → Show Skill Gap Map
+3. **[30s]** Highlight Match Score → "You're 65% match with this role"
+4. **[30s]** Show prioritized course recommendations
+5. **[30s]** Show salary data from TopCV
+
+---
+
+## SPEAKER NOTES
+
+### Vingroup context (if applicable)
+- You are being trained by Vingroup as an AI product developer — use as credibility
+- Vingroup values internal training. Platform bridges skill gaps with free MOOCs
+- No direct ask. Frame the opportunity. Let them connect the dots.
+
+**Real ask:** Product development adoption — data access — mentoring / dev manpower
+
+### Team
+| Role | Background |
+|---|---|
+| You | CS grad, UI/UX/pedagogy research, lived the problem |
+| Data Analyst | Market analysis, validation metrics |
+| Freelance Backend Dev | Built entire backend |
+| Frontend / UI/UX | Product design |
+
+Missing: HR domain expert — hire after validation.
+
+### Risk / Culture shift
+Requires culture shift: accurate JDs, applicants showing work. Takes time. But every platform that changed hiring started the same way. LinkedIn's profile culture didn't exist until LinkedIn created it. GitHub's "hire by code" didn't exist until GitHub created it. First employer who finds a filtered-out candidate — that's the snowball.
