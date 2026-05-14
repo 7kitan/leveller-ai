@@ -486,8 +486,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <p className={styles.problemDescription}>{currentLang.problem.employerTitle}</p>
-            <p className={styles.problemSubtext}>{currentLang.problem.employerDesc}</p>
+            <p className={styles.problemDescription}>{currentLang.problem.employerDesc}</p>
             <div className={styles.painPointsGrid}>
               {[
                 currentLang.problem.employerPain1,
