@@ -1,8 +1,8 @@
 # LEVELLER.AI — PITCH DECK (SLIDE REFERENCE)
 
 > Core: The anti-ATS: real signal on both sides of the table.
-> User: "ATS says 'you don't fit.' We say 'you're this close.'"
-> Employer: "ATS filters by what candidates lack. We show you who's ready — and who's a training investment away."
+> User: "Old systems say 'you don't fit.' We say 'you're this close.'"
+> Employer: "Old systems filter by what candidates lack. We show you who's ready — and who's a training investment away."
 
 ---
 
@@ -10,7 +10,7 @@
 
 **Leveller.ai** — the anti-ATS.
 
-The job market runs on keyword noise, not skill truth. We replace keyword bingo with actual readiness.
+Old systems run on keyword noise, not skill truth. We replace keyword bingo with actual readiness.
 
 **Name:**
 - Levelling Up — precise learning roadmap

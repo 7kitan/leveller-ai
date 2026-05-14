@@ -8,15 +8,15 @@
 
 Xin chào. Chúng tôi là **Leveller.ai** — nền tảng chống ATS.
 
-Với ứng viên: "ATS nói 'bạn không phù hợp.' Chúng tôi nói 'bạn sắp đến rồi.'"
+Với ứng viên: "Hệ thống cũ nói 'bạn không phù hợp.' Chúng tôi nói 'bạn sắp đến rồi.'"
 
-Với nhà tuyển dụng: "ATS lọc theo những gì ứng viên thiếu. Chúng tôi cho bạn biết ai sẵn sàng — và ai chỉ cách một khóa đào tạo."
+Với nhà tuyển dụng: "Hệ thống cũ lọc theo những gì ứng viên thiếu. Chúng tôi cho bạn biết ai sẵn sàng — và ai chỉ cách một khóa đào tạo."
 
 ---
 
 ## SLIDE 1: MỞ ĐẦU — 45s
 
-Thị trường việc làm chạy bằng keyword noise, không phải skill truth. Ứng viên nhồi nhét CV. Nhà tuyển dụng lọc qua đống hồ sơ giàu keyword nhưng nghèo kỹ năng. Cả hai đều thua.
+Hệ thống cũ chạy bằng keyword noise, không phải skill truth. Ứng viên nhồi nhét CV. Nhà tuyển dụng lọc qua đống hồ sơ giàu keyword nhưng nghèo kỹ năng. Cả hai đều thua.
 
 **Hai ý nghĩa trong tên gọi:**
 - **Levelling Up** — lộ trình học tập chính xác cho mỗi ứng viên

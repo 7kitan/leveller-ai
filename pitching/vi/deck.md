@@ -1,8 +1,8 @@
 # LEVELLER.AI — SLIDE THAM KHẢO
 
 > Định vị: Chống ATS — tín hiệu thật từ cả hai phía.
-> Ứng viên: "ATS nói 'bạn không phù hợp.' Chúng tôi nói 'bạn sắp đến rồi.'"
-> Nhà tuyển dụng: "ATS lọc theo những gì ứng viên thiếu. Chúng tôi cho bạn biết ai sẵn sàng."
+> Ứng viên: "Hệ thống cũ nói 'bạn không phù hợp.' Chúng tôi nói 'bạn sắp đến rồi.'"
+> Nhà tuyển dụng: "Hệ thống cũ lọc theo những gì ứng viên thiếu. Chúng tôi cho bạn biết ai sẵn sàng."
 
 ---
 

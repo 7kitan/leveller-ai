@@ -8,15 +8,15 @@
 
 Good morning. We're **Leveller.ai** — the anti-ATS. Let me start with two truths about today's job market.
 
-For candidates: "ATS says 'you don't fit.' We say 'you're this close.'"
+For candidates: "Old systems say 'you don't fit.' We say 'you're this close.'"
 
-For employers: "ATS filters by what candidates lack. We show you who's ready — and who's a training investment away."
+For employers: "Old systems filter by what candidates lack. We show you who's ready — and who's a training investment away."
 
 ---
 
 ## SLIDE 1: OPENING — 45s
 
-The job market runs on keyword noise, not skill truth. Candidates game their CVs to match bloated JDs. Employers sift through keyword-rich, skill-poor applicants. Both sides lose.
+Old systems run on keyword noise, not skill truth. Candidates game their CVs to match bloated JDs. Employers sift through keyword-rich, skill-poor applicants. Both sides lose.
 
 **Our name has two meanings:**
 - **Levelling Up** — a precise learning roadmap for every candidate

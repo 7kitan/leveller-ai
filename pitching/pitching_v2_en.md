@@ -6,8 +6,8 @@
 
 | POV | One-liner |
 |---|---|
-| **User-facing** | "ATS says 'you don't fit.' We say 'you're this close.'" |
-| **Employer-facing** | "ATS filters by what candidates lack. We show you who's ready — and who's a training investment away." |
+| **User-facing** | "Old systems say 'you don't fit.' We say 'you're this close.'" |
+| **Employer-facing** | "Old systems filter by what candidates lack. We show you who's ready — and who's a training investment away." |
 | **Core positioning** | The anti-ATS: real signal on both sides of the table. |
 
 ---
@@ -16,7 +16,7 @@
 
 Good morning. We're **Leveller.ai** — the anti-ATS.
 
-**Our belief:** The job market runs on keyword noise, not skill truth. Candidates game their CVs to match bloated JDs. Employers sift through keyword-rich, skill-poor applicants. Both sides lose.
+**Our belief:** Old systems run on keyword noise, not skill truth. Candidates game their CVs to match bloated JDs. Employers sift through keyword-rich, skill-poor applicants. Both sides lose.
 
 **Our name has two meanings:**
 - **Levelling Up**: Accelerate your career with a precise learning roadmap.
@@ -58,7 +58,7 @@ Upload your CV, pick your target role. Within minutes, Leveller.ai shows exactly
 
 ### How we're different — candidate POV
 
-| Dimension | LinkedIn | Classic ATS | Leveller (Anti-ATS) |
+| Dimension | LinkedIn | Classic ATS | Leveller |
 |---|---|---|---|
 | **Job availability** | Ghost jobs posted for branding, never filled | N/A | Market-crawled live listings from TopCV and other sources |
 | **Applying** | Easy Apply black hole — CV disappears, no feedback | Keyword filter → 500 applicants, skim top 10 | See your match score *before* applying. Know where you stand. |
@@ -68,7 +68,7 @@ Upload your CV, pick your target role. Within minutes, Leveller.ai shows exactly
 
 ### How we're different — employer / HR POV
 
-| Dimension | Classic ATS | LinkedIn Recruiter | Leveller (Anti-ATS) |
+| Dimension | Classic ATS | LinkedIn Recruiter | Leveller |
 |---|---|---|---|
 | **JD creation** | Copy-paste from old JDs. 25+ keyword overload. | Post whatever you want, no quality checks | Smart JD builder: core vs trainable. JD that means what it says. |
 | **Candidate sourcing** | Exact keyword match → 80% false negatives | Boolean search + InMail spam | Skill proximity search: "Vue.js" finds React devs 2 weeks from ready |
