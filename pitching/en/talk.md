@@ -38,7 +38,7 @@ Your ATS is rejecting good candidates. A JD lists 25 keywords → exact match fi
 
 ---
 
-## SLIDE 3: THE SOLUTION — 2 min
+## SLIDE 3: BEYOND THE ATS — 90s
 
 Upload your CV, pick a role. Minutes later, Leveller.ai shows your match score, which skills are missing, and what to learn — with free courses.
 
@@ -60,11 +60,21 @@ We say: Vue.js knows components, state, hooks, routing. ~80% of React. **1-2 wee
 | Skills | Self-reported endorsements | AI-inferred from work context |
 | Feedback | Silence or rejection | Gap analysis: "65% match. Here's what was missing." |
 
-**Tech stack:** Multi-modal CV parsing (OCR, handles any format), auto skill level inference, vector semantic search (pgvector), real-time market crawling (TopCV), course recommendations (Coursera, YouTube), match score + salary impact.
+**Tech stack:** Multi-modal CV parsing, auto skill level inference, vector semantic search with pgvector, real-time market crawling from TopCV, course recommendations, and match score with salary impact.
 
 ---
 
-## SLIDE 4: IMPACT — 45s
+## SLIDE 4: HIRING IS STILL KEYWORD BINGO — 45s
+
+On the employer side, it's just as broken.
+
+Ghost jobs waste candidate time. The Easy Apply black hole gives zero feedback. Skill endorsements are noise — a peer who saw you use Excel once gets the same weight as a senior mentor. And there's no consequence for JDs that list 30 keywords.
+
+We fix all of this. Live listings only. Match score and gap analysis before applying. AI that infers proficiency from work context — objective, not performative. A smart JD builder that rejects keyword spam and forces honesty. And we profit from successful placements, not from ad volume.
+
+---
+
+## SLIDE 5: IMPACT — 45s
 
 | | Classic approach | Leveller |
 |---|---|---|
@@ -73,16 +83,6 @@ We say: Vue.js knows components, state, hooks, routing. ~80% of React. **1-2 wee
 | Hidden talent | Filtered out | Surfaced |
 
 Not all skills are equal. Each course is weighted by actual impact on the target role. Stop chasing nice-to-haves. Focus on what gets you hired.
-
----
-
-## SLIDE 5: TRACTION — 30s
-
-We are the customer. I graduated and faced this firsthand. My teammates have been career switchers themselves. We built this because we lived it.
-
-Early signal: 3 friends uploaded their CVs in minutes and asked "when can I see my match score?" The instinct to check your fit is real.
-
-Next step: 50 user interviews and 3 employer conversations.
 
 ---
 
@@ -107,8 +107,8 @@ We're building a Career Intelligence Ecosystem:
 - Artifact Builder Guide — portfolio, proof of work
 - Interview Preparation — predictive questions
 - Real-time Opportunity Matching — job alerts
-- Employer Integration — smart JD builder + readiness data
 - Semantic Skill Graph — network-effects moat: more users, better recs.
+- Employer Integration — smart JD builder + readiness data
 
 ---
 
@@ -121,6 +121,10 @@ We're building a Career Intelligence Ecosystem:
 3. **Build a Skilled Workforce** — 12 months → 2-3. Millions entering tech faster.
 
 **Leveller.ai is the bridge** — connecting candidates to opportunities, employers to talent, and both sides to market truth.
+
+**Why us:** We built this because we lived it. That 28% stat? We're part of it. This isn't a theoretical problem — it's our story.
+
+**What we're looking for:** A pilot with one Vingroup division — match internal mobility candidates to open roles using our platform. And mentorship from your HR and L&D leaders to sharpen the employer side.
 
 ---
 

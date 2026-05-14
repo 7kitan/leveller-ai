@@ -38,7 +38,7 @@ ATS đang loại bỏ ứng viên tiềm năng. JD liệt kê 25+ keywords → l
 
 ---
 
-## SLIDE 3: GIẢI PHÁP — 2 phút
+## SLIDE 3: VƯỢT QUA ATS — 90s
 
 Tải CV lên, chọn vị trí. Trong vài phút, Leveller.ai hiển thị match score, kỹ năng còn thiếu, và lộ trình học tập — với khóa học miễn phí.
 
@@ -60,11 +60,21 @@ Chúng tôi nói: Biết Vue.js là biết components, state, hooks, routing. ~8
 | Kỹ năng | Tự xưng, người quen endorse | AI suy luận từ bối cảnh kinh nghiệm |
 | Phản hồi | Im lặng hoặc từ chối tự động | Gap analysis: "Bạn match 65%. Đây là những gì còn thiếu." |
 
-**Công nghệ:** Multi-modal CV parsing (OCR, mọi định dạng), auto skill level inference, vector semantic search (pgvector), real-time market crawling (TopCV), course recommendations (Coursera, YouTube), match score + salary impact.
+**Công nghệ:** Multi-modal CV parsing, auto skill level inference, vector semantic search với pgvector, real-time market crawling từ TopCV, course recommendations, match score và salary impact.
 
 ---
 
-## SLIDE 4: TÁC ĐỘNG — 45s
+## SLIDE 4: NHÀ TUYỂN DỤNG VẪN CHƠI KEYWORD BINGO — 45s
+
+Phía nhà tuyển dụng cũng hỏng không kém.
+
+Ghost jobs làm ứng viên mất thời gian. Easy Apply là hố đen không phản hồi. Skill endorsements là nhiễu — đồng nghiệp thấy bạn dùng Excel một lần có trọng số ngang cố vấn cấp cao. Và không ai kiểm soát JD liệt kệ 30 keywords.
+
+Leveller giải quyết tất cả. Chỉ listings thực tế. Match score và gap analysis trước khi nộp. AI suy luận mức độ thành thạo từ bối cảnh công việc — khách quan, không phải trình diễn. JD builder loại bỏ keyword spam, buộc nhà tuyển dụng trung thực. Và chúng tôi có lợi nhuận từ placement, không phải quảng cáo.
+
+---
+
+## SLIDE 5: TÁC ĐỘNG — 45s
 
 | | Cách tiếp cận cũ | Leveller |
 |---|---|---|
@@ -73,16 +83,6 @@ Chúng tôi nói: Biết Vue.js là biết components, state, hooks, routing. ~8
 | Tài năng ẩn | Bị lọc mất | Được phát hiện |
 
 Không phải kỹ năng nào cũng như nhau. Mỗi khóa học được đề xuất dựa trên tác động thực tế đến vị trí mục tiêu. Tập trung vào những gì thực sự giúp bạn được tuyển.
-
----
-
-## SLIDE 5: ĐỘNG LỰC — 30s
-
-Chúng tôi là chính khách hàng. Tôi đã tốt nghiệp và đối mặt với vấn đề này. Đồng đội của tôi đã từng chuyển ngành. Chúng tôi xây dựng sản phẩm này vì chúng tôi đã sống với nó.
-
-Tín hiệu sớm: 3 người bạn tải CV lên trong vài phút và hỏi "khi nào tôi xem được match score?" Bản năng kiểm tra sự phù hợp là có thật.
-
-Bước tiếp theo: 50 phỏng vấn người dùng và 3 cuộc trò chuyện với nhà tuyển dụng.
 
 ---
 
@@ -107,8 +107,8 @@ Chúng tôi đang xây dựng Career Intelligence Ecosystem:
 - Artifact Builder Guide — portfolio, bằng chứng thực tế
 - Interview Preparation — câu hỏi phỏng vấn dự đoán
 - Real-time Opportunity Matching — thông báo việc làm
-- Employer Integration — JD thông minh + dữ liệu sẵn sàng
 - Semantic Skill Graph — càng nhiều người dùng, càng chính xác
+- Employer Integration — JD thông minh + dữ liệu sẵn sàng
 
 ---
 
@@ -121,6 +121,10 @@ Chúng tôi đang xây dựng Career Intelligence Ecosystem:
 3. **Build a Skilled Workforce** — 12 tháng → 2-3. Hàng triệu người vào thị trường công nghệ nhanh hơn.
 
 **Leveller.ai là cầu nối** — kết nối ứng viên với cơ hội, nhà tuyển dụng với tài năng, và cả hai bên với sự thật thị trường.
+
+**Tại sao là chúng tôi:** Chúng tôi xây dựng điều này vì đã từng trải qua. 28% nhân sự IT trái ngành? Chúng tôi nằm trong số đó. Đây không phải vấn đề lý thuyết — đó là câu chuyện của chúng tôi.
+
+**Điều chúng tôi mong muốn:** Một chương trình thí điểm với một bộ phận của Vingroup — kết nối ứng viên nội bộ với vị trí đang tuyển. Và sự cố vấn từ HR và L&D để hoàn thiện mô hình phía nhà tuyển dụng.
 
 ---
 
