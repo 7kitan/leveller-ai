@@ -5,15 +5,23 @@ import math
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from shared.llm_utils import get_embeddings_batch, build_jd_skill_context
+from shared.config_utils import config_manager
 
 logger = logging.getLogger("gap_calculator.advanced_engine")
 
 class AdvancedGapEngine:
     def __init__(self):
         # Configuration
-        layer_config = os.getenv("GAP_MATCHING_LAYERS", "exact,vector")
+        # Configuration - Ưu tiên DB > .env
+        layer_config = config_manager.get_setting("GAP_MATCHING_LAYERS") or os.getenv("GAP_MATCHING_LAYERS", "exact,vector")
         self.active_layers = [layer.strip().lower() for layer in layer_config.split(",") if layer.strip()]
-        self.pure_vector_mode = os.getenv("GAP_VECTOR_PURE_SCORING", "false").lower() == "true"
+        
+        pure_vec_val = config_manager.get_setting("GAP_VECTOR_PURE_SCORING")
+        if pure_vec_val is not None:
+            self.pure_vector_mode = str(pure_vec_val).lower() == "true"
+        else:
+            self.pure_vector_mode = os.getenv("GAP_VECTOR_PURE_SCORING", "false").lower() == "true"
+        
         
         # Tier 1: Alias Dictionary
         self.alias_map = {

@@ -115,8 +115,8 @@ def get_embeddings_batch(texts: List[str], log_cost: bool = True) -> List[List[f
         return []
         
     try:
-        # Resolve embedding model from environment variable
-        model_id = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+        # Resolve embedding model from DB > environment variable
+        model_id = config_manager.get_setting("EMBEDDING_MODEL") or os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
         
         # Làm sạch text nhẹ nhàng
         clean_texts = [t.replace("\n", " ").strip() for t in texts if t]

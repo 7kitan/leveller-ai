@@ -160,7 +160,8 @@ async def forgot_password(req: ForgotPasswordRequest, request: Request, db: Sess
     auth_cache.setex(reset_key, 3600, str(user.id))
     
     # SECURITY FIX: Never log password reset links or tokens
-    reset_link = f"{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/auth/reset-password?token={reset_token}"
+    frontend_url = config_manager.get_setting("FRONTEND_URL") or os.getenv('FRONTEND_URL', 'http://localhost:3000')
+    reset_link = f"{frontend_url}/auth/reset-password?token={reset_token}"
     logger.info(f"Password reset requested for user: {user.id}")  # Log user ID only, not email or link
     
     # Send email

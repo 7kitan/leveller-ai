@@ -6,17 +6,19 @@ from typing import List, Dict, Any, Optional
 from shared.level_mapper import LevelMapper
 from shared.neo4j_client import neo4j_client
 from shared.taxonomy_service import taxonomy_service
+from shared.config_utils import config_manager
 
 logger = logging.getLogger("gap_calculator.matcher")
 
 class SkillMatcher:
     def __init__(self, db):
         self.db = db
-        # Configurable matching layers via .env, default to exact and graph
-        layer_config = os.getenv("GAP_MATCHING_LAYERS", "exact,graph")
+        # Configurable matching layers via DB > .env
+        layer_config = config_manager.get_setting("GAP_MATCHING_LAYERS") or os.getenv("GAP_MATCHING_LAYERS", "exact,graph")
         self.active_layers = [layer.strip().lower() for layer in layer_config.split(",") if layer.strip()]
-        self.bertscore_api_url = os.getenv("BERTSCORE_API_URL")
-        self.bertscore_api_key = os.getenv("BERTSCORE_API_KEY", "")
+        
+        self.bertscore_api_url = config_manager.get_setting("BERTSCORE_API_URL") or os.getenv("BERTSCORE_API_URL")
+        self.bertscore_api_key = config_manager.get_setting("BERTSCORE_API_KEY") or os.getenv("BERTSCORE_API_KEY", "")
 
     def _normalize_name(self, name: str) -> str:
         if not name: return ""

@@ -9,6 +9,7 @@ from shared.system_logger import system_logger
 import uuid
 import json
 import os
+from shared.config_utils import config_manager
 import hashlib
 import logging
 from shared.logging_utils import setup_logger
@@ -301,7 +302,7 @@ async def upload_cv(
     db.commit()
 
     # Feature flag: USE_LLM_GAP_AGENT_V3=true → v3 (LLM structured parse), false → legacy
-    use_v3 = os.getenv("USE_LLM_GAP_AGENT_V3", "true").lower() == "true"
+    use_v3 = config_manager.get_setting("USE_LLM_GAP_AGENT_V3", default=True, cast=bool)
 
     if use_v3:
         task = celery_app.send_task(

@@ -109,7 +109,8 @@ def notify_cv_parsing_complete(user_email: str, cv_name: str, experience_years: 
     subject = "✓ CV của bạn đã được phân tích xong - Leveller.ai"
     
     exp_text = f"{experience_years} năm kinh nghiệm" if experience_years else "Chưa xác định kinh nghiệm"
-    view_link = f"{frontend_url or os.getenv('FRONTEND_URL', 'http://localhost:3000')}/user/cv"
+    frontend_url_db = config_manager.get_setting("FRONTEND_URL") or os.getenv('FRONTEND_URL', 'http://localhost:3000')
+    view_link = f"{frontend_url or frontend_url_db}/user/cv"
     
     body = f"""
     <div style="font-family: sans-serif; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #f8fafc; max-width: 500px; margin: auto;">
@@ -156,7 +157,8 @@ def notify_gap_analysis_complete(user_email: str, match_score: float, skill_gaps
     match_emoji = "🎉" if match_score >= 70 else "💪" if match_score >= 50 else "📚"
     
     job_text = f" cho vị trí <strong>{job_title}</strong>" if job_title else ""
-    view_link = f"{frontend_url or os.getenv('FRONTEND_URL', 'http://localhost:3000')}/user/analysis"
+    frontend_url_db = config_manager.get_setting("FRONTEND_URL") or os.getenv('FRONTEND_URL', 'http://localhost:3000')
+    view_link = f"{frontend_url or frontend_url_db}/user/analysis"
     
     body = f"""
     <div style="font-family: sans-serif; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #f8fafc; max-width: 500px; margin: auto;">

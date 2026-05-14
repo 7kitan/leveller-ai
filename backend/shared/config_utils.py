@@ -44,13 +44,9 @@ class ConfigManager:
             with SessionLocal() as db:
                 setting = db.query(SystemSetting).filter(SystemSetting.key == key).first()
                 if setting:
-                    raw_val = setting.value
-                    try:
-                        # Database stores values as JSON strings (e.g. '"chandra"')
-                        # We must unquote/parse them
-                        db_val = json.loads(raw_val)
-                    except (json.JSONDecodeError, TypeError):
-                        db_val = raw_val
+                    # SQLAlchemy JSON column already parses the JSON string into Python objects.
+                    # No need to json.loads() again.
+                    db_val = setting.value
                         
                     # Update cache for next time
                     config_cache.set(key, json.dumps(db_val), ex=3600)
