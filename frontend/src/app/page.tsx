@@ -3,18 +3,11 @@
 import React from "react";
 import Link from "next/link";
 import {
-  Target,
-  Cpu,
-  GraduationCap,
   ChevronRight,
-  Upload,
-  Sparkles,
-  TrendingUp,
-  ArrowRight,
   Star,
   Mail
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import LandingNavbar from "@/components/landing/LandingNavbar";
 
@@ -72,7 +65,7 @@ export default function LandingPage() {
         feature2: "Auto Skill Level Inference",
         feature2Desc: "Tự động suy luận mức độ thành thạo dựa trên mô tả công việc, thời gian làm việc, và bối cảnh kinh nghiệm",
         feature3: "Semantic Skill Matching",
-        feature3Desc: "Hiểu được ý nghĩa thực sự của từng kỹ năng — không chỉ so khớp từ khóa, mà tìm ra kỹ năng tương tự dựa trên ngữ cảnh và kinh nghiệm thực tế.",
+        feature3Desc: "Sử dụng vector semantic search (pgvector) để tìm kỹ năng gần nhất — không chỉ so khớp từ khóa, mà hiểu mối quan hệ ngữ nghĩa giữa các kỹ năng dựa trên ngữ cảnh và kinh nghiệm thực tế.",
         feature4: "Real-time Job Market Crawling",
         feature4Desc: "Liên tục cào dữ liệu từ TopCV và các nguồn job listings khác để đảm bảo Gap Analysis dựa trên nhu cầu thị trường thực tế",
         feature5: "Multi-Platform Course Recommendations",
@@ -142,57 +135,39 @@ export default function LandingPage() {
       },
        vision: {
          heading: "Tầm nhìn & Sứ mệnh",
-         text: "Chúng tôi tin rằng tương lai được xây dựng từ những kết nối thông minh. Leveller AI không chỉ là công cụ, mà là một hệ sinh thái tri thức giúp bạn xóa bỏ mọi giới hạn.",
+          text: "Chúng tôi tin rằng tương lai được xây dựng từ những kết nối thông minh. Leveller.ai không chỉ là công cụ, mà là một hệ sinh thái tri thức giúp bạn xóa bỏ mọi giới hạn.",
          subtext: "Với công nghệ AI tiên tiến và Đồ thị Tri thức, chúng tôi tạo ra cầu nối giữa kỹ năng hiện tại và cơ hội tương lai của bạn.",
          accurate: "Chính xác",
          accurateDesc: "AI phân tích sâu để đưa ra đánh giá chính xác nhất",
          fast: "Nhanh chóng",
          fastDesc: "Kết quả trong vài phút, không phải vài ngày",
-         effective: "Hiệu quả",
-         effectiveDesc: "Lộ trình cá nhân hóa giúp bạn tiến nhanh hơn"
-       },
-       scrollHint: "Scroll to explore",
+       effective: "Hiệu quả",
+        effectiveDesc: "Lộ trình cá nhân hóa giúp bạn tiến nhanh hơn"
+      },
+      scrollHint: "Kéo để khám phá",
        testimonials_data: [
-         {
-           quote: "Leveller AI giúp tôi xác định những khoảng trống kỹ năng mà tôi không biết. Trong 3 tháng, tôi đã đạt được công việc mơ ước tại một công ty công nghệ hàng đầu.",
-           author: "Nguyễn Văn A",
-           role: "Software Engineer",
-           company: "Tech Corp"
-         },
-         {
-           quote: "Các đề xuất được hỗ trợ bởi AI rất chính xác. Lộ trình học tập được cá nhân hóa đã giúp tôi tiết kiệm hàng tháng thử và sai.",
-           author: "Trần Thị B",
-           role: "Data Analyst",
-           company: "Analytics Inc"
-         },
-         {
-           quote: "Là một người chuyển đổi sự nghiệp, Leveller AI đã cho tôi sự tự tin và hướng dẫn mà tôi cần. Phân tích khoảng trống kỹ năng rất chi tiết.",
-           author: "Lê Văn C",
-           role: "Product Manager",
-           company: "Startup XYZ"
-         }
-        ],
-       howItWorks: {
-        heading: "Cách hoạt động",
-        subheading: "Ba bước đơn giản để mở khóa tiềm năng nghề nghiệp của bạn",
-        step1: "Tải CV lên",
-        step1Desc: "Tải CV của bạn lên và để AI phân tích kỹ năng, kinh nghiệm và quỹ đạo nghề nghiệp.",
-        step2: "Phân tích AI",
-        step2Desc: "Thuật toán tiên tiến xác định khoảng trống kỹ năng, khớp cơ hội và tạo đề xuất cá nhân hóa.",
-        step3: "Nhận kết quả",
-        step3Desc: "Nhận thông tin chi tiết có thể hành động, đề xuất khóa học và lộ trình rõ ràng đến công việc mơ ước."
-      },
-      features: {
-        heading: "Tương lai của tri thức",
-        subheading: "Giải pháp toàn diện cho mọi đối tượng",
-        professionals: "Chuyên gia",
-        professionalsDesc: "Xây dựng và quản trị từ điển tri thức chuyên môn phức tạp thông qua kiến trúc Đồ thị Tri thức tiên tiến. Tự động hóa phân tích kỹ năng và chuẩn hóa quy trình chuyên gia.",
-        applicants: "Ứng viên",
-        applicantsDesc: "Giải mã khoảng trống kỹ năng (Skill Gap) và tối ưu hóa hồ sơ năng lực để dẫn đầu trong mọi cuộc săn tìm cơ hội.",
-        students: "Sinh viên",
-        studentsDesc: "Lộ trình học tập cá nhân hóa được tinh chỉnh bởi AI, giúp bạn rút ngắn khoảng cách từ giảng đường đến thực tế doanh nghiệp.",
-        learnMore: "Tìm hiểu thêm"
-      },
+          {
+            quote: "Leveller AI giúp tôi xác định những khoảng trống kỹ năng mà tôi không biết. Trong 3 tháng, tôi đã đạt được công việc mơ ước tại một công ty công nghệ hàng đầu.",
+            author: "Nguyễn Văn A",
+            role: "Software Engineer",
+            company: "Tech Corp",
+            rating: 5
+          },
+          {
+            quote: "Các đề xuất được hỗ trợ bởi AI rất chính xác. Lộ trình học tập được cá nhân hóa đã giúp tôi tiết kiệm hàng tháng thử và sai.",
+            author: "Trần Thị B",
+            role: "Data Analyst",
+            company: "Analytics Inc",
+            rating: 5
+          },
+          {
+            quote: "Là một người chuyển đổi sự nghiệp, Leveller AI đã cho tôi sự tự tin và hướng dẫn mà tôi cần. Phân tích khoảng trống kỹ năng rất chi tiết.",
+            author: "Lê Văn C",
+            role: "Product Manager",
+            company: "Startup XYZ",
+            rating: 5
+          }
+         ],
       testimonials: {
         heading: "Được tin tưởng bởi các chuyên gia",
         subheading: "Xem những gì người dùng của chúng tôi nói về trải nghiệm của họ"
@@ -224,17 +199,12 @@ export default function LandingPage() {
     },
     en: {
        hero: {
-         title: "Old systems say 'you don't fit.' We say 'you're this close.'",
+         title: "Old systems say 'you don't fit.'<br />We say 'you're this close.'",
         description: "Upload your CV, pick your target role — get a learning roadmap and match score in minutes.",
         getStarted: "Get started",
         learnMore: "Learn more"
       },
-      stats: {
-        cvs: "CVs Analyzed",
-        accuracy: "Match Accuracy",
-        companies: "Companies",
-        support: "AI Support"
-      },
+
       problem: {
         heading: "The Problem & Market Pain",
         title: "Lack of a clear development roadmap",
@@ -271,7 +241,7 @@ export default function LandingPage() {
         feature2: "Auto Skill Level Inference",
         feature2Desc: "Automatically infer proficiency levels based on job descriptions, work duration, and experience context",
         feature3: "Semantic Skill Matching",
-        feature3Desc: "Understands the real meaning behind each skill — not just keyword matching, but finding similar skills based on context and actual experience.",
+        feature3Desc: "Uses vector semantic search (pgvector) to find the nearest skills — not just keyword matching, but understanding semantic relationships between skills based on context and actual experience.",
         feature4: "Real-time Job Market Crawling",
         feature4Desc: "Continuously crawl data from TopCV and job listings to ensure Gap Analysis based on real market demand",
         feature5: "Multi-Platform Course Recommendations",
@@ -341,7 +311,7 @@ export default function LandingPage() {
       },
       vision: {
         heading: "Vision & Mission",
-        text: "We believe the future is built from intelligent connections. Leveller AI is not just a tool, but a knowledge ecosystem that helps you break through all limitations.",
+        text: "We believe the future is built from intelligent connections. Leveller.ai is not just a tool, but a knowledge ecosystem that helps you break through all limitations.",
         subtext: "With advanced AI technology and Knowledge Graph, we create a bridge between your current skills and future opportunities.",
         accurate: "Accurate",
         accurateDesc: "Deep AI analysis for the most precise assessment",
@@ -350,31 +320,34 @@ export default function LandingPage() {
         effective: "Effective",
         effectiveDesc: "Personalized roadmap helps you progress faster"
       },
-      howItWorks: {
-        heading: "How it works",
-        subheading: "Three simple steps to unlock your career potential",
-        step1: "Upload CV",
-        step1Desc: "Upload your resume and let our AI analyze your skills, experience, and career trajectory.",
-        step2: "AI Analysis",
-        step2Desc: "Advanced algorithms identify skill gaps, match opportunities, and generate personalized recommendations.",
-        step3: "Get Results",
-        step3Desc: "Receive actionable insights, course recommendations, and a clear roadmap to your dream job."
-      },
-      features: {
-        heading: "The future of knowledge",
-        subheading: "Comprehensive solutions for everyone",
-        professionals: "Professionals",
-        professionalsDesc: "Build and manage complex professional knowledge dictionaries through advanced Knowledge Graph architecture. Automate skill analysis and standardize expert processes.",
-        applicants: "Applicants",
-        applicantsDesc: "Decode skill gaps and optimize your competency profile to lead in every opportunity hunt.",
-        students: "Students",
-        studentsDesc: "AI-refined personalized learning roadmap helps you shorten the gap from classroom to business reality.",
-        learnMore: "Learn more"
-      },
+      scrollHint: "Scroll to explore",
       testimonials: {
         heading: "Trusted by professionals",
         subheading: "See what our users have to say about their experience"
       },
+      testimonials_data: [
+        {
+          quote: "Leveller AI helped me identify skill gaps I didn't even know I had. Within 3 months, I landed my dream job at a top tech company.",
+          author: "Nguyễn Văn A",
+          role: "Software Engineer",
+          company: "Tech Corp",
+          rating: 5
+        },
+        {
+          quote: "The AI-powered recommendations were spot-on. The personalized learning roadmap saved me months of trial and error.",
+          author: "Trần Thị B",
+          role: "Data Analyst",
+          company: "Analytics Inc",
+          rating: 5
+        },
+        {
+          quote: "As a career switcher, Leveller AI gave me the confidence and direction I needed. The skill gap analysis was incredibly detailed.",
+          author: "Lê Văn C",
+          role: "Product Manager",
+          company: "Startup XYZ",
+          rating: 5
+        }
+      ],
       footer: {
         product: "Product",
         company: "Company",
@@ -432,7 +405,7 @@ export default function LandingPage() {
               <Link href="/auth/register" className={styles.primaryBtn}>
                 {currentLang.hero.getStarted}
               </Link>
-              <Link href="#how-it-works" className={styles.secondaryBtn}>
+              <Link href="#features" className={styles.secondaryBtn}>
                 {currentLang.hero.learnMore} <ChevronRight size={18} />
               </Link>
             </div>
@@ -444,7 +417,7 @@ export default function LandingPage() {
             animate={{ y: [0, 8, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <div className={styles.scrollHintText}>Scroll to explore</div>
+            <div className={styles.scrollHintText}>{currentLang.scrollHint}</div>
             <ChevronRight size={20} style={{ transform: 'rotate(90deg)' }} />
           </motion.div>
         </section>
@@ -513,8 +486,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <p className={styles.problemDescription}>{currentLang.problem.employerTitle}</p>
-            <p className={styles.problemSubtext}>{currentLang.problem.employerDesc}</p>
+            <p className={styles.problemDescription}>{currentLang.problem.employerDesc}</p>
             <div className={styles.painPointsGrid}>
               {[
                 currentLang.problem.employerPain1,
@@ -842,29 +814,7 @@ export default function LandingPage() {
           </div>
 
           <div className={styles.testimonialsGrid}>
-            {[
-              {
-                quote: "Leveller AI helped me identify skill gaps I didn't even know I had. Within 3 months, I landed my dream job at a top tech company.",
-                author: "Nguyễn Văn A",
-                role: "Software Engineer",
-                company: "Tech Corp",
-                rating: 5
-              },
-              {
-                quote: "The AI-powered recommendations were spot-on. The personalized learning roadmap saved me months of trial and error.",
-                author: "Trần Thị B",
-                role: "Data Analyst",
-                company: "Analytics Inc",
-                rating: 5
-              },
-              {
-                quote: "As a career switcher, Leveller AI gave me the confidence and direction I needed. The skill gap analysis was incredibly detailed.",
-                author: "Lê Văn C",
-                role: "Product Manager",
-                company: "Startup XYZ",
-                rating: 5
-              }
-            ].map((testimonial, idx) => (
+            {(currentLang.testimonials_data || []).map((testimonial, idx) => (
               <motion.div
                 key={idx}
                 className={styles.testimonialCard}
