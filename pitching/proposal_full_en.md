@@ -52,7 +52,7 @@ Your ATS is rejecting good candidates.
 
 ---
 
-## 3. THE ANTI-ATS SOLUTION
+## 3. SOLUTION: BEYOND THE ATS
 
 Upload your CV, pick your target role. Within minutes, Leveller.ai shows exactly which high-impact skills you need — and which ones you can skip.
 
@@ -76,7 +76,7 @@ Upload your CV, pick your target role. Within minutes, Leveller.ai shows exactly
 | **Risk assessment** | Guess based on years of experience + keyword density | Self-reported skills, no verification | Real readiness + trainability estimate: "needs 2 weeks on React, ready for interview now" |
 | **Cost per hire** | High: wrong hires, long screening cycles | High: recruiter time + InMail credits | Low: pre-filtered, evidence-based shortlist |
 
-### The LinkedIn rot
+### A better system
 
 | LinkedIn problem | How it hurts | Leveller fix |
 |---|---|---|
@@ -135,19 +135,7 @@ Not all skills are equal. Each course recommendation is weighted by its actual i
 
 ---
 
-## 5. TRACTION & VALIDATION
-
-**We are the customer.** I graduated and faced this firsthand — fresh out of school, staring at senior-level JDs, not knowing what to learn. That 28% stat? We're part of it. We built this because we lived it.
-
-**Early signal:** We put a simple test in front of 3 friends in our target group — graduates and career switchers. All 3 uploaded their CVs within minutes and asked "when can I see my match score?" Not statistically significant, but it told us: the instinct to check your fit is real and the friction to try is low.
-
-**What's next:** Our first milestone post-pitch is 50 structured user interviews and 3 employer conversations to validate both sides of the marketplace.
-
-> Founder-market fit is our primary validation. Market data says the problem is big. Our own experience says it hurts. Formal validation is the immediate next step — and we have a clear plan to get it.
-
----
-
-## 6. BUSINESS MODEL (STARTING POINT)
+## 5. BUSINESS MODEL (STARTING POINT)
 
 We go to market with **users first** — graduates and career pivoters — before monetizing employers. Once the candidate pool reaches critical mass, employer-side revenue activates.
 
@@ -175,7 +163,7 @@ After the roadmap, users see live job listings matched to their skill trajectory
 
 ---
 
-## 7. ROADMAP: CAREER INTELLIGENCE ECOSYSTEM
+## 6. ROADMAP: CAREER INTELLIGENCE ECOSYSTEM
 
 We're not stopping at CV analysis. We're building a **Career Intelligence Ecosystem** — a flywheel that gets smarter with every user.
 
@@ -183,12 +171,12 @@ We're not stopping at CV analysis. We're building a **Career Intelligence Ecosys
 - **Artifact Builder Guide** — Portfolio, projects, proof of work tailored to target roles
 - **Interview Preparation** — Predictive questions + optimized answers based on gap analysis
 - **Real-time Opportunity Matching** — Proactive job alerts aligned to learning roadmap
-- **Employer Integration (Anti-ATS for Hiring)** — Smart JD builder + real candidate readiness data. JD that means what it says. Candidates with evidence, not keywords.
 - **Semantic Skill Graph (Neo4j)** — Collective intelligence: more users → more accurate recommendations → better outcomes → more users. A network-effects moat.
+- **Employer Integration (Anti-ATS for Hiring)** — Smart JD builder + real candidate readiness data. JD that means what it says. Candidates with evidence, not keywords.
 
 ---
 
-## 8. CONCLUSION: THREE EFFECTS
+## 7. CONCLUSION: THREE EFFECTS
 
 **Leveller.ai exists from one simple belief:** Every individual deserves to know exactly what to learn, how long it will take, and when they're ready. Every employer deserves candidates who can actually do the job.
 
@@ -201,6 +189,10 @@ We're not stopping at CV analysis. We're building a **Career Intelligence Ecosys
 3. **Build a Skilled Tech Workforce** — 6-12 months → 2-3 months. Millions of people entering the tech market faster, with solid foundations.
 
 **Leveller.ai is the bridge** — connecting candidates to opportunities, employers to talent, and both sides to market truth.
+
+**Why us:** We built this because we lived it. That 28% of IT professionals who are career switchers? We're part of it. We graduated staring at JDs listing 25+ skills, not knowing where to start. This isn't a theoretical problem we researched — it's our story. And that's exactly why we're the team to solve it.
+
+**What we're looking for:** A pilot with one Vingroup division — match your internal mobility candidates to open roles using our platform. Alongside that, mentorship from your HR and L&D leaders to refine the employer-side model.
 
 ---
 
@@ -221,11 +213,3 @@ We're not stopping at CV analysis. We're building a **Career Intelligence Ecosys
 - The pitch stays generic — the product is not Vingroup-dependent. Your *insight* comes from understanding what the country's largest employer cares about, not from proprietary data.
 
 ---
-
-### TEAM (for presenter, not spoken)
-
-| Role | Background |
-|---|---|
-| **You (Founder / Researcher)** | CS grad from US uni. software design, UI/UX/pedagogy research. Lived the problem firsthand. |
-| **Data Analyst** | Works on market analysis, skill data, validation metrics. |
-| **Freelance Backend Dev** | Built the entire backend — FastAPI, pgvector, Celery workers, AI pipeline. |

@@ -34,7 +34,7 @@ Root cause: JDs are keyword spam. No one knows which skills predict success.
 
 ---
 
-## SLIDE 3: SOLUTION
+## SLIDE 3: BEYOND THE ATS
 
 Upload CV, pick role → match score + gap + roadmap with free courses.
 
@@ -47,15 +47,13 @@ Upload CV, pick role → match score + gap + roadmap with free courses.
 2. Adjacent-domain: Excel → SQL. Same logic.
 3. Professional leverage: Sales → tech. Communication transfers.
 
-**Comparison:**
+**Candidate POV:**
 
 | | LinkedIn / ATS | Leveller |
 |---|---|---|
 | Jobs | Ghost jobs, Easy Apply black hole | Market-crawled live listings, match score before applying |
 | Skills | Self-reported endorsements | AI-inferred from work context |
-| JD quality | 25+ keyword overload | Core vs trainable. JD that means something. |
 | Feedback | Silence or automated rejection | Gap analysis: "65% match. Here's what was missing." |
-| Employer view | Keyword density score | Real readiness + trainability estimate |
 
 **Tech stack:**
 - Multi-modal CV parsing (OCR + LangGraph)
@@ -67,7 +65,30 @@ Upload CV, pick role → match score + gap + roadmap with free courses.
 
 ---
 
-## SLIDE 4: IMPACT
+## SLIDE 4: HIRING IS STILL KEYWORD BINGO
+
+**Employer POV:**
+
+| Dimension | Classic ATS | LinkedIn Recruiter | Leveller |
+|---|---|---|---|
+| JD creation | Copy-paste. 25+ overload. | Post whatever, no checks | Smart builder: core vs trainable |
+| Sourcing | Exact match → 80% false negatives | Boolean + InMail spam | Skill proximity search |
+| Hidden talent | Filtered out | Only active seekers | Surfaces near-misses |
+| Risk | Years + keyword density | Self-reported | Real readiness + trainability |
+
+**LinkedIn's broken model:**
+
+| Problem | Leveller fix |
+|---|---|
+| Ghost jobs | Live listings only |
+| Easy Apply black hole | Match score + gap before applying |
+| Skill endorsements = noise | AI-infers from work context |
+| No JD accountability | Builder rejects keyword spam |
+| Volume > accuracy | Profit from placements, not ads |
+
+---
+
+## SLIDE 5: IMPACT
 
 | | Classic | Leveller |
 |---|---|---|
@@ -76,14 +97,6 @@ Upload CV, pick role → match score + gap + roadmap with free courses.
 | Hidden talent | Filtered out | Surfaced |
 
 Not all skills equal. Each course weighted by actual impact on target role.
-
----
-
-## SLIDE 5: TRACTION
-
-- Founders are the customer — lived the problem
-- Early signal: 3 friends uploaded CVs instantly
-- Next: 50 user interviews + 3 employer conversations
 
 ---
 
@@ -109,8 +122,8 @@ Career Intelligence Ecosystem:
 - Artifact Builder Guide
 - Interview Preparation
 - Real-time Opportunity Matching
-- Employer Integration (smart JD builder + readiness data)
 - Semantic Skill Graph (Neo4j — network-effects moat)
+- Employer Integration (smart JD builder + readiness data)
 
 ---
 
@@ -122,6 +135,10 @@ Career Intelligence Ecosystem:
 3. Build a Skilled Workforce — 12mo → 2-3mo. Millions faster.
 
 Leveller.ai is the bridge — connecting candidates to opportunities, employers to talent, and both sides to market truth.
+
+**Why us:** That 28% of IT professionals who are career switchers? We're part of it. We built this because we lived it.
+
+**What we're looking for:** A pilot with one Vingroup division — internal mobility candidates matched to open roles — plus mentorship from HR and L&D leaders.
 
 ---
 
