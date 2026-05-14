@@ -105,6 +105,7 @@ COMMENT ON COLUMN youtube_courses.quality_score IS 'Quality metric (0-100)';
 CREATE TABLE IF NOT EXISTS youtube_video_skills (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     video_id VARCHAR(50) NOT NULL REFERENCES youtube_courses(video_id) ON DELETE CASCADE,
+    skill_id UUID REFERENCES skills(id) ON DELETE SET NULL,
     skill_name VARCHAR(100) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     
@@ -112,6 +113,7 @@ CREATE TABLE IF NOT EXISTS youtube_video_skills (
 );
 
 CREATE INDEX IF NOT EXISTS idx_youtube_video_skills_video_id ON youtube_video_skills(video_id);
+CREATE INDEX IF NOT EXISTS idx_youtube_video_skills_skill_id ON youtube_video_skills(skill_id);
 CREATE INDEX IF NOT EXISTS idx_youtube_video_skills_skill_name ON youtube_video_skills(skill_name);
 
 COMMENT ON TABLE youtube_video_skills IS 'Skills taught in YouTube videos (many-to-many)';

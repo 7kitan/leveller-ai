@@ -423,6 +423,7 @@ class YouTubeVideoSkill(Base):
         nullable=False,
         index=True
     )
+    skill_id = Column(UUID(as_uuid=True), ForeignKey("skills.id", ondelete="SET NULL"), nullable=True, index=True)
     skill_name = Column(String(100), nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
