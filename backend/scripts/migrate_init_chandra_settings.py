@@ -37,19 +37,19 @@ logger = logging.getLogger("migration")
 
 def migrate():
     import json
-    logger.info("🚀 Initializing Chandra OCR settings in database...")
+    logger.info("🚀 Initializing Chandra API settings in database...")
     try:
         # Ensure table exists
         Base.metadata.create_all(engine)
         
         # Get current values from .env
-        chandra_url = os.getenv("CHANDRA_OCR_URL", "")
-        chandra_key = os.getenv("CHANDRA_OCR_API_KEY", "")
+        chandra_url = os.getenv("CHANDRA_API_URL", "")
+        chandra_key = os.getenv("CHANDRA_API_KEY", "")
         
         with engine.connect() as conn:
-            # Initialize or Update CHANDRA_OCR_URL
+            # Initialize or Update CHANDRA_API_URL
             check_url = conn.execute(
-                text("SELECT value FROM system_settings WHERE key = 'CHANDRA_OCR_URL'")
+                text("SELECT value FROM system_settings WHERE key = 'CHANDRA_API_URL'")
             ).fetchone()
             
             new_url_json = json.dumps(chandra_url)
@@ -58,12 +58,12 @@ def migrate():
                 conn.execute(
                     text("INSERT INTO system_settings (key, value, description) VALUES (:key, :value, :desc)"),
                     {
-                        "key": "CHANDRA_OCR_URL", 
+                        "key": "CHANDRA_API_URL", 
                         "value": new_url_json,
-                        "desc": "Chandra OCR Hub API URL for CV parsing"
+                        "desc": "Chandra API Hub URL for CV parsing"
                     }
                 )
-                logger.info(f"  [OK] Inserted 'CHANDRA_OCR_URL' = {chandra_url}")
+                logger.info(f"  [OK] Inserted 'CHANDRA_API_URL' = {chandra_url}")
             else:
                 # Compare JSON values
                 current_val_json = check_url[0]
@@ -78,16 +78,16 @@ def migrate():
 
                 if current_val != chandra_url:
                     conn.execute(
-                        text("UPDATE system_settings SET value = :value WHERE key = 'CHANDRA_OCR_URL'"),
+                        text("UPDATE system_settings SET value = :value WHERE key = 'CHANDRA_API_URL'"),
                         {"value": new_url_json}
                     )
-                    logger.info(f"  [OK] Updated 'CHANDRA_OCR_URL' from '{current_val}' to '{chandra_url}'")
+                    logger.info(f"  [OK] Updated 'CHANDRA_API_URL' from '{current_val}' to '{chandra_url}'")
                 else:
-                    logger.info(f"  [INFO] 'CHANDRA_OCR_URL' already up to date: {chandra_url}")
+                    logger.info(f"  [INFO] 'CHANDRA_API_URL' already up to date: {chandra_url}")
             
-            # Initialize or Update CHANDRA_OCR_API_KEY
+            # Initialize or Update CHANDRA_API_KEY
             check_key = conn.execute(
-                text("SELECT value FROM system_settings WHERE key = 'CHANDRA_OCR_API_KEY'")
+                text("SELECT value FROM system_settings WHERE key = 'CHANDRA_API_KEY'")
             ).fetchone()
             
             new_key_json = json.dumps(chandra_key)
@@ -96,12 +96,12 @@ def migrate():
                 conn.execute(
                     text("INSERT INTO system_settings (key, value, description) VALUES (:key, :value, :desc)"),
                     {
-                        "key": "CHANDRA_OCR_API_KEY", 
+                        "key": "CHANDRA_API_KEY", 
                         "value": new_key_json,
-                        "desc": "Chandra OCR Hub API Key for authentication"
+                        "desc": "Chandra API Hub Key for authentication"
                     }
                 )
-                logger.info("  [OK] Inserted 'CHANDRA_OCR_API_KEY'")
+                logger.info("  [OK] Inserted 'CHANDRA_API_KEY'")
             else:
                 current_val_json = check_key[0]
                 try:
@@ -114,12 +114,12 @@ def migrate():
 
                 if current_val != chandra_key:
                     conn.execute(
-                        text("UPDATE system_settings SET value = :value WHERE key = 'CHANDRA_OCR_API_KEY'"),
+                        text("UPDATE system_settings SET value = :value WHERE key = 'CHANDRA_API_KEY'"),
                         {"value": new_key_json}
                     )
-                    logger.info("  [OK] Updated 'CHANDRA_OCR_API_KEY'")
+                    logger.info("  [OK] Updated 'CHANDRA_API_KEY'")
                 else:
-                    logger.info("  [INFO] 'CHANDRA_OCR_API_KEY' already up to date")
+                    logger.info("  [INFO] 'CHANDRA_API_KEY' already up to date")
             
             conn.commit()
             logger.info("✅ Chandra settings migration completed!")

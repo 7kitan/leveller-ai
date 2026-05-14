@@ -50,8 +50,8 @@ KEY_MAPPING = {
     "smtp_user": "SMTP_USER",
     "smtp_pass": "SMTP_PASS",
     "smtp_from": "SMTP_FROM",
-    "chandra_ocr_url": "CHANDRA_OCR_URL",
-    "chandra_ocr_api_key": "CHANDRA_OCR_API_KEY",
+    "chandra_api_url": "CHANDRA_API_URL",
+    "chandra_api_key": "CHANDRA_API_KEY",
 }
 
 def migrate():

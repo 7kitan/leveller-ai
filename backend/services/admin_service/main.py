@@ -342,17 +342,15 @@ def admin_bulk_update_settings(
             db.add(setting)
         else:
             setting.value = value
-            
         updated_settings.append(setting)
-        # Invalidate Cache for each key
-        config_manager.invalidate_cache(key)
-        
-        # Sync to Redis if it's a gateway setting
-        sync_setting_to_redis(key, value)
-    
+            
     db.commit()
+    
+    # After successful commit, sync ALL updated settings to Redis
+    logger.info(f"[ADMIN] Bulk update committed to DB. Syncing {len(updated_settings)} settings to Redis...")
     for s in updated_settings:
         db.refresh(s)
+        sync_setting_to_redis(s.key, s.value)
         
     return updated_settings
 

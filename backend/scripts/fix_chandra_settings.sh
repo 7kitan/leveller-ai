@@ -16,20 +16,19 @@ cd "$BACKEND_DIR"
 
 # Check if .env exists
 if [ ! -f .env ]; then
-    echo "❌ Error: .env file not found in $BACKEND_DIR"
-    echo "Please create .env with CHANDRA_API_URL and CHANDRA_API_KEY"
+    echo "Please create .env with CHANDRA_OCR_URL and CHANDRA_OCR_API_KEY"
     exit 1
 fi
 
 # Check if Chandra settings exist in .env
-if ! grep -q "CHANDRA_API_URL" .env; then
-    echo "⚠️  Warning: CHANDRA_API_URL not found in .env"
-    echo "Please add: CHANDRA_API_URL=https://your-chandra-hub-url/tasks/ocr"
+if ! grep -q "CHANDRA_OCR_URL" .env; then
+    echo "⚠️  Warning: CHANDRA_OCR_URL not found in .env"
+    echo "Please add: CHANDRA_OCR_URL=https://your-chandra-hub-url/tasks/ocr"
 fi
 
-if ! grep -q "CHANDRA_API_KEY" .env; then
-    echo "⚠️  Warning: CHANDRA_API_KEY not found in .env"
-    echo "Please add: CHANDRA_API_KEY=your_api_key"
+if ! grep -q "CHANDRA_OCR_API_KEY" .env; then
+    echo "⚠️  Warning: CHANDRA_OCR_API_KEY not found in .env"
+    echo "Please add: CHANDRA_OCR_API_KEY=your_api_key"
 fi
 
 echo "📦 Running migration to initialize Chandra settings in database..."
@@ -44,7 +43,7 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "📋 Next steps:"
     echo "1. Verify settings in admin panel: https://onehub.cfd/admin/settings"
-    echo "2. Look for 'chandra_api_url' and 'chandra_api_key'"
+    echo "2. Look for 'CHANDRA_OCR_URL' and 'CHANDRA_OCR_API_KEY'"
     echo "3. Update them via UI if needed"
     echo "4. Workers will automatically pick up changes from database"
     echo ""
