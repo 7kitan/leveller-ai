@@ -44,7 +44,14 @@ class ConfigManager:
             with SessionLocal() as db:
                 setting = db.query(SystemSetting).filter(SystemSetting.key == key).first()
                 if setting:
-                    db_val = setting.value
+                    raw_val = setting.value
+                    try:
+                        # Database stores values as JSON strings (e.g. '"chandra"')
+                        # We must unquote/parse them
+                        db_val = json.loads(raw_val)
+                    except (json.JSONDecodeError, TypeError):
+                        db_val = raw_val
+                        
                     # Update cache for next time
                     config_cache.set(key, json.dumps(db_val), ex=3600)
         except Exception as e:

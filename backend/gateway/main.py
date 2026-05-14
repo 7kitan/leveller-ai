@@ -291,7 +291,9 @@ async def proxy(service_name: str, path: str, request: Request):
         return proxy_response
     except httpx.RequestError as exc:
         # Service không available hoặc network error
-        raise HTTPException(status_code=502, detail=f"Service unavailable: {str(exc)}")
+        error_msg = f"Service unavailable: {str(exc)}"
+        logger.error(f"[PROXY ERROR] {request.method} {url} | Error: {str(exc)}")
+        raise HTTPException(status_code=502, detail=error_msg)
 
 # ============================================================================
 # HEALTH CHECK ENDPOINT
