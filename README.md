@@ -1,6 +1,6 @@
-# Leveller.ai - Nền Tảng Phân Tích Sự Nghiệp Thông Minh
+# Leveller.ai - Phân Tích Khoảng Trống Kỹ Năng & Gợi Ý Chứng Chỉ
 
-Leveller.ai là giải pháp đột phá sử dụng Trí tuệ nhân tạo (AI) để giúp ứng viên thấu hiểu bản thân, phát hiện lỗ hổng kỹ năng và xây dựng lộ trình sự nghiệp tối ưu.
+Leveller.ai là nền tảng đột phá sử dụng Trí tuệ nhân tạo (AI) để giúp ứng viên thấu hiểu bản thân thông qua việc **Phân tích Khoảng trống Kỹ năng (Skill Gap Analysis)** và xây dựng lộ trình sự nghiệp tối ưu bằng các **Gợi ý Chứng chỉ & Khóa học (Certificate Suggestion)**.
 
 ---
 
@@ -8,19 +8,19 @@ Leveller.ai là giải pháp đột phá sử dụng Trí tuệ nhân tạo (AI)
 
 Trong thị trường lao động biến động, ứng viên thường gặp khó khăn trong việc:
 - **Xác định lỗ hổng kỹ năng**: Không biết mình thiếu gì so với yêu cầu thực tế của nhà tuyển dụng.
-- **Lộ trình học tập mông lung**: Giữa hàng ngàn khóa học, không biết cái nào thực sự giúp ích cho sự nghiệp.
-- **Tối ưu hóa CV**: CV không phản ánh đúng năng lực hoặc không vượt qua được các bộ lọc ATS.
+- **Lựa chọn chứng chỉ & lộ trình**: Giữa hàng ngàn chứng chỉ, không biết cái nào thực sự giá trị để lấp đầy khoảng trống năng lực.
+- **Tối ưu hóa hồ sơ**: Hồ sơ không phản ánh đúng các kỹ năng cốt lõi mà thị trường đang khao khát.
 
-**Leveller.ai** giải quyết vấn đề này bằng cách sử dụng **Vector Search** và **LLM** để phân tích sự tương quan giữa năng lực cá nhân và nhu cầu thị trường, từ đó đưa ra gợi ý chính xác nhất.
+**Leveller.ai** giải quyết vấn đề này bằng cách sử dụng **Vector Search** và **LLM Reasoning** để phân tích sự tương quan giữa năng lực cá nhân và yêu cầu của **Job Description (JD)**, từ đó đưa ra gợi ý lộ trình chứng chỉ chính xác nhất.
 
 ---
 
 ## 🚀 Tính Năng Nổi Bật
 
-- **AI CV Parser**: Bóc tách thông tin CV tự động với độ chính xác cao (hỗ trợ cả file scan/ảnh).
-- **Skill Gap Analysis**: So sánh năng lực hiện tại với yêu cầu của **Job Description (JD)** mục tiêu bằng AI để chỉ ra chính xác các khoảng trống kỹ năng.
-- **Career Roadmap**: Đề xuất lộ trình học tập (Coursera, Udemy) tối ưu để lấp đầy các khoảng trống kỹ năng cho công việc (JD) đã chọn.
-- **Market Insights**: Cập nhật xu hướng và nhu cầu của các kỹ năng trên thị trường lao động từ dữ liệu thực tế.
+- **AI CV Parser**: Bóc tách thông tin năng lực tự động với độ chính xác cao (hỗ trợ cả file scan/ảnh).
+- **Skill Gap Analysis**: So sánh năng lực hiện tại với yêu cầu của **Job Description (JD)** mục tiêu để chỉ ra chính xác các khoảng trống kỹ năng.
+- **Certificate Roadmap**: Đề xuất các chứng chỉ chuyên môn (Professional Certificates) và khóa học (Coursera, Udemy) tối ưu để lấp đầy các khoảng trống kỹ năng cho công việc đã chọn.
+- **Market Skill Insights**: Cập nhật xu hướng và trọng số nhu cầu của các kỹ năng từ dữ liệu thị trường thực tế.
 
 ---
 

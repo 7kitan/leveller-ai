@@ -1,15 +1,15 @@
-# Kiến Trúc Hệ Thống Leveller.ai
+# Kiến Trúc Hệ Thống: Phân Tích Khoảng Trống Kỹ Năng & Gợi Ý Chứng Chỉ (Leveller.ai)
 
-Leveller.ai là một nền tảng phân tích CV và gợi ý lộ trình nghề nghiệp thông minh dựa trên kiến trúc Microservices hiện đại, kết hợp với sức mạnh của AI (LLM) và Vector Search.
+Leveller.ai là nền tảng chuyên sâu về **Phân Tích Khoảng Trống Kỹ Năng (Skill Gap Analysis)** và **Gợi Ý Lộ Trình Chứng Chỉ (Certificate Suggestion)**. Hệ thống được xây dựng trên kiến trúc Microservices hiện đại, kết hợp sức mạnh của AI Reasoning và Vector Search để tối ưu hóa lộ trình sự nghiệp.
 
 ---
 
 ## 1. Tổng Quan Hệ Thống
 
-Hệ thống được thiết kế để giải quyết bài toán:
-- **Phân tích CV**: Trích xuất kỹ năng, kinh nghiệm và trình độ từ hồ sơ ứng viên (hỗ trợ cả file scan/ảnh qua OCR).
-- **Phân tích Lỗ hổng (Gap Analysis)**: So khớp năng lực hiện tại với yêu cầu thị trường thông qua Vector Similarity.
-- **Gợi ý Lộ trình**: Đề xuất các khóa học và công việc phù hợp nhất để lấp đầy các lỗ hổng kỹ năng.
+Hệ thống tập trung giải quyết bài toán:
+- **Phân tích Năng lực (Profile Parsing)**: Trích xuất chính xác bộ kỹ năng và kinh nghiệm từ CV (hỗ trợ OCR cho file scan/ảnh).
+- **Phân tích Khoảng trống (Gap Analysis)**: So khớp năng lực hiện tại với yêu cầu chi tiết từ **Job Description (JD)** bằng LLM Reasoning và Vector Similarity để chỉ ra các kỹ năng còn thiếu.
+- **Gợi ý Chứng chỉ & Lộ trình (Recommendations)**: Đề xuất các chứng chỉ chuyên môn, khóa học và project thực tế phù hợp nhất để lấp đầy khoảng trống kỹ năng.
 
 ---
 
@@ -88,7 +88,7 @@ Hệ thống sử dụng **LiteLLM** làm lớp trừu tượng (Abstraction Lay
 Đây là service chuyên biệt xử lý các tác vụ AI nặng (Heavy Lifting):
 -   **Multimodal OCR**: Sử dụng các model thị giác máy tính (Computer Vision) để đọc hiểu CV từ mọi định dạng (PDF, PNG, JPG, Docx).
 -   **Layout Analysis**: Phân tích cấu trúc tài liệu để đảm bảo trích xuất đúng thông tin theo từng khối (Kinh nghiệm, Kỹ năng, Học vấn).
--   **Standalone Service**: Chạy độc lập trên port 8080 để tối ưu hóa tài nguyên GPU/CPU tách biệt với API Gateway.
+-   **Standalone Service**: Chạy độc lập để tối ưu hóa tài nguyên GPU/CPU tách biệt với API Gateway.
 
 ### 6.2. Worker & Queue System (Celery)
 Hệ thống phân tách tác vụ qua các Queue riêng biệt để tối ưu hiệu suất:
