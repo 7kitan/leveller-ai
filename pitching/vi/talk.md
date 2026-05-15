@@ -90,12 +90,12 @@ Không phải kỹ năng nào cũng như nhau. Mỗi khóa học được đề 
 
 Người dùng trước — sinh viên mới tốt nghiệp và người chuyển ngành. Doanh thu từ nhà tuyển dụng sau khi có đủ người dùng.
 
-- **Miễn phí:** Match score + tổng quan gap
-- **Một lần — 49,000 VND:** Lộ trình đầy đủ cho một vị trí. Rẻ hơn bát phở.
-- **Hàng tháng — 29,000 VND:** Theo dõi tiến độ, đánh giá lại, nhiều vị trí
-- **Affiliate việc làm:** Chúng tôi đề xuất việc làm phù hợp. Nhận hoa hồng khi bạn được tuyển. Lợi ích đồng nhất.
+- **Miễn phí:** Lần đầu miễn phí hoàn toàn — lộ trình đầy đủ, match score, khóa học.
+- **Một lần — 59,000 VND:** Lộ trình đầy đủ cho một vị trí.
+- **Hàng tháng — 199,000 VND:** Phân tích không giới hạn, theo dõi tiến độ, đánh giá lại, nhiều vị trí.
+- **Mở rộng tuyển dụng:** Khi có đủ người dùng, nhà tuyển dụng trả phí để tìm kiếm hồ sơ theo skill proximity + JD builder thông minh.
 
-Dòng doanh thu tương lai: employer talent discovery, API licensing, university partnerships.
+Dòng doanh thu tương lai: API licensing, university partnerships, corporate L&D.
 
 ---
 

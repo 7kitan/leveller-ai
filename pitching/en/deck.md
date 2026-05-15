@@ -105,13 +105,13 @@ Not all skills equal. Each course weighted by actual impact on target role.
 Users first → employer revenue later.
 
 | Tier | Price | What |
-|---|---|---|
-| Free | 0 | Match score + gap overview |
-| One-time | 49,000 VND | Full roadmap for one role |
-| Monthly | 29,000 VND | Progress tracking, multiple roles |
-| Job affiliate | Per placement ~500k-2M VND | Earn when hired. Aligned incentives. |
+|---|---|---|---|
+| Free | First analysis free | Full roadmap, match score, courses |
+| One-time | 59,000 VND | Full roadmap for one role |
+| Monthly | 199,000 VND/mo | Unlimited analyses, tracking, multiple roles |
+| Employer expansion | Enterprise | Talent discovery by skill proximity + smart JD builder |
 
-**Future streams:** Employer talent discovery, API licensing, university partnerships, corporate L&D, certification, course affiliate, custom training.
+**Future streams:** API licensing, university partnerships, corporate L&D, certification, course affiliate, custom training.
 
 ---
 

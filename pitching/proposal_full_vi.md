@@ -140,20 +140,18 @@ Không phải kỹ năng nào cũng như nhau. Mỗi khóa học được đề 
 Chúng tôi tiếp cận thị trường với **người dùng trước** — sinh viên mới tốt nghiệp và người chuyển ngành — trước khi kiếm doanh thu từ nhà tuyển dụng. Khi lượng người dùng đạt khối lượng tới hạn, doanh thu phía nhà tuyển dụng sẽ kích hoạt.
 
 ### Tier 1: Miễn phí (công cụ thu hút)
-Match score + tổng quan gap + "bạn còn X tuần nữa." Không cần thanh toán.
+Lần đầu tiên hoàn toàn miễn phí — lộ trình đầy đủ, match score, khóa học đề xuất, dữ liệu lương. Không cần thanh toán. Người dùng trải nghiệm sản phẩm trước khi quyết định trả tiền.
 
-### Tier 2: Báo cáo một lần — 49,000 VND
-Lộ trình đầy đủ + danh sách khóa học + dữ liệu lương cho một vị trí. Rẻ hơn bát phở — dễ dàng đồng ý sau khi thấy gap.
+### Tier 2: Báo cáo một lần — 59,000 VND
+Lộ trình đầy đủ + danh sách khóa học + dữ liệu lương cho một vị trí. Dành cho người dùng cần phân tích thêm nhưng không cần theo dõi dài hạn.
 
-### Tier 3: Thuê bao tháng — 29,000 VND/tháng
-Theo dõi tiến độ, đánh giá lại, nhiều phiên bản CV, so sánh không giới hạn các vị trí. Rẻ hơn một cốc cà phê sữa đá mỗi tuần. Người chuyển ngành có hành trình dài sẽ đăng ký.
+### Tier 3: Thuê bao tháng — 199,000 VND/tháng
+Phân tích không giới hạn, theo dõi tiến độ, đánh giá lại, nhiều phiên bản CV, so sánh không giới hạn các vị trí. Dành cho người chuyển ngành có hành trình dài cần theo dõi tiến bộ qua nhiều vị trí mục tiêu.
 
-### Job placement affiliate (biên lợi nhuận cao nhất)
-Sau lộ trình, người dùng thấy listings việc làm phù hợp với quỹ đạo kỹ năng của họ. Khi họ nộp và được tuyển qua các nền tảng đối tác (TopCV, v.v.), Leveller nhận phí giới thiệu (~500k–2M VND mỗi vụ). Điều này đồng nhất lợi ích: chúng tôi chỉ thắng khi ứng viên thắng.
+### Tier 4: Mở rộng phía nhà tuyển dụng (biên lợi nhuận cao nhất)
+Khi lượng người dùng đạt khối lượng tới hạn, doanh thu phía nhà tuyển dụng kích hoạt. Doanh nghiệp trả phí để tìm kiếm ứng viên theo skill proximity — phát hiện các near-miss mà ATS bỏ sót — cùng với JD builder thông minh phân biệt core requirements vs trainable skills.
 
-> Đây là dòng doanh thu **khởi đầu**. Các dòng tương lai bao gồm:
-> - **Employer talent discovery** — Tuyển dụng trả phí để tìm kiếm hồ sơ theo skill proximity
-> - **JD refinement as a paid service** — Doanh nghiệp trả phí cho JD builder thông minh + phân tích core vs trainable
+> Đây là dòng doanh thu **tăng trưởng**. Các dòng tương lai bao gồm:
 > - **API licensing** — Dữ liệu skill graph, chuẩn thị trường, gap analysis dạng API cho nền tảng HR
 > - **University / bootcamp partnerships** — Phân tích chương trình: "sinh viên tốt nghiệp của bạn đáp ứng thị trường thế nào"
 > - **Corporate L&D** — Di chuyển nội bộ: phân tích skill gap của nhân sự hiện tại so với nhu cầu tương lai
