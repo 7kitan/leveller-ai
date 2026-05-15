@@ -18,10 +18,9 @@ Trong thị trường lao động biến động, ứng viên thường gặp kh
 ## 🚀 Tính Năng Nổi Bật
 
 - **AI CV Parser**: Bóc tách thông tin CV tự động với độ chính xác cao (hỗ trợ cả file scan/ảnh).
-- **Skill Gap Analysis**: So sánh năng lực hiện tại với yêu cầu thực tế của thị trường qua Vector Search.
-- **Career Roadmap**: Đề xuất lộ trình học tập (Coursera, Udemy) và công việc phù hợp.
-- **Market Insights**: Cập nhật xu hướng lương và nhu cầu kỹ năng từ dữ liệu thực tế.
-- **Simulation**: Thử nghiệm học thử khóa học để xem mức độ thăng tiến của hồ sơ.
+- **Skill Gap Analysis**: So sánh năng lực hiện tại với yêu cầu của **Job Description (JD)** mục tiêu bằng AI để chỉ ra chính xác các khoảng trống kỹ năng.
+- **Career Roadmap**: Đề xuất lộ trình học tập (Coursera, Udemy) tối ưu để lấp đầy các khoảng trống kỹ năng cho công việc (JD) đã chọn.
+- **Market Insights**: Cập nhật xu hướng và nhu cầu của các kỹ năng trên thị trường lao động từ dữ liệu thực tế.
 
 ---
 
