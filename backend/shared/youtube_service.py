@@ -107,17 +107,15 @@ class YouTubeSearchService:
             # - Generic programming video: vector=0.85, bm25=0.20, boosts=0.05 → 0.425 + 0.06 + 0.05 = 0.535
             # → Curated video wins despite lower vector similarity!
             
-            # Build tsquery for BM25 search
-            # Clean and prepare search terms - filter out '&' and empty strings to avoid syntax errors
-            search_terms = [t for t in skill_name.strip().replace("'", "").split() if t and t != '&']
-            tsquery = " & ".join(search_terms) if search_terms else ""
+            # Clean and prepare search terms for websearch_to_tsquery (safer than to_tsquery)
+            tsquery = skill_name.strip().replace("'", "")
             
-            # Use separate queries or conditional logic if tsquery is empty
             bm25_score_sql = "0"
             bm25_filter_sql = "FALSE"
             if tsquery:
-                bm25_score_sql = "LEAST(ts_rank(yc.search_vector, to_tsquery('english', :tsquery)) * 2.0, 1.0)"
-                bm25_filter_sql = "yc.search_vector @@ to_tsquery('english', :tsquery)"
+                # Use websearch_to_tsquery for better handling of special chars like C++, C#, .NET
+                bm25_score_sql = "LEAST(ts_rank(yc.search_vector, websearch_to_tsquery('english', :tsquery)) * 2.0, 1.0)"
+                bm25_filter_sql = "yc.search_vector @@ websearch_to_tsquery('english', :tsquery)"
 
             try:
                 results = db.execute(
@@ -250,186 +248,164 @@ class YouTubeSearchService:
             logger.warning("[YOUTUBE API] No API Key found. Skipping search.")
             return []
 
-        logger.info(f"[YOUTUBE API] Calling YouTube Search for: {final_q} (lang={lang}, domain={domain})")
+        # List of queries to try (Vietnamese first, then English fallback)
+        queries_to_try = [(final_q, lang)]
+        if lang == "vi":
+            # Add English fallback query
+            eng_q = f"{skill_name} {domain} full course {level_suffix if ' ' not in level_suffix else 'beginner'}"
+            queries_to_try.append((eng_q, "en"))
+
+        all_video_results = []
+        
+        for q_text, q_lang in queries_to_try:
+            if len(all_video_results) >= limit:
+                break
+
+            logger.info(f"[YOUTUBE API] Searching: {q_text} (lang={q_lang})")
+            try:
+                params = {
+                    "part": "snippet",
+                    "q": q_text,
+                    "type": "video",
+                    "maxResults": limit * 4, # Fetch more to filter
+                    "key": self.api_key,
+                    "relevanceLanguage": q_lang,
+                    "videoDuration": "any",  # Changed from 'long' to 'any' for better coverage
+                    "videoDefinition": "high",
+                    "order": "relevance",
+                    "safeSearch": "moderate"
+                }
+                if q_lang == "vi":
+                    params["regionCode"] = "VN"
+
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(self.base_url, params=params)
+                    if response.status_code == 403:
+                        logger.error("[YOUTUBE API] 403 Forbidden - Likely quota exceeded")
+                        break
+                    response.raise_for_status()
+                    data = response.json()
+
+                items = data.get("items", [])
+                
+                for item in items:
+                    snippet = item.get("snippet", {})
+                    title = snippet.get("title", "").lower()
+                    description = snippet.get("description", "").lower()
+                    channel_name = snippet.get("channelTitle", "")
+                    
+                    # NEGATIVE FILTER: Skip interview/job-related content
+                    interview_keywords = ["interview", "phỏng vấn", "phong van", "salary", "hired", "resume", "cv tips", "job search"]
+                    if any(kw in title or kw in description for kw in interview_keywords):
+                        continue
+                    
+                    # POSITIVE FILTER: Require strong learning indicators
+                    learning_indicators = [
+                        "tutorial", "course", "hướng dẫn", "khóa học", "learn", "học", "hoc", 
+                        "guide", "beginner", "cơ bản", "step by step", "từng bước", "full course", "complete"
+                    ]
+                    if not any(ind in title or ind in description for ind in learning_indicators):
+                        continue
+                    
+                    video_id = item.get("id", {}).get("videoId")
+                    if not video_id:
+                        continue
+
+                    # Avoid duplicates in the same search session
+                    if any(v["video_id"] == video_id for v in all_video_results):
+                        continue
+
+                    # Check DB to avoid unique constraint errors and reuse embeddings
+                    existing = db.query(YouTubeCourse).filter(YouTubeCourse.video_id == video_id).first()
+                    if not existing:
+                        context = f"Title: {snippet.get('title')}. Channel: {channel_name}. Description: {description}"
+                        vector = get_embedding(context)
+                        
+                        published_at = None
+                        if snippet.get("publishedAt"):
+                            try:
+                                published_at = datetime.fromisoformat(snippet.get("publishedAt").replace("Z", "+00:00"))
+                            except ValueError:
+                                pass
+
+                        new_video = YouTubeCourse(
+                            video_id=video_id,
+                            title=snippet.get("title"),
+                            description=snippet.get("description"),
+                            thumbnail=snippet.get("thumbnails", {}).get("high", {}).get("url"),
+                            channel_name=channel_name,
+                            url=f"https://www.youtube.com/watch?v={video_id}",
+                            embedding_context=context,
+                            vector=vector,
+                            published_at=published_at,
+                            expires_at=datetime.now(timezone.utc) + timedelta(days=30),
+                            last_verified_at=datetime.now(timezone.utc),
+                            language=q_lang,
+                            skill_level=target_skill_level,
+                            is_curated=False
+                        )
+                        db.add(new_video)
+                        
+                        # Auto-tag skills
+                        if skill_name and skill_name.strip():
+                            import uuid
+                            try:
+                                db.execute(
+                                    text("""
+                                        INSERT INTO youtube_video_skills (id, video_id, skill_name)
+                                        VALUES (:id, :vid, :skill)
+                                        ON CONFLICT (video_id, skill_name) DO NOTHING
+                                    """),
+                                    {
+                                        "id": str(uuid.uuid4()),
+                                        "vid": video_id, 
+                                        "skill": skill_name.strip()
+                                    }
+                                )
+                            except Exception as e:
+                                logger.warning(f"[YOUTUBE API] Failed to auto-tag skill '{skill_name}' for video {video_id}: {e}")
+
+                        video_data = {
+                            "video_id": video_id,
+                            "title": snippet.get("title"),
+                            "description": snippet.get("description"),
+                            "thumbnail": new_video.thumbnail,
+                            "channel_name": channel_name,
+                            "url": new_video.url,
+                            "embed_url": f"https://www.youtube.com/embed/{video_id}",
+                            "language": q_lang,
+                            "skill_level": target_skill_level,
+                            "is_curated": False
+                        }
+                    else:
+                        video_data = {
+                            "video_id": existing.video_id,
+                            "title": existing.title,
+                            "description": existing.description,
+                            "thumbnail": existing.thumbnail,
+                            "channel_name": existing.channel_name,
+                            "url": existing.url,
+                            "embed_url": f"https://www.youtube.com/embed/{existing.video_id}",
+                            "language": existing.language,
+                            "skill_level": existing.skill_level,
+                            "is_curated": existing.is_curated
+                        }
+                    
+                    all_video_results.append(video_data)
+                    if len(all_video_results) >= limit:
+                        break
+
+            except Exception as e:
+                logger.error(f"[YOUTUBE API] Search iteration failed: {str(e)}")
+                continue
+
         try:
-            params = {
-                "part": "snippet",
-                "q": final_q,
-                "type": "video",
-                "maxResults": limit * 3,  # Fetch more to filter later
-                "key": self.api_key,
-                "relevanceLanguage": lang,
-                "videoDuration": "long",  # Changed from 'medium' to 'long' (>20min) to get real courses
-                "videoDefinition": "high",  # Prioritize HD
-                "order": "relevance",
-                "safeSearch": "moderate"
-            }
-            if lang == "vi":
-                params["regionCode"] = "VN"
-
-            async with httpx.AsyncClient() as client:
-                response = await client.get(self.base_url, params=params)
-                response.raise_for_status()
-                data = response.json()
-
-            items = data.get("items", [])
-            
-            # Post-filter: Remove low-quality videos
-            filtered_items = []
-            for item in items:
-                snippet = item.get("snippet", {})
-                title = snippet.get("title", "").lower()
-                description = snippet.get("description", "").lower()
-                channel_name = snippet.get("channelTitle", "")
-                
-                # NEGATIVE FILTER 1: Skip interview/job-related content
-                interview_keywords = [
-                    "interview", "phỏng vấn", "phong van",
-                    "câu hỏi phỏng vấn", "cau hoi phong van",
-                    "interview questions", "interview tips",
-                    "mock interview", "job interview",
-                    "salary negotiation", "resume tips",
-                    "career advice", "how to get hired"
-                ]
-                if any(kw in title or kw in description for kw in interview_keywords):
-                    logger.debug(f"[YOUTUBE FILTER] Skipped interview video: {title[:50]}")
-                    continue
-                
-                # NEGATIVE FILTER 2: Skip spam/clickbait
-                spam_keywords = ["click here", "subscribe now", "free download", "hack", "crack", "pirate"]
-                if any(kw in title or kw in description for kw in spam_keywords):
-                    continue
-                
-                # NEGATIVE FILTER 3: Skip suspicious channels
-                if len(channel_name) < 3 or channel_name.isupper():
-                    continue
-                
-                # POSITIVE FILTER: Require strong learning indicators
-                # Use specific keywords that appear in tutorials but NOT in interviews
-                strong_learning_indicators = [
-                    "tutorial", "course", "hướng dẫn", "khóa học",
-                    "full course", "trọn bộ", "đầy đủ", "complete tutorial",
-                    "beginner", "cơ bản", "co ban",
-                    "step by step", "từng bước", "tu tung buoc",
-                    "complete guide", "hướng dẫn đầy đủ",
-                    "learn", "học", "hoc",
-                    "introduction", "giới thiệu"
-                ]
-                has_strong_indicator = any(ind in title or ind in description for ind in strong_learning_indicators)
-                
-                # ONLY accept videos with strong learning indicators
-                if has_strong_indicator:
-                    filtered_items.append(item)
-                    logger.debug(f"[YOUTUBE FILTER] Accepted tutorial video: {title[:50]}")
-                else:
-                    logger.debug(f"[YOUTUBE FILTER] Skipped non-tutorial video: {title[:50]}")
-                
-                if len(filtered_items) >= limit:
-                    break
-            
-            results = []
-
-            for item in filtered_items:
-                snippet = item.get("snippet", {})
-                video_id = item.get("id", {}).get("videoId")
-                if not video_id:
-                    continue
-
-                title = snippet.get("title")
-                description = snippet.get("description")
-                thumbnail = snippet.get("thumbnails", {}).get("high", {}).get("url")
-                channel_name = snippet.get("channelTitle")
-                published_at_str = snippet.get("publishedAt")
-                
-                # Check if exists in DB by video_id (để tránh lỗi Unique Constraint)
-                existing = db.query(YouTubeCourse).filter(YouTubeCourse.video_id == video_id).first()
-                if not existing:
-                    # Tạo embedding context cho video mới
-                    context = f"Title: {title}. Channel: {channel_name}. Description: {description}"
-                    vector = get_embedding(context)
-
-                    published_at = None
-                    if published_at_str:
-                        published_at = datetime.fromisoformat(published_at_str.replace("Z", "+00:00"))
-
-                    # Auto-tag with metadata from search context
-                    # This enables boost scoring and filtering for auto-cached videos
-                    auto_language = lang if lang in ["en", "vi"] else None
-                    auto_skill_level = target_skill_level  # Already mapped to DB format (Junior/Mid-level/Senior/Expert)
-
-                    new_video = YouTubeCourse(
-                        video_id=video_id,
-                        title=title,
-                        description=description,
-                        thumbnail=thumbnail,
-                        channel_name=channel_name,
-                        url=f"https://www.youtube.com/watch?v={video_id}",
-                        embedding_context=context,
-                        vector=vector,
-                        published_at=published_at,
-                        expires_at=now + timedelta(days=30), # Cache trong 30 ngày
-                        last_verified_at=now, # Đánh dấu vừa check xong
-                        # Auto-tag metadata for boost scoring and filtering
-                        language=auto_language,
-                        skill_level=auto_skill_level,
-                        is_curated=False  # Mark as auto-cached (not manually curated)
-                    )
-                    db.add(new_video)
-                    db.flush() # Để lấy ID nếu cần
-                    
-                    # Auto-tag skills in junction table
-                    # This enables skill-based boost scoring (+0.12) and filtering
-                    if skill_name and skill_name.strip():
-                        from sqlalchemy import text
-                        import uuid
-                        try:
-                            db.execute(
-                                text("""
-                                    INSERT INTO youtube_video_skills (id, video_id, skill_name)
-                                    VALUES (:id, :vid, :skill)
-                                    ON CONFLICT (video_id, skill_name) DO NOTHING
-                                """),
-                                {
-                                    "id": str(uuid.uuid4()),
-                                    "vid": video_id, 
-                                    "skill": skill_name.strip()
-                                }
-                            )
-                        except Exception as e:
-                            logger.warning(f"[YOUTUBE CACHE] Failed to auto-tag skill '{skill_name}' for video {video_id}: {e}")
-                    
-                    video_data = {
-                        "video_id": video_id,
-                        "title": title,
-                        "description": description,
-                        "thumbnail": thumbnail,
-                        "channel_name": channel_name,
-                        "url": f"https://www.youtube.com/watch?v={video_id}",
-                        "embed_url": f"https://www.youtube.com/embed/{video_id}",
-                        # Include auto-tagged metadata in response
-                        "language": auto_language,
-                        "skill_level": auto_skill_level,
-                        "is_curated": False
-                    }
-                else:
-                    video_data = {
-                        "video_id": existing.video_id,
-                        "title": existing.title,
-                        "description": existing.description,
-                        "thumbnail": existing.thumbnail,
-                        "channel_name": existing.channel_name,
-                        "url": existing.url,
-                        "embed_url": f"https://www.youtube.com/embed/{existing.video_id}"
-                    }
-                
-                results.append(video_data)
-
             db.commit()
-            return results
+        except Exception as commit_err:
+            logger.warning(f"[YOUTUBE API] Failed to commit new videos: {commit_err}")
+            db.rollback()
 
-        except Exception as e:
-            logger.error(f"[YOUTUBE API] Search failed: {str(e)}")
-            return []
+        return all_video_results[:limit]
 
     def _format_video_result(self, r) -> Dict[str, Any]:
         return {

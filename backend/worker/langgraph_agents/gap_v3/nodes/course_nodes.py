@@ -325,6 +325,9 @@ async def _llm_select_courses_and_roadmap_unified(
         final_candidates.extend(sorted_cands[:5]) # Top 5 per gap
 
     # Final safeguard: Limit total candidates to 20 to avoid prompt overflow
+    # BUG-025 FIX: Filter out very low quality matches to prevent LLM hallucinations
+    MIN_CANDIDATE_SCORE = 0.25
+    final_candidates = [c for c in final_candidates if float(c.get("combined_score") or 0) >= MIN_CANDIDATE_SCORE]
     final_candidates = sorted(final_candidates, key=lambda x: float(x.get("combined_score") or 0), reverse=True)[:20]
 
     candidates_json = []

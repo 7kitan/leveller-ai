@@ -183,7 +183,7 @@ async def finalize_report_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3:
             skill_gaps=skill_gaps,
             job_id=state.get("job_id"),
             current_match_pct=llm_match_pct,
-            db=db
+            db=state.get("db")
         )
         # Update gaps in the gap_analysis object for final report
         gap_analysis["skill_gaps"] = enriched_gaps
