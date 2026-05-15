@@ -28,7 +28,7 @@ Trong thị trường lao động biến động, ứng viên thường gặp kh
 
 - **Backend**: FastAPI, Celery, Redis, PostgreSQL (pgvector).
 - **Frontend**: Next.js 14, TypeScript, TailwindCSS.
-- **AI**: OpenAI GPT-4o, Chandra OCR (Multimodal Parsing), LangGraph, Semantic Search, LiteLLM.
+- **AI**: OpenAI GPT-4o, Chandra OCR (Tùy chọn) / PDF Fallback, LangGraph, Semantic Search, LiteLLM.
 
 ---
 
