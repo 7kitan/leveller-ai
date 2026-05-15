@@ -109,7 +109,7 @@ ATS models skills as binary checkboxes. Reality is a graph.
 - **Vector Semantic Search** — pgvector, 1536-dim embeddings, skill proximity matching
 - **Real-time Market Crawling** — live data from TopCV and job listings
 - **Multi-Platform Course Recommendations** — Coursera, YouTube, and beyond
-- **Match Score & Salary Impact** — data-driven, market-validated
+- **Match Score & Market Demand** — data-driven, market-validated
 
 ---
 
@@ -143,7 +143,7 @@ We go to market with **users first** — graduates and career pivoters — befor
 Match score + gap overview + "you're X weeks away." No payment needed.
 
 ### Tier 2: One-time report — 49,000 VND
-Full roadmap + course list + salary benchmarks for one target role. Cheaper than a bowl of phở — an easy yes after seeing the gap.
+Full roadmap + course list + market demand metrics for one target role. Cheaper than a bowl of phở — an easy yes after seeing the gap.
 
 ### Tier 3: Monthly subscription — 29,000 VND/mo
 Progress tracking, re-assessment, multiple CV variants, unlimited role comparisons. Less than a cà phê sữa đá a week. Pivoters on a multi-month journey subscribe.
@@ -201,7 +201,7 @@ We're not stopping at CV analysis. We're building a **Career Intelligence Ecosys
 2. **[1 min]** Select target position → Show Skill Gap Map
 3. **[30s]** Highlight Match Score → "You're 65% match with this role"
 4. **[30s]** Show prioritized course recommendations → "Data-driven, market-validated"
-5. **[30s]** Show salary data from TopCV → "Market-validated salary benchmarks for your target role"
+5. **[30s]** Show market demand data from TopCV → "Market-validated demand for your target role"
 
 ---
 

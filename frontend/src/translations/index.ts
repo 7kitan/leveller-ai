@@ -242,7 +242,7 @@ export const translations = {
     ai_searching: "AI đang tìm kiếm thêm khóa học và xây dựng lộ trình...",
     skill_impact_analysis: "Phân tích tác động kỹ năng",
     match_impact: "Tác động tương thích (%)",
-    salary_impact: "Tác động lương (%)",
+    salary_impact: "Nhu cầu thị trường (%)",
 
     // Feedback
     feedback_title: "Phản hồi về kết quả",
@@ -466,7 +466,7 @@ export const translations = {
     dash_match_score: "Điểm Tương Thích",
     dash_learn_now: "Học ngay",
     dash_potential_match: "Độ Phù Hợp Tiềm Năng",
-    dash_salary_boost: "Dự Báo Tăng Trưởng Lương",
+    dash_salary_boost: "Dự Báo Nhu Cầu Thị Trường",
     dash_market_sentiment: "Tín Hiệu Thị Trường",
     dash_hot_trend: "Xu Hướng Hot",
 
@@ -1504,7 +1504,7 @@ export const translations = {
     cat_cert: "Certifications",
     demand_score: "Market Demand",
     match_impact: "Match Impact (%)",
-    salary_impact: "Salary Impact (%)",
+    salary_impact: "Market Demand (%)",
 
     // Feedback
     feedback_title: "Result Feedback",
@@ -1727,7 +1727,7 @@ export const translations = {
     dash_match_score: "Match Score",
     dash_learn_now: "Learn Now",
     dash_potential_match: "Potential Match Score",
-    dash_salary_boost: "Salary Growth Forecast",
+    dash_salary_boost: "Market Demand Forecast",
     dash_market_sentiment: "Market Sentiment",
     dash_hot_trend: "Hot Trend",
 

@@ -61,7 +61,7 @@ Upload CV, pick role → match score + gap + roadmap with free courses.
 - Vector Semantic Search (pgvector, 1536-dim)
 - Real-time Market Crawling (TopCV)
 - Multi-Platform Course Recommendations (Coursera, YouTube)
-- Match Score + Salary Impact
+- Match Score + Market Demand
 
 ---
 
@@ -148,4 +148,4 @@ Leveller.ai is the bridge — connecting candidates to opportunities, employers 
 2. [1 min] Select position → Skill Gap Map
 3. [30s] Match Score → "65% match"
 4. [30s] Course recommendations
-5. [30s] Salary data from TopCV
+5. [30s] Market demand data from TopCV

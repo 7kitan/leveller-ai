@@ -60,7 +60,7 @@ Chúng tôi nói: Biết Vue.js là biết components, state, hooks, routing. ~8
 | Kỹ năng | Tự xưng, người quen endorse | AI suy luận từ bối cảnh kinh nghiệm |
 | Phản hồi | Im lặng hoặc từ chối tự động | Gap analysis: "Bạn match 65%. Đây là những gì còn thiếu." |
 
-**Công nghệ:** Multi-modal CV parsing, auto skill level inference, vector semantic search với pgvector, real-time market crawling từ TopCV, course recommendations, match score và salary impact.
+**Công nghệ:** Multi-modal CV parsing, auto skill level inference, vector semantic search với pgvector, real-time market crawling từ TopCV, course recommendations, match score và market demand.
 
 ---
 
@@ -134,7 +134,7 @@ Chúng tôi đang xây dựng Career Intelligence Ecosystem:
 2. **[1 phút]** Chọn vị trí → Skill Gap Map
 3. **[30s]** Match Score → "Bạn phù hợp 65%"
 4. **[30s]** Khóa học đề xuất — "Dựa trên dữ liệu thị trường thực tế"
-5. **[30s]** Dữ liệu lương từ TopCV
+5. **[30s]** Nhu cầu thị trường từ TopCV
 
 ---
 

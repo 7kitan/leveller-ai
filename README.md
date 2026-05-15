@@ -42,8 +42,8 @@ cp .env.example .env  # Cập nhật OPENAI_API_KEY vào .env
 docker-compose up -d --build
 ```
 
-### 2. Cấu hình AI Inference Hub (Chandra OCR)
-Đây là "bộ não" xử lý trích xuất thông tin CV.
+### 2. Cấu hình AI Inference Hub (Chandra OCR) - *Tùy chọn*
+Đây là service xử lý trích xuất thông tin CV nâng cao (hỗ trợ file ảnh/scan). **Lưu ý**: Nếu bỏ qua bước này, hệ thống sẽ tự động sử dụng thư viện PDF fallback để trích xuất văn bản từ các file PDF chuẩn.
 ```bash
 cd ai_inference_hub
 python3 -m venv venv

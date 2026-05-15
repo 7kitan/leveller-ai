@@ -84,10 +84,11 @@ Hệ thống sử dụng **LiteLLM** làm lớp trừu tượng (Abstraction Lay
 -   **Automatic Fallback**: Tự động chuyển đổi sang model dự phòng nếu model chính bị lỗi hoặc hết hạn mức (Quota).
 -   **Quota Management**: Kiểm soát lượng token tiêu thụ theo từng người dùng trong ngày.
 
-### 6.2. AI Inference Hub (Chandra Engine)
+### 6.1. AI Inference Hub (Chandra Engine) - *Thành phần Tùy chọn*
 Đây là service chuyên biệt xử lý các tác vụ AI nặng (Heavy Lifting):
 -   **Multimodal OCR**: Sử dụng các model thị giác máy tính (Computer Vision) để đọc hiểu CV từ mọi định dạng (PDF, PNG, JPG, Docx).
 -   **Layout Analysis**: Phân tích cấu trúc tài liệu để đảm bảo trích xuất đúng thông tin theo từng khối (Kinh nghiệm, Kỹ năng, Học vấn).
+-   **Resilience & Fallback**: Được thiết kế là thành phần **Tùy chọn (Optional)**. Trong trường hợp không cấu hình Chandra Hub, **CV Service** sẽ tự động kích hoạt **PDF Library Fallback** để trích xuất văn bản trực tiếp từ các file PDF chuẩn, đảm bảo hệ thống vẫn hoạt động ổn định.
 -   **Standalone Service**: Chạy độc lập để tối ưu hóa tài nguyên GPU/CPU tách biệt với API Gateway.
 
 ### 6.2. Worker & Queue System (Celery)

@@ -43,7 +43,7 @@
 
 * **** **Multi-Platform Course Recommendations:** Hệ thống gợi ý khóa học từ nhiều nền tảng — **Coursera**, **YouTube**, và các nguồn học tập khác — với truy cập trực tiếp từ platform. Ứng viên không chỉ nhận được danh sách khóa học mà còn có thể bắt đầu học ngay lập tức, tối ưu hóa thời gian và chi phí.
 
-* **** **Match Score & Salary Impact Calculation:** Hệ thống tự động tính toán Match Score (mức độ phù hợp với công việc mục tiêu) và Salary Impact (mức tăng lương dự kiến) dựa trên dữ liệu thị trường thực tế, giúp ứng viên hiểu rõ giá trị của mỗi kỹ năng.
+* **** **Match Score & Market Demand Calculation:** Hệ thống tự động tính toán Match Score (mức độ phù hợp với công việc mục tiêu) và Market Demand (nhu cầu thực tế của thị trường) dựa trên dữ liệu thị trường thực tế, giúp ứng viên hiểu rõ giá trị của mỗi kỹ năng.
 
 ---
 
@@ -95,4 +95,4 @@
 2. **[1 phút]** Select job position (e.g., Junior Backend) → Show Skill Gap Map.
 3. **[30 giây]** Highlight Match Score → "Bạn phù hợp 65% với vị trí này."
 4. **[30 giây]** Show recommended courses from Coursera → "Dựa trên dữ liệu thị trường thực tế."
-5. **[30 giây]** Show salary data from TopCV → "Mức lương trung bình cho vị trí này là..."
+5. **[30 giây]** Nhu cầu thị trường từ TopCV → "Nhu cầu thị trường cho vị trí này là..."
