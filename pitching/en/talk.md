@@ -90,12 +90,12 @@ Not all skills are equal. Each course is weighted by actual impact on the target
 
 Users first — graduates and career pivoters. Employer revenue comes after we have a pool.
 
-- **Free:** Match score + gap overview
-- **One-time — 49,000 VND:** Full roadmap for one role. Cheaper than phở.
-- **Monthly — 29,000 VND:** Progress tracking, re-assessment, multiple roles
-- **Job affiliate:** We recommend matched jobs. We earn when you get hired. Aligned incentives.
+- **Free:** First analysis completely free — full roadmap, match score, courses.
+- **One-time — 59,000 VND:** Full roadmap for one role.
+- **Monthly — 199,000 VND:** Unlimited analyses, progress tracking, re-assessment, multiple roles.
+- **Employer expansion:** Once we have a pool, employers pay for talent discovery by skill proximity + smart JD builder.
 
-Future streams: employer talent discovery, API licensing, university partnerships.
+Future streams: API licensing, university partnerships, corporate L&D.
 
 ---
 

@@ -105,13 +105,13 @@ Không phải kỹ năng nào cũng như nhau. Mỗi khóa học dựa trên tá
 Người dùng trước → doanh thu từ tuyển dụng sau.
 
 | Hạng | Giá | Nội dung |
-|---|---|---|
-| Miễn phí | 0 | Match score + tổng quan gap |
-| Một lần | 49,000 VND | Lộ trình đầy đủ cho một vị trí |
-| Hàng tháng | 29,000 VND | Theo dõi tiến độ, nhiều vị trí |
-| Affiliate | ~500k-2M VND/vụ | Hoa hồng khi được tuyển |
+|---|---|---|---|
+| Miễn phí | Lần đầu miễn phí | Lộ trình đầy đủ, match score, khóa học |
+| Một lần | 59,000 VND | Lộ trình đầy đủ cho một vị trí |
+| Hàng tháng | 199,000 VND/tháng | Phân tích không giới hạn, theo dõi tiến độ, nhiều vị trí |
+| Mở rộng tuyển dụng | Doanh nghiệp | Tìm kiếm ứng viên theo skill proximity + JD builder thông minh |
 
-**Tương lai:** Employer talent discovery, API licensing, university partnerships, corporate L&D, certification, course affiliate, custom training.
+**Tương lai:** API licensing, university partnerships, corporate L&D, certification, course affiliate, custom training.
 
 ---
 

@@ -140,20 +140,18 @@ Not all skills are equal. Each course recommendation is weighted by its actual i
 We go to market with **users first** — graduates and career pivoters — before monetizing employers. Once the candidate pool reaches critical mass, employer-side revenue activates.
 
 ### Tier 1: Free (acquisition engine)
-Match score + gap overview + "you're X weeks away." No payment needed.
+First analysis is completely free — full roadmap, match score, course recommendations, salary benchmarks. No payment needed. The user experiences the full product before deciding to pay.
 
-### Tier 2: One-time report — 49,000 VND
-Full roadmap + course list + market demand metrics for one target role. Cheaper than a bowl of phở — an easy yes after seeing the gap.
+### Tier 2: One-time report — 59,000 VND
+Full roadmap + course list + salary benchmarks for one target role. For users who want a second analysis but don't need ongoing tracking.
 
-### Tier 3: Monthly subscription — 29,000 VND/mo
-Progress tracking, re-assessment, multiple CV variants, unlimited role comparisons. Less than a cà phê sữa đá a week. Pivoters on a multi-month journey subscribe.
+### Tier 3: Monthly subscription — 199,000 VND/mo
+Unlimited analyses, progress tracking, re-assessment, multiple CV variants, unlimited role comparisons. For career pivoters on a multi-month journey who need to track their progress across multiple target roles.
 
-### Job placement affiliate (highest-margin)
-After the roadmap, users see live job listings matched to their skill trajectory. When they apply and get hired via partner platforms (TopCV, etc.), Leveller earns a referral fee (~500k–2M VND per placement). This aligns incentives: we only win when the candidate wins.
+### Tier 4: Employer-side expansion (highest-margin)
+Once the candidate pool reaches critical mass, employer-side revenue activates. Companies pay for talent discovery by skill proximity — surfacing near-miss candidates that ATS filters out, plus smart JD builder that distinguishes core requirements from trainable skills.
 
-> This is the **starting** income stream. Future streams include:
-> - **Employer talent discovery** — Sourcing: employers pay to search the candidate pool by skill proximity
-> - **JD refinement as a paid service** — Companies pay for smart JD builder + core vs trainable analysis
+> This is the **exponential** income stream. Additional future streams include:
 > - **API licensing** — Skill graph data, market benchmarks, gap analysis as an API for HR platforms
 > - **University / bootcamp partnerships** — Curriculum analytics: "here's how your graduates measure up to market demand"
 > - **Corporate L&D** — Internal mobility: skill gap analysis of existing workforce against future role needs
