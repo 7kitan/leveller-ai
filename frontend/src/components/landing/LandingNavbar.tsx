@@ -132,7 +132,7 @@ export default function LandingNavbar() {
         {/* Mobile Toggle */}
         <div className={styles.navRight}>
           <button onClick={toggleLanguage} className={styles.langToggleMobile}>
-            {language === 'vi' ? 'EN' : 'VI'}
+            {language === 'vi' ? 'VI' : 'EN'}
           </button>
           <button 
             className={styles.mobileToggle} 
