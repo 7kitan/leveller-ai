@@ -70,8 +70,8 @@ export default function LandingPage() {
         feature4Desc: "Liên tục cào dữ liệu từ TopCV và các nguồn job listings khác để đảm bảo Gap Analysis dựa trên nhu cầu thị trường thực tế",
         feature5: "Multi-Platform Course Recommendations",
         feature5Desc: "Gợi ý khóa học từ Coursera, YouTube và các nền tảng khác với truy cập trực tiếp để tối ưu hóa thời gian học tập",
-        feature6: "Match Score & Salary Impact",
-        feature6Desc: "Tự động tính toán Match Score và Salary Impact dựa trên dữ liệu thị trường thực tế để giúp ứng viên hiểu rõ giá trị của mỗi kỹ năng"
+        feature6: "Match Score",
+        feature6Desc: "Tự động tính toán Match Score dựa trên dữ liệu thị trường thực tế để giúp ứng viên hiểu rõ giá trị của mỗi kỹ năng"
       },
       userSteps: {
         heading: "Quy Trình Sử Dụng",
@@ -246,8 +246,8 @@ export default function LandingPage() {
         feature4Desc: "Continuously crawl data from TopCV and job listings to ensure Gap Analysis based on real market demand",
         feature5: "Multi-Platform Course Recommendations",
         feature5Desc: "Recommend courses from Coursera, YouTube and other platforms with direct access to optimize learning time",
-        feature6: "Match Score & Salary Impact",
-        feature6Desc: "Automatically calculate Match Score and Salary Impact based on real market data to help candidates understand skill value"
+        feature6: "Match Score",
+        feature6Desc: "Automatically calculate Match Score based on real market data to help candidates understand skill value"
       },
       userSteps: {
         heading: "How It Works",
