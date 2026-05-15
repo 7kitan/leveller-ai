@@ -237,6 +237,7 @@ async def finalize_report_node(state: GapAnalysisStateV3) -> GapAnalysisStateV3:
         "transferable_insights": list(gap_analysis.get("transferable_insights") or []),
         "jd_context": gap_analysis.get("jd_context") or "",
         "job_id": state.get("job_id"),  # ✅ ADD THIS - needed for API enrichment
+        "cv_id": state.get("cv_id"),    # ✅ ADD THIS - needed for frontend context
         "course_recommendations": course_output,
         "selected_youtube_videos": state.get("selected_youtube_videos") or [],
         "youtube_videos": state.get("youtube_videos") or [],

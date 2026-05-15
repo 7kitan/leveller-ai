@@ -23,6 +23,9 @@ const googleSans = Google_Sans({
 export const metadata: Metadata = {
   title: "Leveller AI - Skill Mapping & Career Roadmaps",
   description: "Bridge the gap between your skills and your dream job with AI-powered career roadmaps.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
