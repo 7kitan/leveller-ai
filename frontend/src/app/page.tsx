@@ -4,7 +4,6 @@ import React from "react";
 import Link from "next/link";
 import {
   ChevronRight,
-  Star,
   Mail
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -145,33 +144,6 @@ export default function LandingPage() {
         effectiveDesc: "Lộ trình cá nhân hóa giúp bạn tiến nhanh hơn"
       },
       scrollHint: "Kéo để khám phá",
-       testimonials_data: [
-          {
-            quote: "Leveller AI giúp tôi xác định những khoảng trống kỹ năng mà tôi không biết. Trong 3 tháng, tôi đã đạt được công việc mơ ước tại một công ty công nghệ hàng đầu.",
-            author: "Nguyễn Văn A",
-            role: "Software Engineer",
-            company: "Tech Corp",
-            rating: 5
-          },
-          {
-            quote: "Các đề xuất được hỗ trợ bởi AI rất chính xác. Lộ trình học tập được cá nhân hóa đã giúp tôi tiết kiệm hàng tháng thử và sai.",
-            author: "Trần Thị B",
-            role: "Data Analyst",
-            company: "Analytics Inc",
-            rating: 5
-          },
-          {
-            quote: "Là một người chuyển đổi sự nghiệp, Leveller AI đã cho tôi sự tự tin và hướng dẫn mà tôi cần. Phân tích khoảng trống kỹ năng rất chi tiết.",
-            author: "Lê Văn C",
-            role: "Product Manager",
-            company: "Startup XYZ",
-            rating: 5
-          }
-         ],
-      testimonials: {
-        heading: "Được tin tưởng bởi các chuyên gia",
-        subheading: "Xem những gì người dùng của chúng tôi nói về trải nghiệm của họ"
-      },
       footer: {
         product: "Sản phẩm",
         company: "Công ty",
@@ -321,33 +293,6 @@ export default function LandingPage() {
         effectiveDesc: "Personalized roadmap helps you progress faster"
       },
       scrollHint: "Scroll to explore",
-      testimonials: {
-        heading: "Trusted by professionals",
-        subheading: "See what our users have to say about their experience"
-      },
-      testimonials_data: [
-        {
-          quote: "Leveller AI helped me identify skill gaps I didn't even know I had. Within 3 months, I landed my dream job at a top tech company.",
-          author: "Nguyễn Văn A",
-          role: "Software Engineer",
-          company: "Tech Corp",
-          rating: 5
-        },
-        {
-          quote: "The AI-powered recommendations were spot-on. The personalized learning roadmap saved me months of trial and error.",
-          author: "Trần Thị B",
-          role: "Data Analyst",
-          company: "Analytics Inc",
-          rating: 5
-        },
-        {
-          quote: "As a career switcher, Leveller AI gave me the confidence and direction I needed. The skill gap analysis was incredibly detailed.",
-          author: "Lê Văn C",
-          role: "Product Manager",
-          company: "Startup XYZ",
-          rating: 5
-        }
-      ],
       footer: {
         product: "Product",
         company: "Company",
@@ -802,50 +747,6 @@ export default function LandingPage() {
           </motion.div>
         </section>
       </div>
-
-      {/* Features Section - Testimonials */}
-      <div id="testimonials" className={styles.sectionWrapper}>
-        <section className={styles.section}>
-          <div className={styles.centeredText}>
-            <h2 className={styles.sectionHeading}>{currentLang.testimonials.heading}</h2>
-            <p className={styles.sectionSubheading}>
-              {currentLang.testimonials.subheading}
-            </p>
-          </div>
-
-          <div className={styles.testimonialsGrid}>
-            {(currentLang.testimonials_data || []).map((testimonial, idx) => (
-              <motion.div
-                key={idx}
-                className={styles.testimonialCard}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.6, delay: idx * 0.15 }}
-              >
-                <div className={styles.testimonialRating}>
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} size={16} fill="var(--color-secondary)" color="var(--color-secondary)" />
-                  ))}
-                </div>
-                <p className={styles.testimonialQuote}>"{testimonial.quote}"</p>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    {testimonial.author.charAt(0)}
-                  </div>
-                  <div>
-                    <div className={styles.authorName}>{testimonial.author}</div>
-                    <div className={styles.authorRole}>
-                      {testimonial.role} at {testimonial.company}
-                    </div>
-                  </div>
-            </div>
-
-          </motion.div>
-          ))}
-        </div>
-      </section>
-    </div>
 
       {/* Enhanced Footer */}
       <div className={styles.sectionWrapper}>
