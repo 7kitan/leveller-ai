@@ -50,21 +50,17 @@ python3 -m venv venv
 source venv/bin/activate  # Hoặc venv\Scripts\activate trên Windows
 pip install -r requirements_ai.txt
 python setup_chandra.py    # Tải trọng số mô hình (~5GB)
-python setup_poppler.py    # (Windows) Setup tool xử lý PDF
 python main.py             # Chạy AI Hub tại port 8080
 ```
 
 ### 3. Khởi tạo dữ liệu (Chạy trong Docker)
-Sau khi Bước 1 đã chạy xong (containers đã up), bạn không cần cài Python trên máy host mà hãy chạy lệnh trực tiếp vào container:
+Sau khi Bước 1 đã chạy xong (containers đã up), hãy chạy các lệnh sau để khởi tạo hệ thống:
 ```bash
 # 1. Khởi tạo Database & Admin (Chạy 1 lần)
 docker exec -it advisor_worker_crawler python scripts/setup_db.py
 
-# 2. Nạp dữ liệu mẫu (Khóa học & Kỹ năng)
+# 2. Nạp dữ liệu mồi (3,000+ Khóa học & Kỹ năng)
 docker exec -it advisor_worker_crawler python scripts/seed_all.py
-
-# Lưu ý: Backend (FastAPI) đã tự động chạy bên trong Docker tại port 8000.
-# Bạn có thể kiểm tra tại: http://localhost:8000/docs
 ```
 
 ### 4. Chạy Frontend
@@ -79,10 +75,11 @@ Truy cập: [http://localhost:3000](http://localhost:3000)
 
 ## 📖 Hướng Dẫn Sử Dụng
 
-1.  **Phân tích CV**: Upload file CV (PDF/JPG/PNG/DOC/DOCX) lên hệ thống.
-2.  **Xem Gap Analysis**: Hệ thống sẽ hiển thị biểu đồ Radar Chart so sánh kỹ năng của bạn với thị trường.
-3.  **Khám phá Roadmap**: Nhấp vào các kỹ năng còn thiếu để xem danh sách khóa học và công việc gợi ý.
-4.  **Thử nghiệm (Simulation)**: Chọn "Simulate Completion" trên một khóa học để xem điểm tương quan (Match Score) của bạn sẽ thay đổi thế nào sau khi học.
+1.  **Phân tích CV**: Upload file CV (PDF/Ảnh) lên hệ thống. AI sẽ tự động bóc tách bộ kỹ năng và kinh nghiệm của bạn.
+2.  **Lựa chọn Vị trí (JD)**: Chọn một công việc mục tiêu (ví dụ: Senior Frontend) từ danh sách được crawl từ **TopCV** hoặc dán JD vào để so sánh.
+3.  **Phân tích Khoảng trống (Gap Analysis)**: Hệ thống hiển thị biểu đồ Radar Chart so sánh kỹ năng của bạn với yêu cầu thực tế của JD, tính toán **Match Score** hiện tại.
+4.  **Nhận Lộ trình Chứng chỉ**: Khám phá danh sách các chứng chỉ chuyên môn và khóa học (Coursera/Youtube) được gợi ý riêng cho bạn để lấp đầy các kỹ năng còn thiếu.
+5.  **Dự báo Tăng trưởng**: Xem chỉ số **Match Impact** (khả năng tăng tỷ lệ trúng tuyển) và **Market Demand** (nhu cầu thực tế của thị trường) sau khi hoàn thành lộ trình.
 
 ---
 
