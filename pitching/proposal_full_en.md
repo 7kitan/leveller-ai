@@ -109,7 +109,7 @@ ATS models skills as binary checkboxes. Reality is a graph.
 - **Vector Semantic Search** — pgvector, 1536-dim embeddings, skill proximity matching
 - **Real-time Market Crawling** — live data from TopCV and job listings
 - **Multi-Platform Course Recommendations** — Coursera, YouTube, and beyond
-- **Match Score & Salary Impact** — data-driven, market-validated
+- **Match Score & Market Demand** — data-driven, market-validated
 
 ---
 
@@ -199,7 +199,7 @@ We're not stopping at CV analysis. We're building a **Career Intelligence Ecosys
 2. **[1 min]** Select target position → Show Skill Gap Map
 3. **[30s]** Highlight Match Score → "You're 65% match with this role"
 4. **[30s]** Show prioritized course recommendations → "Data-driven, market-validated"
-5. **[30s]** Show salary data from TopCV → "Market-validated salary benchmarks for your target role"
+5. **[30s]** Show market demand data from TopCV → "Market-validated demand for your target role"
 
 ---
 

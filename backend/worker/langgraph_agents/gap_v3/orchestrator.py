@@ -240,6 +240,7 @@ async def run_gap_analysis_v3(
                             "skill_gaps": (final_state.get("gap_analysis") or {}).get("skill_gaps") or [],
                             "course_recommendations": final_state.get("course_recommendations") or [],
                             "selected_youtube_videos": final_state.get("selected_youtube_videos") or [],
+                            "youtube_videos": final_state.get("youtube_videos") or [],
                             "career_roadmap": final_state.get("career_roadmap") or {},
                             "status": final_state.get("status") or "processing",
                             "is_cached": final_state.get("is_cached", False),

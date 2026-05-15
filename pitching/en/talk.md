@@ -60,7 +60,7 @@ We say: Vue.js knows components, state, hooks, routing. ~80% of React. **1-2 wee
 | Skills | Self-reported endorsements | AI-inferred from work context |
 | Feedback | Silence or rejection | Gap analysis: "65% match. Here's what was missing." |
 
-**Tech stack:** Multi-modal CV parsing, auto skill level inference, vector semantic search with pgvector, real-time market crawling from TopCV, course recommendations, and match score with salary impact.
+**Tech stack:** Multi-modal CV parsing, auto skill level inference, vector semantic search with pgvector, real-time market crawling from TopCV, course recommendations, and match score with market demand.
 
 ---
 
@@ -134,7 +134,7 @@ We're building a Career Intelligence Ecosystem:
 2. **[1 min]** Select target position → Show Skill Gap Map
 3. **[30s]** Highlight Match Score → "You're 65% match with this role"
 4. **[30s]** Show prioritized course recommendations
-5. **[30s]** Show salary data from TopCV
+5. **[30s]** Show market demand data from TopCV
 
 ---
 

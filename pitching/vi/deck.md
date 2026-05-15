@@ -61,7 +61,7 @@ Tải CV, chọn vị trí → match score + gap + lộ trình với khóa học
 - Vector Semantic Search (pgvector, 1536 chiều)
 - Real-time Market Crawling (TopCV)
 - Multi-Platform Course Recommendations (Coursera, YouTube)
-- Match Score + Salary Impact
+- Match Score + Market Demand
 
 ---
 
@@ -148,4 +148,4 @@ Leveller.ai là cầu nối — kết nối ứng viên với cơ hội, nhà tu
 2. [1 phút] Chọn vị trí → Skill Gap Map
 3. [30s] Match Score → "Bạn phù hợp 65%"
 4. [30s] Khóa học đề xuất
-5. [30s] Dữ liệu lương từ TopCV
+5. [30s] Nhu cầu thị trường từ TopCV

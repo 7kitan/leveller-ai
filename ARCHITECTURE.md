@@ -1,15 +1,15 @@
-# Kiến Trúc Hệ Thống Leveller.ai
+# Kiến Trúc Hệ Thống: Phân Tích Khoảng Trống Kỹ Năng & Gợi Ý Chứng Chỉ (Leveller.ai)
 
-Leveller.ai là một nền tảng phân tích CV và gợi ý lộ trình nghề nghiệp thông minh dựa trên kiến trúc Microservices hiện đại, kết hợp với sức mạnh của AI (LLM) và Vector Search.
+Leveller.ai là nền tảng chuyên sâu về **Phân Tích Khoảng Trống Kỹ Năng (Skill Gap Analysis)** và **Gợi Ý Lộ Trình Chứng Chỉ (Certificate Suggestion)**. Hệ thống được xây dựng trên kiến trúc Microservices hiện đại, kết hợp sức mạnh của AI Reasoning và Vector Search để tối ưu hóa lộ trình sự nghiệp.
 
 ---
 
 ## 1. Tổng Quan Hệ Thống
 
-Hệ thống được thiết kế để giải quyết bài toán:
-- **Phân tích CV**: Trích xuất kỹ năng, kinh nghiệm và trình độ từ hồ sơ ứng viên (hỗ trợ cả file scan/ảnh qua OCR).
-- **Phân tích Lỗ hổng (Gap Analysis)**: So khớp năng lực hiện tại với yêu cầu thị trường thông qua Vector Similarity.
-- **Gợi ý Lộ trình**: Đề xuất các khóa học và công việc phù hợp nhất để lấp đầy các lỗ hổng kỹ năng.
+Hệ thống tập trung giải quyết bài toán:
+- **Phân tích Năng lực (Profile Parsing)**: Trích xuất chính xác bộ kỹ năng và kinh nghiệm từ CV (hỗ trợ OCR cho file scan/ảnh).
+- **Phân tích Khoảng trống (Gap Analysis)**: So khớp năng lực hiện tại với yêu cầu chi tiết từ **Job Description (JD)** bằng LLM Reasoning và Vector Similarity để chỉ ra các kỹ năng còn thiếu.
+- **Gợi ý Chứng chỉ & Lộ trình (Recommendations)**: Đề xuất các chứng chỉ chuyên môn, khóa học và project thực tế phù hợp nhất để lấp đầy khoảng trống kỹ năng.
 
 ---
 
@@ -60,13 +60,18 @@ Hệ thống không gọi LLM một cách đơn lẻ mà sử dụng **LangGraph
 
 ## 5. Luồng Dữ Liệu (Data Flow)
 
-### 5. Luồng Dữ Liệu Chính (Data Flow)
-1.  **Ingestion**: Người dùng upload CV (PDF/Image).
+### 5. Luồng Dữ Liệu & Hành trình Người dùng (User Journey)
+
+![Leveller.ai User Flow](./user_flow.svg)
+
+1.  **Ingestion**: Người dùng upload CV (PDF/Image/Docx).
 2.  **Parsing**: Worker sử dụng OCR (Chandra Engine) và LLM (via LiteLLM) để chuyển đổi CV thành JSON.
-3.  **Embedding**: Chuyển đổi kỹ năng trong CV thành Vector 1536 chiều (OpenAI/Gemini).
-4.  **Matching**: So sánh Vector CV với Vector Jobs/Courses trong Database sử dụng `pgvector`.
-5.  **Analytics**: Tính toán Match Score và Salary Impact dựa trên dữ liệu thị trường thực tế.
-6.  **Presentation**: Trả kết quả về Frontend hiển thị Radar Chart và Roadmap.
+3.  **JD Selection**: Người dùng lựa chọn Job Description (JD) mục tiêu hoặc hệ thống gợi ý JD phù hợp.
+4.  **Skill Matching**: So khớp bộ kỹ năng từ CV với yêu cầu của JD đã chọn sử dụng **LLM Reasoning** để đánh giá mức độ tương quan sâu về ngữ nghĩa, trình độ và kinh nghiệm thực tế.
+5.  **Gap Analysis**: Xác định các kỹ năng còn thiếu (Skill Gaps) mà người dùng cần bổ sung để đạt yêu cầu của JD.
+6.  **Recommendation**: Tìm kiếm các khóa học (Courses) phù hợp nhất thông qua **Vector Similarity** (Semantic Search) để lấp đầy chính xác các khoảng trống kỹ năng đã xác định.
+7.  **Analytics**: Tính toán Match Score, Growth Potential và phân tích mức độ phổ biến/nhu cầu của các kỹ năng đó trên thị trường lao động.
+8.  **Presentation**: Trả kết quả về Frontend hiển thị Radar Chart, Skill Roadmap và biểu đồ so sánh.
 
 ---
 
@@ -79,23 +84,29 @@ Hệ thống sử dụng **LiteLLM** làm lớp trừu tượng (Abstraction Lay
 -   **Automatic Fallback**: Tự động chuyển đổi sang model dự phòng nếu model chính bị lỗi hoặc hết hạn mức (Quota).
 -   **Quota Management**: Kiểm soát lượng token tiêu thụ theo từng người dùng trong ngày.
 
-### 6.2. AI Inference Hub (Chandra Engine)
+### 6.1. AI Inference Hub (Chandra Engine) - *Thành phần Tùy chọn*
 Đây là service chuyên biệt xử lý các tác vụ AI nặng (Heavy Lifting):
 -   **Multimodal OCR**: Sử dụng các model thị giác máy tính (Computer Vision) để đọc hiểu CV từ mọi định dạng (PDF, PNG, JPG, Docx).
 -   **Layout Analysis**: Phân tích cấu trúc tài liệu để đảm bảo trích xuất đúng thông tin theo từng khối (Kinh nghiệm, Kỹ năng, Học vấn).
--   **Standalone Service**: Chạy độc lập trên port 8080 để tối ưu hóa tài nguyên GPU/CPU tách biệt với API Gateway.
+-   **Resilience & Fallback**: Được thiết kế là thành phần **Tùy chọn (Optional)**. Trong trường hợp không cấu hình Chandra Hub, **CV Service** sẽ tự động kích hoạt **PDF Library Fallback** để trích xuất văn bản trực tiếp từ các file PDF chuẩn, đảm bảo hệ thống vẫn hoạt động ổn định.
+-   **Standalone Service**: Chạy độc lập để tối ưu hóa tài nguyên GPU/CPU tách biệt với API Gateway.
 
 ### 6.2. Worker & Queue System (Celery)
 Hệ thống phân tách tác vụ qua các Queue riêng biệt để tối ưu hiệu suất:
--   **`analysis` queue**: Xử lý tính toán Gap Analysis v3 (LangGraph Orchestrator).
+-   **`analysis` queue**: Xử lý tính toán Gap Analysis (LangGraph Orchestrator).
 -   **`cv_parsing` queue**: Chuyên trách bóc tách CV bằng OCR và LLM.
 -   **`market_stats` queue**: Chạy các tác vụ Crawler (TopCV, Coursera) và tính toán thống kê thị trường hàng ngày.
 -   **`benchmark` queue**: Đánh giá hiệu suất và độ chính xác của các model AI.
 
 ### 6.3. Sơ Đồ Kiến Trúc (Architecture Diagrams)
 
-#### A. Sơ đồ tổng quát (General Architecture)
-Sơ đồ này mô tả các thành phần cốt lõi của hệ thống theo yêu cầu của BTC:
+#### A. Sơ đồ hệ thống (Premium Architecture Diagram)
+Sơ đồ mô tả các thành phần microservices, workers và hạ tầng AI:
+
+![Leveller.ai Architecture](./system_architecture.svg)
+
+#### B. Sơ đồ logic (Mermaid Fallback)
+Sơ đồ này mô tả các thành phần cốt lõi của hệ thống dưới dạng text-based:
 
 ```mermaid
 graph LR

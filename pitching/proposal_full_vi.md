@@ -109,7 +109,7 @@ ATS xem kỹ năng như checkbox nhị phân. Thực tế là một đồ thị.
 - **Vector Semantic Search** — pgvector, embeddings 1536 chiều, skill proximity matching
 - **Real-time Market Crawling** — dữ liệu sống từ TopCV và các nguồn tuyển dụng
 - **Multi-Platform Course Recommendations** — Coursera, YouTube, và hơn thế nữa
-- **Match Score & Salary Impact** — dựa trên dữ liệu thị trường thực tế
+- **Match Score & Market Demand** — dựa trên dữ liệu thị trường thực tế
 
 ---
 
@@ -199,7 +199,7 @@ Chúng tôi không dừng lại ở phân tích CV. Chúng tôi đang xây dựn
 2. **[1 phút]** Chọn vị trí → Skill Gap Map
 3. **[30s]** Match Score → "Bạn phù hợp 65% với vị trí này"
 4. **[30s]** Khóa học đề xuất ưu tiên → "Dựa trên dữ liệu thị trường thực tế"
-5. **[30s]** Dữ liệu lương từ TopCV → "Chuẩn thị trường cho vị trí mục tiêu"
+5. **[30s]** Nhu cầu thị trường từ TopCV → "Chuẩn thị trường cho vị trí mục tiêu"
 
 ---
 
