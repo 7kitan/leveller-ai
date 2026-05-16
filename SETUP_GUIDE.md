@@ -73,16 +73,23 @@ python scripts/setup_db.py
 ## 4. Hướng Dẫn Nạp Dữ Liệu (Seed Data)
 
 ### A. Nạp Khóa Học (Courses)
-Nên chạy qua Docker để đảm bảo môi trường đồng nhất:
+Nên chạy qua Docker để đảm bảo môi trường đồng nhất. Bạn có thể dùng `--limit` để nạp nhanh một số lượng nhỏ:
 ```bash
+# Nạp 20 khóa học đầu tiên để test nhanh
+docker exec -it advisor_worker_crawler python scripts/seed_all.py --limit 20
+
+# Nạp toàn bộ (3,000+)
 docker exec -it advisor_worker_crawler python scripts/seed_all.py
 ```
 
 ### B. Nạp Công Việc (Jobs)
 Kích hoạt đợt cào dữ liệu từ TopCV:
 ```bash
-docker exec -it advisor_worker_crawler celery -A worker.celery_app call worker.tasks.crawler_tasks.crawl_topcv_jobs_task --args='[20, true]'
+docker exec -it advisor_worker_crawler celery -A worker.celery_app call worker.tasks.crawler_tasks.crawl_topcv_jobs_task --args="[20, true]"
 ```
+> [!IMPORTANT]
+> **Lưu ý về IP**: TopCV chặn hầu hết các dải IP **Datacenter** (Cloud). Nếu bạn triển khai hệ thống trên server Cloud (AWS, GCP, DigitalOcean...), hãy vào **Admin Panel -> Settings -> Automation** và cấu hình `PROXY_LIST` (nên dùng Residential Proxy - Proxy dân cư) trước khi chạy lệnh cào.
+
 2.  **Qua Admin UI**:
     - Vào **Jobs Manager** -> Nhấn **Trigger TopCV Crawl**.
 

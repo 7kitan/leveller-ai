@@ -41,7 +41,7 @@ def load_urls_from_txt(txt_path: str):
     with open(txt_path, "r", encoding="utf-8") as f:
         return [line.strip() for line in f if line.strip() and "coursera.org" in line]
 
-def seed_courses(source_path: str, force: bool = False, dry_run: bool = False):
+def seed_courses(source_path: str, force: bool = False, dry_run: bool = False, limit: int = None):
     """
     Đẩy URL từ file (TXT hoặc JSON) vào Celery Worker.
     """
@@ -62,6 +62,11 @@ def seed_courses(source_path: str, force: bool = False, dry_run: bool = False):
     fail_count = 0
     
     try:
+        # Giới hạn số lượng URL nếu có tham số limit
+        if limit and limit > 0:
+            urls = urls[:limit]
+            logger.info(f"  ⚠️ Giới hạn import: {limit} khóa học")
+
         for i, url in enumerate(urls):
             # Kiểm tra duplication (Deduplication) trước khi đẩy task
             if not force:
@@ -106,6 +111,7 @@ def main():
     parser.add_argument("--file", type=str, help="Path tới file nguồn (.txt hoặc .json)")
     parser.add_argument("--force", action="store_true", help="Đẩy task kể cả khi khóa học đã tồn tại trong DB")
     parser.add_argument("--dry-run", action="store_true", help="Chỉ hiển thị URL, không gửi task thực tế")
+    parser.add_argument("--limit", type=int, default=None, help="Giới hạn số lượng URL cần đẩy vào queue")
     
     args = parser.parse_args()
     
@@ -114,7 +120,7 @@ def main():
     default_path = os.path.abspath(os.path.join(base_dir, '..', '..', 'dataset', 'coursera_links.txt'))
     source_path = args.file or default_path
     
-    seed_courses(source_path, force=args.force, dry_run=args.dry_run)
+    seed_courses(source_path, force=args.force, dry_run=args.dry_run, limit=args.limit)
 
 if __name__ == "__main__":
     main()

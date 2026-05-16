@@ -59,8 +59,14 @@ Sau khi Bước 1 đã chạy xong (containers đã up), hãy chạy các lệnh
 # 1. Khởi tạo Database & Admin (Chạy 1 lần)
 docker exec -it advisor_worker_crawler python scripts/setup_db.py
 
-# 2. Nạp dữ liệu mồi (3,000+ Khóa học & Kỹ năng)
-docker exec -it advisor_worker_crawler python scripts/seed_all.py
+# 2. Nạp dữ liệu mồi (Khóa học & Kỹ năng)
+# Mẹo: Dùng --limit để import nhanh một số lượng nhỏ (ví dụ: 20 khóa học)
+docker exec -it advisor_worker_crawler python scripts/seed_all.py --limit 20
+
+# 3. Nạp dữ liệu công việc (TopCV) - Mẫu 20 tin tuyển dụng
+# Lưu ý: TopCV chặn các dải IP Datacenter. Nếu chạy trên Cloud (AWS/GCP...), 
+# hãy cấu hình PROXY_LIST (nên dùng Proxy dân cư) trong Admin Settings trước khi crawl.
+docker exec -it advisor_worker_crawler celery -A worker.celery_app call worker.tasks.crawler_tasks.crawl_topcv_jobs_task --args="[20, true]"
 ```
 
 ### 4. Chạy Frontend

@@ -20,9 +20,23 @@ import logging
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from sqlalchemy import create_engine, text
-from shared.config_utils import config_manager
 from shared.database import Base, engine
 from scripts.create_admin import create_admin
+
+from dotenv import load_dotenv
+
+# Load .env file from project root
+base_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(base_dir, '..'))
+env_path = os.path.join(project_root, '.env')
+
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+else:
+    # Try one level up (if running from scripts/tools)
+    alt_env_path = os.path.abspath(os.path.join(project_root, '..', '.env'))
+    if os.path.exists(alt_env_path):
+        load_dotenv(alt_env_path)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -112,6 +126,71 @@ def apply_tuning():
             
     except Exception as e:
         logger.error(f"❌ Tuning failed: {e}\n")
+        return False
+
+
+def apply_migrations():
+    """Step 2.2: Run SQL migrations (Prompts, Benchmarks)."""
+    logger.info("=" * 70)
+    logger.info("STEP 2.2: Running SQL Migrations (Prompts & Benchmarks)")
+    logger.info("=" * 70)
+
+    import subprocess
+
+    try:
+        migrations_dir = os.path.join(os.path.dirname(__file__), "migrations")
+        migration_files = [
+            "000_create_prompt_schema.sql",
+            "001_setup_prompts.sql",
+            "002_create_benchmark_tables.sql",
+            "populate_benchmark_test_sets.sql"
+        ]
+
+        # Get DB connection details from env
+        db_host = os.getenv("POSTGRES_HOST", "advisor_db")
+        db_port = os.getenv("POSTGRES_PORT", "5432")
+        db_name = os.getenv("POSTGRES_DB", "career_advisor")
+        db_user = os.getenv("POSTGRES_USER", "postgres")
+        db_pass = os.getenv("POSTGRES_PASSWORD", "postgres")
+
+        for filename in migration_files:
+            file_path = os.path.join(migrations_dir, filename)
+            if os.path.exists(file_path):
+                logger.info(f"  📝 Executing {filename} via psql...")
+                
+                # Construct psql command
+                cmd = [
+                    "psql",
+                    "-h", db_host,
+                    "-p", db_port,
+                    "-U", db_user,
+                    "-d", db_name,
+                    "-f", file_path
+                ]
+                
+                # Set password env var
+                env = os.environ.copy()
+                env["PGPASSWORD"] = db_pass
+                
+                result = subprocess.run(
+                    cmd, 
+                    env=env, 
+                    capture_output=True, 
+                    text=True
+                )
+                
+                if result.returncode == 0:
+                    logger.info(f"  ✅ {filename} applied")
+                else:
+                    logger.error(f"  ❌ Error applying {filename}: {result.stderr}")
+                    return False
+            else:
+                logger.warning(f"  ⚠️  Migration file not found: {filename}")
+
+        logger.info("✅ All migrations applied successfully\n")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Migrations failed: {e}\n")
         return False
 
 
@@ -235,6 +314,7 @@ def main():
         ("Enable Extensions", enable_extensions),
         ("Create Schema", create_schema),
         ("Apply Tuning", apply_tuning),
+        ("Apply Migrations", apply_migrations),
         ("Init System Settings", init_settings),
         ("Create Admin User", create_admin_user),
         ("Verify Setup", verify_setup),

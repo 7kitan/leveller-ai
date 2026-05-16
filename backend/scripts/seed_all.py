@@ -23,6 +23,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Show what would be inserted (no writes)")
     parser.add_argument("--skip-embed", action="store_true", help="Skip OpenAI embeddings (dev/fast mode)")
     parser.add_argument("--skip-extended", action="store_true", help="Skip seeding the 300+ Coursera courses")
+    parser.add_argument("--limit", type=int, default=None, help="Limit number of courses to seed")
     args = parser.parse_args()
 
     logger.info("🚀 Starting Master Seeding Process...")
@@ -61,7 +62,7 @@ def main():
             if not os.path.exists(source_path) and os.path.exists(abs_dataset_dir) and os.path.isfile(abs_dataset_dir):
                 source_path = abs_dataset_dir
 
-            seed_courses(source_path, force=args.force, dry_run=args.dry_run)
+            seed_courses(source_path, force=args.force, dry_run=args.dry_run, limit=args.limit)
         else:
             logger.info("Step 2: Skipped (extended Coursera dataset)")
 
