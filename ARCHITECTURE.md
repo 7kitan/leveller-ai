@@ -66,7 +66,7 @@ Hệ thống không gọi LLM một cách đơn lẻ mà sử dụng **LangGraph
 
 1.  **Ingestion**: Người dùng upload CV (PDF/Image/Docx).
 2.  **Parsing**: Worker sử dụng OCR (Chandra Engine) và LLM (via LiteLLM) để chuyển đổi CV thành JSON.
-3.  **JD Selection**: Người dùng lựa chọn Job Description (JD) mục tiêu hoặc hệ thống gợi ý JD phù hợp.
+3.  **JD Selection**: Người dùng lựa chọn Job Description (JD) mục tiêu có sẵn hoặc tự nhập JD tùy ý (Lưu ý: Hệ thống hiện tại được tối ưu chuyên sâu cho các vị trí thuộc lĩnh vực IT/Technology).
 4.  **Skill Matching**: So khớp bộ kỹ năng từ CV với yêu cầu của JD đã chọn sử dụng **LLM Reasoning** để đánh giá mức độ tương quan sâu về ngữ nghĩa, trình độ và kinh nghiệm thực tế.
 5.  **Gap Analysis**: Xác định các kỹ năng còn thiếu (Skill Gaps) mà người dùng cần bổ sung để đạt yêu cầu của JD.
 6.  **Recommendation**: Tìm kiếm các khóa học (Courses) phù hợp nhất thông qua **Vector Similarity** (Semantic Search) để lấp đầy chính xác các khoảng trống kỹ năng đã xác định.
