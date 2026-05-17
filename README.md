@@ -7,10 +7,8 @@ Leveller.ai là nền tảng đột phá sử dụng Trí tuệ nhân tạo (AI)
 ## 🎥 Tài Nguyên Trình Bày (Pitch Slides & Video Demo)
 
 Để ban giám khảo và các chuyên gia có cái nhìn trực quan nhất về sản phẩm, nhóm đã chuẩn bị đầy đủ tài liệu thuyết trình và video chạy thử hệ thống thực tế:
-- 📊 **[Slide Pitch Thuyết Trình (PPTX)](https://drive.google.com/drive/folders/1eo7bAj4A_AHA0kE8frysDs77MqE9EU0H?usp=sharing)**: Slide pitching chi tiết mô tả bài toán, giải pháp, nghiên cứu thị trường, mô hình kinh doanh và kiến trúc công nghệ của Leveller.ai.
-- 🎬 **[Video Demo Trải Nghiệm Sản Phẩm](https://drive.google.com/drive/folders/1eo7bAj4A_AHA0kE8frysDs77MqE9EU0H?usp=sharing)**: Video quay lại chi tiết luồng trải nghiệm thực tế các tính năng cốt lõi (Upload CV $\rightarrow$ Bóc tách AI $\rightarrow$ Chọn JD TopCV $\rightarrow$ Đánh giá Radar Chart $\rightarrow$ Nhận lộ trình gợi ý khóa học).
-
-*Thư mục lưu trữ công khai:* **[Google Drive Public Folder](https://drive.google.com/drive/folders/1eo7bAj4A_AHA0kE8frysDs77MqE9EU0H?usp=sharing)**
+- 📊 **[Slide Pitch Thuyết Trình (Google Slides)](https://docs.google.com/presentation/d/1n9wfL9EEjTd_q0k-bvhSoeOxadimsC5Z/edit?usp=drive_link&ouid=105688789480489939544&rtpof=true&sd=true)**: Slide pitching chi tiết mô tả bài toán, giải pháp, nghiên cứu thị trường, mô hình kinh doanh và kiến trúc công nghệ của Leveller.ai.
+- 🎬 **[Video Demo Trải Nghiệm Sản Phẩm (YouTube)](https://youtu.be/LCOgX_Bs6No)**: Video quay lại chi tiết luồng trải nghiệm thực tế các tính năng cốt lõi (Upload CV $\rightarrow$ Bóc tách AI $\rightarrow$ Chọn JD TopCV $\rightarrow$ Đánh giá Radar Chart $\rightarrow$ Nhận lộ trình gợi ý khóa học).
 
 ---
 
@@ -101,7 +99,8 @@ Truy cập: [http://localhost:3000](http://localhost:3000)
 
 ## 📂 Tài Liệu Chi Tiết
 
-- 📊 **[Slide Thuyết Trình & Video Demo](https://drive.google.com/drive/folders/1eo7bAj4A_AHA0kE8frysDs77MqE9EU0H?usp=sharing)**: Tài nguyên pitching và trải nghiệm sản phẩm thực tế trên Google Drive.
+- 📊 **[Slide Thuyết Trình (Google Slides)](https://docs.google.com/presentation/d/1n9wfL9EEjTd_q0k-bvhSoeOxadimsC5Z/edit?usp=drive_link&ouid=105688789480489939544&rtpof=true&sd=true)**: Slide Pitching mô tả sản phẩm trên Google Slides.
+- 🎬 **[Video Demo Trải Nghiệm (YouTube)](https://youtu.be/LCOgX_Bs6No)**: Video chạy thử sản phẩm thực tế trên YouTube.
 - **[Kiến Trúc Hệ Thống](ARCHITECTURE.md)**: Chi tiết về Microservices và Data Flow.
 - **[Hướng Dẫn Cài Đặt Chi Tiết](SETUP_GUIDE.md)**: Cách thiết lập môi trường và nạp dữ liệu.
 - **[Nhật Ký Phát Triển](JOURNAL.md)**: Quá trình xây dựng sản phẩm hàng tuần.
