@@ -223,6 +223,7 @@ graph TD
 *   **Mục tiêu:** Chuyển đổi việc phân tích và chuẩn hóa kỹ năng từ LLM thuần túy sang **Đồ thị Tri thức Kỹ năng (Skill Ontology Graph)**.
 *   **Giải pháp:** Tích hợp cơ sở dữ liệu đồ thị **Neo4j** kết hợp thư viện đồ thị mạng lưới để định nghĩa mối quan hệ phân cấp sâu (ví dụ: `Django` $\rightarrow$ `Python` $\rightarrow$ `Backend Development`).
 *   **Lợi ích:** Tính toán chính xác "khoảng cách ngữ nghĩa" (Semantic Distance) giữa các kỹ năng của ứng viên và yêu cầu JD. Nếu JD cần `PyTorch` và CV có `TensorFlow`, hệ thống sẽ hiểu đây là khoảng cách ngắn và phạt điểm thấp hơn so với việc thiếu hụt hoàn toàn, nâng cao tính chính xác của thuật toán gợi ý.
+*   **Lưu ý thực tế (Pragmatic Trade-off):** *Đội ngũ phát triển đã cấu hình và tích hợp thử nghiệm thành công Neo4j ở phiên bản đầu tiên. Tuy nhiên, do giới hạn về mặt thời gian để xây dựng một bộ dữ liệu Skill Taxonomy đồ sộ và chuẩn hóa thủ công, nhóm đã quyết định tạm ngưng hạ tầng Neo4j và chuyển dịch sang sử dụng khả năng Semantic Reasoning của LLM. Đây là một quyết định đánh đổi thực tế nhằm ưu tiên tính linh hoạt và tốc độ đưa sản phẩm ra thị trường (Time-to-Market) của MVP, và sẽ được tái cấu trúc triệt để trong Phase 2.*
 
 ### 8.2. Semantic Cache nâng cao & Tối ưu hóa Chi phí AI
 *   **Mục tiêu:** Nâng cấp cơ chế Redis Cache hiện tại (đang cache tối ưu theo cặp `CV-JD`) lên thành **Semantic Cache** toàn diện cho các block hội thoại và truy vấn khóa học.
