@@ -50,99 +50,7 @@ Ghi lại các quyết định kỹ thuật, phân công, và brainstorming củ
 
 ---
 
-## Ví dụ
-
-### [ADR-1] Dùng TypeScript thay vì Python — 30/03/2026
-
-**Bối cảnh:** Cả nhóm cần chọn 1 ngôn ngữ chính để xây dựng agent. Có 2 thành viên quen Python, 1 thành viên quen TypeScript.
-
-**Các lựa chọn đã xem xét:**
-- **Python**: Ecosystem ML tốt hơn, syntax đơn giản, thành viên quen hơn.
-- **TypeScript**: Type safety, dễ refactor khi project lớn, nhiều library AI mới ra bản TS trước.
-
-**Quyết định:** Chọn TypeScript vì project này focus vào agent architecture, không cần ML library nặng. Type safety sẽ giúp bắt lỗi sớm hơn khi codebase phình ra.
-
-**Hệ quả:** 2 thành viên Python cần học TypeScript cơ bản (ước tính 1 tuần). Sẽ không dùng được `langchain` Python trực tiếp.
-
----
-
-### [ADR-2] Lưu conversation history bằng file JSON — 03/04/2026
-
-**Bối cảnh:** Agent cần nhớ context giữa các lần chạy. Cần chọn storage.
-
-**Các lựa chọn đã xem xét:**
-- **In-memory array**: Đơn giản nhất nhưng mất khi restart.
-- **File JSON**: Persistent, không cần setup, dễ inspect bằng tay.
-- **SQLite**: Có thể query, tốt cho production nhưng overkill cho prototype.
-- **Redis**: Fast nhưng cần chạy thêm service.
-
-**Quyết định:** File JSON cho giai đoạn prototype. Thiết kế interface `MemoryStore` để sau này swap sang SQLite không cần sửa logic agent.
-
-**Hệ quả:** Không query được theo thời gian hay user. Chấp nhận được ở giai đoạn này.
-
----
-
-### Sprint 1 — 31/03 → 06/04/2026
-
-| Task | Người làm | Deadline | Trạng thái |
-|---|---|---|---|
-| Setup TypeScript project + CI | Văn A | 01/04 | ✅ Xong |
-| Implement agent loop cơ bản | Thị B | 02/04 | ✅ Xong |
-| Tool: `search_web` (Brave API) | Văn C | 03/04 | ✅ Xong |
-| Tool: `read_file`, `write_file` | Thị B | 05/04 | ✅ Xong |
-| Conversation memory (JSON) | Văn A | 06/04 | ✅ Xong |
-| README + setup docs | Văn C | 06/04 | ✅ Xong |
-
----
-
-### Sprint 2 — 07/04 → 13/04/2026
-
-| Task | Người làm | Deadline | Trạng thái |
-|---|---|---|---|
-| Fix infinite loop: thêm `max_iterations` | Thị B | 08/04 | 🔄 Đang làm |
-| Tool: `run_tests` (chạy pytest) | Văn C | 10/04 | ⏳ Chờ |
-| Sliding window memory | Văn A | 09/04 | ⏳ Chờ |
-| Demo prep + slides | Cả nhóm | 13/04 | ⏳ Chờ |
-
----
-
-### Brainstorm: Tính năng cho demo — 05/04/2026
-
-**Câu hỏi:** Demo tuần tới nên show gì để ấn tượng nhất trong 5 phút?
-
-**Các ý tưởng:**
-- **Ý tưởng 1 (Văn A):** Cho agent đọc 1 file Python có bug, tự fix, rồi chạy test để verify. Trực quan, dễ hiểu.
-- **Ý tưởng 2 (Thị B):** Agent tự build 1 tính năng nhỏ từ mô tả bằng tiếng Việt. Show khả năng hiểu ngôn ngữ tự nhiên.
-- **Ý tưởng 3 (Văn C):** Agent review PR, comment vào từng dòng code có vấn đề. Gần với use case thực tế nhất.
-
-**Pros/Cons:**
-| Ý tưởng | Pros | Cons |
-|---|---|---|
-| Fix bug | Dễ làm, chắc chắn chạy được | Ít "wow" hơn |
-| Build từ mô tả | Ấn tượng nhất | Có thể fail nếu prompt phức tạp |
-| Review PR | Thực tế, liên quan trực tiếp đến khóa học | Cần setup GitHub webhook |
-
-**Kết luận:** Chọn ý tưởng 1 (fix bug) cho demo chính vì đảm bảo. Nếu còn thời gian sẽ show thêm ý tưởng 2 như bonus.
-
----
-
-### Bug quan trọng: Tool call loop vô hạn — 04/04/2026
-
-**Triệu chứng:** Agent gọi `search_web` liên tục không dừng khi tool trả về lỗi network.
-
-**Root cause:** Không có stop condition khi tool raise exception. Agent nhận `"error": "timeout"` nhưng interpret là cần thử lại.
-
-**Fix:** Thêm 2 điều kiện dừng:
-1. `max_iterations = 10` — hard stop sau 10 vòng
-2. Nếu tool trả về lỗi 3 lần liên tiếp → dừng và báo user
-
-**Code thay đổi:** `src/agent.ts` lines 45-67
-
-**Học được:** Luôn thiết kế stop condition trước khi implement retry logic.
-
----
-
-## Quyết định kỹ thuật - Tuần 3
+## Quyết định kỹ thuật
 
 ### [ADR-3] Export/Import System với Vector Preservation — 27/04/2026
 
@@ -272,13 +180,101 @@ Ghi lại các quyết định kỹ thuật, phân công, và brainstorming củ
 
 ---
 
-## Sprint 4 — 28/04 → 11/05/2026
+## Phân công
+
+### Sprint 1 — 30/03/2026 → 04/04/2026
 
 | Task | Người làm | Deadline | Trạng thái |
 |---|---|---|---|
-| Tái cấu trúc hệ thống Docs | Bách | 11/05 | ✅ Xong |
-| Tối ưu hóa UI/UX Dashboard | Kiệt | 05/05 | ✅ Xong |
-| Refactor Analysis Engine v7.0 | Bách | 08/05 | ✅ Xong |
-| Viết Unit Tests cho Recommender | Kiệt | 10/05 | ✅ Xong |
+| Thiết lập kênh làm việc và quy trình phối hợp | Cả nhóm | 04/04 | ✅ Xong |
+| Liệt kê các lĩnh vực quan tâm (RAG, AI Agents) | Cả nhóm | 04/04 | ✅ Xong |
+| Market Research: Thu thập dữ liệu về pain points | Cả nhóm | 04/04 | ✅ Xong |
+| Chốt đề tài với coach/mentor | Cả nhóm | 04/04 | ✅ Xong |
 
 ---
+
+### Sprint 2 — 06/04/2026 → 10/04/2026
+
+| Task | Người làm | Deadline | Trạng thái |
+|---|---|---|---|
+| Nghiên cứu feature, metrics đánh giá sản phẩm | Kiệt (232) | 10/04 | ✅ Xong |
+| Setup Git, môi trường làm việc | Kiệt (232) | 10/04 | ✅ Xong |
+| Lên kế hoạch khảo sát pain point | Kiệt (232) | 10/04 | ✅ Xong |
+| Viết nháp prompt cho Skill Parser, Normalizer | Kiệt (232) | 10/04 | ✅ Xong |
+| Thu hẹp scope MVP, xác định cách đo giá trị | Kiệt (233) | 10/04 | ✅ Xong |
+| Xây dựng success metrics, phác thảo user flow | Kiệt (233) | 10/04 | ✅ Xong |
+| Nghiên cứu recommendation engine | Kiệt (233) | 10/04 | ✅ Xong |
+| Phân tích bài toán, đề xuất feature MVP/Phase 2 | Bách (234) | 10/04 | ✅ Xong |
+| Thiết kế kiến trúc sơ bộ, database sơ bộ | Bách (234) | 10/04 | ✅ Xong |
+| Crawl và phân tích dữ liệu | Bách (234) | 10/04 | ✅ Xong |
+
+---
+
+### Sprint 3 — 13/04/2026 → 17/04/2026
+
+| Task | Người làm | Deadline | Trạng thái |
+|---|---|---|---|
+| Chỉnh sửa tối ưu prompt, bổ sung edge case | Kiệt (232) | 17/04 | ✅ Xong |
+| Viết technical report cho prompt (Skill Parser) | Kiệt (232) | 17/04 | ✅ Xong |
+| Rà soát test, xây dựng golden dataset | Kiệt (232) | 17/04 | ✅ Xong |
+| Chỉnh sửa UI (font, màu sắc, layout), design AI | Kiệt (233) | 17/04 | ✅ Xong |
+| Tái cấu trúc frontend (không dùng React), login | Kiệt (233) | 17/04 | ✅ Xong |
+| Chuẩn bị tích hợp frontend với backend | Kiệt (233) | 17/04 | ✅ Xong |
+| Phân tích tối ưu thuật toán, thử nghiệm skill gap | Bách (234) | 17/04 | ✅ Xong |
+| Fix các lỗi phát sinh trong quá trình phát triển | Bách (234) | 17/04 | ✅ Xong |
+
+---
+
+### Sprint 4 — 20/04/2026 → 24/04/2026
+
+| Task | Người làm | Deadline | Trạng thái |
+|---|---|---|---|
+| Cải thiện prompt, thêm test/edge case, tối ưu token | Kiệt (232) | 24/04 | ✅ Xong |
+| Nghiên cứu benchmark | Kiệt (232) | 24/04 | ✅ Xong |
+| Hoàn thiện UI, fix Google Font, đồng bộ component | Kiệt (233) | 24/04 | ✅ Xong |
+| Fix bug, tối ưu backend, hoàn thiện feature | Bách (234) | 24/04 | ✅ Xong |
+| Xây dashboard theo dõi token | Bách (234) | 24/04 | ✅ Xong |
+| Thêm fallback LLM, gửi email khi quá tải | Bách (234) | 24/04 | ✅ Xong |
+
+---
+
+### Sprint 5 — 27/04/2026 → 02/05/2026
+
+| Task | Người làm | Deadline | Trạng thái |
+|---|---|---|---|
+| Fix test case, performance test bằng Locust | Kiệt (232) | 02/05 | ✅ Xong |
+| Cải tiến prompt cho case đặc biệt (0 year exp) | Kiệt (232) | 02/05 | ✅ Xong |
+| Test và đánh giá prompt mới trên synthetic data | Kiệt (232) | 02/05 | ✅ Xong |
+| Cải thiện UI consistency, refactor color design | Kiệt (233) | 02/05 | ✅ Xong |
+| Hoàn thiện UI design, thử nghiệm library mới | Kiệt (233) | 02/05 | ✅ Xong |
+| Fix bug production, xử lý bug test | Bách (234) | 02/05 | ✅ Xong |
+| Tối ưu hệ thống từ kết quả performance test | Bách (234) | 02/05 | ✅ Xong |
+| Refactor backend, build version check accuracy | Bách (234) | 02/05 | ✅ Xong |
+
+---
+
+### Sprint 6 — 04/05/2026 → 08/05/2026
+
+| Task | Người làm | Deadline | Trạng thái |
+|---|---|---|---|
+| Hoàn thiện pitching, slide trình bày | Kiệt (232) | 08/05 | ✅ Xong |
+| Quay và chỉnh sửa demo sản phẩm | Kiệt (232) | 08/05 | ✅ Xong |
+| Thiết kế UI, logo, tối ưu landing page | Kiệt (233) | 08/05 | ✅ Xong |
+| Hoàn thiện giao diện, thực hiện ragas prompt test | Kiệt (233) | 08/05 | ✅ Xong |
+| Hoàn thiện hệ thống quản lý prompt tùy chỉnh | Bách (234) | 08/05 | ✅ Xong |
+| Benchmark, test và tối ưu backend | Bách (234) | 08/05 | ✅ Xong |
+| Cập nhật tài liệu setup và kiến trúc hệ thống | Bách (234) | 08/05 | ✅ Xong |
+
+---
+
+### Sprint 7 — 11/05/2026 → 15/05/2026
+
+| Task | Người làm | Deadline | Trạng thái |
+|---|---|---|---|
+| Hoàn thiện demo, slide pitching, video demo | Kiệt (232) | 15/05 | ✅ Xong |
+| Kiểm tra các mục cần submit | Kiệt (232) | 15/05 | ✅ Xong |
+| Hoàn thiện landing page, rà soát checklist | Kiệt (233) | 15/05 | ✅ Xong |
+| Review, chuẩn hóa tài liệu kỹ thuật, sửa URL | Bách (234) | 15/05 | ✅ Xong |
+| Setup môi trường production, check độ ổn định | Bách (234) | 15/05 | ✅ Xong |
+| Tham gia review cuối cùng hệ thống | Bách (234) | 15/05 | ✅ Xong |
+
