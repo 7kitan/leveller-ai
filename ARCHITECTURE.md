@@ -215,4 +215,35 @@ graph TD
 
 ---
 
+## 8. Định Hướng Phát Triển Hệ Thống (Phase 2 & Technical Roadmap)
+
+Để nâng cấp dự án từ phiên bản hiện tại (MVP vững chắc) lên một hệ thống sản phẩm quy mô doanh nghiệp phục vụ hàng triệu người dùng, đội ngũ phát triển định hướng lộ trình kỹ thuật cho **Phase 2** tập trung vào các hạng mục nâng cao sau:
+
+### 8.1. Semantic Knowledge Graph (Neo4j Skill Ontology)
+*   **Mục tiêu:** Chuyển đổi việc phân tích và chuẩn hóa kỹ năng từ LLM thuần túy sang **Đồ thị Tri thức Kỹ năng (Skill Ontology Graph)**.
+*   **Giải pháp:** Tích hợp cơ sở dữ liệu đồ thị **Neo4j** kết hợp thư viện đồ thị mạng lưới để định nghĩa mối quan hệ phân cấp sâu (ví dụ: `Django` $\rightarrow$ `Python` $\rightarrow$ `Backend Development`).
+*   **Lợi ích:** Tính toán chính xác "khoảng cách ngữ nghĩa" (Semantic Distance) giữa các kỹ năng của ứng viên và yêu cầu JD. Nếu JD cần `PyTorch` và CV có `TensorFlow`, hệ thống sẽ hiểu đây là khoảng cách ngắn và phạt điểm thấp hơn so với việc thiếu hụt hoàn toàn, nâng cao tính chính xác của thuật toán gợi ý.
+
+### 8.2. Semantic Cache nâng cao & Tối ưu hóa Chi phí AI
+*   **Mục tiêu:** Nâng cấp cơ chế Redis Cache hiện tại (đang cache tối ưu theo cặp `CV-JD`) lên thành **Semantic Cache** toàn diện cho các block hội thoại và truy vấn khóa học.
+*   **Giải pháp:** Sử dụng Vector Similarity Search trực tiếp trên Redis hoặc pgvector để lưu trữ các câu trả lời của LLM. Khi người dùng mới có CV/JD tương đồng trên 95% ngữ nghĩa so với lịch sử, hệ thống sẽ trả kết quả ngay lập tức dưới 50ms mà không cần gọi lại LLM.
+*   **Lợi ích:** Cắt giảm thêm 80% chi phí vận hành AI ở quy mô lớn và giảm độ trễ (latency) cho người dùng cuối.
+
+### 8.3. Self-Improving Active Learning Loop (Vòng lặp tự tối ưu hóa AI)
+*   **Mục tiêu:** Tự động cải thiện chất lượng gợi ý dựa trên phản hồi thực tế của người dùng mà không cần lập trình viên can thiệp.
+*   **Giải pháp:** Khai thác dữ liệu từ hệ thống vote/feedback và hành vi chỉnh sửa thông tin của người dùng. Khi phát hiện các case AI gợi ý chưa chuẩn xác, hệ thống tự động đóng gói chúng thành bộ dữ liệu **Few-shot examples** chất lượng cao.
+*   **Lợi ích:** LangGraph sẽ tự động kéo các Few-shot "bad cases" này vào prompt ngữ cảnh của các lượt chạy sau để LLM tự động tránh các lỗi cũ, tạo ra một vòng lặp AI tự học, tự tối ưu hóa (Active Learning).
+
+### 8.4. Enterprise Observability & Monitoring (Giám sát vận hành chuyên sâu)
+*   **Mục tiêu:** Theo dõi và đo lường trực quan sức khỏe hệ thống và chi phí vận hành theo thời gian thực.
+*   **Giải pháp:** Triển khai hạ tầng giám sát tập trung sử dụng **OpenTelemetry**, thu thập metrics qua **Prometheus** và hiển thị dashboard sinh động trên **Grafana**.
+*   **Lợi ích:** Giám sát trực quan tốc độ xử lý hàng đợi của các Celery Worker, tỷ lệ lỗi API Gateway, độ trễ LLM của từng provider (OpenAI vs Gemini) và lượng Token tiêu thụ theo thời gian thực.
+
+### 8.5. Chaos Engineering & Resilience (Thử nghiệm độ bền bỉ)
+*   **Mục tiêu:** Đảm bảo hệ thống đạt độ ổn định 99.99% kể cả khi gặp các thảm họa gián đoạn dịch vụ hạ tầng.
+*   **Giải pháp:** Thiết lập các kịch bản kiểm thử phá hủy (Chaos Engineering) giả lập việc mất kết nối DB đột ngột, Celery Worker quá tải hoặc API OpenAI bị rate limit.
+*   **Lợi ích:** Khai thác tối đa cơ chế fallback tự động của LiteLLM, tính toán hạn mức thông minh bằng Redis và cơ chế tự phục hồi của Celery Task để chứng minh hệ thống đạt trạng thái **Graceful Degradation** (suy giảm hiệu năng an toàn mà không làm sập ứng dụng).
+
+---
+
 *© 2026 Leveller.ai - 078 Team - A20 AI Thực Chiến*
