@@ -1,111 +1,112 @@
-# Leveller.ai - Phân Tích Khoảng Trống Kỹ Năng & Gợi Ý Chứng Chỉ
+# Leveller.ai - Skill Gap Analysis & Certificate Suggestions
 
-Leveller.ai là nền tảng đột phá sử dụng Trí tuệ nhân tạo (AI) để giúp ứng viên thấu hiểu bản thân thông qua việc **Phân tích Khoảng trống Kỹ năng (Skill Gap Analysis)** và xây dựng lộ trình sự nghiệp tối ưu bằng các **Gợi ý Chứng chỉ & Khóa học (Certificate Suggestion)**.
-
----
-
-## 🎥 Tài Nguyên Trình Bày (Pitch Slides & Video Demo)
-
-Để ban giám khảo và các chuyên gia có cái nhìn trực quan nhất về sản phẩm, nhóm đã chuẩn bị đầy đủ tài liệu thuyết trình và video chạy thử hệ thống thực tế:
-- 📊 **[Slide Pitch Thuyết Trình (Google Slides)](https://docs.google.com/presentation/d/1n9wfL9EEjTd_q0k-bvhSoeOxadimsC5Z/edit?usp=drive_link&ouid=105688789480489939544&rtpof=true&sd=true)**: Slide pitching chi tiết mô tả bài toán, giải pháp, nghiên cứu thị trường, mô hình kinh doanh và kiến trúc công nghệ của Leveller.ai.
-- 🎬 **[Video Demo Trải Nghiệm Sản Phẩm (YouTube)](https://youtu.be/LCOgX_Bs6No)**: Video quay lại chi tiết luồng trải nghiệm thực tế các tính năng cốt lõi (Upload CV $\rightarrow$ Bóc tách AI $\rightarrow$ Chọn JD TopCV $\rightarrow$ Đánh giá Radar Chart $\rightarrow$ Nhận lộ trình gợi ý khóa học).
+Leveller.ai is a platform that uses Artificial Intelligence (AI) to help candidates understand themselves through **Skill Gap Analysis** and build an optimal career roadmap with **Certificate & Course Suggestions**.
 
 ---
 
-## 🎯 Mục Tiêu & Vấn Đề Giải Quyết
+## Pitch Slides & Video Demo
 
-Trong thị trường lao động biến động, ứng viên thường gặp khó khăn trong việc:
-- **Xác định lỗ hổng kỹ năng**: Không biết mình thiếu gì so với yêu cầu thực tế của nhà tuyển dụng.
-- **Lựa chọn chứng chỉ & lộ trình**: Giữa hàng ngàn chứng chỉ, không biết cái nào thực sự giá trị để lấp đầy khoảng trống năng lực.
-- **Tối ưu hóa hồ sơ**: Hồ sơ không phản ánh đúng các kỹ năng cốt lõi mà thị trường đang khao khát.
-
-**Leveller.ai** giải quyết vấn đề này bằng cách sử dụng **Vector Search** và **LLM Reasoning** để phân tích sự tương quan giữa năng lực cá nhân và yêu cầu của **Job Description (JD)**, từ đó đưa ra gợi ý lộ trình chứng chỉ chính xác nhất.
+For judges and experts to get a visual overview of the product, the team has prepared presentation materials and a live system walkthrough video:
+- **Pitch Slides (Google Slides)**: Detailed pitch deck describing the problem, solution, market research, business model, and technology architecture of Leveller.ai.
+- **Product Demo Video (YouTube)**: A detailed walkthrough of the core feature flow (Upload CV -> AI Extraction -> Select TopCV JD -> Radar Chart Assessment -> Receive suggested course roadmap).
 
 ---
 
-## 🚀 Tính Năng Nổi Bật
+## Objective & Problem Statement
 
-- **AI CV Parser**: Bóc tách thông tin năng lực tự động với độ chính xác cao (hỗ trợ cả file scan/ảnh).
-- **Skill Gap Analysis**: So sánh năng lực hiện tại với yêu cầu của **Job Description (JD)** mục tiêu để chỉ ra chính xác các khoảng trống kỹ năng.
-- **Certificate Roadmap**: Đề xuất các chứng chỉ chuyên môn (Professional Certificates) và khóa học (Coursera, Udemy) tối ưu để lấp đầy các khoảng trống kỹ năng cho công việc đã chọn.
-- **Market Skill Insights**: Cập nhật xu hướng và trọng số nhu cầu của các kỹ năng từ dữ liệu thị trường thực tế.
+In a volatile labor market, candidates often struggle with:
+- **Identifying skill gaps**: Not knowing what they lack compared to actual employer requirements.
+- **Choosing certificates & roadmaps**: Among thousands of certificates, not knowing which ones actually add value to fill competency gaps.
+- **Optimizing their profile**: Resumes that do not reflect the core skills the market demands.
+
+**Leveller.ai** solves this by using **Vector Search** and **LLM Reasoning** to analyze the correlation between individual capabilities and **Job Description (JD)** requirements, then suggesting the most accurate certificate roadmap.
 
 ---
 
-## 🛠️ Công Nghệ Sử Dụng
+## Key Features
+
+- **AI CV Parser**: Automatically extracts competency information with high accuracy (supports scanned files/images).
+- **Skill Gap Analysis**: Compares current capabilities against target **Job Description (JD)** requirements to pinpoint exact skill gaps.
+- **Certificate Roadmap**: Recommends professional certificates and courses (Coursera, Udemy) optimized to fill skill gaps for the selected job.
+- **Market Skill Insights**: Updated trends and demand weights for skills based on real market data.
+
+---
+
+## Technology Stack
 
 - **Backend**: FastAPI, Celery, Redis, PostgreSQL (pgvector).
 - **Frontend**: Next.js 14, TypeScript, TailwindCSS.
-- **AI**: OpenAI GPT-4o, Chandra OCR (Tùy chọn) / PDF Fallback, LangGraph, Semantic Search, LiteLLM.
+- **AI**: OpenAI GPT-4o, Chandra OCR (Optional) / PDF Fallback, LangGraph, Semantic Search, LiteLLM.
 
 ---
 
-## ⚡ Hướng Dẫn Chạy Nhanh (Quick Start)
+## Quick Start
 
-### 1. Cài đặt hạ tầng (Docker)
-Yêu cầu: Docker & Docker Compose.
+### 1. Infrastructure Setup (Docker)
+Requirements: Docker & Docker Compose.
 ```bash
 cd backend
-cp .env.example .env  # Cập nhật OPENAI_API_KEY vào .env
+cp .env.example .env  # Update OPENAI_API_KEY in .env
 docker-compose up -d --build
 ```
 
-### 2. Cấu hình AI Inference Hub (Chandra OCR) - *Tùy chọn*
-Đây là service xử lý trích xuất thông tin CV nâng cao (hỗ trợ file ảnh/scan). **Lưu ý**: Nếu bỏ qua bước này, hệ thống sẽ tự động sử dụng thư viện PDF fallback để trích xuất văn bản từ các file PDF chuẩn.
+### 2. Configure AI Inference Hub (Chandra OCR) - Optional
+This service handles advanced CV data extraction (supports image/scan files). **Note**: If you skip this step, the system will automatically use the PDF fallback library to extract text from standard PDF files.
 ```bash
 cd ai_inference_hub
 python3 -m venv venv
-source venv/bin/activate  # Hoặc venv\Scripts\activate trên Windows
+source venv/bin/activate  # Or venv\Scripts\activate on Windows
 pip install -r requirements_ai.txt
-python setup_chandra.py    # Tải trọng số mô hình (~5GB)
-python main.py             # Chạy AI Hub tại port 8080
+python setup_chandra.py    # Download model weights (~5GB)
+python main.py             # Run AI Hub on port 8080
 ```
 
-### 3. Khởi tạo dữ liệu (Chạy trong Docker)
-Sau khi Bước 1 đã chạy xong (containers đã up), hãy chạy các lệnh sau để khởi tạo hệ thống:
+### 3. Initialize Data (Run inside Docker)
+After Step 1 completes (containers are up), run the following commands to initialize the system:
 ```bash
-# 1. Khởi tạo Database & Admin (Chạy 1 lần)
+# 1. Initialize Database & Admin (Run once)
 docker exec -it advisor_worker_crawler python scripts/setup_db.py
 
-# 2. Nạp dữ liệu mồi (Khóa học & Kỹ năng)
-# Mẹo: Dùng --limit để import nhanh một số lượng nhỏ (ví dụ: 20 khóa học)
+# 2. Load seed data (Courses & Skills)
+# Tip: Use --limit to quickly import a small amount (e.g. 20 courses)
 docker exec -it advisor_worker_crawler python scripts/seed_all.py --limit 20
 
-# 3. Nạp dữ liệu công việc (TopCV) - Mẫu 20 tin tuyển dụng
-# Lưu ý: TopCV chặn các dải IP Datacenter. Nếu chạy trên Cloud (AWS/GCP...), 
-# hãy cấu hình PROXY_LIST (nên dùng Proxy dân cư) trong Admin Settings trước khi crawl.
+# 3. Load job data (TopCV) - Sample 20 job listings
+# Note: TopCV blocks Datacenter IP ranges. If running on Cloud (AWS/GCP...),
+# configure PROXY_LIST (preferably residential proxies) in Admin Settings before crawling.
 docker exec -it advisor_worker_crawler celery -A worker.celery_app call worker.tasks.crawler_tasks.crawl_topcv_jobs_task --args="[20, true]"
 ```
 
-### 4. Chạy Frontend
+### 4. Run Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Truy cập: [http://localhost:3000](http://localhost:3000)
+Access at: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 📖 Hướng Dẫn Sử Dụng
+## Usage Guide
 
-1.  **Phân tích CV**: Upload file CV (PDF/Ảnh) lên hệ thống. AI sẽ tự động bóc tách bộ kỹ năng và kinh nghiệm của bạn.
-2.  **Lựa chọn Vị trí (JD)**: Chọn một công việc mục tiêu (ví dụ: Senior Frontend) từ danh sách được crawl từ **TopCV** hoặc dán JD vào để so sánh.
-3.  **Phân tích Khoảng trống (Gap Analysis)**: Hệ thống hiển thị biểu đồ Radar Chart so sánh kỹ năng của bạn với yêu cầu thực tế của JD, tính toán **Match Score** hiện tại.
-4.  **Nhận Lộ trình Chứng chỉ**: Khám phá danh sách các chứng chỉ chuyên môn và khóa học (Coursera/Youtube) được gợi ý riêng cho bạn để lấp đầy các kỹ năng còn thiếu.
-5.  **Dự báo Tăng trưởng**: Xem chỉ số **Match Impact** (khả năng tăng tỷ lệ trúng tuyển) và **Market Demand** (nhu cầu thực tế của thị trường) sau khi hoàn thành lộ trình.
-
----
-
-## 📂 Tài Liệu Chi Tiết
-
-- 📊 **[Slide Thuyết Trình (Google Slides)](https://docs.google.com/presentation/d/1n9wfL9EEjTd_q0k-bvhSoeOxadimsC5Z/edit?usp=drive_link&ouid=105688789480489939544&rtpof=true&sd=true)**: Slide Pitching mô tả sản phẩm trên Google Slides.
-- 🎬 **[Video Demo Trải Nghiệm (YouTube)](https://youtu.be/LCOgX_Bs6No)**: Video chạy thử sản phẩm thực tế trên YouTube.
-- **[Kiến Trúc Hệ Thống](ARCHITECTURE.md)**: Chi tiết về Microservices và Data Flow.
-- **[Hướng Dẫn Cài Đặt Chi Tiết](SETUP_GUIDE.md)**: Cách thiết lập môi trường và nạp dữ liệu.
-- **[Nhật Ký Phát Triển](JOURNAL.md)**: Quá trình xây dựng sản phẩm hàng tuần.
-- **[Quy Chuẩn AI Agent](AGENTS.md)**: Dành cho các AI coding assistants.
+1.  **Analyze CV**: Upload your CV file (PDF/Image). AI will automatically extract your skill set and experience.
+2.  **Select a Position (JD)**: Choose a target job (e.g. Senior Frontend) from listings crawled from **TopCV** or paste a JD for comparison.
+3.  **Gap Analysis**: The system displays a Radar Chart comparing your skills against the actual JD requirements, calculating your current **Match Score**.
+4.  **Get Certificate Roadmap**: Explore a list of professional certificates and courses (Coursera/YouTube) suggested specifically for you to fill missing skills.
+5.  **Growth Forecast**: View **Match Impact** (likelihood of increasing your hiring odds) and **Market Demand** (real market demand) metrics after completing the roadmap.
 
 ---
 
-*© 2026 Leveller.ai - 078 Team - A20 AI Thực Chiến*
+## Detailed Documentation
+
+- **Pitch Slides (Google Slides)**: Pitching deck describing the product on Google Slides.
+- **Product Demo Video (YouTube)**: Live product walkthrough video on YouTube.
+- **System Architecture**: Microservices and Data Flow details.
+- **Detailed Setup Guide**: Environment setup and data loading instructions.
+- **Development Journal**: Weekly product building process.
+- **AI Agent Guidelines**: Instructions for AI coding assistants.
+
+---
+
+*2026 Leveller.ai - 078 Team - A20 Applied AI Program VinUniversity*
+
