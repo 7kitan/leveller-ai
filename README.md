@@ -99,8 +99,8 @@ Access at: [http://localhost:3000](http://localhost:3000)
 
 ## Detailed Documentation
 
-- **Pitch Slides (Google Slides)**: Pitching deck describing the product on Google Slides.
-- **Product Demo Video (YouTube)**: Live product walkthrough video on YouTube.
+- **Pitch Slides (Google Slides)**: [Pitch Deck](https://docs.google.com/presentation/d/1n9wfL9EEjTd_q0k-bvhSoeOxadimsC5Z/edit?usp=drive_link&ouid=105688789480489939544&rtpof=true&sd=true)
+- **Product Demo Video (YouTube)**: [Demo Walkthrough](https://youtu.be/LCOgX_Bs6No)
 - **System Architecture**: Microservices and Data Flow details.
 - **Detailed Setup Guide**: Environment setup and data loading instructions.
 - **Development Journal**: Weekly product building process.
